@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
@@ -15,7 +16,7 @@ import { WorkStatus } from 'src/utils/pointByPoint/serviceType.utils';
 // ─── Constantes e fixtures ───────────────────────────────────────────
 const WORK_ID = 10;
 
-const order = (fn: jest.Mock) => fn.mock.invocationCallOrder[0];
+const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
 
 const sItem = (o: Partial<ScheduleItem> = {}): ScheduleItem => ({
   scheduleId: 1,
@@ -49,13 +50,13 @@ describe('ProgressRecalculationService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockRepository = {
-    findScheduleItemsByServiceIds: jest.fn(),
-    updateServiceTotals: jest.fn(),
-    findWorkItems: jest.fn(),
-    findScheduleItemsByWork: jest.fn(),
-    findWorkStatus: jest.fn(),
-    updateSchedulesProgress: jest.fn(),
-    updateWorkProgress: jest.fn(),
+    findScheduleItemsByServiceIds: vi.fn(),
+    updateServiceTotals: vi.fn(),
+    findWorkItems: vi.fn(),
+    findScheduleItemsByWork: vi.fn(),
+    findWorkStatus: vi.fn(),
+    updateSchedulesProgress: vi.fn(),
+    updateWorkProgress: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -80,7 +81,7 @@ describe('ProgressRecalculationService', () => {
     mockRepository.updateWorkProgress.mockResolvedValue(undefined);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -332,15 +333,15 @@ describe('ProgressRecalculationService', () => {
   // ════════════════════════════════════════════════════════════════════
   describe('recomputeAll', () => {
     it('should recompute service totals and then the work progress, with the same tx', async () => {
-      const totalsSpy = jest.spyOn(service, 'recomputeServiceTotals');
-      const workSpy = jest.spyOn(service, 'recomputeWorkProgress');
+      const totalsSpy = vi.spyOn(service, 'recomputeServiceTotals');
+      const workSpy = vi.spyOn(service, 'recomputeWorkProgress');
 
       await service.recomputeAll([100, 101], WORK_ID, mockTx);
 
       expect(totalsSpy).toHaveBeenCalledWith([100, 101], mockTx);
       expect(workSpy).toHaveBeenCalledWith(WORK_ID, mockTx);
-      expect(order(totalsSpy as unknown as jest.Mock)).toBeLessThan(
-        order(workSpy as unknown as jest.Mock),
+      expect(order(totalsSpy as unknown as Mock)).toBeLessThan(
+        order(workSpy as unknown as Mock),
       );
 
       totalsSpy.mockRestore();

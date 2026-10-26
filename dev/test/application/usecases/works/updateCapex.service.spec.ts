@@ -4,17 +4,17 @@ describe('UpdateCapexService', () => {
   let service: UpdateCapexService;
 
   const auxiliaryBaseRepository = {
-    getAuxiliaryBaseCN52N: jest.fn(),
-    getFator: jest.fn(),
+    getAuxiliaryBaseCN52N: vi.fn(),
+    getFator: vi.fn(),
   };
 
   const updateCapexRepository = {
-    getDeletedMaterials: jest.fn(),
-    update: jest.fn(),
+    getDeletedMaterials: vi.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     service = new UpdateCapexService(
       auxiliaryBaseRepository as any,
@@ -56,7 +56,7 @@ describe('UpdateCapexService', () => {
       ]);
       updateCapexRepository.update.mockResolvedValue(undefined);
 
-      const progressMock = jest.fn();
+      const progressMock = vi.fn();
 
       await service.update(progressMock);
 
@@ -82,7 +82,7 @@ describe('UpdateCapexService', () => {
         new Error('Erro teste'),
       );
 
-      const progressMock = jest.fn();
+      const progressMock = vi.fn();
 
       await expect(service.update(progressMock)).rejects.toThrow('Erro teste');
 
@@ -99,7 +99,7 @@ describe('UpdateCapexService', () => {
 
       auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValue(error);
 
-      const progressMock = jest.fn();
+      const progressMock = vi.fn();
 
       await expect(service.update(progressMock)).rejects.toThrow();
 
@@ -274,7 +274,7 @@ describe('UpdateCapexService', () => {
     });
 
     it('deve ignorar materiais com reserva inexistente', () => {
-      jest.spyOn(service as any, 'canIncludeCapex').mockReturnValue(true);
+      vi.spyOn(service as any, 'canIncludeCapex').mockReturnValue(true);
 
       const materials = [
         {

@@ -16,9 +16,9 @@ describe('InsertWorksService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
 
   const mockRepository = {
-    insertMarketWorks: jest.fn(),
-    insertNotes: jest.fn(),
-    getGroup: jest.fn(),
+    insertMarketWorks: vi.fn(),
+    insertNotes: vi.fn(),
+    getGroup: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -29,11 +29,11 @@ describe('InsertWorksService', () => {
         {
           provide: FindExistingWorksService,
           useValue: {
-            findExistingWorks: jest.fn(),
-            findExistingOrders: jest.fn(),
+            findExistingWorks: vi.fn(),
+            findExistingOrders: vi.fn(),
           },
         },
-        { provide: AuxiliaryBaseService, useValue: { getNotes: jest.fn() } },
+        { provide: AuxiliaryBaseService, useValue: { getNotes: vi.fn() } },
       ],
     }).compile();
 
@@ -46,8 +46,8 @@ describe('InsertWorksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('insertMarketWorks', () => {
@@ -62,7 +62,7 @@ describe('InsertWorksService', () => {
     });
 
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
-      jest
+      vi
         .spyOn(findExistingWorksService, 'findExistingWorks')
         .mockResolvedValue([
           { id: 1, ovnota: '1424535' },
@@ -81,7 +81,7 @@ describe('InsertWorksService', () => {
     });
 
     it('should call method insertMarketWorks and return the default format of data', async () => {
-      jest
+      vi
         .spyOn(findExistingWorksService, 'findExistingWorks')
         .mockResolvedValue([{ id: 1, ovnota: '14245356' }]);
 
@@ -129,11 +129,11 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockReturnNote);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
@@ -157,11 +157,11 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockReturnNote);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 1, id_grupo: 2 }]);
 
@@ -185,11 +185,11 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockReturnNote);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
@@ -213,11 +213,11 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockReturnNote);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
@@ -227,11 +227,11 @@ describe('InsertWorksService', () => {
     });
 
     it('should throw BadRequestException when obra has invalid empreendimento for group 3 or 4', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockMappedNotes);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 4 }]);
 
@@ -251,11 +251,11 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockMappedNotes);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 5, id_grupo: 2 }]);
 
@@ -265,11 +265,11 @@ describe('InsertWorksService', () => {
     });
 
     it('should insert notes successfully when all data is valid', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockMappedNotes);
 
-      jest
+      vi
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 

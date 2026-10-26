@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 
@@ -21,9 +22,9 @@ import {
 describe('ExportServicesController', () => {
   let controller: ExportServicesController;
 
-  let exportServicesService: jest.Mocked<ExportServicesService>;
-  let exportPdfServicesService: jest.Mocked<ExportPdfServicesService>;
-  let exportExcelServicesService: jest.Mocked<ExportExcelServicesService>;
+  let exportServicesService: Mocked<ExportServicesService>;
+  let exportPdfServicesService: Mocked<ExportPdfServicesService>;
+  let exportExcelServicesService: Mocked<ExportExcelServicesService>;
 
   // Factory (e não const compartilhada): o controller muta os filtros.
   const makeFilters = (overrides: Record<string, unknown> = {}) =>
@@ -52,7 +53,7 @@ describe('ExportServicesController', () => {
     exportExcelServicesService = module.get(ExportExcelServicesService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

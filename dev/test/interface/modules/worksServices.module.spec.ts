@@ -4,8 +4,8 @@ import { WorksServicesModule } from 'src/interface/modules/worksServices.module'
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from 'src/application/usecases/users.service';
 
-jest.mock('src/shared/multer/multer.config', () => ({
-  createMulterConfig: jest.fn().mockReturnValue({
+vi.mock('src/shared/multer/multer.config', () => ({
+  createMulterConfig: vi.fn().mockReturnValue({
     storage: { mock: true },
   }),
 }));

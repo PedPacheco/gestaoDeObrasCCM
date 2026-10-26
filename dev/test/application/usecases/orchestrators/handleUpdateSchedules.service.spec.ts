@@ -14,19 +14,19 @@ describe('HandleUpdateScheduleService', () => {
   let service: HandleSchedulesUpdateService;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   const mockUpdateSchedulesService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockExecutionReportService = {
-    create: jest.fn(),
+    create: vi.fn(),
   };
 
   const mockGetDetailsService = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -51,7 +51,7 @@ describe('HandleUpdateScheduleService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   const mockDTO = {
     updateData: {

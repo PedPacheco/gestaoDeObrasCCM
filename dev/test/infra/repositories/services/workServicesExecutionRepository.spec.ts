@@ -7,12 +7,12 @@ import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServ
 // ─── Helpers ─────────────────────────────────────────────────────────
 const buildTx = () => ({
   programacoes: {
-    update: jest.fn(),
+    update: vi.fn(),
   },
   programacoes_servicos: {
-    findMany: jest.fn(),
-    updateMany: jest.fn(),
-    update: jest.fn(),
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+    update: vi.fn(),
   },
 });
 
@@ -36,7 +36,7 @@ describe('WorkServicesExeutionRepository', () => {
     tx = buildTx(); // tx novo em cada teste → sem estado partilhado
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(repository).toBeDefined();

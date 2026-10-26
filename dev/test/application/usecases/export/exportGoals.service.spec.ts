@@ -1,23 +1,24 @@
+import type { Mock } from 'vitest';
 import * as ExcelJS from 'exceljs';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 
-jest.mock('exceljs', () => {
-  const addRowsMock = jest.fn();
-  const addWorksheetMock = jest.fn(() => ({
+vi.mock('exceljs', () => {
+  const addRowsMock = vi.fn();
+  const addWorksheetMock = vi.fn(() => ({
     columns: [],
     addRows: addRowsMock,
-    getRow: jest.fn(() => ({ font: {} })),
+    getRow: vi.fn(() => ({ font: {} })),
   }));
 
-  const writeMock = jest.fn();
+  const writeMock = vi.fn();
 
   return {
-    Workbook: jest.fn().mockImplementation(() => ({
+    Workbook: vi.fn().mockImplementation(function () { return ({
       addWorksheet: addWorksheetMock,
       xlsx: {
         write: writeMock,
       },
-    })),
+    }); }),
   };
 });
 
@@ -25,31 +26,31 @@ describe('ExportGoalsService', () => {
   let service: ExportGoalsService;
 
   // mocks
-  let addWorksheetMock: jest.Mock;
-  let addRowsMock: jest.Mock;
-  let writeMock: jest.Mock;
+  let addWorksheetMock: Mock;
+  let addRowsMock: Mock;
+  let writeMock: Mock;
 
   beforeEach(() => {
-    addRowsMock = jest.fn();
-    writeMock = jest.fn().mockResolvedValue(undefined);
+    addRowsMock = vi.fn();
+    writeMock = vi.fn().mockResolvedValue(undefined);
 
-    addWorksheetMock = jest.fn().mockReturnValue({
+    addWorksheetMock = vi.fn().mockReturnValue({
       columns: [],
       addRows: addRowsMock,
     });
 
-    jest.spyOn(ExcelJS, 'Workbook').mockImplementation((): any => ({
+    (ExcelJS.Workbook as unknown as Mock).mockImplementation(function () { return ({
       addWorksheet: addWorksheetMock,
       xlsx: {
         write: writeMock,
       },
-    }));
+    }); });
 
     service = new ExportGoalsService();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -66,7 +67,7 @@ describe('ExportGoalsService', () => {
     it('should define columns correctly (fixed + months)', async () => {
       const worksheetMock: any = {
         columns: [],
-        addRows: jest.fn(),
+        addRows: vi.fn(),
       };
 
       addWorksheetMock.mockReturnValue(worksheetMock);

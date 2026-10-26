@@ -7,7 +7,7 @@ describe('ContractUpdateService', () => {
   let contractUpdateService: ContractUpdateService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -22,7 +22,7 @@ describe('ContractUpdateService', () => {
       ContractUpdateService,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Deve mapear ordemDiagrama começando com 170 para ordem_dci', async () => {

@@ -2,6 +2,7 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
 import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import type { Mock } from 'vitest';
 import {
   mockFindByWorkIdResponse,
   mockFindByWorkIdResponseFormatted,
@@ -11,17 +12,27 @@ import {
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-jest.mock('exceljs');
+vi.mock('exceljs');
+
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
 
 describe('ExportExecutionReportService', () => {
   let service: ExportExecutionReportService;
 
   const mockRepository = {
-    exportExecutionReport: jest.fn(),
+    exportExecutionReport: vi.fn(),
   };
 
   const mockResponse = {
-    setHeader: jest.fn(),
+    setHeader: vi.fn(),
   } as unknown as Response;
 
   beforeEach(async () => {
@@ -37,28 +48,30 @@ describe('ExportExecutionReportService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('Should create an Excel File with the provided data', async () => {
     mockRepository.exportExecutionReport.mockResolvedValue(
       mockFindByWorkIdResponse,
     );
 
-    const addRowsMock = jest.fn();
-    const writeMock = jest.fn();
+    const addRowsMock = vi.fn();
+    const writeMock = vi.fn();
 
     const workSheetMock = {
       addRows: addRowsMock,
     };
 
-    const addWorksheetMock = jest.fn().mockReturnValue(workSheetMock);
+    const addWorksheetMock = vi.fn().mockReturnValue(workSheetMock);
 
     const workBookMock = {
       addWorksheet: addWorksheetMock,
       xlsx: { write: writeMock },
     };
 
-    (ExcelJS.Workbook as jest.Mock).mockImplementation(() => workBookMock);
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return workBookMock;
+    });
 
     await service.export(mockResponse);
 
@@ -75,21 +88,23 @@ describe('ExportExecutionReportService', () => {
       mockFindByWorkIdResponseNull,
     );
 
-    const addRowsMock = jest.fn();
-    const writeMock = jest.fn();
+    const addRowsMock = vi.fn();
+    const writeMock = vi.fn();
 
     const workSheetMock = {
       addRows: addRowsMock,
     };
 
-    const addWorksheetMock = jest.fn().mockReturnValue(workSheetMock);
+    const addWorksheetMock = vi.fn().mockReturnValue(workSheetMock);
 
     const workBookMock = {
       addWorksheet: addWorksheetMock,
       xlsx: { write: writeMock },
     };
 
-    (ExcelJS.Workbook as jest.Mock).mockImplementation(() => workBookMock);
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return workBookMock;
+    });
 
     await service.export(mockResponse);
 

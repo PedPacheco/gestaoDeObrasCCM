@@ -7,7 +7,7 @@ describe('RejectionsOfSchedulesService', () => {
   let service: RejectionsOfSchedulesService;
 
   const mockRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -27,7 +27,7 @@ describe('RejectionsOfSchedulesService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should call get method and return data', async () => {

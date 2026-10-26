@@ -1,19 +1,20 @@
+import type { Mock, Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { EquipmentRepository } from 'src/infra/repositories/equipmentRepository';
 
 describe('EquipmentRepository', () => {
   let repository: EquipmentRepository;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: Mocked<PrismaService>;
 
   beforeEach(async () => {
     const prismaMock = {
       obras: {
-        findMany: jest.fn(),
-        count: jest.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
       },
       equipamentos: {
-        findMany: jest.fn(),
+        findMany: vi.fn(),
       },
     };
 
@@ -30,8 +31,8 @@ describe('EquipmentRepository', () => {
     repository = module.get<EquipmentRepository>(EquipmentRepository);
     prisma = module.get(PrismaService);
 
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   /**
@@ -44,7 +45,7 @@ describe('EquipmentRepository', () => {
     const where = { ovnota: { in: ['1'] } };
     const mockResult = [{ id: 1 }];
 
-    (prisma.obras.findMany as jest.Mock).mockResolvedValue(mockResult);
+    (prisma.obras.findMany as Mock).mockResolvedValue(mockResult);
 
     const result = await repository.findWorks(where);
 
@@ -80,7 +81,7 @@ describe('EquipmentRepository', () => {
   it('should call prisma.obras.count with correct where', async () => {
     const where = { referencia: { not: null } };
 
-    (prisma.obras.count as jest.Mock).mockResolvedValue(10);
+    (prisma.obras.count as Mock).mockResolvedValue(10);
 
     const result = await repository.countWorks(where);
 
@@ -98,7 +99,7 @@ describe('EquipmentRepository', () => {
     const codigos = ['EQ1', 'EQ2'];
     const mockResult = [{ codigo_instalacao: 'EQ1' }];
 
-    (prisma.equipamentos.findMany as jest.Mock).mockResolvedValue(mockResult);
+    (prisma.equipamentos.findMany as Mock).mockResolvedValue(mockResult);
 
     const result = await repository.findEquipmentByCode(codigos);
 
@@ -125,7 +126,7 @@ describe('EquipmentRepository', () => {
     const ovnotas = { ovnota: { in: ['1'] } };
     const mockResult = [{ ovnota: '1' }];
 
-    (prisma.obras.findMany as jest.Mock).mockResolvedValue(mockResult);
+    (prisma.obras.findMany as Mock).mockResolvedValue(mockResult);
 
     const result = await repository.findWithoutLocationRaw(ovnotas);
 

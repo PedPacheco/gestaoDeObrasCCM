@@ -13,7 +13,8 @@ import {
 
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Decimal } from '@prisma/client/runtime/library';
+
+import { Decimal } from '@prisma/client/runtime/client';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
@@ -71,20 +72,20 @@ describe('QueriesServicesService', () => {
   let getWorkDetailsService: IGetWorksDetailsRepository;
 
   const mockWorksServicesRepository = {
-    getAllServicesOfWork: jest.fn(),
-    getNotScheduledServices: jest.fn(),
-    getSelectedServices: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
-    getServicesFilters: jest.fn(),
-    getServicesContracts: jest.fn(),
-    getTeamsServices: jest.fn(),
-    getMaterialsContract: jest.fn(),
-    getServiceOptions: jest.fn(),
+    getAllServicesOfWork: vi.fn(),
+    getNotScheduledServices: vi.fn(),
+    getSelectedServices: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
+    getServicesFilters: vi.fn(),
+    getServicesContracts: vi.fn(),
+    getTeamsServices: vi.fn(),
+    getMaterialsContract: vi.fn(),
+    getServiceOptions: vi.fn(),
   };
 
   const mockGetWorksDetailsRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -110,7 +111,7 @@ describe('QueriesServicesService', () => {
       GET_WORKS_DETAILS_REPOSITORY,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

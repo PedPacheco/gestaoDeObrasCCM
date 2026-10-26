@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
 import {
   ERRORS_REPORT_REPOSITORY,
@@ -8,7 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 describe('ErrorsReportService', () => {
   let service: ErrorsReportService;
-  let repository: jest.Mocked<IErrorsReportRepository>;
+  let repository: Mocked<IErrorsReportRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,13 +18,13 @@ describe('ErrorsReportService', () => {
         {
           provide: ERRORS_REPORT_REPOSITORY,
           useValue: {
-            findUndefinedItems: jest.fn(),
-            findScheduleError: jest.fn(),
-            findZeroCapex: jest.fn(),
-            findExecutionDifferential: jest.fn(),
-            findDivergentConclusion: jest.fn(),
-            findWorksWithoutYearPlan: jest.fn(),
-            findRepeatedWorks: jest.fn(),
+            findUndefinedItems: vi.fn(),
+            findScheduleError: vi.fn(),
+            findZeroCapex: vi.fn(),
+            findExecutionDifferential: vi.fn(),
+            findDivergentConclusion: vi.fn(),
+            findWorksWithoutYearPlan: vi.fn(),
+            findRepeatedWorks: vi.fn(),
           },
         },
       ],
@@ -33,7 +34,7 @@ describe('ErrorsReportService', () => {
     repository = module.get(ERRORS_REPORT_REPOSITORY);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   // 🧠 findUndefinedItems
   it('deve formatar corretamente os dados retornados por findUndefinedItems', async () => {

@@ -1,3 +1,4 @@
+import type { MockInstance, Mocked, MockedFunction } from 'vitest';
 import { join } from 'path';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
@@ -17,28 +18,28 @@ import { Test, TestingModule } from '@nestjs/testing';
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
 // ---------------------------------------------------------------------------
-jest.mock('src/application/mappers/d5NotesScheduleMapper', () => ({
+vi.mock('src/application/mappers/d5NotesScheduleMapper', () => ({
   D5NoteScheduleMapper: {
-    fromCreateInput: jest.fn(),
-    fromUpdateInput: jest.fn(),
-    toDomain: jest.fn(),
-    toPersistenceCreate: jest.fn(),
-    toPersistenceUpdate: jest.fn(),
-    toRejectionSnapshot: jest.fn(),
+    fromCreateInput: vi.fn(),
+    fromUpdateInput: vi.fn(),
+    toDomain: vi.fn(),
+    toPersistenceCreate: vi.fn(),
+    toPersistenceUpdate: vi.fn(),
+    toRejectionSnapshot: vi.fn(),
   },
 }));
 
-jest.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
-  D5NoteSchedule: { create: jest.fn() },
+vi.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
+  D5NoteSchedule: { create: vi.fn() },
 }));
 
-jest.mock('src/domain/services/resolveFileDiff.service', () => ({
-  resolveFileDiff: jest.fn(),
+vi.mock('src/domain/services/resolveFileDiff.service', () => ({
+  resolveFileDiff: vi.fn(),
 }));
 
-const mapper = D5NoteScheduleMapper as jest.Mocked<typeof D5NoteScheduleMapper>;
-const entity = D5NoteSchedule as jest.Mocked<typeof D5NoteSchedule>;
-const fileDiff = resolveFileDiff as jest.MockedFunction<typeof resolveFileDiff>;
+const mapper = D5NoteScheduleMapper as Mocked<typeof D5NoteScheduleMapper>;
+const entity = D5NoteSchedule as Mocked<typeof D5NoteSchedule>;
+const fileDiff = resolveFileDiff as MockedFunction<typeof resolveFileDiff>;
 
 const UPLOAD_DIR = '/var/uploads/asbuild';
 
@@ -67,18 +68,18 @@ const makeCurrent = (overrides: Record<string, unknown> = {}) =>
 
 describe('ManageD5NoteScheduleService', () => {
   let service: ManageD5NoteScheduleService;
-  let loggerErrorSpy: jest.SpyInstance;
+  let loggerErrorSpy: MockInstance;
 
   const repository = {
-    create: jest.fn(),
-    getById: jest.fn(),
-    updateAndSyncWorkStatus: jest.fn(),
-    delete: jest.fn(),
-    getByD5NoteId: jest.fn(),
-    rejectMany: jest.fn(),
+    create: vi.fn(),
+    getById: vi.fn(),
+    updateAndSyncWorkStatus: vi.fn(),
+    delete: vi.fn(),
+    getByD5NoteId: vi.fn(),
+    rejectMany: vi.fn(),
   };
 
-  const fileService = { deleteMany: jest.fn() };
+  const fileService = { deleteMany: vi.fn() };
 
   beforeEach(async () => {
     process.env.UPLOAD_AS_BUILD = UPLOAD_DIR;
@@ -93,14 +94,14 @@ describe('ManageD5NoteScheduleService', () => {
 
     service = module.get(ManageD5NoteScheduleService);
 
-    loggerErrorSpy = jest
+    loggerErrorSpy = vi
       .spyOn((service as any).logger, 'error')
       .mockImplementation(() => undefined);
     fileService.deleteMany.mockResolvedValue(undefined);
   });
 
-  afterEach(() => jest.resetAllMocks());
-  afterAll(() => jest.restoreAllMocks());
+  afterEach(() => vi.resetAllMocks());
+  afterAll(() => vi.restoreAllMocks());
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();

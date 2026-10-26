@@ -8,13 +8,13 @@ describe('TimeMetricsService', () => {
   let service: TimeMetricsService;
 
   beforeEach(() => {
-    jest.useFakeTimers().setSystemTime(FIXED_NOW);
+    vi.useFakeTimers().setSystemTime(FIXED_NOW);
     service = new TimeMetricsService();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.restoreAllMocks();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   // ---------------------------------------------------------------------------
@@ -261,7 +261,7 @@ describe('TimeMetricsService', () => {
         DeadlineStatus.ON_TIME,
       );
 
-      jest.setSystemTime(new Date('2026-10-23T10:00:00Z'));
+      vi.setSystemTime(new Date('2026-10-23T10:00:00Z'));
 
       expect(service.getDeadlineInfo(criadoEm, null).statusPrazo).toBe(
         DeadlineStatus.ATTENTION,
@@ -269,10 +269,10 @@ describe('TimeMetricsService', () => {
     });
 
     it('deve delegar em calculateTM e calculateStatus', () => {
-      const calculateTM = jest
+      const calculateTM = vi
         .spyOn(service, 'calculateTM')
         .mockReturnValue({ tmAberto: 9, tmExecucao: null });
-      const calculateStatus = jest
+      const calculateStatus = vi
         .spyOn(service, 'calculateStatus')
         .mockReturnValue(DeadlineStatus.OVERDUE);
 

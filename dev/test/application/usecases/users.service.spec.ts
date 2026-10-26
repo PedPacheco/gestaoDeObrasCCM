@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { genSalt, hash } from 'bcrypt';
 import { UsersService } from 'src/application/usecases/users.service';
 import { User } from 'src/domain/entities/user.entity';
@@ -7,19 +8,19 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
-jest.mock('bcrypt', () => ({
-  hash: jest.fn(),
-  genSalt: jest.fn(),
+vi.mock('bcrypt', () => ({
+  hash: vi.fn(),
+  genSalt: vi.fn(),
 }));
 
 const mockUserRepository = {
-  findUser: jest.fn(),
-  updatePassword: jest.fn(),
+  findUser: vi.fn(),
+  updatePassword: vi.fn(),
 };
 
 const mockJwtService = {
-  sign: jest.fn(),
-  verify: jest.fn(),
+  sign: vi.fn(),
+  verify: vi.fn(),
 };
 
 describe('UsersService', () => {
@@ -41,7 +42,7 @@ describe('UsersService', () => {
   };
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -98,9 +99,9 @@ describe('UsersService', () => {
         ativo: true,
       };
 
-      jwtService.verify = jest.fn().mockResolvedValue({ id: userId });
-      (genSalt as jest.Mock).mockResolvedValue(salt);
-      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+      jwtService.verify = vi.fn().mockResolvedValue({ id: userId });
+      (genSalt as Mock).mockResolvedValue(salt);
+      (hash as Mock).mockResolvedValue(hashedPassword);
       mockUserRepository.updatePassword.mockResolvedValue(updatedUser);
 
       const result = await usersService.updatePassword(token, newPassword);
@@ -113,7 +114,7 @@ describe('UsersService', () => {
     });
 
     it('should return UnauthorizedException if the token is invalid or expired', async () => {
-      (jwtService.verify as jest.Mock).mockRejectedValue(
+      (jwtService.verify as Mock).mockRejectedValue(
         new Error('Token inválido ou expirado'),
       );
 

@@ -21,14 +21,14 @@ interface CustomRequest extends Request {
 // ---------------------------------------------------------------------------
 // Mocks dos guards (evita dependências de autenticação/permissões nos testes)
 // ---------------------------------------------------------------------------
-jest.mock('src/core/guards/newPermission.guard', () => ({
-  AreaViewGuard: jest.fn(
+vi.mock('src/core/guards/newPermission.guard', () => ({
+  AreaViewGuard: vi.fn(
     () =>
       class {
         canActivate = () => true;
       },
   ),
-  AreaEditGuard: jest.fn(
+  AreaEditGuard: vi.fn(
     () =>
       class {
         canActivate = () => true;
@@ -40,25 +40,25 @@ describe('D5NotesController', () => {
   let controller: D5NotesController;
 
   const findD5NotesService = {
-    get: jest.fn(),
-    getById: jest.fn(),
+    get: vi.fn(),
+    getById: vi.fn(),
   };
 
   const findD5SchedulesService = {
-    findD5NotesSchedules: jest.fn(),
-    findByD5NoteId: jest.fn(),
-    findRejectionsByD5Note: jest.fn(),
+    findD5NotesSchedules: vi.fn(),
+    findByD5NoteId: vi.fn(),
+    findRejectionsByD5Note: vi.fn(),
   };
 
   const manageD5NoteScheduleService = {
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    reject: jest.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    reject: vi.fn(),
   };
 
   const mockManageD5NoteScheduleService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -81,8 +81,8 @@ describe('D5NotesController', () => {
     controller = module.get<D5NotesController>(D5NotesController);
   });
 
-  afterEach(() => jest.clearAllMocks());
-  afterAll(() => jest.restoreAllMocks());
+  afterEach(() => vi.clearAllMocks());
+  afterAll(() => vi.restoreAllMocks());
 
   it('deve estar definido', () => {
     expect(controller).toBeDefined();

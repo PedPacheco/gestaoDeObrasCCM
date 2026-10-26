@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -9,36 +10,36 @@ describe('FeasibilityRepository', () => {
 
   const prismaMock = {
     relatorio_viabilidade: {
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      createMany: jest.fn(),
-      deleteMany: jest.fn(),
-      update: jest.fn(),
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      createMany: vi.fn(),
+      deleteMany: vi.fn(),
+      update: vi.fn(),
     },
     reprovacoes_viabilidade: {
-      findMany: jest.fn(),
-      create: jest.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
     },
     obras: {
-      update: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
   };
 
   const mockTx = {
-    $executeRaw: jest.fn(),
+    $executeRaw: vi.fn(),
     reprovacoes_viabilidade: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
-    relatorio_viabilidade: { update: jest.fn(), upsert: jest.fn() },
+    relatorio_viabilidade: { update: vi.fn(), upsert: vi.fn() },
   } as unknown as Prisma.TransactionClient;
 
   const FIXED_DATE = new Date('2025-07-01T12:00:00Z');
 
   beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-07-01T12:00:00Z'));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-07-01T12:00:00Z'));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -52,11 +53,11 @@ describe('FeasibilityRepository', () => {
 
     repository = module.get<FeasibilityRepository>(FeasibilityRepository);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   describe('exists', () => {
@@ -372,7 +373,7 @@ describe('FeasibilityRepository', () => {
     it('should propagate the error when tx.$executeRaw fails', async () => {
       const itemMock = [{ id: 1, viabilizado: 5 }];
 
-      (mockTx.$executeRaw as jest.Mock).mockRejectedValueOnce(
+      (mockTx.$executeRaw as Mock).mockRejectedValueOnce(
         new Error('DB connection lost'),
       );
 
@@ -424,7 +425,7 @@ describe('FeasibilityRepository', () => {
       } as RejectFeasibilityDTO;
 
       (
-        mockTx.reprovacoes_viabilidade.create as jest.Mock
+        mockTx.reprovacoes_viabilidade.create as Mock
       ).mockRejectedValueOnce(new Error('FK constraint violation'));
 
       await expect(repository.reject(data, mockTx)).rejects.toThrow(

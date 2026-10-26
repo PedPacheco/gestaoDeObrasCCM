@@ -7,18 +7,18 @@ describe('UpdateCapexRepository', () => {
 
   const mockPrisma = {
     obras: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
     servicos_contratos: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     cn52n: {
-      deleteMany: jest.fn(),
+      deleteMany: vi.fn(),
     },
   };
 
   const mockLogger = {
-    error: jest.fn(),
+    error: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -33,7 +33,7 @@ describe('UpdateCapexRepository', () => {
 
     (repository as any).logger = mockLogger;
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // ============================================================
@@ -135,7 +135,7 @@ describe('UpdateCapexRepository', () => {
       qtde_pend: 9,
     }));
 
-    const progressMock = jest.fn();
+    const progressMock = vi.fn();
 
     mockPrisma.obras.update.mockResolvedValue({});
     mockPrisma.cn52n.deleteMany.mockResolvedValue({});

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import * as moment from 'moment';
 
 import { Test } from '@nestjs/testing';
@@ -10,7 +11,7 @@ describe('ExecMonitoringRepository', () => {
   let prisma: PrismaService;
 
   const prismaMock = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const filtersWithoutOptional = {
@@ -60,7 +61,7 @@ describe('ExecMonitoringRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getData', () => {
@@ -73,7 +74,7 @@ describe('ExecMonitoringRepository', () => {
 
       expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       expect(queryArg).toBeDefined();
 
@@ -102,7 +103,7 @@ describe('ExecMonitoringRepository', () => {
         idRegional: [1],
       });
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 
@@ -117,7 +118,7 @@ describe('ExecMonitoringRepository', () => {
         idTecnico: [1],
       });
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 
@@ -132,7 +133,7 @@ describe('ExecMonitoringRepository', () => {
         idParceira: [1],
       });
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 
@@ -147,7 +148,7 @@ describe('ExecMonitoringRepository', () => {
         idTipo: [1],
       });
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 
@@ -161,7 +162,7 @@ describe('ExecMonitoringRepository', () => {
 
       expect(result).toEqual(mockResponse);
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 
@@ -181,7 +182,7 @@ describe('ExecMonitoringRepository', () => {
 
       await repository.getData(filtersWithoutOptional);
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       expect(queryArg.values).toContainEqual(
         moment.utc('01/11/2024', 'DD/MM/YYYY').toDate(),
@@ -203,7 +204,7 @@ describe('ExecMonitoringRepository', () => {
         idTipo: [],
       });
 
-      const queryArg = (prisma.$queryRaw as jest.Mock).mock.calls[0][0];
+      const queryArg = (prisma.$queryRaw as Mock).mock.calls[0][0];
 
       const queryString = queryArg.strings.join(' ');
 

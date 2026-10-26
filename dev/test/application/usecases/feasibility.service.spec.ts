@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
 import { FileService } from 'src/application/usecases/file.service';
 import {
@@ -48,7 +49,7 @@ const exportFeasibilityRepositoryResponse = [
           codigo: 'MAT-001',
           descricao: 'Cabo multiplexado',
           preco: {
-            toNumber: jest.fn().mockReturnValue(50),
+            toNumber: vi.fn().mockReturnValue(50),
           },
         },
       },
@@ -59,26 +60,26 @@ const exportFeasibilityRepositoryResponse = [
 describe('FeasibilityService', () => {
   let service: FeasibilityService;
 
-  const mockRepository: jest.Mocked<IFeasibilityRepository> = {
-    exists: jest.fn(),
-    saveFiles: jest.fn(),
-    findFiles: jest.fn(),
-    approve: jest.fn(),
-    getRejections: jest.fn(),
-    updateFiles: jest.fn(),
-    makeItemsFeasible: jest.fn(),
-    reject: jest.fn(),
-    getProjectDate: jest.fn(),
-    exportFeasibility: jest.fn(),
+  const mockRepository: Mocked<IFeasibilityRepository> = {
+    exists: vi.fn(),
+    saveFiles: vi.fn(),
+    findFiles: vi.fn(),
+    approve: vi.fn(),
+    getRejections: vi.fn(),
+    updateFiles: vi.fn(),
+    makeItemsFeasible: vi.fn(),
+    reject: vi.fn(),
+    getProjectDate: vi.fn(),
+    exportFeasibility: vi.fn(),
   };
 
   const mockFileService = {
-    deleteFile: jest.fn(),
+    deleteFile: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-07-06T12:00:00Z'));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-06T12:00:00Z'));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -96,11 +97,11 @@ describe('FeasibilityService', () => {
 
     service = module.get<FeasibilityService>(FeasibilityService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // -------------------------------------------------------------------------

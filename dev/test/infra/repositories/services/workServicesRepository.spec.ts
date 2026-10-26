@@ -7,7 +7,7 @@ import {
   DEMOTED_WORK_STATUS,
   ServiceTotals,
 } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import {
   AddServicesDTO,
@@ -18,32 +18,32 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────
 const buildTx = () => ({
   programacoes: {
-    update: jest.fn(),
-    findUnique: jest.fn(),
+    update: vi.fn(),
+    findUnique: vi.fn(),
   },
   programacoes_servicos: {
-    createMany: jest.fn(),
-    findMany: jest.fn(),
-    deleteMany: jest.fn(),
+    createMany: vi.fn(),
+    findMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   servicos: {
-    create: jest.fn(),
-    createMany: jest.fn(),
-    update: jest.fn(),
-    updateMany: jest.fn(),
-    delete: jest.fn(),
-    deleteMany: jest.fn(),
-    findMany: jest.fn(),
+    create: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    findMany: vi.fn(),
   },
   relatorio: {
-    deleteMany: jest.fn(),
-    upsert: jest.fn(),
+    deleteMany: vi.fn(),
+    upsert: vi.fn(),
   },
   obras: {
-    findUnique: jest.fn(),
-    update: jest.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
   },
-  $executeRaw: jest.fn(),
+  $executeRaw: vi.fn(),
 });
 
 type TxMock = ReturnType<typeof buildTx>;
@@ -71,7 +71,7 @@ describe('WorkServicesRepository', () => {
     tx = buildTx();
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(repository).toBeDefined();

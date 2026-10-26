@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { compare, genSalt, hash } from 'bcrypt';
 import { AuthService } from 'src/application/usecases/auth.service';
 import { UsersService } from 'src/application/usecases/users.service';
@@ -10,17 +11,17 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
-jest.mock('bcrypt', () => ({
-  compare: jest.fn(),
-  hash: jest.fn(),
-  genSalt: jest.fn(),
+vi.mock('bcrypt', () => ({
+  compare: vi.fn(),
+  hash: vi.fn(),
+  genSalt: vi.fn(),
 }));
 
 const mockAuthRepository = {
-  register: jest.fn(),
+  register: vi.fn(),
 };
 
-jest.mock('src/utils/generatePassword');
+vi.mock('src/utils/generatePassword');
 
 const registerUser: RegisterUserDTO = {
   username: 'username',
@@ -56,7 +57,7 @@ describe('AuthService', () => {
   let jwtService: JwtService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -64,15 +65,15 @@ describe('AuthService', () => {
         {
           provide: UsersService,
           useValue: {
-            findUser: jest.fn(),
-            registerUser: jest.fn(),
+            findUser: vi.fn(),
+            registerUser: vi.fn(),
           },
         },
         {
           provide: JwtService,
           useValue: {
-            signAsync: jest.fn(),
-            sign: jest.fn(),
+            signAsync: vi.fn(),
+            sign: vi.fn(),
           },
         },
         {
@@ -89,7 +90,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should throw NotFoundExpection if user is not found', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
       await expect(authService.login('7081545', 'pedro132')).rejects.toThrow(
         new UnauthorizedException('Usuário ou senha inválidos'),
@@ -97,10 +98,10 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedExpection if password is incorrect', async () => {
-      jest
+      vi
         .spyOn(usersService, 'findUser')
         .mockResolvedValue(new User(loginUser));
-      (compare as jest.Mock).mockResolvedValue(false);
+      (compare as Mock).mockResolvedValue(false);
 
       await expect(
         authService.login('username', 'wrong_password'),
@@ -110,7 +111,7 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException if user is not active', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue({
+      vi.spyOn(usersService, 'findUser').mockResolvedValue({
         ...loginUser,
         ativo: false,
       } as User);
@@ -123,11 +124,11 @@ describe('AuthService', () => {
     it('should return user and access_token if login is successful', async () => {
       const access_token = 'jwt_token';
 
-      jest
+      vi
         .spyOn(usersService, 'findUser')
         .mockResolvedValue(new User(loginUser));
-      (compare as jest.Mock).mockResolvedValue(true);
-      jest.spyOn(jwtService, 'signAsync').mockResolvedValue(access_token);
+      (compare as Mock).mockResolvedValue(true);
+      vi.spyOn(jwtService, 'signAsync').mockResolvedValue(access_token);
 
       const result = await authService.login('username', 'teste123');
 
@@ -149,7 +150,7 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should throw BadRequestExpection when user already exists', async () => {
-      jest
+      vi
         .spyOn(usersService, 'findUser')
         .mockResolvedValue(new User(loginUser));
 
@@ -159,7 +160,7 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestExpection when password not sent', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
 
       await expect(
         authService.register({ ...loginUser, senha: undefined }),
@@ -169,7 +170,7 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestExpection the internal user does not have a defined area.', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
       await expect(
         authService.register({ ...registerUser, id_area: undefined }),
@@ -184,7 +185,7 @@ describe('AuthService', () => {
       const salt = 10;
       const hashedPassword = 'hashPassword';
 
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(
         new User({
           ...registerUser,
           tipo_usuario: TipoUsuario.PARCEIRA,
@@ -192,10 +193,10 @@ describe('AuthService', () => {
         }),
       );
 
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
-      (genSalt as jest.Mock).mockResolvedValue(salt);
-      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+      (genSalt as Mock).mockResolvedValue(salt);
+      (hash as Mock).mockResolvedValue(hashedPassword);
 
       await authService.register({
         ...registerUser,
@@ -216,10 +217,10 @@ describe('AuthService', () => {
       const salt = 10;
       const hashedPassword = 'hashPassword';
 
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
-      (genSalt as jest.Mock).mockResolvedValue(salt);
-      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+      (genSalt as Mock).mockResolvedValue(salt);
+      (hash as Mock).mockResolvedValue(hashedPassword);
 
       const user = new User({
         ...registerUser,
@@ -227,9 +228,9 @@ describe('AuthService', () => {
         ativo: true,
       });
 
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
       mockAuthRepository.register.mockResolvedValue(user);
-      (generateRandomPassword as jest.Mock).mockReturnValue('hashPassword');
+      (generateRandomPassword as Mock).mockReturnValue('hashPassword');
 
       const result = await authService.register(registerUser);
 

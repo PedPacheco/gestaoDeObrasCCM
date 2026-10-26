@@ -9,12 +9,12 @@ describe('UpdateWorkService', () => {
   let updateWorkService: UpdateWorkService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockTx = {
     obras: {
-      create: jest.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
+      create: vi.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
     },
   } as unknown as Prisma.TransactionClient;
 

@@ -11,11 +11,11 @@ describe('UpdateOvService', () => {
   let updateOvService: UpdateOvService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingWorks: jest.fn(),
+    findExistingWorks: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -33,7 +33,7 @@ describe('UpdateOvService', () => {
     updateOvService = module.get<UpdateOvService>(UpdateOvService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {

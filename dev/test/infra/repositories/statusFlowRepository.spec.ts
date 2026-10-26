@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/generated/prisma/client';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
@@ -7,10 +8,10 @@ describe('StatusFlowRepository', () => {
 
   const mockTransaction = {
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
     obras: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -22,7 +23,7 @@ describe('StatusFlowRepository', () => {
     repository = module.get<StatusFlowRepository>(StatusFlowRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('updateScheduleStatus', () => {
     it('should change the schedule status to the value that was sent', async () => {
@@ -54,7 +55,7 @@ describe('StatusFlowRepository', () => {
 
     it('should throw error if  error occurs', async () => {
       const error = new Error('DB connection failed');
-      (mockTransaction.obras.update as jest.Mock).mockRejectedValue(error);
+      (mockTransaction.obras.update as Mock).mockRejectedValue(error);
 
       await expect(
         repository.updateStatusWorks(3, 5, mockTransaction),

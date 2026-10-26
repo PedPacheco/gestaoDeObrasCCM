@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { TestingModule } from '@nestjs/testing';
 
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
@@ -13,8 +14,8 @@ import {
 describe('ExportFeasibilityController', () => {
   let controller: ExportFeasibilityController;
 
-  let feasibilityService: jest.Mocked<FeasibilityService>;
-  let exportFeasibilityService: jest.Mocked<ExportFeasibilityService>;
+  let feasibilityService: Mocked<FeasibilityService>;
+  let exportFeasibilityService: Mocked<ExportFeasibilityService>;
 
   beforeEach(async () => {
     const module: TestingModule = await createExportTestingModule(
@@ -36,7 +37,7 @@ describe('ExportFeasibilityController', () => {
     exportFeasibilityService = module.get(ExportFeasibilityService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

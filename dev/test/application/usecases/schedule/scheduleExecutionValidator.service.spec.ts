@@ -33,8 +33,8 @@ describe('ScheduleExecutionValidatorService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
   // ─── Helpers ───────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ describe('ScheduleExecutionValidatorService', () => {
     service = module.get(ScheduleExecutionValidatorService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(service).toBeDefined();

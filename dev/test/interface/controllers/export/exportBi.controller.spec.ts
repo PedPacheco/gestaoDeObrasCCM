@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { TestingModule } from '@nestjs/testing';
 
 import { ExportWorksInPortfolioBI } from 'src/application/usecases/export/BI/exportWorkInPortfolioBI.service';
@@ -14,9 +15,9 @@ import { ExportBIController } from 'src/interface/controllers/export/exportBi.co
 describe('ExportBIController', () => {
   let controller: ExportBIController;
 
-  let exportWorksInPortfolioBIService: jest.Mocked<ExportWorksInPortfolioBI>;
-  let exportCompletedWorksBIService: jest.Mocked<ExportCompletedWorksBIService>;
-  let exportSchedulesBIService: jest.Mocked<ExportSchedulesBIService>;
+  let exportWorksInPortfolioBIService: Mocked<ExportWorksInPortfolioBI>;
+  let exportCompletedWorksBIService: Mocked<ExportCompletedWorksBIService>;
+  let exportSchedulesBIService: Mocked<ExportSchedulesBIService>;
 
   beforeEach(async () => {
     const module: TestingModule = await createExportTestingModule(
@@ -34,7 +35,7 @@ describe('ExportBIController', () => {
     exportSchedulesBIService = module.get(ExportSchedulesBIService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

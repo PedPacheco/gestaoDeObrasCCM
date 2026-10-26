@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import type { Mock, MockInstance } from 'vitest';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service'; // ajuste
@@ -31,17 +32,19 @@ import {
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
 
-jest.mock('src/domain/services/pointByPointRules.service', () => ({
-  ...jest.requireActual('src/domain/services/pointByPointRules.service'),
-  hasLockedExecution: jest.fn(),
+vi.mock('src/domain/services/pointByPointRules.service', async () => ({
+  ...(await vi.importActual<
+    typeof import('src/domain/services/pointByPointRules.service')
+  >('src/domain/services/pointByPointRules.service')),
+  hasLockedExecution: vi.fn(),
 }));
 
-const mockHasLockedExecution = hasLockedExecution as jest.Mock;
+const mockHasLockedExecution = hasLockedExecution as Mock;
 
 // ─── Constantes e helpers ────────────────────────────────────────────
 const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
 
-const order = (fn: jest.Mock) => fn.mock.invocationCallOrder[0];
+const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
 
 const expectError = async (
   promise: Promise<unknown>,
@@ -64,46 +67,46 @@ describe('WorksServicesService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockPrisma = {
-    $transaction: jest.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
+    $transaction: vi.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
       cb(mockTx),
     ),
   };
 
   const mockProgress = {
-    recomputeAll: jest.fn(),
-    recomputeServiceTotals: jest.fn(),
-    recomputeWorkProgress: jest.fn(),
+    recomputeAll: vi.fn(),
+    recomputeServiceTotals: vi.fn(),
+    recomputeWorkProgress: vi.fn(),
   };
 
   const mockWorkServicesRepository = {
-    updateScheduleStatus: jest.fn(),
-    createScheduleItems: jest.fn(),
-    updateServicesAdditional: jest.fn(),
-    findScheduleStatus: jest.fn(),
-    findScheduleItemsExecution: jest.fn(),
-    deleteScheduleItems: jest.fn(),
-    resetScheduleProgress: jest.fn(),
-    applyAdditional: jest.fn(),
-    addItem: jest.fn(),
-    delete: jest.fn(),
-    deleteAll: jest.fn(),
-    bulkImportItems: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    createScheduleItems: vi.fn(),
+    updateServicesAdditional: vi.fn(),
+    findScheduleStatus: vi.fn(),
+    findScheduleItemsExecution: vi.fn(),
+    deleteScheduleItems: vi.fn(),
+    resetScheduleProgress: vi.fn(),
+    applyAdditional: vi.fn(),
+    addItem: vi.fn(),
+    delete: vi.fn(),
+    deleteAll: vi.fn(),
+    bulkImportItems: vi.fn(),
   };
 
   const mockQueryRepository = {
-    getAllServicesOfWork: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
-    findServicesForScheduling: jest.fn(),
+    getAllServicesOfWork: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
+    findServicesForScheduling: vi.fn(),
   };
 
-  const mockSchedulesRepository = { findById: jest.fn() };
+  const mockSchedulesRepository = { findById: vi.fn() };
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
-  let loggerErrorSpy: jest.SpyInstance;
+  let loggerErrorSpy: MockInstance;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -129,11 +132,13 @@ describe('WorksServicesService', () => {
 
     service = module.get(WorksServicesService);
 
-    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    loggerErrorSpy = vi
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     loggerErrorSpy.mockRestore();
   });
 

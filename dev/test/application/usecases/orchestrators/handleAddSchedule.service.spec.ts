@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
@@ -15,7 +16,7 @@ import { Prisma } from 'src/generated/prisma/client';
 // ─── Constantes e helpers ────────────────────────────────────────────
 const SCHEDULE_STATUS_ID = 43;
 
-const order = (fn: jest.Mock) => fn.mock.invocationCallOrder[0];
+const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
 
 const expectError = async (
   promise: Promise<unknown>,
@@ -41,23 +42,23 @@ describe('HandleAddScheduleService', () => {
   let service: HandleAddScheduleService;
 
   const mockTx = {
-    obras: { findUnique: jest.fn() },
+    obras: { findUnique: vi.fn() },
   };
   const tx = mockTx as unknown as Prisma.TransactionClient;
 
   const mockPrisma = {
-    $transaction: jest.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
+    $transaction: vi.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
       cb(tx),
     ),
   };
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
-  const mockWorksServicesService = { scheduleServices: jest.fn() };
-  const mockAddScheduleService = { add: jest.fn() };
+  const mockWorksServicesService = { scheduleServices: vi.fn() };
+  const mockAddScheduleService = { add: vi.fn() };
 
   /** Define o modo da obra devolvido pelo tx.obras.findUnique */
   const mockWork = (programacao_ponto_a_ponto: boolean | null) =>
@@ -77,7 +78,7 @@ describe('HandleAddScheduleService', () => {
     service = module.get(HandleAddScheduleService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(service).toBeDefined();

@@ -25,16 +25,16 @@ describe('AuxiliaryBaseController', () => {
         {
           provide: AuxiliaryBaseService,
           useValue: {
-            getNotes: jest.fn(),
-            getMarket: jest.fn(),
-            delete: jest.fn(),
-            insertAuxiliaryBaseNotes: jest.fn(),
-            insertAuxiliaryBaseMarket: jest.fn(),
+            getNotes: vi.fn(),
+            getMarket: vi.fn(),
+            delete: vi.fn(),
+            insertAuxiliaryBaseNotes: vi.fn(),
+            insertAuxiliaryBaseMarket: vi.fn(),
           },
         },
-        { provide: CapexFullPipelineService, useValue: { run: jest.fn() } },
-        { provide: CapexGateway, useValue: { createEmitter: jest.fn() } },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: CapexFullPipelineService, useValue: { run: vi.fn() } },
+        { provide: CapexGateway, useValue: { createEmitter: vi.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -51,7 +51,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('getAuxiliaryBaseMarket', () => {
     it('should be call the method getAuxiliaryBaseMarket and return correctly data', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getMarket')
         .mockResolvedValue(mockMappedMarketWorks);
 
@@ -69,7 +69,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('getAuxiliaryBaseNotes', () => {
     it('should be call the method getAuxiliaryBaseNotes and return correctly data', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'getNotes')
         .mockResolvedValue(mockMappedNotes);
 
@@ -87,7 +87,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('InsertAuxiliaryBaseNotes', () => {
     it('should be call the method InsertAuxiliaryBaseNotes and return correctly data', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseNotes')
         .mockResolvedValue({
           insertedCount: 1,
@@ -116,7 +116,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('InsertAuxilaryBaseMarket', () => {
     it('should be call the method insertAuxiliaryBaseMarket and return correctly data', async () => {
-      jest
+      vi
         .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseMarket')
         .mockResolvedValue();
 
@@ -138,8 +138,8 @@ describe('AuxiliaryBaseController', () => {
 
   describe('importAndUpdateCapex', () => {
     it('should start pipeline and return jobId', async () => {
-      const mockRun = jest.fn().mockResolvedValue(undefined);
-      const mockEmitter = jest.fn();
+      const mockRun = vi.fn().mockResolvedValue(undefined);
+      const mockEmitter = vi.fn();
 
       const mockFile = {
         path: '/uploads/test.xlsx',
@@ -148,8 +148,8 @@ describe('AuxiliaryBaseController', () => {
       const mockGateway = auxiliaryBaseController['capexGateway'];
       const mockPipeline = auxiliaryBaseController['capexFullPipelineService'];
 
-      jest.spyOn(mockGateway, 'createEmitter').mockReturnValue(mockEmitter);
-      jest.spyOn(mockPipeline, 'run').mockImplementation(mockRun);
+      vi.spyOn(mockGateway, 'createEmitter').mockReturnValue(mockEmitter);
+      vi.spyOn(mockPipeline, 'run').mockImplementation(mockRun);
 
       const result =
         await auxiliaryBaseController.importAndUpdateCapex(mockFile);
@@ -176,11 +176,11 @@ describe('AuxiliaryBaseController', () => {
         path: '/uploads/test.xlsx',
       } as Express.Multer.File;
 
-      jest
+      vi
         .spyOn(auxiliaryBaseController['capexFullPipelineService'], 'run')
         .mockRejectedValue(error);
 
-      jest.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const result =
         await auxiliaryBaseController.importAndUpdateCapex(mockFile);
@@ -199,7 +199,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('DeleteAuxiliaryBaseNotes', () => {
     it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
       const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes(56);
       const expectedResponse = {
@@ -214,7 +214,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('DeleteAuxiliaryBaseMarket', () => {
     it('should be call the method DeleteAuxiliaryBaseMarket and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
       const result =
         await auxiliaryBaseController.DeleteAuxiliaryBaseMarket(56);
@@ -230,7 +230,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('DeleteAuxiliaryBaseMarketWithoutId', () => {
     it('should be call the method DeleteAuxiliaryBaseMarketWithoutId and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
       const result =
         await auxiliaryBaseController.DeleteAuxiliaryBaseMarketWithoutId();
@@ -249,7 +249,7 @@ describe('AuxiliaryBaseController', () => {
 
   describe('DeleteAuxiliaryBaseNotesWithoutId', () => {
     it('should be call the method DeleteAuxiliaryBaseNotesWithoutId and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
       const result =
         await auxiliaryBaseController.DeleteAuxiliaryBaseNotesWithoutId();

@@ -17,12 +17,12 @@ describe('AddSchedulesService', () => {
   let addSchedulesService: AddSchedulesService;
 
   const mockRepository = {
-    addSchedules: jest.fn(),
+    addSchedules: vi.fn(),
   };
 
   const mockTx = {
     schedules: {
-      create: jest.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
+      create: vi.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -40,7 +40,7 @@ describe('AddSchedulesService', () => {
     addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('add', () => {
     it('Should call method add and throw error', async () => {

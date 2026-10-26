@@ -14,24 +14,24 @@ describe('HandleWorkUpdateService', () => {
   let service: HandleWorkUpdateService;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   const mockUpdateWorkService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateStatusWorks: jest.fn(),
-    updateScheduleStatus: jest.fn(),
+    updateStatusWorks: vi.fn(),
+    updateScheduleStatus: vi.fn(),
   };
 
   const mockSuspensionWorkService = {
-    createSuspension: jest.fn(),
+    createSuspension: vi.fn(),
   };
 
   const mockGetDetailsService = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -54,12 +54,12 @@ describe('HandleWorkUpdateService', () => {
 
     service = module.get<HandleWorkUpdateService>(HandleWorkUpdateService);
 
-    jest.useFakeTimers().setSystemTime(new Date('2026-09-16T12:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2026-09-16T12:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
+    vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   describe('update', () => {

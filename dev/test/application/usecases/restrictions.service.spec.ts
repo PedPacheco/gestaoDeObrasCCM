@@ -16,12 +16,12 @@ describe('RestrictionsService', () => {
   let service: RestrictionsService;
 
   const mockRepository = {
-    getScheduleRestrictions: jest.fn(),
-    getPublicationRestricion: jest.fn(),
-    getPublicationRestrictionByWorkId: jest.fn(),
-    insertPublicationRestriction: jest.fn(),
-    updatePublicationRestriction: jest.fn(),
-    deletePublicationRestriction: jest.fn(),
+    getScheduleRestrictions: vi.fn(),
+    getPublicationRestricion: vi.fn(),
+    getPublicationRestrictionByWorkId: vi.fn(),
+    insertPublicationRestriction: vi.fn(),
+    updatePublicationRestriction: vi.fn(),
+    deletePublicationRestriction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -34,8 +34,8 @@ describe('RestrictionsService', () => {
 
     service = module.get<RestrictionsService>(RestrictionsService);
 
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should be defined', () => {

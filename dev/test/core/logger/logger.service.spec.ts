@@ -9,17 +9,17 @@ describe('AppLogger', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('error', () => {
     it('should call super.error with formatted json payload', () => {
-      const consoleErrorSpy = jest
+      const consoleErrorSpy = vi
         .spyOn(ConsoleLogger.prototype, 'error')
         .mockImplementation();
 
-      jest
+      vi
         .spyOn(Date.prototype, 'toISOString')
         .mockReturnValue('2026-05-18T12:00:00.000Z');
 
@@ -43,11 +43,11 @@ describe('AppLogger', () => {
     });
 
     it('should handle undefined optional parameters', () => {
-      const consoleErrorSpy = jest
+      const consoleErrorSpy = vi
         .spyOn(ConsoleLogger.prototype, 'error')
         .mockImplementation();
 
-      jest
+      vi
         .spyOn(Date.prototype, 'toISOString')
         .mockReturnValue('2026-05-18T12:00:00.000Z');
 
@@ -65,11 +65,11 @@ describe('AppLogger', () => {
     });
 
     it('should support object messages', () => {
-      const consoleErrorSpy = jest
+      const consoleErrorSpy = vi
         .spyOn(ConsoleLogger.prototype, 'error')
         .mockImplementation();
 
-      jest
+      vi
         .spyOn(Date.prototype, 'toISOString')
         .mockReturnValue('2026-05-18T12:00:00.000Z');
 

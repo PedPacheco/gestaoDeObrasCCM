@@ -98,7 +98,7 @@ describe('GetTotalValuesScheduleService', () => {
   ];
 
   const mockRepository = {
-    getTotalValues: jest.fn(),
+    getTotalValues: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -118,7 +118,7 @@ describe('GetTotalValuesScheduleService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {

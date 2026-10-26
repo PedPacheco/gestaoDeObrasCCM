@@ -4,31 +4,31 @@ describe('GetMonthlySummaryForecastService', () => {
   let service: GetMonthlySummaryForecastService;
 
   const mockRepository = {
-    getSummary: jest.fn(),
-    getCapexPlan: jest.fn(),
+    getSummary: vi.fn(),
+    getCapexPlan: vi.fn(),
   };
 
   const mockCalculator = {
-    aggregateFinancialCapacityByMonth: jest.fn(),
-    calculateWorkOrderMetrics: jest.fn(),
-    calculateGoalPercentage: jest.fn(),
-    calculateExecutionRate: jest.fn(),
-    aggregateDailySummaryTotals: jest.fn(),
-    calculateMoPrev: jest.fn(),
-    aggregateGroupTotals: jest.fn(),
+    aggregateFinancialCapacityByMonth: vi.fn(),
+    calculateWorkOrderMetrics: vi.fn(),
+    calculateGoalPercentage: vi.fn(),
+    calculateExecutionRate: vi.fn(),
+    aggregateDailySummaryTotals: vi.fn(),
+    calculateMoPrev: vi.fn(),
+    aggregateGroupTotals: vi.fn(),
   };
 
   const mockMapper = {
-    createDailySummaryEntry: jest.fn(),
-    accumulateDailySummaryEntry: jest.fn(),
-    finalizeDailySummaryEntry: jest.fn(),
-    createGroupTeamEntry: jest.fn(),
-    accumulateGroupTeamEntry: jest.fn(),
+    createDailySummaryEntry: vi.fn(),
+    accumulateDailySummaryEntry: vi.fn(),
+    finalizeDailySummaryEntry: vi.fn(),
+    createGroupTeamEntry: vi.fn(),
+    accumulateGroupTeamEntry: vi.fn(),
   };
 
   const mockTeamAggregator = {
-    buildExecutionCapacityTeams: jest.fn().mockReturnValue([]),
-    buildTotalTeamsMap: jest.fn().mockReturnValue(
+    buildExecutionCapacityTeams: vi.fn().mockReturnValue([]),
+    buildTotalTeamsMap: vi.fn().mockReturnValue(
       new Map<string, number>([
         ['15/03/2024', 5],
         ['16/03/2024', 4],
@@ -37,7 +37,7 @@ describe('GetMonthlySummaryForecastService', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     service = new GetMonthlySummaryForecastService(
       mockRepository as any,

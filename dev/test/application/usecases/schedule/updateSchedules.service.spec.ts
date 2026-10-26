@@ -19,26 +19,26 @@ describe('UpdateSchedulesService', () => {
 
   const mockTransaction = {
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
   const mockRepository = {
-    update: jest.fn(),
-    findExecutionOfSchedules: jest.fn(),
+    update: vi.fn(),
+    findExecutionOfSchedules: vi.fn(),
   };
 
   const mockScheduleExecutionValidatorService = {
-    validateExecutionAndUpdateStatus: jest.fn(),
+    validateExecutionAndUpdateStatus: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateStatusWorks: jest.fn(),
-    updateScheduleStatus: jest.fn(),
+    updateStatusWorks: vi.fn(),
+    updateScheduleStatus: vi.fn(),
   };
 
   const mockFindScheduleByIdRepository = {
-    findById: jest.fn(),
+    findById: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -64,7 +64,7 @@ describe('UpdateSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should call method update and throw BadRequestExpection', async () => {

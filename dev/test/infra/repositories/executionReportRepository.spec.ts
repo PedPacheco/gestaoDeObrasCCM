@@ -17,38 +17,38 @@ describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
     relatorio_execucao: {
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   };
 
   const mockTransaction = {
     relatorio_execucao: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      delete: jest.fn(), // deleteReport
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      delete: vi.fn(), // deleteReport
     },
     programacoes: {
-      findUnique: jest.fn(), // findScheduleWorkMode
-      update: jest.fn(), // resetScheduleExecution
-      aggregate: jest.fn(), // sumWorkSchedulesExec
+      findUnique: vi.fn(), // findScheduleWorkMode
+      update: vi.fn(), // resetScheduleExecution
+      aggregate: vi.fn(), // sumWorkSchedulesExec
     },
     programacoes_servicos: {
-      findMany: jest.fn(), // findScheduledServiceIds
-      updateMany: jest.fn(), // resetScheduleExecution
+      findMany: vi.fn(), // findScheduledServiceIds
+      updateMany: vi.fn(), // resetScheduleExecution
     },
     servicos: {
-      updateMany: jest.fn(), // clearServicesReal
+      updateMany: vi.fn(), // clearServicesReal
     },
     obras: {
-      update: jest.fn(), // updateWorkStatusAfterReset
+      update: vi.fn(), // updateWorkStatusAfterReset
     },
   } as any;
 
@@ -65,7 +65,7 @@ describe('ExecutionReportRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('create', () => {
     it('call method create and create a new register in table', async () => {
@@ -280,7 +280,7 @@ describe('ExecutionReportRepository', () => {
   describe('deleteReport', () => {
     const buildTx = () => ({
       relatorio_execucao: {
-        delete: jest.fn().mockResolvedValue({ id: 1 }),
+        delete: vi.fn().mockResolvedValue({ id: 1 }),
       },
     });
 
