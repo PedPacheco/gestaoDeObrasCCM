@@ -1,5 +1,5 @@
-import { novo_tabela_usuarios } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UserRepository } from 'src/infra/repositories/userRepository';
 

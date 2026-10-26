@@ -4,9 +4,10 @@ import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.servic
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;

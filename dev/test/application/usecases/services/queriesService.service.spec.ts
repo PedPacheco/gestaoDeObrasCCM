@@ -14,11 +14,11 @@ import {
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { Decimal } from '@prisma/client/runtime/client';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
 } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
   {
@@ -138,7 +138,7 @@ describe('QueriesServicesService', () => {
         materiais: {
           codigo: '12345',
           descricao: 'POSTE',
-          preco: new Decimal(1.5),
+          preco: new Prisma.Decimal(1.5),
         },
       },
       {
@@ -307,7 +307,7 @@ describe('QueriesServicesService', () => {
         materiais: {
           codigo: 'MAT002',
           descricao: 'Cabo de Alumínio',
-          preco: new Decimal(45.9),
+          preco: new Prisma.Decimal(45.9),
         },
         servicos_contratos: null,
       },
@@ -529,7 +529,7 @@ describe('QueriesServicesService', () => {
           materiais: {
             codigo: '1234',
             descricao: 'Poste',
-            preco: new Decimal(5),
+            preco: new Prisma.Decimal(5),
           },
         },
       },

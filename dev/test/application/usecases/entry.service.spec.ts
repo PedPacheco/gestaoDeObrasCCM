@@ -7,7 +7,7 @@ import {
 } from 'src/interface/dtos/entryDto';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('EntryService', () => {
   let entryService: EntryService;

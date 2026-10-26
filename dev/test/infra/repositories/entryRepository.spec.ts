@@ -1,13 +1,15 @@
-import type { Mock } from 'vitest';
-import { Test, TestingModule } from '@nestjs/testing';
-import { obras } from '@prisma/client';
 import moment from 'moment';
+import { obras } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { EntryRespository } from 'src/infra/repositories/entryRepository';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
+import type { Mock } from 'vitest';
 
 describe('EntryRepository', () => {
   const mockPrisma = {
