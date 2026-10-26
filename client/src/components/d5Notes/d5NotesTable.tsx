@@ -56,8 +56,6 @@ export function D5NotesTable({
   const totalCount = totals.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / 200));
 
-  console.log(totals);
-
   return (
     <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%] flex flex-col">
       {/* Scroll horizontal externo */}
@@ -95,6 +93,7 @@ export function D5NotesTable({
                     .map((column) => {
                       let cellValue = item[column];
                       let decimal: string[] = [];
+                      let bgColorClass = "";
 
                       if (typeof cellValue === "number") {
                         decimal = cellValue.toString().split(".");
@@ -135,6 +134,19 @@ export function D5NotesTable({
                           ? Object.values(cellValue).join(", ")
                           : cellValue;
 
+                      if (column === "statusPrazo") {
+                        if (displayValue?.includes("No prazo"))
+                          bgColorClass = "bg-green-200 text-green-800";
+                        else if (displayValue?.includes("Atenção"))
+                          bgColorClass = "bg-yellow-200 text-yellow-800";
+                        else if (displayValue?.includes("Urgente"))
+                          bgColorClass = "bg-yellow-300 text-yellow-900";
+                        else if (displayValue?.includes("Crítico"))
+                          bgColorClass = "bg-red-300 text-red-900";
+                        else if (displayValue?.includes("Prazo vencido"))
+                          bgColorClass = "bg-black text-white";
+                      }
+
                       return (
                         <TableCell
                           key={column}
@@ -146,6 +158,7 @@ export function D5NotesTable({
                               ? "sticky left-0 bg-white z-10"
                               : ""
                           }
+                          ${column === "statusPrazo" ? bgColorClass : ""}
                         `}
                         >
                           {displayValue}

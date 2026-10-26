@@ -4,19 +4,22 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
   ID5NotesRepository,
 } from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
 export class FindD5NotesService {
   constructor(
     @Inject(D5_NOTES_REPOSITORY)
     private readonly d5NotesRepository: ID5NotesRepository,
+    private readonly timeMetrics: TimeMetricsService,
   ) {}
 
   async get(filters: D5NotesFiltersDTO) {
@@ -37,23 +40,28 @@ export class FindD5NotesService {
         status,
         novo_tabela_usuarios,
         ...rest
-      }) => ({
-        ...rest,
-        moRetida: Number(rest.mo_planejada),
-        ordemDiagrama:
-          obras?.diagrama ??
-          obras?.ordem_dci ??
-          obras?.ordem_dca ??
-          obras?.ordem_dcd ??
-          obras?.ordem_dcim,
-        obra: obras?.ovnota ?? null,
-        municipio: municipios.mun_minusculo,
-        regional: municipios.regionais.regional,
-        parceira: turmas.turma,
-        tipoObra: tipos.tipo_obra,
-        status: status.status,
-        usuarioModificador: novo_tabela_usuarios?.nome ?? null,
-      }),
+      }) => {
+        const { tmAberto, tmExecucao } = this.timeMetrics.getDeadlineInfo(
+          rest.criado_em,
+          rest.conclusao_nota,
+        );
+
+        return {
+          ...rest,
+          moRetida: Number(rest.mo_planejada ?? 0),
+          ordemDiagrama: resolveOrdemDiagrama(obras),
+          obra: obras?.ovnota ?? null,
+          municipio: municipios?.mun_minusculo ?? null,
+          regional: municipios?.regionais?.regional ?? null,
+          parceira: turmas?.turma ?? null,
+          tipoObra: tipos?.tipo_obra ?? null,
+          status: status?.status ?? null,
+          tmAberto,
+          tmExecucao,
+          statusPrazo: this.timeMetrics.calculateStatus(tmAberto),
+          usuarioModificador: novo_tabela_usuarios?.nome ?? null,
+        };
+      },
     );
 
     return { d5Notes: d5NotesFormatted, totals };
@@ -84,29 +92,15 @@ export class FindD5NotesService {
     const { totalExecutado, totalProgramado } =
       this.calculateCostPointByPointSchedule(programacoes_d5);
 
-    const { tmAberto, tmExecucao } = this.calculateTM(
-      moment.utc(rest.criado_em).startOf('day'),
-      rest.conclusao_nota
-        ? moment.utc(rest.conclusao_nota).startOf('day')
-        : null,
-    );
-
     return {
       ...rest,
       obra: obras?.ovnota ?? null,
-      ordemDiagrama:
-        obras?.diagrama ??
-        obras?.ordem_dci ??
-        obras?.ordem_dca ??
-        obras?.ordem_dcd ??
-        obras?.ordem_dcim,
+      ordemDiagrama: resolveOrdemDiagrama(obras),
       municipio: municipios.mun_minusculo,
       regional: municipios.regionais.regional,
       parceira: turmas.turma,
       tipoObra: tipos.tipo_obra,
       status: status.status,
-      tmAberto,
-      tmExecucao,
       moRetida: rest.mo_planejada,
       usuarioModificador: novo_tabela_usuarios?.nome ?? null,
       totalProgramado,
@@ -135,25 +129,6 @@ export class FindD5NotesService {
     );
   }
 
-  private calculateTM(initialDate: Moment, executionDate: Moment | null) {
-    const start = moment.utc(initialDate).startOf('day');
-
-    if (executionDate) {
-      return {
-        tmAberto: null,
-        tmExecucao: moment
-          .utc(executionDate)
-          .startOf('day')
-          .diff(start, 'days'),
-      };
-    }
-
-    return {
-      tmAberto: moment.utc().startOf('day').diff(start, 'days'),
-      tmExecucao: null,
-    };
-  }
-
   /* ---------------- Funções para orquestração dos filtros ---------------- */
 
   private buildWhereClause(filters: D5NotesFiltersDTO) {
@@ -175,7 +150,7 @@ export class FindD5NotesService {
     }
 
     if (filters.idGrupo?.length) {
-      where.id_turma = { in: filters.idGrupo };
+      where.tipos = { id_grupo: { in: filters.idGrupo } };
     }
 
     if (filters.idTipo?.length) {
@@ -184,6 +159,18 @@ export class FindD5NotesService {
 
     if (filters.idParceira?.length) {
       where.id_parceira = { in: filters.idParceira };
+    }
+
+    if (filters.idOvnota?.length) {
+      where.id_obra = { in: filters.idOvnota };
+    }
+
+    if (filters.idNotaD5?.length) {
+      where.id = { in: filters.idNotaD5 };
+    }
+
+    if (filters.statusD5Sap) {
+      where.status_sap = filters.statusD5Sap;
     }
 
     // --- Período da data de criação ---
@@ -205,15 +192,6 @@ export class FindD5NotesService {
 
     if (conclusaoNota) {
       where.conclusao_nota = conclusaoNota;
-    }
-
-    // --- Status SAP ---
-    if (filters.statusD5Sap) {
-      where.status_sap = filters.statusD5Sap;
-    }
-
-    if (filters.idNotaD5?.length) {
-      where.id = { in: filters.idNotaD5 };
     }
 
     return where;

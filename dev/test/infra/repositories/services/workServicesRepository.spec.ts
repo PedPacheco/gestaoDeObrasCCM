@@ -226,10 +226,10 @@ describe('WorkServicesRepository', () => {
   });
 
   describe('findScheduleItemsExecution', () => {
-    it('should return service id and real of each item', async () => {
+    it('should return service id, real and status of each item', async () => {
       const rows = [
-        { id_servico: 1, real: 5 },
-        { id_servico: 2, real: null },
+        { id_servico: 1, real: 5, status: 'EXECUTADO' },
+        { id_servico: 2, real: null, status: null },
       ];
       tx.programacoes_servicos.findMany.mockResolvedValueOnce(rows);
 
@@ -237,7 +237,7 @@ describe('WorkServicesRepository', () => {
 
       expect(tx.programacoes_servicos.findMany).toHaveBeenCalledWith({
         where: { id_programacao: 3 },
-        select: { id_servico: true, real: true },
+        select: { id_servico: true, real: true, status: true },
       });
       expect(result).toEqual(rows);
     });
@@ -477,6 +477,7 @@ describe('WorkServicesRepository', () => {
     prog: true,
     real: true,
     servicos: { select: { id_material: true } },
+    status: true,
   };
 
   const scheduleRows = [
@@ -486,6 +487,7 @@ describe('WorkServicesRepository', () => {
       prog: 5,
       real: 3,
       servicos: { id_material: null },
+      status: 'EXECUTADO',
     },
     {
       id_programacao: 2,
@@ -493,12 +495,27 @@ describe('WorkServicesRepository', () => {
       prog: 8,
       real: null,
       servicos: { id_material: 99 },
+      status: null,
     },
   ];
 
   const expectedScheduleItems = [
-    { scheduleId: 1, serviceId: 10, prog: 5, real: 3, isMaterial: false },
-    { scheduleId: 2, serviceId: 11, prog: 8, real: null, isMaterial: true },
+    {
+      scheduleId: 1,
+      serviceId: 10,
+      prog: 5,
+      real: 3,
+      isMaterial: false,
+      status: 'EXECUTADO',
+    },
+    {
+      scheduleId: 2,
+      serviceId: 11,
+      prog: 8,
+      real: null,
+      isMaterial: true,
+      status: null,
+    },
   ];
 
   describe('findScheduleItemsByServiceIds', () => {
@@ -529,6 +546,22 @@ describe('WorkServicesRepository', () => {
 
       expect(item.isMaterial).toBe(true);
     });
+
+    it.each([['REPROGRAMADO'], ['NAO_EXECUTADO']])(
+      'should carry the status %s through to the ScheduleItem',
+      async (status) => {
+        tx.programacoes_servicos.findMany.mockResolvedValueOnce([
+          { ...scheduleRows[0], status },
+        ]);
+
+        const [item] = await repository.findScheduleItemsByServiceIds(
+          [10],
+          asTx(tx),
+        );
+
+        expect(item.status).toBe(status);
+      },
+    );
 
     it('should return an empty array when nothing is found', async () => {
       tx.programacoes_servicos.findMany.mockResolvedValueOnce([]);
@@ -565,6 +598,7 @@ describe('WorkServicesRepository', () => {
       expect(tx.servicos.findMany).toHaveBeenCalledWith({
         where: { id_obra: 10 },
         select: {
+          id: true,
           id_material: true,
           viabilizado: true,
           qtde_adicional: true,

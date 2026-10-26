@@ -319,6 +319,7 @@ describe('WorkServicesQueryRepository', () => {
           prog: true,
           real: true,
           adicional: true,
+          status: true,
         },
         where: { programacoes: { id_obra: 1 } },
       });

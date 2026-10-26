@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import D5NotesMain from "@/components/d5Notes/d5NotesMain";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -30,6 +30,7 @@ export default async function D5NotesPage() {
       grupo: true,
       status: true,
       notaD5: true,
+      ovnota: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/notas-d5`,
@@ -58,6 +59,7 @@ export default async function D5NotesPage() {
     conclusao_nota: "Data de conclusão",
     status: "Status D5 (SIGO)",
     status_sap: "Status D5 (SAP)",
+    statusPrazo: "Status Prazo",
     tmAberto: "TM - Aberto",
     tmExecucao: "TM - Execução",
     moRetida: "MO Retida",

@@ -95,6 +95,7 @@ export interface GetServiceScheduleHistoryResponse {
   prog: number;
   real: number;
   adicional: number;
+  status: string | null;
 }
 
 export interface GetServiceOptionsResponse {

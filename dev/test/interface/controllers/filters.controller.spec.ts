@@ -188,7 +188,6 @@ describe('FiltersController', () => {
       expectedStatus,
       expectedConjunto,
       expectedOvnota,
-      expectedOvnotaExec,
       expectedEmpreendimento,
       expectedRestricao,
       expectedTecnico,
@@ -208,7 +207,6 @@ describe('FiltersController', () => {
       expect(filtersDTO.grupo).toBe(expectedGrupo);
       expect(filtersDTO.municipio).toBe(expectedMunicipio);
       expect(filtersDTO.ovnota).toBe(expectedOvnota);
-      expect(filtersDTO.ovnotaExec).toBe(expectedOvnotaExec);
       expect(filtersDTO.status).toBe(expectedStatus);
       expect(filtersDTO.restricao).toBe(expectedRestricao);
       expect(filtersDTO.tecnico).toBe(expectedTecnico);

@@ -1,4 +1,5 @@
-import { Prisma } from 'src/infra/generated/prisma/client';
+import { Prisma } from '@prisma/client';
+import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 
 export type FindD5NotesQueryResult = {
   id: number;
@@ -240,6 +241,7 @@ export type D5NoteScheduleListItem = {
   status_sap: string;
   tmExecucao: number | null;
   tmAberto: number | null;
+  statusPrazo: DeadlineStatus | null;
   moRetida: number;
 
   // Relações da nota
