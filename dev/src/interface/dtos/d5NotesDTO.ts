@@ -141,6 +141,11 @@ export class D5NotesSchedulesFiltersDTO {
   idNotaD5?: number[];
 
   @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  id?: number[];
+
+  @IsOptional()
   @IsBoolean()
   @Transform(toBoolean)
   executado?: boolean;
