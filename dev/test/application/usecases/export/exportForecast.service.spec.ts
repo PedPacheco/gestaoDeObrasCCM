@@ -1,28 +1,39 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
+import type { Mock, Mocked } from 'vitest';
 
+import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
 } from 'src/domain/repositories/IExportRepository';
-import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
-jest.mock('exceljs');
+vi.mock('exceljs');
+
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
 
 describe('ExportForecastService', () => {
   let service: ExportForecastService;
-  let repository: jest.Mocked<IExportRepository>;
-  let deadlineService: jest.Mocked<DeadlineStatusService>;
+  let repository: Mocked<IExportRepository>;
+  let deadlineService: Mocked<DeadlineStatusService>;
 
-  let mockAddRows: jest.Mock;
-  let mockWrite: jest.Mock;
+  let mockAddRows: Mock;
+  let mockWrite: Mock;
   let mockWorksheet: any;
 
   beforeEach(async () => {
-    mockAddRows = jest.fn();
-    mockWrite = jest.fn().mockResolvedValue(undefined);
+    mockAddRows = vi.fn();
+    mockWrite = vi.fn().mockResolvedValue(undefined);
 
     mockWorksheet = {
       columns: [],
@@ -30,13 +41,15 @@ describe('ExportForecastService', () => {
     };
 
     const mockWorkbook = {
-      addWorksheet: jest.fn().mockReturnValue(mockWorksheet),
+      addWorksheet: vi.fn().mockReturnValue(mockWorksheet),
       xlsx: {
         write: mockWrite,
       },
     };
 
-    (ExcelJS.Workbook as jest.Mock).mockImplementation(() => mockWorkbook);
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return mockWorkbook;
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -44,13 +57,13 @@ describe('ExportForecastService', () => {
         {
           provide: EXPORT_REPOSITORY,
           useValue: {
-            exportForecast: jest.fn(),
+            exportForecast: vi.fn(),
           },
         },
         {
           provide: DeadlineStatusService,
           useValue: {
-            calculate: jest.fn(),
+            calculate: vi.fn(),
           },
         },
       ],
@@ -62,7 +75,7 @@ describe('ExportForecastService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('deve exportar dados corretamente com status calculado', async () => {

@@ -44,20 +44,20 @@ describe('WorksController', () => {
     const module = await Test.createTestingModule({
       controllers: [WorksController],
       providers: [
-        { provide: GetAllWorksService, useValue: { getAllWorks: jest.fn() } },
+        { provide: GetAllWorksService, useValue: { getAllWorks: vi.fn() } },
         {
           provide: GetCompletedWorksService,
-          useValue: { getCompletedWorks: jest.fn() },
+          useValue: { getCompletedWorks: vi.fn() },
         },
         {
           provide: GetWorkDetailsService,
-          useValue: { get: jest.fn() },
+          useValue: { get: vi.fn() },
         },
         {
           provide: GetWorksInPortfolioService,
-          useValue: { getWorksInPortfolio: jest.fn() },
+          useValue: { getWorksInPortfolio: vi.fn() },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -90,7 +90,7 @@ describe('WorksController', () => {
         page: 0,
       };
 
-      jest
+      vi
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
@@ -124,7 +124,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
@@ -159,7 +159,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -195,7 +195,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -232,7 +232,7 @@ describe('WorksController', () => {
         dataFinal: undefined,
       };
 
-      jest
+      vi
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -271,7 +271,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -300,13 +300,13 @@ describe('WorksController', () => {
       }) as unknown as CustomRequest;
 
     beforeEach(() => {
-      jest
+      vi
         .spyOn(getWorkDetailsService, 'get')
         .mockResolvedValue(mockResponseDetails);
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('Should get work details without partner restriction for internal users', async () => {
@@ -334,7 +334,7 @@ describe('WorksController', () => {
     });
 
     it('Should propagate NotFoundException from the service', async () => {
-      jest
+      vi
         .spyOn(getWorkDetailsService, 'get')
         .mockRejectedValue(new NotFoundException('Obra não encontrada'));
 

@@ -1,8 +1,9 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 import { ID5NotesRepository } from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
+import type { Mocked } from 'vitest';
 
 const makePrismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError('erro', {
@@ -12,7 +13,7 @@ const makePrismaError = (code: string) =>
 
 describe('ManageD5NoteService', () => {
   let service: ManageD5NoteService;
-  let repository: jest.Mocked<Pick<ID5NotesRepository, 'getById' | 'update'>>;
+  let repository: Mocked<Pick<ID5NotesRepository, 'getById' | 'update'>>;
 
   const NOTE_ID = 1;
   const USER_ID = 99;
@@ -20,15 +21,15 @@ describe('ManageD5NoteService', () => {
 
   beforeEach(() => {
     repository = {
-      getById: jest.fn().mockResolvedValue({ id: NOTE_ID }),
-      update: jest.fn().mockResolvedValue(undefined),
+      getById: vi.fn().mockResolvedValue({ id: NOTE_ID }),
+      update: vi.fn().mockResolvedValue(undefined),
     };
     service = new ManageD5NoteService(
       repository as unknown as ID5NotesRepository,
     );
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();

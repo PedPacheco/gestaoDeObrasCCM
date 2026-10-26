@@ -11,12 +11,12 @@ describe('GetCompletedWorksService', () => {
   let cacheManager: Cache;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockRepository = {
-    getCompletedWorks: jest.fn(),
+    getCompletedWorks: vi.fn(),
   };
 
   const mockWorks = [
@@ -85,7 +85,7 @@ describe('GetCompletedWorksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

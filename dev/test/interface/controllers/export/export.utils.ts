@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { Provider, Type } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
@@ -15,11 +16,11 @@ import {
 // Factories
 // ─────────────────────────────────────────────
 
-export function makeMockResponse(): jest.Mocked<Response> {
+export function makeMockResponse(): Mocked<Response> {
   return {
-    setHeader: jest.fn(),
-    send: jest.fn(),
-  } as unknown as jest.Mocked<Response>;
+    setHeader: vi.fn(),
+    send: vi.fn(),
+  } as unknown as Mocked<Response>;
 }
 
 /**
@@ -43,14 +44,14 @@ export function makeReq(
 // Nest testing module
 // ─────────────────────────────────────────────
 
-/** Cria um provider mockado com `jest.fn()` para cada método informado. */
+/** Cria um provider mockado com `vi.fn()` para cada método informado. */
 export function mockProvider<T>(
   token: Type<T>,
   methods: Array<keyof T & string>,
 ): Provider {
   return {
     provide: token,
-    useValue: Object.fromEntries(methods.map((m) => [m, jest.fn()])),
+    useValue: Object.fromEntries(methods.map((m) => [m, vi.fn()])),
   };
 }
 
@@ -74,7 +75,7 @@ export function createExportTestingModule(
 // ─────────────────────────────────────────────
 
 export function assertXlsxHeaders(
-  res: jest.Mocked<Response>,
+  res: Mocked<Response>,
   filename: string,
 ) {
   expect(res.setHeader).toHaveBeenCalledWith(
@@ -85,7 +86,7 @@ export function assertXlsxHeaders(
   expect(res.setHeader).toHaveBeenCalledTimes(2);
 }
 
-export function assertPdfHeaders(res: jest.Mocked<Response>, filename: string) {
+export function assertPdfHeaders(res: Mocked<Response>, filename: string) {
   expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
   expect(res.setHeader).toHaveBeenCalledWith(
     'Content-Disposition',

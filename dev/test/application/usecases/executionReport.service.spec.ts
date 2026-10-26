@@ -7,8 +7,14 @@ import { Readable } from 'stream';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
+import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 import {
   mockExecutionReportPersistenceObject,
   mockExecutionReportRepository,
@@ -20,41 +26,35 @@ import {
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
 } from '../../mocks/mocksExecutionReport';
-import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
 
   const mockRepository = {
-    create: jest.fn(),
-    update: jest.fn(),
-    findByScheduleId: jest.fn(),
-    findByWorkId: jest.fn(),
-    findById: jest.fn(),
-    findScheduleWorkMode: jest.fn(),
-    findScheduledServiceIds: jest.fn(),
-    resetScheduleExecution: jest.fn(),
-    clearServicesReal: jest.fn(),
-    sumWorkSchedulesExec: jest.fn(),
-    updateWorkStatusAfterReset: jest.fn(),
-    deleteReport: jest.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    findByScheduleId: vi.fn(),
+    findByWorkId: vi.fn(),
+    findById: vi.fn(),
+    findScheduleWorkMode: vi.fn(),
+    findScheduledServiceIds: vi.fn(),
+    resetScheduleExecution: vi.fn(),
+    clearServicesReal: vi.fn(),
+    sumWorkSchedulesExec: vi.fn(),
+    updateWorkStatusAfterReset: vi.fn(),
+    deleteReport: vi.fn(),
   };
 
   const mockFindScheduleRepository = {
-    findById: jest.fn(),
+    findById: vi.fn(),
   };
 
   const mockProgressCalculationService = {
-    recomputeAll: jest.fn(),
+    recomputeAll: vi.fn(),
   };
 
   const mockFileService = {
-    deleteFile: jest.fn(),
+    deleteFile: vi.fn(),
   };
 
   const mockExistsFiles: Express.Multer.File[] = [
@@ -76,12 +76,12 @@ describe('ExecutionReportService', () => {
 
   const mockTransaction = {
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
   const mockPrismaService = {
-    $transaction: jest.fn(
+    $transaction: vi.fn(
       (cb: (tx: Prisma.TransactionClient) => Promise<unknown>) =>
         cb(mockTransaction),
     ),
@@ -108,7 +108,7 @@ describe('ExecutionReportService', () => {
     service = module.get<ExecutionReportService>(ExecutionReportService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('create', () => {
     it('Should call method create and return void if schedule exists', async () => {
@@ -288,7 +288,7 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      jest
+      vi
         .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
         .mockImplementationOnce(() => {
           throw new Error('Erro forçado no create');
@@ -313,7 +313,7 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      jest
+      vi
         .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
         .mockImplementationOnce(() => {
           throw new Error('Erro forçado no create');

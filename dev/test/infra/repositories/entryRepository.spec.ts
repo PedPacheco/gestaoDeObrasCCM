@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { obras } from '@prisma/client';
 import moment from 'moment';
@@ -11,7 +12,7 @@ import {
 describe('EntryRepository', () => {
   const mockPrisma = {
     obras: {
-      findMany: jest.fn() as jest.Mock,
+      findMany: vi.fn() as Mock,
     },
   };
 
@@ -66,7 +67,7 @@ describe('EntryRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetValuesFromEntry', () => {

@@ -9,12 +9,12 @@ describe('FiltersService', () => {
   let filtersService: FiltersService;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockRepository = {
-    getData: jest.fn(),
+    getData: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -34,7 +34,7 @@ describe('FiltersService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const testCases = [
@@ -134,7 +134,7 @@ describe('FiltersService', () => {
   testCases.forEach(({ name, dto, cacheKey, data }) => {
     describe(`getFilters - ${name}`, () => {
       it(`should return cached ${name} data`, async () => {
-        jest.spyOn(cacheManager, 'get').mockResolvedValue(data);
+        vi.spyOn(cacheManager, 'get').mockResolvedValue(data);
 
         const result = await filtersService.getFilters(dto);
 
@@ -143,9 +143,9 @@ describe('FiltersService', () => {
       });
 
       it(`should fetch ${name} data from database if not cached`, async () => {
-        jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
-        jest.spyOn(mockRepository, 'getData').mockResolvedValue(data);
-        jest.spyOn(cacheManager, 'set').mockResolvedValue(null);
+        vi.spyOn(cacheManager, 'get').mockResolvedValue(null);
+        vi.spyOn(mockRepository, 'getData').mockResolvedValue(data);
+        vi.spyOn(cacheManager, 'set').mockResolvedValue(null);
 
         const result = await filtersService.getFilters(dto);
 

@@ -56,10 +56,10 @@ describe('D5NotesRepository', () => {
   let repository: D5NotesRepository;
 
   const notasD5 = {
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    aggregate: jest.fn(),
-    update: jest.fn(),
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    aggregate: vi.fn(),
+    update: vi.fn(),
   };
 
   const prisma = { notas_d5: notasD5 } as unknown as PrismaService;
@@ -76,7 +76,7 @@ describe('D5NotesRepository', () => {
     notasD5.update.mockResolvedValue([]);
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('deve estar definido', () => {
     expect(repository).toBeDefined();

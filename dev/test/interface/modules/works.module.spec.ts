@@ -2,7 +2,12 @@ import { UsersService } from 'src/application/usecases/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { WorksModule } from 'src/interface/modules/works.module';
 
+import 'dotenv/config';
+
 import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach } from 'vitest';
+
+process.env.MULTER_DESTINATION ??= './tmp/test-uploads';
 
 describe('WorksModule', () => {
   let module: TestingModule;

@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { FinalizationData } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { ServiceExecutionStatus } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 const buildTx = () => ({
   programacoes: {
-    update: jest.fn(),
+    update: vi.fn(),
   },
   programacoes_servicos: {
-    findMany: jest.fn(),
-    updateMany: jest.fn(),
-    update: jest.fn(),
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+    update: vi.fn(),
   },
 });
 
@@ -36,7 +36,7 @@ describe('WorkServicesExeutionRepository', () => {
     tx = buildTx(); // tx novo em cada teste → sem estado partilhado
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(repository).toBeDefined();

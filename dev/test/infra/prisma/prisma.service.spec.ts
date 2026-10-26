@@ -5,7 +5,7 @@ describe('PrismaService', () => {
   let service: PrismaService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [PrismaService],
@@ -19,7 +19,7 @@ describe('PrismaService', () => {
   });
 
   it('should connect on module init', async () => {
-    const connectSpy = jest
+    const connectSpy = vi
       .spyOn(service, '$connect')
       .mockImplementation(async () => {});
     await service.onModuleInit();
@@ -27,7 +27,7 @@ describe('PrismaService', () => {
   });
 
   it('should disconnect on module destroy', async () => {
-    const disconnectSpy = jest
+    const disconnectSpy = vi
       .spyOn(service, '$disconnect')
       .mockImplementation(async () => {});
     await service.onModuleDestroy();

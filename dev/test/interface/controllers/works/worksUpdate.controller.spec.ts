@@ -36,15 +36,15 @@ describe('WorksUpdateController', () => {
     const module = await Test.createTestingModule({
       controllers: [WorksUpdateController],
       providers: [
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
-        { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
-        { provide: ContractUpdateService, useValue: { update: jest.fn() } },
-        { provide: UpdateOvService, useValue: { update: jest.fn() } },
-        { provide: UpdateNoteService, useValue: { update: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
+        { provide: HandleWorkUpdateService, useValue: { update: vi.fn() } },
+        { provide: ContractUpdateService, useValue: { update: vi.fn() } },
+        { provide: UpdateOvService, useValue: { update: vi.fn() } },
+        { provide: UpdateNoteService, useValue: { update: vi.fn() } },
         {
           provide: SuspensionWorkService,
           useValue: {
-            createMultipleSuspensions: jest.fn(),
+            createMultipleSuspensions: vi.fn(),
           },
         },
       ],
@@ -70,7 +70,7 @@ describe('WorksUpdateController', () => {
 
   describe('Update', () => {
     it('Should be call the method Update and return the correctly data', async () => {
-      jest.spyOn(handleWorkUpdateService, 'update').mockResolvedValue();
+      vi.spyOn(handleWorkUpdateService, 'update').mockResolvedValue();
 
       const result = await worksController.Update(
         1,
@@ -102,7 +102,7 @@ describe('WorksUpdateController', () => {
 
   describe('ContractUpdate', () => {
     it('Should be call the method ContractUpdate and return the correctly data', async () => {
-      jest.spyOn(contractUpdateService, 'update').mockResolvedValue();
+      vi.spyOn(contractUpdateService, 'update').mockResolvedValue();
 
       const result = await worksController.ContractUpdate([
         {
@@ -130,7 +130,7 @@ describe('WorksUpdateController', () => {
 
   describe('UpdateOV', () => {
     it('Should call the update method of the UpdateOv service correctly', async () => {
-      jest.spyOn(updateOvService, 'update').mockResolvedValue();
+      vi.spyOn(updateOvService, 'update').mockResolvedValue();
 
       const result = await worksController.updateOv(mockMarketWorks);
 
@@ -146,7 +146,7 @@ describe('WorksUpdateController', () => {
 
   describe('UpdateNote', () => {
     it('Should call the update method of the UpdateNote service correctly', async () => {
-      jest.spyOn(updateNoteService, 'update').mockResolvedValue();
+      vi.spyOn(updateNoteService, 'update').mockResolvedValue();
 
       const result = await worksController.updateNote(mockUpdateNotes);
 
@@ -162,7 +162,7 @@ describe('WorksUpdateController', () => {
 
   describe('SuspensionWorks', () => {
     it('Should call the update method of the SuspensionWork service correctly', async () => {
-      jest
+      vi
         .spyOn(suspensionWorksService, 'createMultipleSuspensions')
         .mockResolvedValue();
 

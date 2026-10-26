@@ -1,12 +1,4 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
@@ -39,6 +31,16 @@ import {
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
+
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { ProgressRecalculationService } from './progressRecalculation.service';
 
 const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };

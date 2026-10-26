@@ -12,7 +12,7 @@ describe('FiltersController', () => {
   let filtersService: FiltersService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FiltersController],
@@ -20,10 +20,10 @@ describe('FiltersController', () => {
         {
           provide: FiltersService,
           useValue: {
-            getFilters: jest.fn(),
+            getFilters: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -65,7 +65,7 @@ describe('FiltersController', () => {
       tipo: true,
     };
 
-    jest.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
+    vi.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
 
     const req = {
       query: { idRegional: 1 },

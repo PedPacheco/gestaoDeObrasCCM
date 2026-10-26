@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
@@ -9,6 +8,7 @@ import {
   ScheduleExecutionRow,
   ServiceExecutionStatus,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {

@@ -91,7 +91,7 @@ describe('GetScheduleValues', () => {
           codigo: 'MAT001',
           descricao: 'Cabo de Alumínio',
           preco: {
-            toNumber: jest.fn().mockReturnValue(45.9),
+            toNumber: vi.fn().mockReturnValue(45.9),
           },
         },
       },
@@ -113,11 +113,11 @@ describe('GetScheduleValues', () => {
   };
 
   const mockRepository = {
-    getValues: jest.fn(),
+    getValues: vi.fn(),
   };
 
   const mockQueriesServicesService = {
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
   };
 
   /**
@@ -149,11 +149,11 @@ describe('GetScheduleValues', () => {
 
     service = module.get<GetScheduleValuesService>(GetScheduleValuesService);
 
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {

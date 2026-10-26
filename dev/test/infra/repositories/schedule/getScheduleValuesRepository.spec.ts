@@ -8,7 +8,7 @@ describe('GetScheduleValuesRepository', () => {
   let repository: GetScheduleValuesRepository;
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const baseQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
@@ -114,7 +114,7 @@ describe('GetScheduleValuesRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values without filters', async () => {

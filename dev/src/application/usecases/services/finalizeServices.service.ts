@@ -1,13 +1,4 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
@@ -35,6 +26,7 @@ import {
   WorkExecutionTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
@@ -43,6 +35,16 @@ import {
   isMaterial,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
+
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
 import { ProgressRecalculationService } from './progressRecalculation.service';

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { extname } from 'path';
 
@@ -7,11 +8,11 @@ import {
   MulterConfig,
 } from 'src/shared/multer/multer.config';
 
-jest.mock('fs');
+vi.mock('fs');
 
-describe('createMulterConfig (Jest)', () => {
-  const existsSync = fs.existsSync as jest.Mock;
-  const mkdirSync = fs.mkdirSync as jest.Mock;
+describe('createMulterConfig', () => {
+  const existsSync = fs.existsSync as Mock;
+  const mkdirSync = fs.mkdirSync as Mock;
 
   const baseConfig = {
     destination: '/uploads',
@@ -22,7 +23,7 @@ describe('createMulterConfig (Jest)', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should create directory if not existing', () => {
@@ -51,7 +52,7 @@ describe('createMulterConfig (Jest)', () => {
     existsSync.mockReturnValue(true);
 
     const config = createMulterConfig(baseConfig);
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     const storage: any = config.storage;
     storage.getDestination({}, {} as any, callback);
@@ -63,7 +64,7 @@ describe('createMulterConfig (Jest)', () => {
     existsSync.mockReturnValue(true);
 
     const config = createMulterConfig(baseConfig);
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     const file = { originalname: 'meu arqùivo 2024@#.pdf' } as any;
 
@@ -87,7 +88,7 @@ describe('createMulterConfig (Jest)', () => {
     existsSync.mockReturnValue(true);
 
     const config = createMulterConfig(baseConfig);
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     const file = { mimetype: 'image/png' } as any;
 
@@ -100,7 +101,7 @@ describe('createMulterConfig (Jest)', () => {
     existsSync.mockReturnValue(true);
 
     const config = createMulterConfig(baseConfig);
-    const callback = jest.fn();
+    const callback = vi.fn();
 
     const file = { mimetype: 'text/plain' } as any;
 

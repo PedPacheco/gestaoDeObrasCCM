@@ -13,11 +13,11 @@ describe('GetWorkDetailsService', () => {
   let getWorkDetailsService: GetWorkDetailsService;
 
   const mockRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   const mockQueriesServicesService = {
-    getAllItems: jest.fn(),
+    getAllItems: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -40,7 +40,7 @@ describe('GetWorkDetailsService', () => {
     );
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(getWorkDetailsService).toBeDefined();

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { D5NotesSchedulesRepository } from 'src/infra/repositories/d5Notes/d5NotesSchedulesRepository';
 
@@ -112,23 +112,23 @@ describe('D5NotesSchedulesRepository', () => {
   let repository: D5NotesSchedulesRepository;
 
   const programacoesD5 = {
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    aggregate: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    updateMany: jest.fn(),
-    delete: jest.fn(),
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    aggregate: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    delete: vi.fn(),
   };
 
   const notasD5 = {
-    update: jest.fn(),
-    findMany: jest.fn(),
+    update: vi.fn(),
+    findMany: vi.fn(),
   };
 
   const programacoesD5Reprovacoes = {
-    createMany: jest.fn(),
-    findMany: jest.fn(),
+    createMany: vi.fn(),
+    findMany: vi.fn(),
   };
 
   /** Cliente transacional entregue ao callback de $transaction. */
@@ -142,7 +142,7 @@ describe('D5NotesSchedulesRepository', () => {
     programacoes_d5: programacoesD5,
     notas_d5: notasD5,
     programacoes_d5_reprovacoes: programacoesD5Reprovacoes,
-    $transaction: jest.fn((cb: (client: typeof tx) => Promise<unknown>) =>
+    $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) =>
       cb(tx),
     ),
   } as unknown as PrismaService;
@@ -171,7 +171,7 @@ describe('D5NotesSchedulesRepository', () => {
     );
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('deve estar definido', () => {
     expect(repository).toBeDefined();

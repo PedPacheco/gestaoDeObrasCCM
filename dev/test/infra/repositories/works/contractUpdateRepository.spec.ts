@@ -6,8 +6,8 @@ describe('ContractUpdateRepository', () => {
   let repository: ContractUpdateRepository;
 
   const mockPrisma = {
-    obras: { updateMany: jest.fn() },
-    $transaction: jest.fn(),
+    obras: { updateMany: vi.fn() },
+    $transaction: vi.fn(),
   };
 
   const mockData = [
@@ -36,7 +36,7 @@ describe('ContractUpdateRepository', () => {
     repository = module.get<ContractUpdateRepository>(ContractUpdateRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should call transaction prisma transaction to update contract of works', async () => {
@@ -73,7 +73,7 @@ describe('ContractUpdateRepository', () => {
     mockPrisma.$transaction.mockRejectedValue(error);
 
     // Espiona o logger
-    const loggerSpy = jest.spyOn(repository['logger'], 'error');
+    const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
     await expect(repository.update(mockData)).rejects.toThrow(error);
 

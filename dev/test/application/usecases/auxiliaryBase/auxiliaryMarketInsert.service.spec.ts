@@ -11,12 +11,12 @@ describe('AuxiliaryMarketInsertService', () => {
   let auxiliaryMarketInsertService: AuxiliaryMarketInsertService;
 
   const mockRepository = {
-    insertMarket: jest.fn(),
-    delete: jest.fn(),
+    insertMarket: vi.fn(),
+    delete: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingWorks: jest.fn(),
+    findExistingWorks: vi.fn(),
   };
 
   beforeEach(async () => {

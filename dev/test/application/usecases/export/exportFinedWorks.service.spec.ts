@@ -1,3 +1,4 @@
+import type { Mock, Mocked } from 'vitest';
 // test/application/export/exportFinedWorks.service.spec.ts
 import * as ExcelJS from 'exceljs';
 import moment from 'moment';
@@ -5,20 +6,20 @@ import { Response } from 'express';
 import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
 import { IExportRepository } from 'src/domain/repositories/IExportRepository';
 
-jest.mock('exceljs', () => {
-  const addRowsMock = jest.fn();
-  const addWorksheetMock = jest.fn(() => {
+vi.mock('exceljs', () => {
+  const addRowsMock = vi.fn();
+  const addWorksheetMock = vi.fn(() => {
     // Simula o worksheet retornado por addWorksheet
     return {
       columns: undefined,
       addRows: addRowsMock,
     };
   });
-  const writeMock = jest.fn();
-  const WorkbookMock = jest.fn(() => ({
+  const writeMock = vi.fn();
+  const WorkbookMock = vi.fn(function () { return ({
     addWorksheet: addWorksheetMock,
     xlsx: { write: writeMock },
-  }));
+  }); });
 
   return {
     Workbook: WorkbookMock,
@@ -27,15 +28,15 @@ jest.mock('exceljs', () => {
 
 describe('ExportFinedWorksService', () => {
   let service: ExportFinedWorksService;
-  let mockRepository: jest.Mocked<IExportRepository>;
+  let mockRepository: Mocked<IExportRepository>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockRepository = {
       // apenas o método usado neste service
-      exportFinedWorks: jest.fn(),
-    } as unknown as jest.Mocked<IExportRepository>;
+      exportFinedWorks: vi.fn(),
+    } as unknown as Mocked<IExportRepository>;
 
     service = new ExportFinedWorksService(mockRepository);
   });
@@ -68,7 +69,7 @@ describe('ExportFinedWorksService', () => {
     ];
     mockRepository.exportFinedWorks.mockResolvedValue(repoReturn as any);
 
-    const mockResponse = { setHeader: jest.fn() } as unknown as Response;
+    const mockResponse = { setHeader: vi.fn() } as unknown as Response;
 
     // Act
     await service.export(mockResponse, startDate, endDate);
@@ -93,7 +94,7 @@ describe('ExportFinedWorksService', () => {
     expect(calledWithEnd.getTime()).toBe(expectedEnd);
 
     // Workbook usage assertions
-    const workbookMock = (ExcelJS as any).Workbook as jest.Mock;
+    const workbookMock = (ExcelJS as any).Workbook as Mock;
     expect(workbookMock).toHaveBeenCalledTimes(1);
 
     const workbookInstance = workbookMock.mock.results[0].value;
@@ -104,7 +105,7 @@ describe('ExportFinedWorksService', () => {
     expect(Array.isArray(worksheet.columns)).toBeTruthy();
 
     // verify addRows called with formatted data
-    const addRowsMock = worksheet.addRows as jest.Mock;
+    const addRowsMock = worksheet.addRows as Mock;
     expect(addRowsMock).toHaveBeenCalledTimes(1);
 
     // check the formatted object passed (mapping of nested fields)
@@ -154,7 +155,7 @@ describe('ExportFinedWorksService', () => {
     ];
     mockRepository.exportFinedWorks.mockResolvedValue(repoReturn as any);
 
-    const mockResponse = { setHeader: jest.fn() } as unknown as Response;
+    const mockResponse = { setHeader: vi.fn() } as unknown as Response;
 
     // Act: call without start/end
     await service.export(mockResponse, undefined as any, undefined as any);
@@ -167,10 +168,10 @@ describe('ExportFinedWorksService', () => {
     expect(calledWithEnd).toBeUndefined();
 
     // Excel write assertions
-    const workbookMock = (ExcelJS as any).Workbook as jest.Mock;
+    const workbookMock = (ExcelJS as any).Workbook as Mock;
     const workbookInstance = workbookMock.mock.results[0].value;
     const worksheet = workbookInstance.addWorksheet.mock.results[0].value;
-    const addRowsMock = worksheet.addRows as jest.Mock;
+    const addRowsMock = worksheet.addRows as Mock;
 
     expect(addRowsMock).toHaveBeenCalledTimes(1);
 
@@ -206,16 +207,16 @@ describe('ExportFinedWorksService', () => {
 
     mockRepository.exportFinedWorks.mockResolvedValue(items as any);
 
-    const mockResponse = { setHeader: jest.fn() } as unknown as Response;
+    const mockResponse = { setHeader: vi.fn() } as unknown as Response;
 
     // Act
     await service.export(mockResponse, undefined, undefined);
 
     // Assert
-    const workbookMock = (ExcelJS as any).Workbook as jest.Mock;
+    const workbookMock = (ExcelJS as any).Workbook as Mock;
     const workbookInstance = workbookMock.mock.results[0].value;
     const worksheet = workbookInstance.addWorksheet.mock.results[0].value;
-    const addRowsMock = worksheet.addRows as jest.Mock;
+    const addRowsMock = worksheet.addRows as Mock;
 
     // Should be called twice: 1000 + 200
     expect(addRowsMock).toHaveBeenCalledTimes(2);

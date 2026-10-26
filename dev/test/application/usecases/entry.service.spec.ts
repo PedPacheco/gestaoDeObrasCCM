@@ -13,8 +13,8 @@ describe('EntryService', () => {
   let entryService: EntryService;
 
   const mockRepository = {
-    getValuesFromEntry: jest.fn(),
-    getEntryOfWorksByDay: jest.fn(),
+    getValuesFromEntry: vi.fn(),
+    getEntryOfWorksByDay: vi.fn(),
   };
 
   const mockObras = (mo_pend: number | null, mo_planejada: number) => [

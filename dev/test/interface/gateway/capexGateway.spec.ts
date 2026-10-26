@@ -4,37 +4,37 @@ import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
 describe('CapexGateway', () => {
   let gateway: CapexGateway;
 
-  const mockEmit = jest.fn();
+  const mockEmit = vi.fn();
 
   const mockServer = {
-    to: jest.fn().mockReturnValue({
+    to: vi.fn().mockReturnValue({
       emit: mockEmit,
     }),
   };
 
   const mockClient = {
     id: 'client-1',
-    join: jest.fn(),
-    emit: jest.fn(),
+    join: vi.fn(),
+    emit: vi.fn(),
   };
 
   const mockLogger = {
-    debug: jest.fn(),
+    debug: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     gateway = new CapexGateway();
 
     (gateway as any).server = mockServer;
     (gateway as any).logger = mockLogger;
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // ============================================================
@@ -140,7 +140,7 @@ describe('CapexGateway', () => {
   // ============================================================
 
   it('should overwrite cache and clear previous timer', () => {
-    const clearSpy = jest.spyOn(global, 'clearTimeout');
+    const clearSpy = vi.spyOn(global, 'clearTimeout');
 
     const firstTimer = setTimeout(() => {}, 1000);
 
@@ -169,7 +169,7 @@ describe('CapexGateway', () => {
 
     expect((gateway as any).jobCache.has('job-1')).toBe(true);
 
-    jest.advanceTimersByTime(10 * 60 * 1000);
+    vi.advanceTimersByTime(10 * 60 * 1000);
 
     expect((gateway as any).jobCache.has('job-1')).toBe(false);
   });
@@ -182,7 +182,7 @@ describe('CapexGateway', () => {
       message: 'error',
     });
 
-    jest.advanceTimersByTime(10 * 60 * 1000);
+    vi.advanceTimersByTime(10 * 60 * 1000);
 
     expect((gateway as any).jobCache.has('job-1')).toBe(false);
   });
@@ -199,7 +199,7 @@ describe('CapexGateway', () => {
       message: 'loading',
     });
 
-    jest.advanceTimersByTime(10 * 60 * 1000);
+    vi.advanceTimersByTime(10 * 60 * 1000);
 
     expect((gateway as any).jobCache.has('job-1')).toBe(true);
   });

@@ -101,38 +101,38 @@ describe('ScheduleController', () => {
         {
           provide: GetTotalValuesScheduleService,
           useValue: {
-            getTotalValues: jest.fn(),
+            getTotalValues: vi.fn(),
           },
         },
         {
           provide: GetScheduleValuesService,
           useValue: {
-            getValues: jest.fn(),
+            getValues: vi.fn(),
           },
         },
         {
           provide: MonthlySummaryService,
           useValue: {
-            getSummary: jest.fn(),
-            getSecondSummary: jest.fn(),
+            getSummary: vi.fn(),
+            getSecondSummary: vi.fn(),
           },
         },
         {
           provide: GetMonthlySummaryForecastService,
           useValue: {
-            getSummary: jest.fn(),
-            getSecondSummary: jest.fn(),
+            getSummary: vi.fn(),
+            getSecondSummary: vi.fn(),
           },
         },
         {
           provide: RejectionsOfSchedulesService,
-          useValue: { get: jest.fn() },
+          useValue: { get: vi.fn() },
         },
         {
           provide: ExecMonitoringService,
-          useValue: { getData: jest.fn() },
+          useValue: { getData: vi.fn() },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -232,7 +232,7 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest
+    vi
       .spyOn(getTotalValuesScheduleService, 'getTotalValues')
       .mockResolvedValue(mockTotalValues);
 
@@ -267,7 +267,7 @@ describe('ScheduleController', () => {
     };
 
     it('Should call getScheduleValues method and return correct data', async () => {
-      jest
+      vi
         .spyOn(getScheduleValuesService, 'getValues')
         .mockResolvedValue(mockScheduleData);
 
@@ -285,7 +285,7 @@ describe('ScheduleController', () => {
     });
 
     it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
-      jest
+      vi
         .spyOn(getScheduleValuesService, 'getValues')
         .mockResolvedValue(mockScheduleData);
 
@@ -366,13 +366,13 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
+    vi.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
       summary: dailySummaryMock,
       totals: {} as any,
       contractValueByMonth: { monthlyValue: 0 },
     });
 
-    jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
+    vi.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
       summary: getSecondMonthlySummaryResponse,
       totals: {} as any,
     });
@@ -533,14 +533,14 @@ describe('ScheduleController', () => {
       totalDiff: 3000,
     };
 
-    jest
+    vi
       .spyOn(getMonthlySummaryForecastService, 'getSummary')
       .mockResolvedValue({
         summary: dailySummaryForecastMock,
         totals: mockDailySummaryTotals,
       });
 
-    jest
+    vi
       .spyOn(getMonthlySummaryForecastService, 'getSecondSummary')
       .mockResolvedValue({
         summary: getSecondMonthlySummaryForecastResponse,
@@ -571,7 +571,7 @@ describe('ScheduleController', () => {
   });
 
   it('should call getRejectionsOfSchedules and return data of rejections', async () => {
-    jest.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
+    vi.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
       {
         motivo: 'CHI',
         data_prog: new Date('2025-05-17'),
@@ -626,7 +626,7 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest.spyOn(execMonitoringService, 'getData').mockResolvedValue(data);
+    vi.spyOn(execMonitoringService, 'getData').mockResolvedValue(data);
 
     const result = await scheduleController.getExecMonitoring(
       {

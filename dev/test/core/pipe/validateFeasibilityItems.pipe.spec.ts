@@ -4,6 +4,11 @@ import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibility
 
 import { BadRequestException } from '@nestjs/common';
 
+vi.mock('class-validator', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('class-validator')>();
+  return { ...actual, validate: vi.fn(actual.validate) };
+});
+
 describe('ValidateFeasibilityItemsPipe', () => {
   let pipe: ValidateFeasibilityItemsPipe;
 
@@ -71,7 +76,7 @@ describe('ValidateFeasibilityItemsPipe', () => {
 
   describe('item validation', () => {
     it('should throw BadRequestException when an item fails validation', async () => {
-      const spy = jest.spyOn(classValidator, 'validate').mockResolvedValueOnce([
+      const spy = vi.mocked(classValidator.validate).mockResolvedValueOnce([
         {
           property: 'id',
           constraints: { isNotEmpty: 'id should not be empty' },
@@ -84,7 +89,7 @@ describe('ValidateFeasibilityItemsPipe', () => {
     });
 
     it('should include "Item inválido" in the error message for invalid items', async () => {
-      const spy = jest.spyOn(classValidator, 'validate').mockResolvedValueOnce([
+      const spy = vi.mocked(classValidator.validate).mockResolvedValueOnce([
         {
           property: 'id',
           constraints: { isNotEmpty: 'id should not be empty' },
@@ -97,7 +102,7 @@ describe('ValidateFeasibilityItemsPipe', () => {
     });
 
     it('should fail on the first invalid item without validating the rest', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(classValidator, 'validate')
         .mockResolvedValueOnce([
           { property: 'id', constraints: { isNotEmpty: 'required' } },
@@ -120,11 +125,11 @@ describe('ValidateFeasibilityItemsPipe', () => {
     it('should return transformed instances when all items are valid', async () => {
       const mockInstances = [{ id: 1, quantidade: 10, valor: 100 }];
 
-      const plainSpy = jest
+      const plainSpy = vi
         .spyOn(classTransformer, 'plainToInstance')
         .mockReturnValue(mockInstances as any);
 
-      const validateSpy = jest
+      const validateSpy = vi
         .spyOn(classValidator, 'validate')
         .mockResolvedValue([]);
 
@@ -139,7 +144,7 @@ describe('ValidateFeasibilityItemsPipe', () => {
     });
 
     it('should return an empty array when input is an empty array', async () => {
-      const plainSpy = jest
+      const plainSpy = vi
         .spyOn(classTransformer, 'plainToInstance')
         .mockReturnValue([] as any);
 
@@ -153,7 +158,7 @@ describe('ValidateFeasibilityItemsPipe', () => {
     it('should call plainToInstance with ServiceMaterialItemDto and parsed data', async () => {
       const inputArray = [{ id: 1 }];
 
-      const plainSpy = jest
+      const plainSpy = vi
         .spyOn(classTransformer, 'plainToInstance')
         .mockReturnValue([] as any);
 
@@ -170,11 +175,11 @@ describe('ValidateFeasibilityItemsPipe', () => {
     it('should call validate for each item in the array', async () => {
       const mockInstances = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
-      const plainSpy = jest
+      const plainSpy = vi
         .spyOn(classTransformer, 'plainToInstance')
         .mockReturnValue(mockInstances as any);
 
-      const validateSpy = jest
+      const validateSpy = vi
         .spyOn(classValidator, 'validate')
         .mockResolvedValue([]);
 

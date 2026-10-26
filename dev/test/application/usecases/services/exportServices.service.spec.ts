@@ -8,7 +8,7 @@ import {
 } from 'src/interface/types/servicesInterface';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@prisma/client/runtime/client';
 
 const exportRepositoryResponse: WorkToExportResponse[] = [
   {
@@ -89,7 +89,7 @@ describe('ExportServicesService', () => {
   let service: ExportServicesService;
 
   const mockWorksServicesRepository = {
-    getServicesToExportation: jest.fn(),
+    getServicesToExportation: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -105,7 +105,7 @@ describe('ExportServicesService', () => {
 
     service = module.get<ExportServicesService>(ExportServicesService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

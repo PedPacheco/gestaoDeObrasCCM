@@ -12,12 +12,12 @@ describe('GetWorksInPortfolioService', () => {
   let cacheManager: Cache;
 
   const mockRepository = {
-    getWorksInPortfolio: jest.fn(),
+    getWorksInPortfolio: vi.fn(),
   };
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockWorks = [
@@ -89,11 +89,11 @@ describe('GetWorksInPortfolioService', () => {
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
 
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

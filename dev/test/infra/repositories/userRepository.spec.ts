@@ -9,8 +9,8 @@ describe('UserRepository', () => {
 
   const prismaMock = {
     novo_tabela_usuarios: {
-      findFirst: jest.fn(),
-      update: jest.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
     },
   };
 
@@ -27,7 +27,7 @@ describe('UserRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('FindUser', () => {

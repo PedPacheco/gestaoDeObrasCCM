@@ -1,26 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Response } from 'express';
 import * as Exceljs from 'exceljs';
+import { Response } from 'express';
+import type { Mock, Mocked } from 'vitest';
 
+import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
 } from 'src/domain/repositories/IExportRepository';
-import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
 
-jest.mock('exceljs');
+vi.mock('exceljs');
+
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
 
 describe('ExportRejectionsService', () => {
   let service: ExportRejectionsService;
-  let repository: jest.Mocked<IExportRepository>;
+  let repository: Mocked<IExportRepository>;
 
-  let mockAddRows: jest.Mock;
-  let mockWrite: jest.Mock;
+  let mockAddRows: Mock;
+  let mockWrite: Mock;
   let mockWorksheet: any;
 
   beforeEach(async () => {
-    mockAddRows = jest.fn();
-    mockWrite = jest.fn().mockResolvedValue(undefined);
+    mockAddRows = vi.fn();
+    mockWrite = vi.fn().mockResolvedValue(undefined);
 
     mockWorksheet = {
       columns: [],
@@ -28,13 +39,15 @@ describe('ExportRejectionsService', () => {
     };
 
     const mockWorkbook = {
-      addWorksheet: jest.fn().mockReturnValue(mockWorksheet),
+      addWorksheet: vi.fn().mockReturnValue(mockWorksheet),
       xlsx: {
         write: mockWrite,
       },
     };
 
-    (Exceljs.Workbook as jest.Mock).mockImplementation(() => mockWorkbook);
+    (Exceljs.Workbook as Mock).mockImplementation(function () {
+      return mockWorkbook;
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,7 +55,7 @@ describe('ExportRejectionsService', () => {
         {
           provide: EXPORT_REPOSITORY,
           useValue: {
-            exportRejections: jest.fn(),
+            exportRejections: vi.fn(),
           },
         },
       ],
@@ -53,7 +66,7 @@ describe('ExportRejectionsService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('deve exportar dados corretamente formatando ovnota', async () => {
