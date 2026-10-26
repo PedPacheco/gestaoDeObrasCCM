@@ -2,12 +2,13 @@ import { BadRequestException, Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import type { Mocked } from 'vitest';
 
 import {
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
   ImportServiceItem,
+  IWorkServicesRepository,
   ParsedSpreadsheetItem,
+  WORK_SERVICES_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
@@ -39,39 +40,39 @@ const makeFile = (
 
 // ─── Mock builders ────────────────────────────────────────────
 
-const buildMockRepository = (): jest.Mocked<IWorkServicesRepository> =>
+const buildMockRepository = (): Mocked<IWorkServicesRepository> =>
   ({
-    bulkImportItems: jest.fn().mockResolvedValue(undefined),
+    bulkImportItems: vi.fn().mockResolvedValue(undefined),
     // adicione outros métodos da interface se existirem
-  }) as unknown as jest.Mocked<IWorkServicesRepository>;
+  }) as unknown as Mocked<IWorkServicesRepository>;
 
-const buildMockSpreadsheetParser = (): jest.Mocked<SpreadsheetParserService> =>
+const buildMockSpreadsheetParser = (): Mocked<SpreadsheetParserService> =>
   ({
-    parse: jest.fn(),
+    parse: vi.fn(),
     dataStartRow: 2,
-  }) as unknown as jest.Mocked<SpreadsheetParserService>;
+  }) as unknown as Mocked<SpreadsheetParserService>;
 
-const buildMockQueriesServices = (): jest.Mocked<QueriesServicesService> =>
+const buildMockQueriesServices = (): Mocked<QueriesServicesService> =>
   ({
-    getServiceContracts: jest.fn().mockResolvedValue([]),
-    getMaterials: jest.fn().mockResolvedValue([]),
-  }) as unknown as jest.Mocked<QueriesServicesService>;
+    getServiceContracts: vi.fn().mockResolvedValue([]),
+    getMaterials: vi.fn().mockResolvedValue([]),
+  }) as unknown as Mocked<QueriesServicesService>;
 
-const buildMockPrisma = (): jest.Mocked<PrismaService> =>
+const buildMockPrisma = (): Mocked<PrismaService> =>
   ({
-    $transaction: jest.fn(async (cb: (tx: unknown) => Promise<void>) => {
+    $transaction: vi.fn(async (cb: (tx: unknown) => Promise<void>) => {
       await cb({} as unknown);
     }),
-  }) as unknown as jest.Mocked<PrismaService>;
+  }) as unknown as Mocked<PrismaService>;
 
 // ─── Test Suite ───────────────────────────────────────────────
 
 describe('ImportServicesSpreadsheetService', () => {
   let sut: ImportServicesSpreadsheetService;
-  let repository: jest.Mocked<IWorkServicesRepository>;
-  let spreadsheetParser: jest.Mocked<SpreadsheetParserService>;
-  let queriesServices: jest.Mocked<QueriesServicesService>;
-  let prisma: jest.Mocked<PrismaService>;
+  let repository: Mocked<IWorkServicesRepository>;
+  let spreadsheetParser: Mocked<SpreadsheetParserService>;
+  let queriesServices: Mocked<QueriesServicesService>;
+  let prisma: Mocked<PrismaService>;
 
   beforeEach(async () => {
     repository = buildMockRepository();
@@ -80,8 +81,9 @@ describe('ImportServicesSpreadsheetService', () => {
     prisma = buildMockPrisma();
 
     // Silencia logs durante os testes
-    jest.spyOn(Logger.prototype, 'log').mockImplementation();
-    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    // Silence logs during tests
+    vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -97,7 +99,7 @@ describe('ImportServicesSpreadsheetService', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   // ─── importFromSpreadsheet ────────────────────────────────
@@ -147,7 +149,7 @@ describe('ImportServicesSpreadsheetService', () => {
 
       try {
         await sut.importFromSpreadsheet(workId, makeFile());
-        fail('Expected BadRequestException');
+        expect.unreachable('Expected BadRequestException');
       } catch (error) {
         expect(error).toBeInstanceOf(BadRequestException);
         const response = (error as BadRequestException).getResponse();
@@ -425,7 +427,7 @@ describe('ImportServicesSpreadsheetService', () => {
 
       try {
         await sut.importFromSpreadsheet(1, makeFile());
-        fail('Expected BadRequestException');
+        expect.unreachable('Expected BadRequestException');
       } catch (error) {
         const response = (error as BadRequestException).getResponse() as any;
         expect(response.errors[0].message).toContain('serviços');
@@ -440,7 +442,7 @@ describe('ImportServicesSpreadsheetService', () => {
 
       try {
         await sut.importFromSpreadsheet(1, makeFile());
-        fail('Expected BadRequestException');
+        expect.unreachable('Expected BadRequestException');
       } catch (error) {
         const response = (error as BadRequestException).getResponse() as any;
         expect(response.errors[0].message).toContain('materiais');
@@ -492,7 +494,7 @@ describe('ImportServicesSpreadsheetService', () => {
 
       try {
         await sut.importFromSpreadsheet(1, makeFile());
-        fail('Expected BadRequestException');
+        expect.unreachable('Expected BadRequestException');
       } catch (error) {
         const response = (error as BadRequestException).getResponse() as any;
         // dataStartRow = 2, index 0 => row 2, index 1 => row 3
@@ -560,7 +562,7 @@ describe('ImportServicesSpreadsheetService', () => {
 
       try {
         await sut.importFromSpreadsheet(1, makeFile());
-        fail('Expected BadRequestException');
+        expect.unreachable('Expected BadRequestException');
       } catch (error) {
         const response = (error as BadRequestException).getResponse() as any;
         expect(response.errors).toHaveLength(20);

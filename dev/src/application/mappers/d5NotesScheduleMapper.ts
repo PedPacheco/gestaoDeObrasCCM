@@ -1,9 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
-import moment, { Moment } from 'moment';
 import {
   D5NoteSchedule,
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
+import { D5NoteTimeMetricsInfo } from 'src/domain/services/d5Notes/timeMetrics.service';
 
 import {
   CreateProgramacaoD5Dto,
@@ -23,6 +23,7 @@ import {
   SchedulesD5NotesQueryResult,
 } from 'src/interface/types/d5notes/types';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 export interface D5ScheduleUpdateContext {
   id: number;
@@ -210,16 +211,12 @@ export class D5NoteScheduleMapper {
     return rows.map(D5NoteScheduleMapper.toResponse);
   }
 
-  static toListItem(row: SchedulesD5NotesQueryResult): D5NoteScheduleListItem {
+  static toListItem(
+    row: SchedulesD5NotesQueryResult,
+    timeMetrics: D5NoteTimeMetricsInfo,
+  ): D5NoteScheduleListItem {
     const { tecnicos, notas_d5, ...schedule } = row;
     const obras = notas_d5.obras;
-
-    const { tmAberto, tmExecucao } = this.calculateTM(
-      moment.utc(notas_d5.criado_em).startOf('day'),
-      notas_d5.conclusao_nota
-        ? moment.utc(notas_d5.conclusao_nota).startOf('day')
-        : null,
-    );
 
     const precisaDp = this.requiresDP(schedule.num_dp, schedule.tipo_servico);
 
@@ -233,9 +230,10 @@ export class D5NoteScheduleMapper {
       criado_em: notas_d5.criado_em,
       conclusao_nota: notas_d5.conclusao_nota,
       status_sap: notas_d5.status_sap,
-      tmExecucao,
-      tmAberto,
+      tmExecucao: timeMetrics.tmExecucao,
+      tmAberto: timeMetrics.tmAberto,
       moRetida: notas_d5.mo_planejada?.toNumber() ?? 0,
+      statusPrazo: timeMetrics.statusPrazo,
       municipio: notas_d5.municipios.mun_minusculo,
       regional: notas_d5.municipios.regionais.regional,
       tipo_obra: notas_d5.tipos.tipo_obra,
@@ -243,20 +241,17 @@ export class D5NoteScheduleMapper {
       status: notas_d5.status.status,
       responsavel: notas_d5.novo_tabela_usuarios?.nome ?? null,
       ovnota: obras?.ovnota ?? null,
-      ordemDiagrama:
-        obras?.diagrama ??
-        obras?.ordem_dci ??
-        obras?.ordem_dca ??
-        obras?.ordem_dcd ??
-        obras?.ordem_dcim ??
-        null,
+      ordemDiagrama: resolveOrdemDiagrama(obras),
     };
   }
 
   static toListItems(
     rows: SchedulesD5NotesQueryResult[],
+    getTimeMetrics: (row: SchedulesD5NotesQueryResult) => D5NoteTimeMetricsInfo,
   ): D5NoteScheduleListItem[] {
-    return rows.map((row) => D5NoteScheduleMapper.toListItem(row));
+    return rows.map((row) =>
+      D5NoteScheduleMapper.toListItem(row, getTimeMetrics(row)),
+    );
   }
 
   static toRejectionResponse(
@@ -331,28 +326,6 @@ export class D5NoteScheduleMapper {
       id_restricao: entity.idExecutionRestriction,
       responsavel_restricao: entity.responsibility,
       caminhos_arquivos: entity.filePaths,
-    };
-  }
-
-  private static calculateTM(
-    initialDate: Moment,
-    executionDate: Moment | null,
-  ) {
-    const start = moment.utc(initialDate).startOf('day');
-
-    if (executionDate) {
-      return {
-        tmAberto: null,
-        tmExecucao: moment
-          .utc(executionDate)
-          .startOf('day')
-          .diff(start, 'days'),
-      };
-    }
-
-    return {
-      tmAberto: moment.utc().startOf('day').diff(start, 'days'),
-      tmExecucao: null,
     };
   }
 

@@ -1,9 +1,12 @@
-import {
-  filterRootProps,
-  useFilterStyles,
-} from "@/hooks/filters/useFiltersStyles";
 import { FilterOption } from "@/types/genericFilterSchema";
-import { Autocomplete, Checkbox, styled, TextField } from "@mui/material";
+import {
+  alpha,
+  Autocomplete,
+  Checkbox,
+  createFilterOptions,
+  styled,
+  TextField,
+} from "@mui/material";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React from "react";
 
@@ -82,6 +85,15 @@ export const VirtualizedListbox = React.forwardRef<
   );
 });
 
+const safeAlpha = (color: string | undefined, value: number) => {
+  if (!color) return undefined;
+  try {
+    return alpha(color, value);
+  } catch {
+    return undefined;
+  }
+};
+
 interface VirtualizedMultiSelectProps {
   label: string;
   menuItems: FilterOption[];
@@ -89,6 +101,8 @@ interface VirtualizedMultiSelectProps {
   setSelectedItem: (value: string[]) => void;
   valueKey: string;
   displayKey: string;
+  secondaryDisplayKey?: string;
+  searchKeys?: string[];
   backgroundColor?: string;
   textColor?: string;
 }
@@ -100,10 +114,19 @@ export function VirtualizedMultiSelect({
   setSelectedItem,
   valueKey,
   displayKey,
+  searchKeys,
+  secondaryDisplayKey,
   backgroundColor,
   textColor,
 }: VirtualizedMultiSelectProps) {
-  const { fieldSx, paperSx } = useFilterStyles(backgroundColor, textColor);
+  const filterOptions = React.useMemo(
+    () =>
+      createFilterOptions<FilterOption>({
+        stringify: (opt) =>
+          (searchKeys ?? [displayKey]).map((k) => opt[k] ?? "").join(" "),
+      }),
+    [searchKeys, displayKey],
+  );
 
   const selectedOptions = React.useMemo(
     () =>
@@ -111,16 +134,54 @@ export function VirtualizedMultiSelect({
     [menuItems, selectedItem, valueKey],
   );
 
+  const hoverColor = safeAlpha(textColor, 0.08);
+  const subtleColor = safeAlpha(textColor, 0.6) ?? textColor;
+
+  // Estilos do campo (input, label, borda, chips e ícones)
+  const inputSx = React.useMemo(
+    () => ({
+      "& .MuiOutlinedInput-root": {
+        backgroundColor,
+        color: textColor,
+        "& .MuiOutlinedInput-notchedOutline": { borderColor: subtleColor },
+        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: textColor },
+      },
+      "& .MuiInputLabel-root": { color: subtleColor },
+      "& .MuiInputLabel-root.Mui-focused": { color: textColor },
+      "& .MuiSvgIcon-root": { color: textColor }, // seta e botão de limpar
+      "& .MuiChip-root": {
+        color: textColor,
+        backgroundColor: hoverColor,
+        "& .MuiChip-deleteIcon": { color: subtleColor },
+      },
+      "& .MuiAutocomplete-tag": { color: textColor }, // texto "+N" do limitTags
+    }),
+    [backgroundColor, textColor, subtleColor, hoverColor],
+  );
+
+  // Estilos do menu (Paper + opções)
+  const paperSx = React.useMemo(
+    () => ({
+      backgroundColor,
+      color: textColor,
+      "& .MuiAutocomplete-option.Mui-focused": { backgroundColor: hoverColor },
+      "& .MuiAutocomplete-noOptions, & .MuiAutocomplete-loading": {
+        color: subtleColor,
+      },
+      "& .MuiCheckbox-root": { color: subtleColor },
+    }),
+    [backgroundColor, textColor, subtleColor, hoverColor],
+  );
+
   return (
     <Autocomplete
-      {...filterRootProps}
-      sx={{ ...filterRootProps.sx, ...fieldSx }}
       multiple
       disableCloseOnSelect
       disableListWrap
       limitTags={2}
       size="small"
       options={menuItems}
+      filterOptions={filterOptions}
       value={selectedOptions}
       isOptionEqualToValue={(opt, val) => opt[valueKey] === val[valueKey]}
       getOptionLabel={(opt) => String(opt[displayKey] ?? "")}
@@ -129,13 +190,27 @@ export function VirtualizedMultiSelect({
       }
       ListboxComponent={VirtualizedListbox}
       slotProps={{ paper: { sx: paperSx } }}
-      renderInput={(params) => <TextField {...params} label={label} />}
+      renderInput={(params) => (
+        <TextField {...params} label={label} sx={inputSx} />
+      )}
       renderOption={(props, option, { selected }) => {
         const { key, ...optionProps } = props as any;
+        const secondary = secondaryDisplayKey
+          ? option[secondaryDisplayKey]
+          : null;
+
         return (
           <li key={option[valueKey]} {...optionProps}>
             <Checkbox size="small" checked={selected} sx={{ mr: 1 }} />
-            {option[displayKey]}
+            <span className="truncate">{option[displayKey]}</span>
+            {secondary && (
+              <span
+                className="ml-2 truncate text-sm"
+                style={{ color: subtleColor, opacity: subtleColor ? 1 : 0.6 }}
+              >
+                · {secondary}
+              </span>
+            )}
           </li>
         );
       }}

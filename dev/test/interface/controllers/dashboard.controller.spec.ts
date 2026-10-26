@@ -11,11 +11,11 @@ describe('DashboardController', () => {
   let controller: DashboardController;
 
   const mockDashboardService = {
-    getDashboardData: jest.fn(),
+    getDashboardData: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DashboardController],
@@ -24,7 +24,7 @@ describe('DashboardController', () => {
           provide: DashboardService,
           useValue: mockDashboardService,
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 

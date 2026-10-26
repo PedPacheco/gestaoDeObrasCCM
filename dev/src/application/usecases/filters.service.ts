@@ -7,6 +7,7 @@ import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
 export class FiltersService {
@@ -27,7 +28,6 @@ export class FiltersService {
       conjunto,
       ovnota,
       empreendimento,
-      ovnotaExec,
       restricao,
       tecnico,
       statusProgramacao,
@@ -38,7 +38,7 @@ export class FiltersService {
     }: FiltersDto,
     condition?: any,
   ) {
-    const result = {};
+    const result: Record<string, any[]> = {};
 
     if (regional) {
       result['regional'] = await this.getCachedData('regionais', () =>
@@ -123,26 +123,34 @@ export class FiltersService {
     }
 
     if (ovnota) {
-      result['ovnota'] = await this.getCachedData('ovnota', () =>
-        this.filtersRepository.getData('obras', ['id', 'ovnota'], {
-          data_conclusao: null,
-          municipios: { id_regional: condition },
-        }),
-      );
+      result['ovnota'] = await this.getCachedData('ovnota', async () => {
+        const works = await this.filtersRepository.getData(
+          'obras',
+          [
+            'id',
+            'ovnota',
+            'data_conclusao',
+            'diagrama',
+            'ordem_dci',
+            'ordem_dca',
+            'ordem_dcd',
+            'ordem_dcim',
+          ],
+          { municipios: { id_regional: condition } },
+        );
+
+        return works.map((work) => ({
+          id: work.id,
+          ovnota: work.ovnota,
+          concluida: work.data_conclusao !== null,
+          ordemDiagrama: resolveOrdemDiagrama(work),
+        }));
+      });
     }
 
     if (notaD5) {
       result['notaD5'] = await this.getCachedData('notaD5', () =>
         this.filtersRepository.getData('notas_d5', ['id', 'nota_d5'], {
-          municipios: { id_regional: condition },
-        }),
-      );
-    }
-
-    if (ovnotaExec) {
-      result['ovnotaExec'] = await this.getCachedData('ovnotaExec', () =>
-        this.filtersRepository.getData('obras', ['id', 'ovnota'], {
-          data_conclusao: { not: null },
           municipios: { id_regional: condition },
         }),
       );

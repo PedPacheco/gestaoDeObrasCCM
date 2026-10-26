@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EquipmentService } from 'src/application/usecases/equipment.service';
 import { Response } from 'express';
@@ -10,8 +11,8 @@ describe('EquipmentController', () => {
   let service: EquipmentService;
 
   const mockService = {
-    getEquipment: jest.fn(),
-    getWithoutLocation: jest.fn(),
+    getEquipment: vi.fn(),
+    getWithoutLocation: vi.fn(),
   };
 
   const filter = {
@@ -23,14 +24,14 @@ describe('EquipmentController', () => {
       controllers: [EquipmentController],
       providers: [
         { provide: EquipmentService, useValue: mockService },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
     controller = module.get<EquipmentController>(EquipmentController);
     service = module.get<EquipmentService>(EquipmentService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getEquipamentos', () => {
@@ -47,15 +48,15 @@ describe('EquipmentController', () => {
 
   describe('exportWithoutLocation', () => {
     let mockRes: Partial<Response>;
-    let mockWorkbookWrite: jest.SpyInstance;
+    let mockWorkbookWrite: MockInstance;
 
     beforeEach(() => {
       mockRes = {
-        setHeader: jest.fn(),
-        end: jest.fn(),
+        setHeader: vi.fn(),
+        end: vi.fn(),
       };
       // mock do ExcelJS.Workbook().xlsx.write()
-      mockWorkbookWrite = jest
+      mockWorkbookWrite = vi
         .spyOn(ExcelJS.Workbook.prototype.xlsx, 'write')
         .mockImplementation(async () => Promise.resolve());
     });
@@ -119,10 +120,10 @@ describe('EquipmentController', () => {
     it('should create sheet with correct headers', async () => {
       const mockSheet = {
         columns: [] as any[],
-        getRow: jest.fn().mockReturnValue({ font: {} }),
-        addRows: jest.fn(),
+        getRow: vi.fn().mockReturnValue({ font: {} }),
+        addRows: vi.fn(),
       };
-      const addWorksheetSpy = jest
+      const addWorksheetSpy = vi
         .spyOn(ExcelJS.Workbook.prototype, 'addWorksheet')
         .mockReturnValue(mockSheet as any);
 

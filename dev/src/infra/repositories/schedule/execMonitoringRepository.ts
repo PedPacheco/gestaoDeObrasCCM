@@ -1,11 +1,11 @@
 import * as moment from 'moment';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   ExecMonitoringRow,
   IExecMonitoringRepository,
 } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
 

@@ -15,8 +15,8 @@ describe('InserWorksRepository', () => {
   let repository: InsertWorksRepository;
 
   const mockPrisma = {
-    obras: { createMany: jest.fn() },
-    tipos: { findMany: jest.fn() },
+    obras: { createMany: vi.fn() },
+    tipos: { findMany: vi.fn() },
   };
 
   beforeEach(async () => {
@@ -30,7 +30,7 @@ describe('InserWorksRepository', () => {
     repository = module.get<InsertWorksRepository>(InsertWorksRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('insertMarketWorks', () => {
     it('should call prisma.obras.createMany with mapped market works', async () => {
@@ -127,7 +127,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertMarketWorks([])).rejects.toThrow(
@@ -203,7 +203,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertNotes([])).rejects.toThrow('DB error');
@@ -230,7 +230,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if findMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation();
       mockPrisma.tipos.findMany.mockRejectedValueOnce(new Error('DB error'));
 
       await repository.getGroup();

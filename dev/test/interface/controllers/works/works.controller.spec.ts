@@ -12,7 +12,7 @@ import {
   UpdateWorkDTO,
 } from 'src/interface/dtos/worksDto';
 
-import { HttpStatus } from '@nestjs/common';
+import { HttpStatus, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import {
@@ -44,20 +44,20 @@ describe('WorksController', () => {
     const module = await Test.createTestingModule({
       controllers: [WorksController],
       providers: [
-        { provide: GetAllWorksService, useValue: { getAllWorks: jest.fn() } },
+        { provide: GetAllWorksService, useValue: { getAllWorks: vi.fn() } },
         {
           provide: GetCompletedWorksService,
-          useValue: { getCompletedWorks: jest.fn() },
+          useValue: { getCompletedWorks: vi.fn() },
         },
         {
           provide: GetWorkDetailsService,
-          useValue: { get: jest.fn() },
+          useValue: { get: vi.fn() },
         },
         {
           provide: GetWorksInPortfolioService,
-          useValue: { getWorksInPortfolio: jest.fn() },
+          useValue: { getWorksInPortfolio: vi.fn() },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -90,7 +90,7 @@ describe('WorksController', () => {
         page: 0,
       };
 
-      jest
+      vi
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
@@ -124,7 +124,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
@@ -159,7 +159,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -195,7 +195,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -232,7 +232,7 @@ describe('WorksController', () => {
         dataFinal: undefined,
       };
 
-      jest
+      vi
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -271,7 +271,7 @@ describe('WorksController', () => {
         dataFinal: '02/10/2024',
       };
 
-      jest
+      vi
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
@@ -291,23 +291,56 @@ describe('WorksController', () => {
   });
 
   describe('getWorkDetails', () => {
-    it('Should build filters, get details works with filters and return the result with correct format', async () => {
-      const worksDetails = 2;
+    const workId = 2;
 
-      jest
+    const buildRequest = (overrides: Partial<CustomRequest> = {}) =>
+      ({
+        user: { tipo_usuario: 'INTERNO' },
+        ...overrides,
+      }) as unknown as CustomRequest;
+
+    beforeEach(() => {
+      vi
         .spyOn(getWorkDetailsService, 'get')
         .mockResolvedValue(mockResponseDetails);
+    });
 
-      const result = await worksController.getWorkDetails(worksDetails);
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
 
-      const expectedResponse = {
+    it('Should get work details without partner restriction for internal users', async () => {
+      const req = buildRequest();
+
+      const result = await worksController.getWorkDetails(workId, req);
+
+      expect(getWorkDetailsService.get).toHaveBeenCalledWith(workId, undefined);
+      expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Retornado os detalhes da obra',
         data: mockResponseDetails,
-      };
+      });
+    });
 
-      expect(getWorkDetailsService.get).toHaveBeenCalledWith(worksDetails);
-      expect(result).toEqual(expectedResponse);
+    it('Should pass the user partner id to the service for partner users', async () => {
+      const req = buildRequest({
+        user: { tipo_usuario: 'PARCEIRA' },
+        idParceira: 10,
+      } as Partial<CustomRequest>);
+
+      await worksController.getWorkDetails(workId, req);
+
+      expect(getWorkDetailsService.get).toHaveBeenCalledWith(workId, 10);
+    });
+
+    it('Should propagate NotFoundException from the service', async () => {
+      vi
+        .spyOn(getWorkDetailsService, 'get')
+        .mockRejectedValue(new NotFoundException('Obra não encontrada'));
+
+      await expect(
+        worksController.getWorkDetails(workId, buildRequest()),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

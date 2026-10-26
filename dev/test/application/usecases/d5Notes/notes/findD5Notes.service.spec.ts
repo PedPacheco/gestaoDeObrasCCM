@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
+import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 
@@ -37,9 +38,15 @@ describe('FindD5NotesService', () => {
   let service: FindD5NotesService;
 
   const repository = {
-    get: jest.fn(),
-    getTotals: jest.fn(),
-    getById: jest.fn(),
+    get: vi.fn(),
+    getTotals: vi.fn(),
+    getById: vi.fn(),
+  };
+
+  const timeMetricsService = {
+    calculateTM: vi.fn(),
+    calculateStatus: vi.fn(),
+    getDeadlineInfo: vi.fn(),
   };
 
   const buildWhere = (filters: D5NotesFiltersDTO) =>
@@ -51,21 +58,21 @@ describe('FindD5NotesService', () => {
   const calculateCost = (data: { prog: number; exec: number }[]) =>
     (service as any).calculateCostPointByPointSchedule(data);
 
-  const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
-    (service as any).calculateTM(initialDate, executionDate);
-
   const buildDateRange = (label: string, inicio?: string, fim?: string) =>
     (service as any).buildDateRange(label, inicio, fim);
 
   beforeEach(() => {
-    service = new FindD5NotesService(repository as any);
+    service = new FindD5NotesService(
+      repository as any,
+      timeMetricsService as any,
+    );
 
     repository.get.mockResolvedValue([]);
     repository.getTotals.mockResolvedValue({});
     repository.getById.mockResolvedValue(makeDetail());
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();
@@ -79,6 +86,7 @@ describe('FindD5NotesService', () => {
       const totals = { total: 1 };
       repository.get.mockResolvedValue([makeRow()]);
       repository.getTotals.mockResolvedValue(totals);
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
 
       const result = await service.get(makeFilters());
 
@@ -99,6 +107,7 @@ describe('FindD5NotesService', () => {
 
     it('deve remover as relações cruas do payload de saída', async () => {
       repository.get.mockResolvedValue([makeRow()]);
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 5 });
 
       const [item] = (await service.get(makeFilters())).d5Notes;
 
@@ -188,6 +197,7 @@ describe('FindD5NotesService', () => {
       it.each(cases)(
         'deve resolver para %s',
         async (_label, obras, expected) => {
+          timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
           repository.get.mockResolvedValue([makeRow({ obras })]);
 
           const [item] = (await service.get(makeFilters())).d5Notes;
@@ -195,15 +205,8 @@ describe('FindD5NotesService', () => {
         },
       );
 
-      it('deve devolver undefined quando obras é null', async () => {
-        repository.get.mockResolvedValue([makeRow({ obras: null })]);
-
-        const [item] = (await service.get(makeFilters())).d5Notes;
-        expect(item.ordemDiagrama).toBeUndefined();
-        expect(item.obra).toBeNull();
-      });
-
       it('deve preservar valores falsy válidos (0 e string vazia)', async () => {
+        timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
         repository.get.mockResolvedValue([
           makeRow({ obras: { diagrama: 0, ordem_dci: 'I' } }),
         ]);
@@ -215,6 +218,7 @@ describe('FindD5NotesService', () => {
     });
 
     it('deve devolver null quando não há utilizador modificador', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
       repository.get.mockResolvedValue([
         makeRow({ novo_tabela_usuarios: null }),
       ]);
@@ -223,12 +227,63 @@ describe('FindD5NotesService', () => {
       expect(item.usuarioModificador).toBeNull();
     });
 
-    it('deve devolver null quando obras existe mas ovnota é null', async () => {
+    it('deve devolver null quando não há municipio', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
       repository.get.mockResolvedValue([
-        makeRow({ obras: { ovnota: null, diagrama: 'D' } }),
+        makeRow({ municipios: { mun_minusculo: null } }),
       ]);
 
       const [item] = (await service.get(makeFilters())).d5Notes;
+      expect(item.municipio).toBeNull();
+    });
+
+    it('deve devolver null quando não há regional', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
+      repository.get.mockResolvedValue([
+        makeRow({ municipios: { regional: null } }),
+      ]);
+
+      const [item] = (await service.get(makeFilters())).d5Notes;
+      expect(item.regional).toBeNull();
+    });
+
+    it('deve devolver null quando não há parceira', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
+      repository.get.mockResolvedValue([makeRow({ turmas: { turma: null } })]);
+
+      const [item] = (await service.get(makeFilters())).d5Notes;
+      expect(item.parceira).toBeNull();
+    });
+
+    it('deve devolver null quando não há tipos', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
+      repository.get.mockResolvedValue([
+        makeRow({ tipos: { tipo_obra: null } }),
+      ]);
+
+      const [item] = (await service.get(makeFilters())).d5Notes;
+      expect(item.tipoObra).toBeNull();
+    });
+
+    it('deve devolver null quando não há utilizador modificador', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({ tmAberto: 2 });
+      repository.get.mockResolvedValue([makeRow({ status: { status: null } })]);
+
+      const [item] = (await service.get(makeFilters())).d5Notes;
+      expect(item.status).toBeNull();
+    });
+
+    it('deve devolver null quando obras é null', async () => {
+      timeMetricsService.getDeadlineInfo.mockReturnValue({
+        tmAberto: 2,
+        tmExecucao: null,
+        statusPrazo: DeadlineStatus.ON_TIME,
+      });
+      repository.get.mockResolvedValue([makeRow({ obras: null })]);
+
+      const [item] = (await service.get(makeFilters())).d5Notes;
+
+      expect(item.ordemDiagrama).toBeNull();
       expect(item.obra).toBeNull();
     });
   });
@@ -275,22 +330,6 @@ describe('FindD5NotesService', () => {
         usuarioModificador: 'Ana Silva',
         totalProgramado: 15,
         totalExecutado: 13,
-      });
-    });
-
-    it('deve calcular o TM de execução quando a nota está concluída', async () => {
-      repository.getById.mockResolvedValue(
-        makeDetail({
-          criado_em: new Date('2026-01-01T00:00:00.000Z'),
-          conclusao_nota: new Date('2026-01-06T18:45:00.000Z'),
-        }),
-      );
-
-      const result = await service.getById(1);
-
-      expect(result).toMatchObject({
-        tmExecucao: 5,
-        tmAberto: null,
       });
     });
 
@@ -349,7 +388,7 @@ describe('FindD5NotesService', () => {
       const result = await service.getById(1);
 
       expect(result.obra).toBeNull();
-      expect(result.ordemDiagrama).toBeUndefined();
+      expect(result.ordemDiagrama).toBeNull();
       expect(result.usuarioModificador).toBeNull();
     });
 
@@ -417,12 +456,18 @@ describe('FindD5NotesService', () => {
       });
     });
 
+    it('deve aninhar idGrupo sob tipos', () => {
+      expect(buildWhere(makeFilters({ idGrupo: [7] } as any))).toEqual({
+        tipos: { id_grupo: { in: [7] } },
+      });
+    });
+
     it.each([
       ['idMunicipio', 'id_municipio'],
-      ['idGrupo', 'id_turma'],
       ['idStatus', 'id_status'],
       ['idTipo', 'id_tipo'],
       ['idParceira', 'id_parceira'],
+      ['idOvnota', 'id_obra'],
     ])('deve mapear %s para %s', (filterKey, columnKey) => {
       expect(
         buildWhere(makeFilters({ [filterKey]: [7] } as any))[columnKey],
@@ -436,6 +481,7 @@ describe('FindD5NotesService', () => {
       'idTipo',
       'idParceira',
       'idStatus',
+      'idOvnota',
     ])('deve ignorar %s quando é array vazio', (key) => {
       expect(buildWhere(makeFilters({ [key]: [] } as any))).toEqual({});
     });
@@ -447,6 +493,7 @@ describe('FindD5NotesService', () => {
       'idTipo',
       'idParceira',
       'idStatus',
+      'idOvnota',
     ])('deve ignorar %s quando é undefined', (key) => {
       expect(buildWhere(makeFilters({ [key]: undefined } as any))).toEqual({});
     });
@@ -517,15 +564,17 @@ describe('FindD5NotesService', () => {
             idTipo: [4],
             idParceira: [5],
             idStatus: [4],
+            idOvnota: [3],
           } as any),
         ),
       ).toEqual({
         municipios: { id_regional: { in: [1] } },
+        tipos: { id_grupo: { in: [3] } },
         id_municipio: { in: [2] },
-        id_turma: { in: [3] },
         id_tipo: { in: [4] },
         id_parceira: { in: [5] },
         id_status: { in: [4] },
+        id_obra: { in: [3] },
       });
     });
   });
@@ -548,36 +597,6 @@ describe('FindD5NotesService', () => {
 
     it('deve tratar a página 0 como válida', () => {
       expect(buildPagination(0)).toEqual({ skip: 0, take: 200 });
-    });
-  });
-
-  // =========================================================================
-  // calculateTM
-  // =========================================================================
-  describe('calculateTM', () => {
-    beforeEach(() => {
-      jest.useFakeTimers().setSystemTime(new Date('2026-10-08T15:30:00'));
-    });
-
-    afterEach(() => jest.useRealTimers());
-    it('Deve retornar o TM aberto corretamente e o TM execucao como nulo', () => {
-      const mockInitialDate = moment('2026-09-30');
-      const mockExecutionDate = null;
-
-      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: 8,
-        tmExecucao: null,
-      });
-    });
-
-    it('Deve retornar o TM execucao corretamente e o TM aberto como nulo', () => {
-      const mockInitialDate = moment('2026-09-23');
-      const mockExecutionDate = moment('2026-09-30');
-
-      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: null,
-        tmExecucao: 7,
-      });
     });
   });
 

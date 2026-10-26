@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
@@ -14,15 +19,20 @@ export class GetWorkDetailsService {
     private readonly workServicesQueryService: QueriesServicesService,
   ) {}
 
-  async get(id: number) {
-    const [work, services] = await Promise.all([
-      await this.getWorksDetailsRepository.get(id),
-      await this.workServicesQueryService.getAllItems(id),
-    ]);
+  async get(id: number, partnerId?: number) {
+    const work = await this.getWorksDetailsRepository.get(id);
 
     if (!work) {
       throw new NotFoundException('Obra não encontrada');
     }
+
+    if (partnerId != null && Number(partnerId) !== Number(work.id_turma)) {
+      throw new ForbiddenException(
+        'Usuários parceiros não têm acesso a este recurso',
+      );
+    }
+
+    const services = await this.workServicesQueryService.getAllItems(id);
 
     const { relatorio_viabilidade, ...workData } = work;
 

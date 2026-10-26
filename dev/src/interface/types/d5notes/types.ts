@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
+import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export type FindD5NotesQueryResult = {
   id: number;
@@ -8,7 +8,7 @@ export type FindD5NotesQueryResult = {
   conclusao_nota: Date | null;
   status_sap: string;
   validacao_anual: boolean | null;
-  mo_planejada: Decimal;
+  mo_planejada: Prisma.Decimal;
   nota_d5: string;
   obras: {
     ovnota: string | null;
@@ -125,7 +125,7 @@ export type SchedulesD5NotesQueryResult = {
     criado_em: Date;
     conclusao_nota: Date | null;
     status_sap: string;
-    mo_planejada: Decimal;
+    mo_planejada: Prisma.Decimal;
     nota_d5: string;
     obras: {
       ovnota: string | null;
@@ -241,6 +241,7 @@ export type D5NoteScheduleListItem = {
   status_sap: string;
   tmExecucao: number | null;
   tmAberto: number | null;
+  statusPrazo: DeadlineStatus | null;
   moRetida: number;
 
   // Relações da nota

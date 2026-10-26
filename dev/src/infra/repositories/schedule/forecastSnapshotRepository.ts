@@ -3,7 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class ForecastSnapshotRepository implements IForecastSnapshotRepository {

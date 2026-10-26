@@ -18,11 +18,11 @@ describe('CustomValidationPipe', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should call super.transform for DTOs not in ignore list', async () => {
-    const spy = jest
+    const spy = vi
       .spyOn(ValidationPipe.prototype, 'transform')
       .mockResolvedValue({ ok: true });
 
@@ -33,7 +33,7 @@ describe('CustomValidationPipe', () => {
   });
 
   it('should use pipeWithoutWhitelist for UpdateSchedulesDataDTO', async () => {
-    const spyInternalPipe = jest
+    const spyInternalPipe = vi
       .spyOn(ValidationPipe.prototype, 'transform')
       .mockResolvedValue({ allowed: true });
 
@@ -47,7 +47,7 @@ describe('CustomValidationPipe', () => {
   });
 
   it('should use pipeWithoutWhitelist for UpdateExecutionReportDTO', async () => {
-    const spyInternalPipe = jest
+    const spyInternalPipe = vi
       .spyOn(ValidationPipe.prototype, 'transform')
       .mockResolvedValue({ ok: 999 });
 
@@ -61,7 +61,7 @@ describe('CustomValidationPipe', () => {
   });
 
   it('should pass whitelist=false and forbidNonWhitelisted=false to pipeWithoutWhitelist', async () => {
-    const spyConstructor = jest.spyOn(ValidationPipe.prototype, 'transform');
+    const spyConstructor = vi.spyOn(ValidationPipe.prototype, 'transform');
 
     await pipe.transform(
       { anything: true },
@@ -73,7 +73,7 @@ describe('CustomValidationPipe', () => {
   });
 
   it('should throw when internal pipe fails', async () => {
-    jest
+    vi
       .spyOn(ValidationPipe.prototype, 'transform')
       .mockRejectedValue(new Error('fail'));
 

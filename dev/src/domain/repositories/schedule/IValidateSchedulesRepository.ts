@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   ConfirmSchedulesDTO,
   ValidateSchedulesDTO,

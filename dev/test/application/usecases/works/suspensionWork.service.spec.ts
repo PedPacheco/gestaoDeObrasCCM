@@ -10,8 +10,8 @@ describe('SuspensionWorkService', () => {
   let findExistingWorksService: FindExistingWorksService;
 
   const mockRepository = {
-    create: jest.fn(),
-    createMultiple: jest.fn(),
+    create: vi.fn(),
+    createMultiple: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('SuspensionWorkService', () => {
         {
           provide: FindExistingWorksService,
           useValue: {
-            findExistingWorksOnSuspension: jest.fn(),
+            findExistingWorksOnSuspension: vi.fn(),
           },
         },
         { provide: SUSPENSION_WORK_REPOSITORY, useValue: mockRepository },
@@ -70,7 +70,7 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should call method create of suspensionWorkRepository with correct data', async () => {
-      jest
+      vi
         .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
@@ -86,7 +86,7 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      jest
+      vi
         .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
@@ -104,7 +104,7 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      jest
+      vi
         .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 

@@ -4,9 +4,10 @@ import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.servic
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -91,7 +92,7 @@ describe('GetScheduleValues', () => {
           codigo: 'MAT001',
           descricao: 'Cabo de Alumínio',
           preco: {
-            toNumber: jest.fn().mockReturnValue(45.9),
+            toNumber: vi.fn().mockReturnValue(45.9),
           },
         },
       },
@@ -113,11 +114,11 @@ describe('GetScheduleValues', () => {
   };
 
   const mockRepository = {
-    getValues: jest.fn(),
+    getValues: vi.fn(),
   };
 
   const mockQueriesServicesService = {
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
   };
 
   /**
@@ -149,11 +150,11 @@ describe('GetScheduleValues', () => {
 
     service = module.get<GetScheduleValuesService>(GetScheduleValuesService);
 
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {

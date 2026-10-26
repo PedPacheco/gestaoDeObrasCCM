@@ -3,7 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   GetAllWorksInterface,
   getALlWorksResponseRepository,

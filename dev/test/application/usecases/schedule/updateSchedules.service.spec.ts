@@ -5,40 +5,40 @@ import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IU
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
 } from '../../../mocks/schedules/mockUpdateSchedules';
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
 
   const mockTransaction = {
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
   const mockRepository = {
-    update: jest.fn(),
-    findExecutionOfSchedules: jest.fn(),
+    update: vi.fn(),
+    findExecutionOfSchedules: vi.fn(),
   };
 
   const mockScheduleExecutionValidatorService = {
-    validateExecutionAndUpdateStatus: jest.fn(),
+    validateExecutionAndUpdateStatus: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateStatusWorks: jest.fn(),
-    updateScheduleStatus: jest.fn(),
+    updateStatusWorks: vi.fn(),
+    updateScheduleStatus: vi.fn(),
   };
 
   const mockFindScheduleByIdRepository = {
-    findById: jest.fn(),
+    findById: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -64,7 +64,7 @@ describe('UpdateSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should call method update and throw BadRequestExpection', async () => {

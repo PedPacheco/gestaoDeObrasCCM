@@ -12,19 +12,19 @@ describe('ForecastController', () => {
   let service: ForecastSnapshotService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [ForecastController],
       providers: [
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
         {
           provide: ForecastSnapshotService,
           useValue: {
-            execute: jest.fn(),
-            get: jest.fn(),
-            getAll: jest.fn(),
-            delete: jest.fn(),
+            execute: vi.fn(),
+            get: vi.fn(),
+            getAll: vi.fn(),
+            delete: vi.fn(),
           },
         },
       ],
@@ -39,7 +39,7 @@ describe('ForecastController', () => {
   });
 
   it('should call forecastSnapshotService.get and return data of forecast', async () => {
-    jest.spyOn(service, 'get').mockResolvedValue({
+    vi.spyOn(service, 'get').mockResolvedValue({
       id: 1,
       geradoEm: '2026-03-01',
       nomeArquivo: 'forecast_diario',
@@ -63,7 +63,7 @@ describe('ForecastController', () => {
   });
 
   it('should call saveForecastSnapshot and return message', async () => {
-    jest.spyOn(service, 'execute').mockResolvedValue();
+    vi.spyOn(service, 'execute').mockResolvedValue();
 
     const result = await controller.saveForecastSnapshot(
       createForecastSnapshotMock,
@@ -89,7 +89,7 @@ describe('ForecastController', () => {
       },
     ];
 
-    jest.spyOn(service, 'getAll').mockResolvedValue(mockResponseService);
+    vi.spyOn(service, 'getAll').mockResolvedValue(mockResponseService);
 
     const result = await controller.getAllSnapshots({});
 
@@ -100,7 +100,7 @@ describe('ForecastController', () => {
   });
 
   it('should call delete method', async () => {
-    jest.spyOn(service, 'delete').mockResolvedValue();
+    vi.spyOn(service, 'delete').mockResolvedValue();
 
     const result = await controller.deleteForecastSnapshot(1);
 

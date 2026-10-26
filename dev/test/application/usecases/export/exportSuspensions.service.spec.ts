@@ -1,35 +1,48 @@
+import type { Mock, Mocked } from 'vitest';
 // test/application/export/exportSuspensions.service.spec.ts
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import { ExportSuspensionsService } from 'src/application/usecases/export/exportSuspensions.service';
 import { IExportRepository } from 'src/domain/repositories/IExportRepository';
 
-jest.mock('exceljs', () => {
-  const addRowsMock = jest.fn();
-  const addWorksheetMock = jest.fn(() => ({
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
+
+vi.mock('exceljs', () => {
+  const addRowsMock = vi.fn();
+  const addWorksheetMock = vi.fn(() => ({
     columns: undefined,
     addRows: addRowsMock,
   }));
-  const writeMock = jest.fn();
-  const WorkbookMock = jest.fn(() => ({
-    addWorksheet: addWorksheetMock,
-    xlsx: { write: writeMock },
-  }));
+  const writeMock = vi.fn();
+  const WorkbookMock = vi.fn(function () {
+    return {
+      addWorksheet: addWorksheetMock,
+      xlsx: { write: writeMock },
+    };
+  });
 
   return { Workbook: WorkbookMock };
 });
 
 describe('ExportSuspensionsService', () => {
   let service: ExportSuspensionsService;
-  let mockRepository: jest.Mocked<IExportRepository>;
+  let mockRepository: Mocked<IExportRepository>;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     mockRepository = {
-      exportSuspensions: jest.fn(),
-      exportSuspensionsRemoved: jest.fn(),
-    } as unknown as jest.Mocked<IExportRepository>;
+      exportSuspensions: vi.fn(),
+      exportSuspensionsRemoved: vi.fn(),
+    } as unknown as Mocked<IExportRepository>;
 
     service = new ExportSuspensionsService(mockRepository);
   });
@@ -68,7 +81,7 @@ describe('ExportSuspensionsService', () => {
       removedMock as any,
     );
 
-    const mockResponse = { setHeader: jest.fn() } as unknown as Response;
+    const mockResponse = { setHeader: vi.fn() } as unknown as Response;
 
     // Act
     await service.export(mockResponse);
@@ -78,7 +91,7 @@ describe('ExportSuspensionsService', () => {
     expect(mockRepository.exportSuspensionsRemoved).toHaveBeenCalledTimes(1);
 
     // Workbook assertions
-    const WorkbookMock = (ExcelJS as any).Workbook as jest.Mock;
+    const WorkbookMock = (ExcelJS as any).Workbook as Mock;
     expect(WorkbookMock).toHaveBeenCalledTimes(1);
 
     const workbookInstance = WorkbookMock.mock.results[0].value;
@@ -97,8 +110,8 @@ describe('ExportSuspensionsService', () => {
     expect(worksheet2.columns?.length).toBe(7);
 
     // addRows called with formatted data
-    const rowsSuspended = worksheet1.addRows as jest.Mock;
-    const rowsRemoved = worksheet2.addRows as jest.Mock;
+    const rowsSuspended = worksheet1.addRows as Mock;
+    const rowsRemoved = worksheet2.addRows as Mock;
 
     expect(rowsSuspended).toHaveBeenCalledTimes(2);
     expect(rowsRemoved).toHaveBeenCalledTimes(2);
@@ -154,7 +167,7 @@ describe('ExportSuspensionsService', () => {
       removedMock as any,
     );
 
-    const mockResponse = { setHeader: jest.fn() } as unknown as Response;
+    const mockResponse = { setHeader: vi.fn() } as unknown as Response;
 
     // Act
     await service.export(mockResponse);
@@ -162,8 +175,8 @@ describe('ExportSuspensionsService', () => {
     const workbookInstance = (ExcelJS as any).Workbook.mock.results[0].value;
     const worksheet1 = workbookInstance.addWorksheet.mock.results[0].value;
     const worksheet2 = workbookInstance.addWorksheet.mock.results[1].value;
-    const addRowsSuspended = worksheet1.addRows as jest.Mock;
-    const addRowsRemoved = worksheet2.addRows as jest.Mock;
+    const addRowsSuspended = worksheet1.addRows as Mock;
+    const addRowsRemoved = worksheet2.addRows as Mock;
 
     // Suspended batch: 1200 -> 2 calls (1000 + 200)
     expect(addRowsSuspended).toHaveBeenCalledTimes(4);

@@ -1,3 +1,4 @@
+import type { Mock, MockInstance } from 'vitest';
 import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
@@ -18,13 +19,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 // ─── Constantes e helpers ────────────────────────────────────────────
 const OPEN_STATUS = ScheduleStatus.CONFIRMADA; // qualquer status NÃO finalizado
 const FINALIZED_STATUS = FINALIZED_SCHEDULE_STATUSES[0];
 
-const order = (fn: jest.Mock) => fn.mock.invocationCallOrder[0];
+const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
 
 const expectError = async (
   promise: Promise<unknown>,
@@ -63,25 +64,25 @@ describe('ValidateConfirmAndRejectSchedulesService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockPrisma = {
-    $transaction: jest.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
+    $transaction: vi.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
       cb(mockTx),
     ),
-    obras: { findMany: jest.fn() },
-    programacoes_servicos: { findMany: jest.fn() },
+    obras: { findMany: vi.fn() },
+    programacoes_servicos: { findMany: vi.fn() },
   };
 
   const mockRepository = {
-    validate: jest.fn(),
-    confirm: jest.fn(),
-    reject: jest.fn(),
+    validate: vi.fn(),
+    confirm: vi.fn(),
+    reject: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
-  const mockFindScheduleByIdRepository = { findById: jest.fn() };
+  const mockFindScheduleByIdRepository = { findById: vi.fn() };
 
   // ─── "Base de dados" em memória (reposta em cada teste) ────────────
   // Programações 1 e 2 → obra 10; programação 3 → obra 20
@@ -90,8 +91,8 @@ describe('ValidateConfirmAndRejectSchedulesService', () => {
   let schedulesWithServices: Set<number>;
 
   // ─── Mapper de domínio ─────────────────────────────────────────────
-  let toDomainSpy: jest.SpyInstance;
-  let requireDpNumber: jest.Mock;
+  let toDomainSpy: MockInstance;
+  let requireDpNumber: Mock;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -138,8 +139,8 @@ describe('ValidateConfirmAndRejectSchedulesService', () => {
           .map((id: number) => ({ id_programacao: id })),
     );
 
-    requireDpNumber = jest.fn();
-    toDomainSpy = jest
+    requireDpNumber = vi.fn();
+    toDomainSpy = vi
       .spyOn(WorkScheduleMapper, 'toDomain')
       .mockImplementation(
         (row: any) =>
@@ -148,7 +149,7 @@ describe('ValidateConfirmAndRejectSchedulesService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     toDomainSpy.mockRestore();
   });
 

@@ -3,6 +3,7 @@ import utc from "dayjs/plugin/utc";
 
 import { LoadingComponent } from "@/components/common/Loading";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+
 import { useUser } from "@/contexts/userContext";
 import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import {
@@ -106,8 +107,9 @@ export function ScheduleHistory({
             setOpenConfirmationModal(true);
           }}
           disabled={
-            ["Programado", "Concluído", "Parcial"].includes(statusSchedule) ||
-            permissions?.tipo_usuario === "PARCEIRA"
+            ["Programado", "Concluído", "Parcial", "Cancelado"].includes(
+              statusSchedule,
+            ) || permissions?.tipo_usuario === "PARCEIRA"
           }
         >
           CANCELAR

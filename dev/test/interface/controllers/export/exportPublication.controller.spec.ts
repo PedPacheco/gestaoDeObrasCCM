@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { TestingModule } from '@nestjs/testing';
 
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
@@ -15,9 +16,9 @@ import { ExportPublicationsController } from 'src/interface/controllers/export/e
 describe('ExportPublicationsController', () => {
   let controller: ExportPublicationsController;
 
-  let restrictionsService: jest.Mocked<RestrictionsService>;
-  let exportPublicationRestrictionService: jest.Mocked<ExportPublicationRestrictionService>;
-  let exportReportToPublicationService: jest.Mocked<ExportReportToPubliationService>;
+  let restrictionsService: Mocked<RestrictionsService>;
+  let exportPublicationRestrictionService: Mocked<ExportPublicationRestrictionService>;
+  let exportReportToPublicationService: Mocked<ExportReportToPubliationService>;
 
   beforeEach(async () => {
     const module: TestingModule = await createExportTestingModule(
@@ -39,7 +40,7 @@ describe('ExportPublicationsController', () => {
     );
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

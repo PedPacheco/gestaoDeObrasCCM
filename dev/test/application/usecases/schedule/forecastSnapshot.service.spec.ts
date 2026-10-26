@@ -9,10 +9,10 @@ describe('ForecastSnapshotService', () => {
   let service: ForecastSnapshotService;
 
   const mockRepository = {
-    create: jest.fn(),
-    get: jest.fn(),
-    getAll: jest.fn(),
-    delete: jest.fn(),
+    create: vi.fn(),
+    get: vi.fn(),
+    getAll: vi.fn(),
+    delete: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -30,8 +30,8 @@ describe('ForecastSnapshotService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('execute', () => {
@@ -166,7 +166,7 @@ describe('ForecastSnapshotService', () => {
         },
       };
 
-      mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.get = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.get(1);
 
@@ -241,7 +241,7 @@ describe('ForecastSnapshotService', () => {
         grupo: { summary: undefined, totals: null },
       };
 
-      mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.get = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.get(1);
 
@@ -261,7 +261,7 @@ describe('ForecastSnapshotService', () => {
         grupo: { summary: [], totals: {} },
       };
 
-      mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.get = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.get(1);
 
@@ -328,7 +328,7 @@ describe('ForecastSnapshotService', () => {
         },
       };
 
-      mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.get = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.get(1);
 
@@ -400,7 +400,7 @@ describe('ForecastSnapshotService', () => {
         },
       ];
 
-      mockRepository.getAll = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.getAll = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.getAll({ startDate: null, endDate: null });
 
@@ -430,7 +430,7 @@ describe('ForecastSnapshotService', () => {
         },
       ];
 
-      mockRepository.getAll = jest.fn().mockResolvedValue(repositoryResponse);
+      mockRepository.getAll = vi.fn().mockResolvedValue(repositoryResponse);
 
       const result = await service.getAll({
         startDate: '2026-04-01',

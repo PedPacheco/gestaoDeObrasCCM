@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
+import type { Mocked } from 'vitest';
 import {
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
@@ -20,15 +21,15 @@ const getSqlString = (query: any): string => {
 
 describe('RestrictionsRepository', () => {
   let repository: RestrictionsRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let prismaService: Mocked<PrismaService>;
 
   const mockPrismaService = {
-    $queryRaw: jest.fn(),
-    $transaction: jest.fn(),
+    $queryRaw: vi.fn(),
+    $transaction: vi.fn(),
     restricoes_publicacoes: {
-      update: jest.fn(),
-      delete: jest.fn(),
-      findMany: jest.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -48,8 +49,8 @@ describe('RestrictionsRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('getScheduleRestrictions', () => {
@@ -286,10 +287,10 @@ describe('RestrictionsRepository', () => {
 
   describe('insertPublicationRestriction', () => {
     it('should insert multiple publication restrictions', async () => {
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockResolvedValue({ count: 2 }),
+            createMany: vi.fn().mockResolvedValue({ count: 2 }),
           },
         });
       });
@@ -317,10 +318,10 @@ describe('RestrictionsRepository', () => {
       ];
 
       let capturedData: any;
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockImplementation((params) => {
+            createMany: vi.fn().mockImplementation((params) => {
               capturedData = params.data;
               return Promise.resolve({ count: 1 });
             }),
@@ -347,10 +348,10 @@ describe('RestrictionsRepository', () => {
     it('should handle empty array', async () => {
       const data: InsertPublicationRestrictionsDTO[] = [];
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockResolvedValue({ count: 0 }),
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
           },
         });
       });

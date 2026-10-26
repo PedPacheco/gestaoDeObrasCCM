@@ -13,7 +13,7 @@ describe('GetCompletedWorksRepository', () => {
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const mockWorks = [
@@ -93,7 +93,7 @@ describe('GetCompletedWorksRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetCompletedWorks', () => {

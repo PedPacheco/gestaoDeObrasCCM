@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
 import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
@@ -10,31 +10,31 @@ describe('WorkServicesQueryRepository', () => {
 
   const mockPrismaService = {
     servicos: {
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      groupBy: jest.fn(),
-      create: jest.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      groupBy: vi.fn(),
+      create: vi.fn(),
     },
-    obras: { findMany: jest.fn() },
-    materiais: { findMany: jest.fn() },
+    obras: { findMany: vi.fn() },
+    materiais: { findMany: vi.fn() },
     programacoes_servicos: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      deleteMany: jest.fn(),
-      updateMany: jest.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+      updateMany: vi.fn(),
     },
     servicos_contratos: {
-      groupBy: jest.fn(),
-      findMany: jest.fn(),
+      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
     equipes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -53,7 +53,7 @@ describe('WorkServicesQueryRepository', () => {
     );
     prisma = module.get<PrismaService>(PrismaService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getServices', () => {
@@ -319,6 +319,7 @@ describe('WorkServicesQueryRepository', () => {
           prog: true,
           real: true,
           adicional: true,
+          status: true,
         },
         where: { programacoes: { id_obra: 1 } },
       });
@@ -348,7 +349,7 @@ describe('WorkServicesQueryRepository', () => {
     it('should query within the provided transaction when tx is informed', async () => {
       const mockTx = {
         programacoes_servicos: {
-          findMany: jest.fn().mockResolvedValue([]),
+          findMany: vi.fn().mockResolvedValue([]),
         },
       };
 
@@ -690,7 +691,7 @@ describe('WorkServicesQueryRepository', () => {
     it('should query within the provided transaction when tx is informed', async () => {
       const mockTx = {
         servicos: {
-          findMany: jest.fn().mockResolvedValue([]),
+          findMany: vi.fn().mockResolvedValue([]),
         },
       };
 
@@ -944,7 +945,7 @@ describe('WorkServicesQueryRepository', () => {
 
   describe('findServicesForScheduling', () => {
     const buildTx = () => ({
-      servicos: { findMany: jest.fn() },
+      servicos: { findMany: vi.fn() },
     });
 
     const asTx = (tx: ReturnType<typeof buildTx>) =>

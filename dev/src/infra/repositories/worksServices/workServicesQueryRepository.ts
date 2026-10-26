@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   IWorkServicesQueryRepository,
   ServiceForScheduling,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -197,6 +197,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         prog: true,
         real: true,
         adicional: true,
+        status: true,
       },
       where: { programacoes: { id_obra: id } },
     });

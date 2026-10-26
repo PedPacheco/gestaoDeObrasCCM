@@ -4,6 +4,7 @@ import {
 } from 'src/domain/repositories/IFeasibilityRepository';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
 
@@ -51,12 +52,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           data_envio: obra.relatorio_viabilidade.data_envio,
           operacao: service.operacao,
           ponto: service.ponto,
@@ -97,12 +93,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           operacao: service.operacao,
           ponto: service.ponto,
           numeroOperacao: service.numero_operacao,

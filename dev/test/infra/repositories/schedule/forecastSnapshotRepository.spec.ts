@@ -10,10 +10,10 @@ describe('SaveForecastSnapshotRepository', () => {
 
   const prismaMock = {
     forecast_snapshot: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      delete: jest.fn(),
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
     },
   };
 
@@ -133,7 +133,7 @@ describe('SaveForecastSnapshotRepository', () => {
     repository = module.get(ForecastSnapshotRepository);
     prismaService = module.get(PrismaService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

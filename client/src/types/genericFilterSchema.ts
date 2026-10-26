@@ -64,6 +64,8 @@ export interface SelectFilterConfig {
   /** Chave exibida ao usuário dentro de cada item do array (ex.: "nome") */
   displayKey: string;
   virtualized?: boolean; // 👈
+  secondaryDisplayKey?: string;
+  searchKeys?: string[];
 }
 
 export interface DateRangeFilterConfig {

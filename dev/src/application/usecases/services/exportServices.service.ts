@@ -9,6 +9,7 @@ import {
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
 
 @Injectable()
@@ -62,12 +63,7 @@ export class ExportServicesService {
           if (!document) {
             document = {
               ovnota: obra.ovnota,
-              ordemDiagrama:
-                obra.diagrama ??
-                obra.ordem_dci ??
-                obra.ordem_dca ??
-                obra.ordem_dcd ??
-                obra.ordem_dcim,
+              ordemDiagrama: resolveOrdemDiagrama(obra),
               referencia: obra.referencia,
               tipo_obra: obra.tipos?.tipo_obra,
               municipio: obra.municipios?.municipio,
@@ -179,12 +175,7 @@ export class ExportServicesService {
 
           excelData.push({
             ovnota: obra.ovnota,
-            ordemDiagrama:
-              obra.diagrama ??
-              obra.ordem_dci ??
-              obra.ordem_dca ??
-              obra.ordem_dcd ??
-              obra.ordem_dcim,
+            ordemDiagrama: resolveOrdemDiagrama(obra),
             referencia: obra.referencia,
             tipoObra: obra.tipos?.tipo_obra,
             municipio: obra.municipios?.municipio,

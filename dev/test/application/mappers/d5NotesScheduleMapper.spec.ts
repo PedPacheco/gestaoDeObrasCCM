@@ -1,3 +1,4 @@
+import type { Mocked, MockedFunction } from 'vitest';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
@@ -7,22 +8,23 @@ import {
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException } from '@nestjs/common';
-import moment, { Moment } from 'moment';
+import { D5NoteTimeMetricsInfo } from 'src/domain/services/d5Notes/timeMetrics.service';
+import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 import { FindRejectionsByD5NotesQueryResult } from 'src/interface/types/d5notes/types';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
 // ---------------------------------------------------------------------------
-jest.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
-  D5NoteSchedule: { create: jest.fn() },
+vi.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
+  D5NoteSchedule: { create: vi.fn() },
 }));
 
-jest.mock('src/utils/parseTimeToDate', () => ({
-  parseTimeToDate: jest.fn(),
+vi.mock('src/utils/parseTimeToDate', () => ({
+  parseTimeToDate: vi.fn(),
 }));
 
-const entity = D5NoteSchedule as jest.Mocked<typeof D5NoteSchedule>;
-const parseTime = parseTimeToDate as jest.MockedFunction<
+const entity = D5NoteSchedule as Mocked<typeof D5NoteSchedule>;
+const parseTime = parseTimeToDate as MockedFunction<
   typeof parseTimeToDate
 >;
 
@@ -54,7 +56,7 @@ const makeCurrent = (overrides: Record<string, any> = {}) => {
     idTechnical: 3,
     idExecutionRestriction: 2,
     responsibility: 'Equipa atual',
-    toPublicProps: jest.fn().mockReturnValue(publicProps),
+    toPublicProps: vi.fn().mockReturnValue(publicProps),
   } as unknown as D5NoteSchedule;
 };
 
@@ -163,6 +165,21 @@ const makeListRow = (overrides: Record<string, any> = {}) => {
   };
 };
 
+const EMPTY_METRICS: D5NoteTimeMetricsInfo = {
+  tmAberto: null,
+  tmExecucao: null,
+  statusPrazo: null,
+};
+
+const toItem = (
+  overrides: Record<string, any> = {},
+  metrics: D5NoteTimeMetricsInfo = EMPTY_METRICS,
+) =>
+  D5NoteScheduleMapper.toListItem(
+    makeListRow(overrides) as any,
+    metrics,
+  ) as any;
+
 /**
  * Programação de origem para toRejectionSnapshot. Inclui campos que NÃO
  * fazem parte do snapshot (id, exec, id_tecnico, caminhos_arquivos) para
@@ -222,9 +239,6 @@ const stripUndefined = (obj: Record<string, any>) =>
 const toCommonColumns = (e: D5NoteSchedule) =>
   (D5NoteScheduleMapper as any).toCommonColumns(e);
 
-const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
-  (D5NoteScheduleMapper as any).calculateTM(initialDate, executionDate);
-
 const requiresDP = (numDp?: string | null, serviceType?: string | null) =>
   (D5NoteScheduleMapper as any).requiresDP(numDp, serviceType);
 
@@ -234,13 +248,11 @@ describe('D5NoteScheduleMapper', () => {
       (value: any) =>
         (value ? new Date(`2026-02-10T${value}:00.000Z`) : undefined) as any,
     );
-    jest.useFakeTimers().setSystemTime(new Date('2026-10-07T15:30:00'));
     entity.create.mockReturnValue({ built: true } as any);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
-    jest.useRealTimers();
+    vi.resetAllMocks();
   });
 
   // =========================================================================
@@ -855,7 +867,7 @@ describe('D5NoteScheduleMapper', () => {
 
     it('não deve passar o índice como segundo argumento ao mapper', () => {
       // toResponse recebe (row, index, array) via map — garante aridade segura
-      const spy = jest.spyOn(D5NoteScheduleMapper, 'toResponse');
+      const spy = vi.spyOn(D5NoteScheduleMapper, 'toResponse');
 
       D5NoteScheduleMapper.toResponseList([makeResponseRow()] as any);
 
@@ -867,11 +879,10 @@ describe('D5NoteScheduleMapper', () => {
   // =========================================================================
   // toListItem / toListItems
   // =========================================================================
+
   describe('toListItem', () => {
     it('deve achatar a nota e as suas relações', () => {
-      const result = D5NoteScheduleMapper.toListItem(makeListRow() as any);
-
-      expect(result).toMatchObject({
+      expect(toItem()).toMatchObject({
         id: 10,
         nota_d5: 'D5-001',
         local_instalacao: 'LI-1',
@@ -889,45 +900,45 @@ describe('D5NoteScheduleMapper', () => {
       });
     });
 
-    it('deve calcular o TM de execução quando a nota está concluída', async () => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow({
-          notas_d5: {
-            criado_em: new Date('2026-01-01T00:00:00.000Z'),
-            conclusao_nota: new Date('2026-01-06T18:45:00.000Z'),
-          },
-        }) as any,
-      );
+    it('deve incluir as métricas de prazo recebidas', () => {
+      const metrics: D5NoteTimeMetricsInfo = {
+        tmAberto: 6,
+        tmExecucao: null,
+        statusPrazo: DeadlineStatus.CRITICAL,
+      };
 
-      expect(result).toMatchObject({
-        tmExecucao: 5,
+      expect(toItem({}, metrics)).toMatchObject(metrics);
+    });
+
+    it('deve incluir as métricas de uma nota concluída', () => {
+      const metrics: D5NoteTimeMetricsInfo = {
         tmAberto: null,
+        tmExecucao: 5,
+        statusPrazo: null,
+      };
+
+      expect(toItem({}, metrics)).toMatchObject({
+        tmAberto: null,
+        tmExecucao: 5,
+        statusPrazo: null,
       });
     });
 
     it('deve remover as relações cruas', () => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow() as any,
-      ) as any;
+      const result = toItem();
 
       expect(result).not.toHaveProperty('tecnicos');
       expect(result).not.toHaveProperty('notas_d5');
     });
 
     it('deve sobrepor o id da programação pelo id da nota', () => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow({ id: 555 }) as any,
-      );
-
-      expect(result.id).toBe(10);
+      expect(toItem({ id: 555 }).id).toBe(10);
     });
 
     it('deve converter mo_planejada de Decimal para number', () => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow({
-          notas_d5: { mo_planejada: { toNumber: () => 99.9 } },
-        }) as any,
-      );
+      const result = toItem({
+        notas_d5: { mo_planejada: { toNumber: () => 99.9 } },
+      });
 
       expect(result.moRetida).toBe(99.9);
     });
@@ -936,11 +947,7 @@ describe('D5NoteScheduleMapper', () => {
       ['null', null],
       ['undefined', undefined],
     ])('deve devolver 0 quando mo_planejada é %s', (_l, value) => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow({ notas_d5: { mo_planejada: value } }) as any,
-      );
-
-      expect(result.moRetida).toBe(0);
+      expect(toItem({ notas_d5: { mo_planejada: value } }).moRetida).toBe(0);
     });
 
     it.each([
@@ -948,16 +955,10 @@ describe('D5NoteScheduleMapper', () => {
       [
         'novo_tabela_usuarios',
         'responsavel',
-        {
-          notas_d5: { novo_tabela_usuarios: null },
-        },
+        { notas_d5: { novo_tabela_usuarios: null } },
       ],
     ])('deve devolver null quando %s é ausente', (_l, key, overrides) => {
-      const result = D5NoteScheduleMapper.toListItem(
-        makeListRow(overrides as any) as any,
-      ) as any;
-
-      expect(result[key]).toBeNull();
+      expect(toItem(overrides as any)[key]).toBeNull();
     });
 
     describe('ordemDiagrama', () => {
@@ -995,17 +996,11 @@ describe('D5NoteScheduleMapper', () => {
       ];
 
       it.each(cases)('deve resolver para %s', (_l, obras, expected) => {
-        const result = D5NoteScheduleMapper.toListItem(
-          makeListRow({ notas_d5: { obras } }) as any,
-        );
-
-        expect(result.ordemDiagrama).toBe(expected);
+        expect(toItem({ notas_d5: { obras } }).ordemDiagrama).toBe(expected);
       });
 
       it('deve devolver null em ambos os campos quando obras é null', () => {
-        const result = D5NoteScheduleMapper.toListItem(
-          makeListRow({ notas_d5: { obras: null } }) as any,
-        );
+        const result = toItem({ notas_d5: { obras: null } });
 
         expect(result.ovnota).toBeNull();
         expect(result.ordemDiagrama).toBeNull();
@@ -1035,35 +1030,54 @@ describe('D5NoteScheduleMapper', () => {
           false,
         ],
       ])('deve devolver %s', (_l, overrides, expected) => {
-        const result = D5NoteScheduleMapper.toListItem(
-          makeListRow(overrides) as any,
-        );
-
-        expect(result.precisaDp).toBe(expected);
+        expect(toItem(overrides).precisaDp).toBe(expected);
       });
 
       it('deve manter num_dp e tipo_servico no item da lista', () => {
-        const result = D5NoteScheduleMapper.toListItem(
-          makeListRow({ tipo_servico: 'LV', num_dp: '999' }) as any,
-        ) as any;
-
-        expect(result).toMatchObject({ tipo_servico: 'LV', num_dp: '999' });
+        expect(toItem({ tipo_servico: 'LV', num_dp: '999' })).toMatchObject({
+          tipo_servico: 'LV',
+          num_dp: '999',
+        });
       });
     });
   });
 
   describe('toListItems', () => {
-    it('deve mapear todas as linhas', () => {
-      const result = D5NoteScheduleMapper.toListItems([
-        makeListRow(),
-        makeListRow(),
-      ] as any);
+    it('deve mapear todas as linhas com as métricas de cada uma', () => {
+      const rows = [makeListRow(), makeListRow()] as any[];
+      const getTimeMetrics = vi
+        .fn()
+        .mockReturnValueOnce({
+          tmAberto: 2,
+          tmExecucao: null,
+          statusPrazo: DeadlineStatus.ON_TIME,
+        })
+        .mockReturnValueOnce({
+          tmAberto: 8,
+          tmExecucao: null,
+          statusPrazo: DeadlineStatus.OVERDUE,
+        });
+
+      const result = D5NoteScheduleMapper.toListItems(rows, getTimeMetrics);
 
       expect(result).toHaveLength(2);
+      expect(getTimeMetrics).toHaveBeenNthCalledWith(1, rows[0]);
+      expect(getTimeMetrics).toHaveBeenNthCalledWith(2, rows[1]);
+      expect(result[0]).toMatchObject({
+        tmAberto: 2,
+        statusPrazo: DeadlineStatus.ON_TIME,
+      });
+      expect(result[1]).toMatchObject({
+        tmAberto: 8,
+        statusPrazo: DeadlineStatus.OVERDUE,
+      });
     });
 
-    it('deve devolver lista vazia para entrada vazia', () => {
-      expect(D5NoteScheduleMapper.toListItems([])).toEqual([]);
+    it('deve devolver lista vazia sem calcular métricas', () => {
+      const getTimeMetrics = vi.fn();
+
+      expect(D5NoteScheduleMapper.toListItems([], getTimeMetrics)).toEqual([]);
+      expect(getTimeMetrics).not.toHaveBeenCalled();
     });
   });
 
@@ -1201,7 +1215,7 @@ describe('D5NoteScheduleMapper', () => {
     });
 
     it('deve delegar em toRejectionResponse para cada linha', () => {
-      const spy = jest.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
+      const spy = vi.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
       const rows = [makeRejectionRow({ id: 1 }), makeRejectionRow({ id: 2 })];
 
       D5NoteScheduleMapper.toRejectionsResponseList(rows);
@@ -1307,28 +1321,6 @@ describe('D5NoteScheduleMapper', () => {
 
       expect(columns.exec).toBeUndefined();
       expect(columns.chi).toBeUndefined();
-    });
-  });
-
-  describe('calculateTM', () => {
-    it('Deve retornar o TM aberto corretamente e o TM execucao como nulo', () => {
-      const mockInitialDate = moment('2026-09-30');
-      const mockExecutionDate = null;
-
-      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: 7,
-        tmExecucao: null,
-      });
-    });
-
-    it('Deve retornar o TM execucao corretamente e o TM aberto como nulo', () => {
-      const mockInitialDate = moment('2026-09-23');
-      const mockExecutionDate = moment('2026-09-30');
-
-      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: null,
-        tmExecucao: 7,
-      });
     });
   });
 

@@ -11,7 +11,7 @@ describe('AuthGuard', () => {
   let reflector: Reflector;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
@@ -19,13 +19,13 @@ describe('AuthGuard', () => {
         {
           provide: JwtService,
           useValue: {
-            verifyAsync: jest.fn(),
+            verifyAsync: vi.fn(),
           },
         },
         {
           provide: Reflector,
           useValue: {
-            getAllAndOverride: jest.fn(),
+            getAllAndOverride: vi.fn(),
           },
         },
       ],
@@ -43,7 +43,7 @@ describe('AuthGuard', () => {
   it('should allow access to public routes', async () => {
     const context = createMockExecutionContext();
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
 
     expect(await authGuard.canActivate(context)).toBe(true);
   });
@@ -51,7 +51,7 @@ describe('AuthGuard', () => {
   it('should throw UnauthorizedExpection if token is null', async () => {
     const context = createMockExecutionContext();
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
 
     await expect(authGuard.canActivate(context)).rejects.toThrow(
       UnauthorizedException,
@@ -61,8 +61,8 @@ describe('AuthGuard', () => {
   it('should throw UnauthorizedExpection if token is invalid', async () => {
     const context = createMockExecutionContext('Bearer invalidtoken');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    jest
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi
       .spyOn(jwtService, 'verifyAsync')
       .mockRejectedValue(new Error('Invalid token'));
 
@@ -76,8 +76,8 @@ describe('AuthGuard', () => {
 
     const context = createMockExecutionContext('Bearer mockToken');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockPayload);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockPayload);
 
     const result = await authGuard.canActivate(context);
 
@@ -99,8 +99,8 @@ describe('AuthGuard', () => {
       switchToHttp: () => ({
         getRequest: () => request,
       }),
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
     } as unknown as ExecutionContext;
   }
 });

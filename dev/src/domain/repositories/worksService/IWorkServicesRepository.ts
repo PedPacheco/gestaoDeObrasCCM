@@ -1,9 +1,9 @@
-import { Prisma } from '@prisma/client';
 import {
   ScheduleItem,
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import {
   AddServicesDTO,
@@ -70,7 +70,9 @@ export interface IWorkServicesRepository {
   findScheduleItemsExecution(
     id: number,
     tx: Prisma.TransactionClient,
-  ): Promise<{ id_servico: number; real: number | null }[]>;
+  ): Promise<
+    { id_servico: number; real: number | null; status: string | null }[]
+  >;
   deleteScheduleItems(id: number, tx: Prisma.TransactionClient): Promise<void>;
   /** Repõe prog = 0 e exec = null na programação. */
   resetScheduleProgress(
