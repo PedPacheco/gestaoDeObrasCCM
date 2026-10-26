@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
 import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export type FindD5NotesQueryResult = {
   id: number;

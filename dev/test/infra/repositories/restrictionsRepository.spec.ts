@@ -1,11 +1,11 @@
-import type { Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
+import type { Mocked } from 'vitest';
 import {
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
