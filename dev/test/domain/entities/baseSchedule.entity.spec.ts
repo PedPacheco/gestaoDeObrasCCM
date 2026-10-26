@@ -9,7 +9,7 @@ import {
 // Como a base não chama validate() no construtor, a subclasse o faz (igual
 // às subclasses reais).
 // ---------------------------------------------------------------------------
-const specificSpy = jest.fn();
+const specificSpy = vi.fn();
 
 class TestSchedule extends BaseSchedule {
   constructor(props: BaseScheduleProps) {

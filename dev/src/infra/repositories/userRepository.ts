@@ -2,9 +2,10 @@ import { User } from 'src/domain/entities/user.entity';
 import { IUserRepository } from 'src/domain/repositories/IUserRepository';
 // import { userInterface } from 'src/interface/types/userInterface';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { novo_tabela_usuarios } from '@prisma/client';
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
+
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserRepository implements IUserRepository {

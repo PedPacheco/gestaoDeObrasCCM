@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
 import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
 import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
@@ -9,7 +10,7 @@ import {
 
 // Mapper mockado: o foco aqui é a regra do use case (padrão x ponto a ponto),
 // não o formato interno dos totais do mapper.
-jest.mock('src/application/mappers/monthlySummaryMapper', () => ({
+vi.mock('src/application/mappers/monthlySummaryMapper', () => ({
   MonthlySummaryMapper: class {},
   createUniqueWorksFinancial: () => ({ totalMoPlan: 0, totalMoPend: 0 }),
   createInitialTotals: () => ({
@@ -98,19 +99,19 @@ const makeServiceItem = (overrides: Record<string, any> = {}) => ({
 
 describe('MonthlySummaryService', () => {
   let monthlySummaryRepository: {
-    getSummary: jest.Mock;
-    getPortfolioSummary: jest.Mock;
-    getContractValue: jest.Mock;
+    getSummary: Mock;
+    getPortfolioSummary: Mock;
+    getContractValue: Mock;
   };
-  let executionCapacityRepository: { getFinancialValue: jest.Mock };
+  let executionCapacityRepository: { getFinancialValue: Mock };
   let teamsAggregatorService: {
-    buildTotalTeamsMap: jest.Mock;
-    buildExecutionCapacityTeams: jest.Mock;
+    buildTotalTeamsMap: Mock;
+    buildExecutionCapacityTeams: Mock;
   };
   let workServicesQueryService: {
-    getServiceScheduleHistoryByIdSchedule: jest.Mock;
+    getServiceScheduleHistoryByIdSchedule: Mock;
   };
-  let summaryMapper: Record<string, jest.Mock>;
+  let summaryMapper: Record<string, Mock>;
   let calculator: MonthlySummaryCalculator;
   let service: MonthlySummaryService;
 
@@ -140,36 +141,36 @@ describe('MonthlySummaryService', () => {
 
   beforeEach(() => {
     monthlySummaryRepository = {
-      getSummary: jest.fn(),
-      getPortfolioSummary: jest.fn(),
-      getContractValue: jest.fn(),
+      getSummary: vi.fn(),
+      getPortfolioSummary: vi.fn(),
+      getContractValue: vi.fn(),
     };
-    executionCapacityRepository = { getFinancialValue: jest.fn() };
+    executionCapacityRepository = { getFinancialValue: vi.fn() };
     teamsAggregatorService = {
-      buildTotalTeamsMap: jest.fn(() => new Map()),
-      buildExecutionCapacityTeams: jest.fn(() => ({
+      buildTotalTeamsMap: vi.fn(() => new Map()),
+      buildExecutionCapacityTeams: vi.fn(() => ({
         rfpTeams: 3,
         executionCapacityTeams: 5,
       })),
     };
     workServicesQueryService = {
-      getServiceScheduleHistoryByIdSchedule: jest.fn().mockResolvedValue([]),
+      getServiceScheduleHistoryByIdSchedule: vi.fn().mockResolvedValue([]),
     };
 
     summaryMapper = {
-      createDailySummaryEntry: jest.fn((date, _metrics, teamsTotal) => ({
+      createDailySummaryEntry: vi.fn((date, _metrics, teamsTotal) => ({
         dataProg: date,
         teamsTotal: teamsTotal ?? 0,
         qtdeSchedules: 0,
         totalMoProg: 0,
         totalMoExec: 0,
       })),
-      accumulateDailySummaryEntry: jest.fn((entry, metrics) => {
+      accumulateDailySummaryEntry: vi.fn((entry, metrics) => {
         entry.qtdeSchedules += 1;
         entry.totalMoProg += metrics.moProg;
         entry.totalMoExec += metrics.moExec;
       }),
-      createGroupTeamEntry: jest.fn((grupo, turma, idTurma, idGrupo) => ({
+      createGroupTeamEntry: vi.fn((grupo, turma, idTurma, idGrupo) => ({
         grupo,
         turma,
         idTurma,
@@ -179,7 +180,7 @@ describe('MonthlySummaryService', () => {
         totalMoExec: 0,
         totalMoPrev: 0,
       })),
-      accumulateGroupTeamEntry: jest.fn((entry, metrics, moPrev) => {
+      accumulateGroupTeamEntry: vi.fn((entry, metrics, moPrev) => {
         entry.qtdeSchedules += 1;
         entry.totalMoProg += metrics.moProg;
         entry.totalMoExec += metrics.moExec;
@@ -266,8 +267,8 @@ describe('MonthlySummaryService', () => {
       });
 
       it('usa o calculador padrão e não o de ponto a ponto', async () => {
-        const standardSpy = jest.spyOn(calculator, 'calculateWorkOrderMetrics');
-        const p2pSpy = jest.spyOn(calculator, 'calculatePointByPointMetrics');
+        const standardSpy = vi.spyOn(calculator, 'calculateWorkOrderMetrics');
+        const p2pSpy = vi.spyOn(calculator, 'calculatePointByPointMetrics');
         arrange([makeRecord()]);
 
         await service.getSummary(filters);
@@ -378,8 +379,8 @@ describe('MonthlySummaryService', () => {
       });
 
       it('usa o calculador ponto a ponto, mantendo moPlan/moPend da obra', async () => {
-        const p2pSpy = jest.spyOn(calculator, 'calculatePointByPointMetrics');
-        const standardSpy = jest.spyOn(calculator, 'calculateWorkOrderMetrics');
+        const p2pSpy = vi.spyOn(calculator, 'calculatePointByPointMetrics');
+        const standardSpy = vi.spyOn(calculator, 'calculateWorkOrderMetrics');
         arrange([p2pRecord()], {
           services: [
             makeServiceItem({
@@ -552,7 +553,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('calcula a capacidade do mês uma única vez', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateFinancialCapacityByMonth');
+        const spy = vi.spyOn(calculator, 'aggregateFinancialCapacityByMonth');
         arrange(
           [
             makeRecord({ id: 1, data_prog: '2026-03-10T00:00:00.000Z' }),
@@ -569,7 +570,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('calcula a capacidade de cada mês presente nos registros', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateFinancialCapacityByMonth');
+        const spy = vi.spyOn(calculator, 'aggregateFinancialCapacityByMonth');
         arrange(
           [
             makeRecord({ id: 1, data_prog: '2026-03-10T00:00:00.000Z' }),
@@ -597,7 +598,7 @@ describe('MonthlySummaryService', () => {
       ];
 
       it('soma a meta financeira dos meses presentes no período', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateDailySummaryTotals');
+        const spy = vi.spyOn(calculator, 'aggregateDailySummaryTotals');
         arrange(
           [
             makeRecord({ id: 1, data_prog: '2026-03-10T00:00:00.000Z' }),
@@ -617,7 +618,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('meses sem registros não entram na meta', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateDailySummaryTotals');
+        const spy = vi.spyOn(calculator, 'aggregateDailySummaryTotals');
         arrange([makeRecord()], { capacity });
 
         await service.getSummary(filters);
@@ -626,7 +627,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('carteira: conta obras e soma o saldo planejado a executar', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateDailySummaryTotals');
+        const spy = vi.spyOn(calculator, 'aggregateDailySummaryTotals');
         arrange([makeRecord()], {
           portfolio: [
             { mo_planejada: 1000, executado: 25 },
@@ -644,7 +645,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('repassa as equipes de capacidade de execução', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateDailySummaryTotals');
+        const spy = vi.spyOn(calculator, 'aggregateDailySummaryTotals');
         arrange([makeRecord()]);
 
         const { totals } = await service.getSummary(filters);
@@ -931,12 +932,12 @@ describe('MonthlySummaryService', () => {
       });
 
       it('usa os métodos de ponto a ponto do calculador', async () => {
-        const metricsSpy = jest.spyOn(
+        const metricsSpy = vi.spyOn(
           calculator,
           'calculatePointByPointMetrics',
         );
-        const prevSpy = jest.spyOn(calculator, 'calculatePointByPointMoPrev');
-        const standardPrevSpy = jest.spyOn(calculator, 'calculateMoPrev');
+        const prevSpy = vi.spyOn(calculator, 'calculatePointByPointMoPrev');
+        const standardPrevSpy = vi.spyOn(calculator, 'calculateMoPrev');
         arrange([p2pRecord({ exec: 10 })], { services });
 
         await service.getSecondSummary(filters);
@@ -979,7 +980,7 @@ describe('MonthlySummaryService', () => {
 
     describe('obras únicas', () => {
       it('repete a mesma obra em várias programações: contabiliza uma única vez', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateGroupTotals');
+        const spy = vi.spyOn(calculator, 'aggregateGroupTotals');
         arrange([
           makeRecord({ id: 1, data_prog: '2026-03-10T00:00:00.000Z' }),
           makeRecord({ id: 2, data_prog: '2026-03-11T00:00:00.000Z' }),
@@ -1013,7 +1014,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('a chave da obra considera ovnota e todas as ordens', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateGroupTotals');
+        const spy = vi.spyOn(calculator, 'aggregateGroupTotals');
         arrange([
           makeRecord({ id: 1, obras: makeObra({ ordem_dci: 'I1' }) }),
           makeRecord({ id: 2, obras: makeObra({ ordem_dci: 'I2' }) }),
@@ -1027,7 +1028,7 @@ describe('MonthlySummaryService', () => {
 
     describe('carteira', () => {
       it('soma o saldo planejado a executar por grupo', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateGroupTotals');
+        const spy = vi.spyOn(calculator, 'aggregateGroupTotals');
         arrange([makeRecord()], {
           portfolio: [
             { mo_planejada: 1000, executado: 50, tipos: { id_grupo: 1 } },
@@ -1049,7 +1050,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('obras sem mo_planejada/executado contam como zero', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateGroupTotals');
+        const spy = vi.spyOn(calculator, 'aggregateGroupTotals');
         arrange([makeRecord()], {
           portfolio: [
             { mo_planejada: null, executado: null, tipos: { id_grupo: 1 } },
@@ -1063,7 +1064,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('grupo desconhecido entra só no total da carteira', async () => {
-        const spy = jest.spyOn(calculator, 'aggregateGroupTotals');
+        const spy = vi.spyOn(calculator, 'aggregateGroupTotals');
         arrange([makeRecord()], {
           portfolio: [
             { mo_planejada: 100, executado: 0, tipos: { id_grupo: 99 } },

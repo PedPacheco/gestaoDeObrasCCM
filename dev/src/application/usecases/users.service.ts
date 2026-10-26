@@ -1,11 +1,10 @@
 import { genSalt, hash } from 'bcrypt';
-import { novo_tabela_usuarios } from '@prisma/client';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import {
   IUserRepository,
   USER_REPOSITORY,
 } from 'src/domain/repositories/IUserRepository';
+import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 import {
   BadRequestException,
@@ -15,6 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class UsersService {

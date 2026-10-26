@@ -1,5 +1,6 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
 
 describe('UpdateWorkRepository', () => {
@@ -7,8 +8,8 @@ describe('UpdateWorkRepository', () => {
 
   const mockTx = {
     obras: {
-      update: jest.fn(), // ou o método que você espera
-      findUnique: jest.fn(),
+      update: vi.fn(), // ou o método que você espera
+      findUnique: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -20,7 +21,7 @@ describe('UpdateWorkRepository', () => {
     repository = module.get<UpdateWorkRepository>(UpdateWorkRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should call transaction prisma transaction to update works', async () => {
@@ -34,7 +35,7 @@ describe('UpdateWorkRepository', () => {
         mockTx,
       );
 
-      expect(mockTx.obras.update as jest.Mock).toHaveBeenCalledWith({
+      expect(mockTx.obras.update as Mock).toHaveBeenCalledWith({
         where: { id: 3 },
         data: {
           id_status: 1,
@@ -47,9 +48,9 @@ describe('UpdateWorkRepository', () => {
     it('should throw an error and log it if prisma fails', async () => {
       const error = new Error('Prisma failure');
 
-      (mockTx.obras.update as jest.Mock).mockRejectedValueOnce(error);
+      (mockTx.obras.update as Mock).mockRejectedValueOnce(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(
         repository.update(

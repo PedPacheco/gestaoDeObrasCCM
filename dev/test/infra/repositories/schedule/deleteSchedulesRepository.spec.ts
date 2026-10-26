@@ -7,7 +7,7 @@ describe('DeleteSchedulesRepository', () => {
   let repository: DeleteSchedulesRepository;
 
   const mockPrisma = {
-    programacoes: { delete: jest.fn() },
+    programacoes: { delete: vi.fn() },
   };
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('DeleteSchedulesRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('delete', () => {
     it('Should call method delete and throw NotFoundExpection if id not found', async () => {

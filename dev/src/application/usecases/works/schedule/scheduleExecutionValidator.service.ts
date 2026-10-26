@@ -1,10 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
+
 import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
 import { isAtLeast } from 'src/utils/pointByPoint/progress.utils';
 import {

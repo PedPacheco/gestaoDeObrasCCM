@@ -1,5 +1,5 @@
-import { novo_tabela_usuarios } from '@prisma/client';
 import { User } from 'src/domain/entities/user.entity';
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 // import { userInterface } from 'src/interface/types/userInterface';
 
 export interface IUserRepository {

@@ -1,3 +1,4 @@
+import type { Mocked, MockedFunction } from 'vitest';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
@@ -14,16 +15,16 @@ import { FindRejectionsByD5NotesQueryResult } from 'src/interface/types/d5notes/
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
 // ---------------------------------------------------------------------------
-jest.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
-  D5NoteSchedule: { create: jest.fn() },
+vi.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
+  D5NoteSchedule: { create: vi.fn() },
 }));
 
-jest.mock('src/utils/parseTimeToDate', () => ({
-  parseTimeToDate: jest.fn(),
+vi.mock('src/utils/parseTimeToDate', () => ({
+  parseTimeToDate: vi.fn(),
 }));
 
-const entity = D5NoteSchedule as jest.Mocked<typeof D5NoteSchedule>;
-const parseTime = parseTimeToDate as jest.MockedFunction<
+const entity = D5NoteSchedule as Mocked<typeof D5NoteSchedule>;
+const parseTime = parseTimeToDate as MockedFunction<
   typeof parseTimeToDate
 >;
 
@@ -55,7 +56,7 @@ const makeCurrent = (overrides: Record<string, any> = {}) => {
     idTechnical: 3,
     idExecutionRestriction: 2,
     responsibility: 'Equipa atual',
-    toPublicProps: jest.fn().mockReturnValue(publicProps),
+    toPublicProps: vi.fn().mockReturnValue(publicProps),
   } as unknown as D5NoteSchedule;
 };
 
@@ -251,7 +252,7 @@ describe('D5NoteScheduleMapper', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   // =========================================================================
@@ -866,7 +867,7 @@ describe('D5NoteScheduleMapper', () => {
 
     it('não deve passar o índice como segundo argumento ao mapper', () => {
       // toResponse recebe (row, index, array) via map — garante aridade segura
-      const spy = jest.spyOn(D5NoteScheduleMapper, 'toResponse');
+      const spy = vi.spyOn(D5NoteScheduleMapper, 'toResponse');
 
       D5NoteScheduleMapper.toResponseList([makeResponseRow()] as any);
 
@@ -1044,7 +1045,7 @@ describe('D5NoteScheduleMapper', () => {
   describe('toListItems', () => {
     it('deve mapear todas as linhas com as métricas de cada uma', () => {
       const rows = [makeListRow(), makeListRow()] as any[];
-      const getTimeMetrics = jest
+      const getTimeMetrics = vi
         .fn()
         .mockReturnValueOnce({
           tmAberto: 2,
@@ -1073,7 +1074,7 @@ describe('D5NoteScheduleMapper', () => {
     });
 
     it('deve devolver lista vazia sem calcular métricas', () => {
-      const getTimeMetrics = jest.fn();
+      const getTimeMetrics = vi.fn();
 
       expect(D5NoteScheduleMapper.toListItems([], getTimeMetrics)).toEqual([]);
       expect(getTimeMetrics).not.toHaveBeenCalled();
@@ -1214,7 +1215,7 @@ describe('D5NoteScheduleMapper', () => {
     });
 
     it('deve delegar em toRejectionResponse para cada linha', () => {
-      const spy = jest.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
+      const spy = vi.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
       const rows = [makeRejectionRow({ id: 1 }), makeRejectionRow({ id: 2 })];
 
       D5NoteScheduleMapper.toRejectionsResponseList(rows);

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
 import {
   ScheduleStatus,
@@ -33,8 +33,8 @@ describe('ScheduleExecutionValidatorService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
   // ─── Helpers ───────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ describe('ScheduleExecutionValidatorService', () => {
     service = module.get(ScheduleExecutionValidatorService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(service).toBeDefined();

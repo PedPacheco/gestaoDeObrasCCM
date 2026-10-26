@@ -3,18 +3,18 @@ import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWor
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 describe('UpdateWorkService', () => {
   let updateWorkService: UpdateWorkService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockTx = {
     obras: {
-      create: jest.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
+      create: vi.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
     },
   } as unknown as Prisma.TransactionClient;
 

@@ -5,16 +5,16 @@ import {
 import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
-import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
-import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 
 @Injectable()
 export class UpdateSchedulesService {

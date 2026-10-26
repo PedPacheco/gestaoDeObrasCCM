@@ -1,18 +1,19 @@
+import type { Mock } from 'vitest';
 import * as ExcelJS from 'exceljs';
 import { promises as fs } from 'fs';
 import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
 
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
   promises: {
-    unlink: jest.fn(),
+    unlink: vi.fn(),
   },
 }));
 
-jest.mock('exceljs', () => {
+vi.mock('exceljs', () => {
   return {
     stream: {
       xlsx: {
-        WorkbookReader: jest.fn(),
+        WorkbookReader: vi.fn(),
       },
     },
   };
@@ -22,29 +23,29 @@ describe('CapexProcessingService', () => {
   let service: CapexProcessingService;
 
   const mockRepository = {
-    truncateCN52N: jest.fn(),
-    getObraIdsByDiagramas: jest.fn(),
-    insertCapex: jest.fn(),
+    truncateCN52N: vi.fn(),
+    getObraIdsByDiagramas: vi.fn(),
+    insertCapex: vi.fn(),
   };
 
   const mockLogger = {
-    error: jest.fn(),
-    warn: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     service = new CapexProcessingService(mockRepository as any);
     (service as any).logger = mockLogger;
 
-    (fs.unlink as jest.Mock).mockResolvedValue(undefined);
+    (fs.unlink as Mock).mockResolvedValue(undefined);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // ============================================================
@@ -103,15 +104,15 @@ describe('CapexProcessingService', () => {
       ],
     ];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(
       new Map([['D1', 1]]),
     );
 
-    const progress = jest.fn();
+    const progress = vi.fn();
 
     await service.process('file.xlsx', 'job-1', progress);
 
@@ -130,9 +131,9 @@ describe('CapexProcessingService', () => {
   it('should ignore records when id_obra is not found', async () => {
     const rows = [[], [], [null, null, null, 'P1', 'MAT1']];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     // 🔥 nenhum id_obra encontrado
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
@@ -165,9 +166,9 @@ describe('CapexProcessingService', () => {
       [null, null, 'D3'], // aqui estoura o cache
     ];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     // cada chamada retorna um novo map com os diagramas
     mockRepository.getObraIdsByDiagramas.mockImplementation(
@@ -204,9 +205,9 @@ describe('CapexProcessingService', () => {
       'MAT',
     ]);
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
+      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockImplementation(
       async (diagramas: string[]) => {
@@ -230,13 +231,13 @@ describe('CapexProcessingService', () => {
 
     rows.push([null, null, null]);
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
+      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
-    const processBatchSpy = jest.spyOn(service as any, 'processBatch');
+    const processBatchSpy = vi.spyOn(service as any, 'processBatch');
 
     await service.process('file.xlsx', 'job-1');
 
@@ -264,9 +265,9 @@ describe('CapexProcessingService', () => {
       [null, null, 'D4'],
     ];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -285,13 +286,13 @@ describe('CapexProcessingService', () => {
   it('should emit reading progress', async () => {
     const rows = Array.from({ length: 1005 }, () => [null, null, 'D1']);
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
+      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
-    const progress = jest.fn();
+    const progress = vi.fn();
 
     await service.process('file.xlsx', 'job-1', progress);
 
@@ -305,9 +306,9 @@ describe('CapexProcessingService', () => {
   it('should emit processing progress', async () => {
     const rows = Array.from({ length: 1001 }, (_, i) => [null, null, `D${i}`]);
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
+      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockImplementation(
       async (diagramas: string[]) => {
@@ -315,7 +316,7 @@ describe('CapexProcessingService', () => {
       },
     );
 
-    const progress = jest.fn();
+    const progress = vi.fn();
 
     await service.process('file.xlsx', 'job-1', progress);
 
@@ -337,9 +338,9 @@ describe('CapexProcessingService', () => {
       [null, null, 'D3'],
     ];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -408,11 +409,11 @@ describe('CapexProcessingService', () => {
   it('should emit error and rethrow', async () => {
     const error = new Error('fail');
 
-    jest.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(() => {
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(function () {
       throw error;
     });
 
-    const progress = jest.fn();
+    const progress = vi.fn();
 
     await expect(
       service.process('file.xlsx', 'job-1', progress),
@@ -431,11 +432,11 @@ describe('CapexProcessingService', () => {
     const error = new Error();
     (error as any).message = undefined;
 
-    jest.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(() => {
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(function () {
       throw error;
     });
 
-    const progress = jest.fn();
+    const progress = vi.fn();
 
     await expect(
       service.process('file.xlsx', 'job-1', progress),
@@ -458,9 +459,9 @@ describe('CapexProcessingService', () => {
   it('should cleanup progressMap after ttl', async () => {
     const rows = [[], [], [null, null, 'D1']];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -468,7 +469,7 @@ describe('CapexProcessingService', () => {
 
     expect((service as any).progressMap.has('job-1')).toBe(true);
 
-    jest.advanceTimersByTime(5 * 60 * 1000);
+    vi.advanceTimersByTime(5 * 60 * 1000);
 
     expect((service as any).progressMap.has('job-1')).toBe(false);
   });
@@ -476,9 +477,9 @@ describe('CapexProcessingService', () => {
   it('should cleanup ignoredMap after ttl', async () => {
     const rows = [[], [], [null, null, 'D1']];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -486,7 +487,7 @@ describe('CapexProcessingService', () => {
 
     expect((service as any).ignoredMap.has('job-1')).toBe(true);
 
-    jest.advanceTimersByTime(5 * 60 * 1000);
+    vi.advanceTimersByTime(5 * 60 * 1000);
 
     expect((service as any).ignoredMap.has('job-1')).toBe(false);
   });
@@ -559,9 +560,9 @@ describe('CapexProcessingService', () => {
       [null, null, 'D6'], // batch 3
     ];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -569,7 +570,7 @@ describe('CapexProcessingService', () => {
     let runningTasks = 0;
     let maxParallel = 0;
 
-    jest.spyOn(service as any, 'processBatch').mockImplementation(async () => {
+    vi.spyOn(service as any, 'processBatch').mockImplementation(async () => {
       runningTasks++;
       maxParallel = Math.max(maxParallel, runningTasks);
 
@@ -593,13 +594,13 @@ describe('CapexProcessingService', () => {
   // ============================================================
 
   it('should warn if unlink fails', async () => {
-    (fs.unlink as jest.Mock).mockRejectedValue(new Error('fs error'));
+    (fs.unlink as Mock).mockRejectedValue(new Error('fs error'));
 
     const rows = [[], [], [null, null, 'D1']];
 
-    jest
+    vi
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(() => mockWorkbook(rows) as any);
+      .mockImplementation(function () { return mockWorkbook(rows) as any; });
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 

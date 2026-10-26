@@ -4,15 +4,15 @@ describe('CapexFullPipelineService', () => {
   let service: CapexFullPipelineService;
 
   const mockProcessingService = {
-    process: jest.fn(),
+    process: vi.fn(),
   };
 
   const mockUpdateService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockLogger = {
-    error: jest.fn(),
+    error: vi.fn(),
   };
 
   beforeEach(() => {
@@ -23,7 +23,7 @@ describe('CapexFullPipelineService', () => {
 
     (service as any).logger = mockLogger;
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // ============================================================
@@ -35,7 +35,7 @@ describe('CapexFullPipelineService', () => {
       mockProcessingService.process.mockResolvedValue(undefined);
       mockUpdateService.update.mockResolvedValue(undefined);
 
-      const emitter = jest.fn();
+      const emitter = vi.fn();
 
       await service.run('file.xlsx', 'job-1', emitter);
 
@@ -69,7 +69,7 @@ describe('CapexFullPipelineService', () => {
         });
       });
 
-      const emitter = jest.fn();
+      const emitter = vi.fn();
 
       await service.run('file.xlsx', 'job-1', emitter);
 
@@ -89,7 +89,7 @@ describe('CapexFullPipelineService', () => {
 
       mockProcessingService.process.mockRejectedValue(error);
 
-      const emitter = jest.fn();
+      const emitter = vi.fn();
 
       await expect(service.run('file.xlsx', 'job-1', emitter)).rejects.toThrow(
         'pipeline error',
@@ -108,7 +108,7 @@ describe('CapexFullPipelineService', () => {
 
   describe('remapEmitter', () => {
     it('should remap percentage correctly', () => {
-      const target = jest.fn();
+      const target = vi.fn();
 
       const emitter = (service as any).remapEmitter(target, {
         reading: { min: 0, max: 20 },
@@ -128,7 +128,7 @@ describe('CapexFullPipelineService', () => {
     });
 
     it('should return max when percentage is 100', () => {
-      const target = jest.fn();
+      const target = vi.fn();
 
       const emitter = (service as any).remapEmitter(target, {
         reading: { min: 0, max: 20 },
@@ -147,7 +147,7 @@ describe('CapexFullPipelineService', () => {
     });
 
     it('should pass through when phase is not mapped', () => {
-      const target = jest.fn();
+      const target = vi.fn();
 
       const emitter = (service as any).remapEmitter(target, {});
 
@@ -164,7 +164,7 @@ describe('CapexFullPipelineService', () => {
     });
 
     it('should handle multiple ranges correctly', () => {
-      const target = jest.fn();
+      const target = vi.fn();
 
       const emitter = (service as any).remapEmitter(target, {
         loading: { min: 45, max: 65 },
@@ -184,7 +184,7 @@ describe('CapexFullPipelineService', () => {
     });
 
     it('should floor percentage values', () => {
-      const target = jest.fn();
+      const target = vi.fn();
 
       const emitter = (service as any).remapEmitter(target, {
         processing: { min: 20, max: 45 },

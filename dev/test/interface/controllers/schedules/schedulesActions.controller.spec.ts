@@ -38,30 +38,30 @@ describe('ScheduleActionsController', () => {
     const module = await Test.createTestingModule({
       controllers: [SchedulesActionsController],
       providers: [
-        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
-        { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
-        { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
-        { provide: ExecutionReportService, useValue: { create: jest.fn() } },
+        { provide: HandleAddScheduleService, useValue: { add: vi.fn() } },
+        { provide: UpdateSchedulesService, useValue: { update: vi.fn() } },
+        { provide: DeleteSchedulesService, useValue: { delete: vi.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
+        { provide: ExecutionReportService, useValue: { create: vi.fn() } },
         {
           provide: HandleAddScheduleService,
-          useValue: { add: jest.fn(), newAdd: jest.fn() },
+          useValue: { add: vi.fn(), newAdd: vi.fn() },
         },
         {
           provide: ValidateConfirmAndRejectSchedulesService,
           useValue: {
-            validate: jest.fn(),
-            confirm: jest.fn(),
-            reject: jest.fn(),
+            validate: vi.fn(),
+            confirm: vi.fn(),
+            reject: vi.fn(),
           },
         },
         {
           provide: HandleSchedulesUpdateService,
-          useValue: { newUpdate: jest.fn(), oldUpdate: jest.fn() },
+          useValue: { newUpdate: vi.fn(), oldUpdate: vi.fn() },
         },
         {
           provide: ForecastSnapshotService,
-          useValue: { execute: jest.fn() },
+          useValue: { execute: vi.fn() },
         },
       ],
     }).compile();
@@ -89,7 +89,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('Should call newAddSchedules and return message', async () => {
-    jest.spyOn(handleAddScheduleService, 'newAdd').mockResolvedValue(1);
+    vi.spyOn(handleAddScheduleService, 'newAdd').mockResolvedValue(1);
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
@@ -150,7 +150,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('Should call addSchedules and return message', async () => {
-    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
+    vi.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
@@ -187,7 +187,7 @@ describe('ScheduleActionsController', () => {
 
   describe('oldUpdateSchedules', () => {
     it('Should call updateSchedules and return message', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
+      vi.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
 
       const result = await scheduleActionsController.oldUpdateSchedules(
         1,
@@ -218,7 +218,7 @@ describe('ScheduleActionsController', () => {
     });
 
     it('Should call update method and return correct data', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
+      vi.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
 
       const result = await scheduleActionsController.oldUpdateSchedules(
         1,
@@ -251,7 +251,7 @@ describe('ScheduleActionsController', () => {
 
   describe('newUpdateSchedules', () => {
     it('Should call updateSchedules and return message', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+      vi.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
 
       const result = await scheduleActionsController.updateSchedules(
         1,
@@ -274,7 +274,7 @@ describe('ScheduleActionsController', () => {
     });
 
     it('Should call update method and return correct data', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+      vi.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
 
       const result = await scheduleActionsController.updateSchedules(
         1,
@@ -298,7 +298,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('Should call deleteSchedules and return message', async () => {
-    jest.spyOn(deleteSchedulesService, 'delete').mockResolvedValue();
+    vi.spyOn(deleteSchedulesService, 'delete').mockResolvedValue();
 
     const result = await scheduleActionsController.deleteSchedules(1);
 
@@ -310,7 +310,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call validate and return message', async () => {
-    jest
+    vi
       .spyOn(validateConfirmAndRejectSchedulesService, 'validate')
       .mockResolvedValue();
 
@@ -328,7 +328,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call confirm and return message', async () => {
-    jest
+    vi
       .spyOn(validateConfirmAndRejectSchedulesService, 'confirm')
       .mockResolvedValue();
 
@@ -346,7 +346,7 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call reject and return message', async () => {
-    jest
+    vi
       .spyOn(validateConfirmAndRejectSchedulesService, 'reject')
       .mockResolvedValue();
 

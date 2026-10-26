@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { TestingModule } from '@nestjs/testing';
 
 import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
@@ -74,14 +75,14 @@ export const mockWorksData: worksInPortfolioResponseService = {
 describe('ExportWorksController', () => {
   let controller: ExportWorksController;
 
-  let getWorksInPortfolioService: jest.Mocked<GetWorksInPortfolioService>;
-  let getCompletedWorksService: jest.Mocked<GetCompletedWorksService>;
-  let exportWorksInPortfolioService: jest.Mocked<ExportWorksInPortfolioService>;
-  let exportCompletedWorksService: jest.Mocked<ExportCompletedWorksService>;
-  let exportFinedWorksService: jest.Mocked<ExportFinedWorksService>;
-  let exportSuspensionsService: jest.Mocked<ExportSuspensionsService>;
-  let exportRejectionsService: jest.Mocked<ExportRejectionsService>;
-  let exportOrdersService: jest.Mocked<ExportOrdersService>;
+  let getWorksInPortfolioService: Mocked<GetWorksInPortfolioService>;
+  let getCompletedWorksService: Mocked<GetCompletedWorksService>;
+  let exportWorksInPortfolioService: Mocked<ExportWorksInPortfolioService>;
+  let exportCompletedWorksService: Mocked<ExportCompletedWorksService>;
+  let exportFinedWorksService: Mocked<ExportFinedWorksService>;
+  let exportSuspensionsService: Mocked<ExportSuspensionsService>;
+  let exportRejectionsService: Mocked<ExportRejectionsService>;
+  let exportOrdersService: Mocked<ExportOrdersService>;
 
   beforeEach(async () => {
     const module: TestingModule = await createExportTestingModule(
@@ -109,7 +110,7 @@ describe('ExportWorksController', () => {
     exportOrdersService = module.get(ExportOrdersService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

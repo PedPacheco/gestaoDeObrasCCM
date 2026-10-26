@@ -1,3 +1,4 @@
+import type { MockInstance, Mocked } from 'vitest';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
@@ -23,33 +24,33 @@ const makeFilters = (
 
 const makeRepository = () =>
   ({
-    get: jest.fn(),
-    getTotals: jest.fn(),
-    getByD5NoteId: jest.fn(),
-    findRejections: jest.fn(),
-  }) as unknown as jest.Mocked<ID5NotesSchedulesRepository>;
+    get: vi.fn(),
+    getTotals: vi.fn(),
+    getByD5NoteId: vi.fn(),
+    findRejections: vi.fn(),
+  }) as unknown as Mocked<ID5NotesSchedulesRepository>;
 
 describe('FindD5SchedulesService', () => {
   let service: FindD5SchedulesService;
-  let repository: jest.Mocked<ID5NotesSchedulesRepository>;
-  let toListItems: jest.SpyInstance;
-  let toResponseList: jest.SpyInstance;
-  let toRejectionsResponseList: jest.SpyInstance;
-  let timeMetrics: jest.Mocked<TimeMetricsService>;
+  let repository: Mocked<ID5NotesSchedulesRepository>;
+  let toListItems: MockInstance;
+  let toResponseList: MockInstance;
+  let toRejectionsResponseList: MockInstance;
+  let timeMetrics: Mocked<TimeMetricsService>;
 
   const whereFromGet = () => repository.get.mock.calls[0][0];
 
   beforeEach(() => {
-    jest.useFakeTimers({
+    vi.useFakeTimers({
       now: FIXED_NOW,
       doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'],
     });
 
     timeMetrics = {
-      calculateTM: jest.fn(),
-      calculateStatus: jest.fn(),
-      getDeadlineInfo: jest.fn(),
-    } as unknown as jest.Mocked<TimeMetricsService>;
+      calculateTM: vi.fn(),
+      calculateStatus: vi.fn(),
+      getDeadlineInfo: vi.fn(),
+    } as unknown as Mocked<TimeMetricsService>;
 
     repository = makeRepository();
     repository.get.mockResolvedValue([]);
@@ -57,13 +58,13 @@ describe('FindD5SchedulesService', () => {
     repository.getByD5NoteId.mockResolvedValue([]);
     repository.findRejections.mockResolvedValue([]);
 
-    toListItems = jest
+    toListItems = vi
       .spyOn(D5NoteScheduleMapper, 'toListItems')
       .mockReturnValue([] as any);
-    toResponseList = jest
+    toResponseList = vi
       .spyOn(D5NoteScheduleMapper, 'toResponseList')
       .mockReturnValue([] as any);
-    toRejectionsResponseList = jest
+    toRejectionsResponseList = vi
       .spyOn(D5NoteScheduleMapper, 'toRejectionsResponseList')
       .mockReturnValue([] as any);
 
@@ -71,8 +72,8 @@ describe('FindD5SchedulesService', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks(); // restores the original mapper methods
-    jest.useRealTimers();
+    vi.restoreAllMocks(); // restores the original mapper methods
+    vi.useRealTimers();
   });
 
   // ---------------------------------------------------------------------------
@@ -322,7 +323,7 @@ describe('FindD5SchedulesService', () => {
     });
 
     it('should compute "today" from the current date', async () => {
-      jest.setSystemTime(new Date('2026-12-31T12:00:00.000Z'));
+      vi.setSystemTime(new Date('2026-12-31T12:00:00.000Z'));
 
       await service.findD5NotesSchedules(makeFilters({ pendente: true }));
 

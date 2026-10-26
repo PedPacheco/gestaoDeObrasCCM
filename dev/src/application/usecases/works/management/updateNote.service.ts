@@ -65,7 +65,7 @@ export class UpdateNoteService {
       }),
     );
 
-    const notes = data.map((work) => {
+    const notes = data.flatMap((work) => {
       const fullKey = normalizeKey({
         ovnota: work.obra,
         ordem_dci: work.ordem_dci,
@@ -88,30 +88,32 @@ export class UpdateNoteService {
         matchedWork = existingMap.get(fullKey) ?? existingMap.get(simpleKey);
       }
 
-      if (!matchedWork) return;
+      if (!matchedWork) return [];
 
       const group = groupsById.get(work.idTipo);
-      if (!group) return;
+      if (!group) return [];
 
-      return NoteWorks.create({
-        id: matchedWork.id,
-        obra: work.obra,
-        pep: work.pep,
-        equipeNumPedido: work.referencia,
-        idMunicipio: work.idMunicipio,
-        idTipo: work.idTipo,
-        idParceira: work.idTurma,
-        idCircuito: work.idCircuito,
-        dci: work.ordem_dci,
-        dcd: work.ordem_dcd,
-        dca: work.ordem_dca,
-        dcim: work.ordem_dcim,
-        qtdePlanejada: work.qtdePlan,
-        moPlanejada: work.moPlan,
-        idEmpreendimento: work.idEmpreendimento,
-        idGrupo: group.id_grupo,
-        anoPlan: work.anoplan,
-      }).toPrismaUpdate();
+      return [
+        NoteWorks.create({
+          id: matchedWork.id,
+          obra: work.obra,
+          pep: work.pep,
+          equipeNumPedido: work.referencia,
+          idMunicipio: work.idMunicipio,
+          idTipo: work.idTipo,
+          idParceira: work.idTurma,
+          idCircuito: work.idCircuito,
+          dci: work.ordem_dci,
+          dcd: work.ordem_dcd,
+          dca: work.ordem_dca,
+          dcim: work.ordem_dcim,
+          qtdePlanejada: work.qtdePlan,
+          moPlanejada: work.moPlan,
+          idEmpreendimento: work.idEmpreendimento,
+          idGrupo: group.id_grupo,
+          anoPlan: work.anoplan,
+        }).toPrismaUpdate(),
+      ];
     });
 
     await this.updateNoteRepository.update(notes);

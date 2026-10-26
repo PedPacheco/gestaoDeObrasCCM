@@ -15,12 +15,12 @@ describe('UsersControllers', () => {
   let usersService: UsersService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
-        { provide: UsersService, useValue: { updatePassword: jest.fn() } },
+        { provide: UsersService, useValue: { updatePassword: vi.fn() } },
       ],
     }).compile();
 
@@ -44,7 +44,7 @@ describe('UsersControllers', () => {
       senha: 'newPassword',
     });
 
-    jest.spyOn(usersService, 'updatePassword').mockResolvedValue(result);
+    vi.spyOn(usersService, 'updatePassword').mockResolvedValue(result);
 
     expect(await usersController.changePassword(params)).toStrictEqual({
       statusCode: HttpStatus.OK,

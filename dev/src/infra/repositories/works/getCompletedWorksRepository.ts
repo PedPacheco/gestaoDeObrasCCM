@@ -8,8 +8,8 @@ import {
 } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import moment from 'moment';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {

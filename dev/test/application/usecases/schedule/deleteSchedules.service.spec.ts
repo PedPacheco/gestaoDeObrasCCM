@@ -8,7 +8,7 @@ describe('DeleteSchedulesService', () => {
   let deleteSchedulesService: DeleteSchedulesService;
 
   const mockRepository = {
-    delete: jest.fn(),
+    delete: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('DeleteSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('delete', () => {
     it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {

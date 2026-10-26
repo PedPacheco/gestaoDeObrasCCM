@@ -8,7 +8,7 @@ import {
 } from 'src/interface/types/servicesInterface';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 const exportRepositoryResponse: WorkToExportResponse[] = [
   {
@@ -89,7 +89,7 @@ describe('ExportServicesService', () => {
   let service: ExportServicesService;
 
   const mockWorksServicesRepository = {
-    getServicesToExportation: jest.fn(),
+    getServicesToExportation: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -105,7 +105,7 @@ describe('ExportServicesService', () => {
 
     service = module.get<ExportServicesService>(ExportServicesService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -244,7 +244,7 @@ describe('ExportServicesService', () => {
               materiais: {
                 codigo: 'MAT999',
                 descricao: 'Material Teste',
-                preco: new Decimal(50),
+                preco: new Prisma.Decimal(50),
               },
             },
           ],
@@ -592,7 +592,7 @@ describe('ExportServicesService', () => {
               materiais: {
                 codigo: 'MAT999',
                 descricao: 'Material Teste',
-                preco: new Decimal(50),
+                preco: new Prisma.Decimal(50),
               },
             },
           ],

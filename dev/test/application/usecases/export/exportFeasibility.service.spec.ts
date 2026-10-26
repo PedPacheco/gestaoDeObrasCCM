@@ -1,19 +1,19 @@
 import * as ExcelJS from 'exceljs';
 import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
 
-// mocks compartilhados (fora do jest.mock)
-const addRowsMock = jest.fn();
-const addWorksheetMock = jest.fn();
-const writeMock = jest.fn();
+// mocks compartilhados (fora do vi.mock)
+const addRowsMock = vi.fn();
+const addWorksheetMock = vi.fn();
+const writeMock = vi.fn();
 
-jest.mock('exceljs', () => {
+vi.mock('exceljs', () => {
   return {
-    Workbook: jest.fn().mockImplementation(() => ({
+    Workbook: vi.fn().mockImplementation(function () { return ({
       addWorksheet: addWorksheetMock,
       xlsx: {
         write: writeMock,
       },
-    })),
+    }); }),
   };
 });
 

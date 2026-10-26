@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
@@ -22,6 +21,7 @@ import {
   planReschedule,
   ServiceExecutionStatus,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   FINALIZED_SCHEDULE_STATUSES,
@@ -29,29 +29,33 @@ import {
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
+import type { Mock, MockInstance } from 'vitest';
 
 // resolveScheduleOutcome fica REAL: é pura e traduz o plano no estado gravado.
-jest.mock('src/domain/services/pointByPointRules.service', () => ({
-  ...jest.requireActual('src/domain/services/pointByPointRules.service'),
-  planReschedule: jest.fn(),
-  calculateScheduleProgress: jest.fn(),
-  calculateTotalPlanned: jest.fn(),
-  calculateWorkExecutionTotals: jest.fn(),
-  fromHistoryRow: jest.fn(),
+vi.mock('src/domain/services/pointByPointRules.service', async () => ({
+  ...(await vi.importActual<
+    typeof import('src/domain/services/pointByPointRules.service')
+  >('src/domain/services/pointByPointRules.service')),
+  planReschedule: vi.fn(),
+  calculateScheduleProgress: vi.fn(),
+  calculateTotalPlanned: vi.fn(),
+  calculateWorkExecutionTotals: vi.fn(),
+  fromHistoryRow: vi.fn(),
 }));
 
-jest.mock('src/utils/pointByPoint/serviceType.utils', () => ({
-  ...jest.requireActual('src/utils/pointByPoint/serviceType.utils'),
-  isMaterial: jest.fn(),
+vi.mock('src/utils/pointByPoint/serviceType.utils', async () => ({
+  ...(await vi.importActual<
+    typeof import('src/utils/pointByPoint/serviceType.utils')
+  >('src/utils/pointByPoint/serviceType.utils')),
+  isMaterial: vi.fn(),
 }));
 
-const mockPlanReschedule = planReschedule as jest.Mock;
-const mockCalculateScheduleProgress = calculateScheduleProgress as jest.Mock;
-const mockCalculateTotalPlanned = calculateTotalPlanned as jest.Mock;
-const mockCalculateWorkExecutionTotals =
-  calculateWorkExecutionTotals as jest.Mock;
-const mockFromHistoryRow = fromHistoryRow as jest.Mock;
-const mockIsMaterial = isMaterial as jest.Mock;
+const mockPlanReschedule = planReschedule as Mock;
+const mockCalculateScheduleProgress = calculateScheduleProgress as Mock;
+const mockCalculateTotalPlanned = calculateTotalPlanned as Mock;
+const mockCalculateWorkExecutionTotals = calculateWorkExecutionTotals as Mock;
+const mockFromHistoryRow = fromHistoryRow as Mock;
+const mockIsMaterial = isMaterial as Mock;
 
 // ─── Constantes e helpers ────────────────────────────────────────────
 const FINALIZE_TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
@@ -69,7 +73,7 @@ const MSG = {
     'Alguns itens foram alterados entretanto. Atualize a programação e tente novamente.',
 };
 
-const order = (fn: jest.Mock) => fn.mock.invocationCallOrder[0];
+const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
 
 /** Confirma que a promise rejeita com a classe e a mensagem esperadas */
 const expectError = async (
@@ -102,40 +106,40 @@ describe('FinalizeServicesService', () => {
   const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
 
   const mockPrisma = {
-    $transaction: jest.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
+    $transaction: vi.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
       cb(mockTx),
     ),
   };
 
   const mockProgress = {
-    recomputeAll: jest.fn(),
-    recomputeServiceTotals: jest.fn(),
-    recomputeWorkProgress: jest.fn(),
+    recomputeAll: vi.fn(),
+    recomputeServiceTotals: vi.fn(),
+    recomputeWorkProgress: vi.fn(),
   };
 
   const mockExecutionRepository = {
-    finalizeServices: jest.fn(),
-    findScheduleItems: jest.fn(),
-    markScheduleItemsAsRescheduled: jest.fn(),
-    findExecutionTargets: jest.fn(),
-    updateItemsExecution: jest.fn(),
+    finalizeServices: vi.fn(),
+    findScheduleItems: vi.fn(),
+    markScheduleItemsAsRescheduled: vi.fn(),
+    findExecutionTargets: vi.fn(),
+    updateItemsExecution: vi.fn(),
   };
 
   const mockQueryRepository = {
-    getAllServicesOfWork: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
+    getAllServicesOfWork: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
+    updateScheduleStatus: vi.fn(),
+    updateStatusWorks: vi.fn(),
   };
 
-  const mockFindScheduleByIdRepository = { findById: jest.fn() };
-  const mockExecutionReportService = { create: jest.fn() };
-  const mockExecutionValidator = { validatePointByPointExecution: jest.fn() };
+  const mockFindScheduleByIdRepository = { findById: vi.fn() };
+  const mockExecutionReportService = { create: vi.fn() };
+  const mockExecutionValidator = { validatePointByPointExecution: vi.fn() };
 
-  let loggerErrorSpy: jest.SpyInstance;
+  let loggerErrorSpy: MockInstance;
 
   /** Por omissão: cada item tem exatamente 1 linha numa programação aberta */
   const targetFor = (
@@ -182,7 +186,9 @@ describe('FinalizeServicesService', () => {
 
     service = module.get(FinalizeServicesService);
 
-    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    loggerErrorSpy = vi
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
 
     mockExecutionRepository.findExecutionTargets.mockImplementation(
       async (id: number) => targetFor(id),
@@ -197,7 +203,7 @@ describe('FinalizeServicesService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     loggerErrorSpy.mockRestore();
   });
 

@@ -1,3 +1,4 @@
+import type { Mocked, MockedFunction } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
@@ -9,16 +10,16 @@ import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
 // ---------------------------------------------------------------------------
-jest.mock('src/domain/entities/schedules/workSchedule.entity', () => ({
-  WorkSchedule: { create: jest.fn() },
+vi.mock('src/domain/entities/schedules/workSchedule.entity', () => ({
+  WorkSchedule: { create: vi.fn() },
 }));
 
-jest.mock('src/utils/parseTimeToDate', () => ({
-  parseTimeToDate: jest.fn(),
+vi.mock('src/utils/parseTimeToDate', () => ({
+  parseTimeToDate: vi.fn(),
 }));
 
-const entity = WorkSchedule as jest.Mocked<typeof WorkSchedule>;
-const parseTime = parseTimeToDate as jest.MockedFunction<
+const entity = WorkSchedule as Mocked<typeof WorkSchedule>;
+const parseTime = parseTimeToDate as MockedFunction<
   typeof parseTimeToDate
 >;
 
@@ -143,7 +144,7 @@ describe('WorkScheduleMapper', () => {
     entity.create.mockReturnValue({ built: true } as any);
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   // =========================================================================
   // toDomain

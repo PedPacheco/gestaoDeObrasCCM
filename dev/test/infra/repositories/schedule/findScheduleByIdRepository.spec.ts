@@ -7,7 +7,7 @@ describe('FindScheduleByIdRepository', () => {
 
   const mockPrisma = {
     programacoes: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
   };
 
@@ -27,7 +27,7 @@ describe('FindScheduleByIdRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('findById', () => {
     it('should find schedule by id and return data', async () => {

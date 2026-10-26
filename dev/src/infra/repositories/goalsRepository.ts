@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { IGoalsRepository } from 'src/domain/repositories/IGoalsRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { goalsInterfaceRepository } from 'src/interface/types/goalsInterface';
 import { PrismaService } from '../prisma/prisma.service';

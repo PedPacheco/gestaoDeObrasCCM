@@ -1,8 +1,6 @@
-import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import { join } from 'path';
 
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
@@ -16,8 +14,8 @@ async function bootstrap() {
 
   app.use(helmet());
 
-  app.use(bodyParser.json({ limit: '5mb' }));
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+  app.useBodyParser('json', { limit: '5mb' });
+  app.useBodyParser('urlencoded', { limit: '5mb', extended: true });
 
   app.useStaticAssets(join(process.env.UPLOAD_DEST!), {
     prefix: '/uploads/viabilidade',
@@ -28,7 +26,6 @@ async function bootstrap() {
     prefix: '/uploads/as_build',
   });
 
-  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const corsOrigins =

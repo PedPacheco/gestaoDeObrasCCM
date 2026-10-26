@@ -13,11 +13,12 @@ import {
 
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Decimal } from '@prisma/client/runtime/library';
+
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
 } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
   {
@@ -71,20 +72,20 @@ describe('QueriesServicesService', () => {
   let getWorkDetailsService: IGetWorksDetailsRepository;
 
   const mockWorksServicesRepository = {
-    getAllServicesOfWork: jest.fn(),
-    getNotScheduledServices: jest.fn(),
-    getSelectedServices: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
-    getServicesFilters: jest.fn(),
-    getServicesContracts: jest.fn(),
-    getTeamsServices: jest.fn(),
-    getMaterialsContract: jest.fn(),
-    getServiceOptions: jest.fn(),
+    getAllServicesOfWork: vi.fn(),
+    getNotScheduledServices: vi.fn(),
+    getSelectedServices: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
+    getServicesFilters: vi.fn(),
+    getServicesContracts: vi.fn(),
+    getTeamsServices: vi.fn(),
+    getMaterialsContract: vi.fn(),
+    getServiceOptions: vi.fn(),
   };
 
   const mockGetWorksDetailsRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -110,7 +111,7 @@ describe('QueriesServicesService', () => {
       GET_WORKS_DETAILS_REPOSITORY,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -137,7 +138,7 @@ describe('QueriesServicesService', () => {
         materiais: {
           codigo: '12345',
           descricao: 'POSTE',
-          preco: new Decimal(1.5),
+          preco: new Prisma.Decimal(1.5),
         },
       },
       {
@@ -306,7 +307,7 @@ describe('QueriesServicesService', () => {
         materiais: {
           codigo: 'MAT002',
           descricao: 'Cabo de Alumínio',
-          preco: new Decimal(45.9),
+          preco: new Prisma.Decimal(45.9),
         },
         servicos_contratos: null,
       },
@@ -528,7 +529,7 @@ describe('QueriesServicesService', () => {
           materiais: {
             codigo: '1234',
             descricao: 'Poste',
-            preco: new Decimal(5),
+            preco: new Prisma.Decimal(5),
           },
         },
       },

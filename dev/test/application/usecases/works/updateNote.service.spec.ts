@@ -12,15 +12,15 @@ describe('UpdateNoteService', () => {
   let updateNoteService: UpdateNoteService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingNotes: jest.fn(),
+    findExistingNotes: vi.fn(),
   };
 
   const mockInsertWorksRepository = {
-    getGroup: jest.fn(),
+    getGroup: vi.fn(),
   };
 
   const mockExistingNotes = [
@@ -81,7 +81,7 @@ describe('UpdateNoteService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {

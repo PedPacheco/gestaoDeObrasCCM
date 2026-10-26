@@ -38,15 +38,15 @@ describe('FindD5NotesService', () => {
   let service: FindD5NotesService;
 
   const repository = {
-    get: jest.fn(),
-    getTotals: jest.fn(),
-    getById: jest.fn(),
+    get: vi.fn(),
+    getTotals: vi.fn(),
+    getById: vi.fn(),
   };
 
   const timeMetricsService = {
-    calculateTM: jest.fn(),
-    calculateStatus: jest.fn(),
-    getDeadlineInfo: jest.fn(),
+    calculateTM: vi.fn(),
+    calculateStatus: vi.fn(),
+    getDeadlineInfo: vi.fn(),
   };
 
   const buildWhere = (filters: D5NotesFiltersDTO) =>
@@ -72,7 +72,7 @@ describe('FindD5NotesService', () => {
     repository.getById.mockResolvedValue(makeDetail());
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();

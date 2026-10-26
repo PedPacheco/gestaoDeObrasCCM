@@ -11,12 +11,12 @@ describe('GetAllWorksService', () => {
   let cacheManager: Cache;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockRepository = {
-    getAllWorks: jest.fn(),
+    getAllWorks: vi.fn(),
   };
 
   const mockWorks = [

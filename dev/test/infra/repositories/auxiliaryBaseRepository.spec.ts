@@ -20,25 +20,25 @@ describe('AuxiliaryBaseRepository', () => {
 
   const mockPrisma = {
     base_auxiliar: {
-      findMany: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
     },
     base_auxiliar_ov: {
-      findMany: jest.fn(),
-      delete: jest.fn(),
-      createMany: jest.fn(),
-      deleteMany: jest.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
+      createMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
-    cn52n: { createMany: jest.fn() },
-    conversao: { findMany: jest.fn() },
-    municipios: { findMany: jest.fn() },
-    tipos: { findMany: jest.fn() },
-    circuitos: { findMany: jest.fn() },
-    $executeRaw: jest.fn(),
-    $executeRawUnsafe: jest.fn(),
-    $queryRawUnsafe: jest.fn(),
-    $queryRaw: jest.fn(),
+    cn52n: { createMany: vi.fn() },
+    conversao: { findMany: vi.fn() },
+    municipios: { findMany: vi.fn() },
+    tipos: { findMany: vi.fn() },
+    circuitos: { findMany: vi.fn() },
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
+    $queryRawUnsafe: vi.fn(),
+    $queryRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -52,7 +52,7 @@ describe('AuxiliaryBaseRepository', () => {
     repository = module.get<AuxiliaryBaseRepository>(AuxiliaryBaseRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('getAuxiliaryBaseNotes', () => {
     it('should call method getAuxiliaryBaseNotes and return formatted data with regional filter', async () => {
@@ -246,7 +246,7 @@ describe('AuxiliaryBaseRepository', () => {
       const error = new Error('Erro ao deletar obra');
 
       mockPrisma.base_auxiliar_ov.delete.mockRejectedValue(error);
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(repository.delete('baseOv', 56)).rejects.toThrow(
         'Erro ao deletar obra',
@@ -264,18 +264,18 @@ describe('AuxiliaryBaseRepository', () => {
       (repository as any).withRetry(fn, 'teste');
 
     beforeEach(() => {
-      jest.spyOn(global, 'setTimeout').mockImplementation((fn: any) => {
+      vi.spyOn(global, 'setTimeout').mockImplementation((fn: any) => {
         fn();
         return {} as any;
       });
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it('should resolve on first attempt', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
+      const operation = vi.fn().mockResolvedValue('success');
 
       const result = await callWithRetry(operation);
 
@@ -285,12 +285,12 @@ describe('AuxiliaryBaseRepository', () => {
 
     it('should retry on connection error and succeed', async () => {
       const error = new Error('connection refused');
-      const operation = jest
+      const operation = vi
         .fn()
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce('success');
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'warn');
+      const loggerSpy = vi.spyOn(repository['logger'], 'warn');
 
       const result = await callWithRetry(operation);
 
@@ -305,7 +305,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should retry based on prisma error code', async () => {
       const error = { message: 'random', code: 'P1001' };
 
-      const operation = jest
+      const operation = vi
         .fn()
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce('ok');
@@ -319,7 +319,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should NOT retry on non-connection error', async () => {
       const error = new Error('validation failed');
 
-      const operation = jest.fn().mockRejectedValue(error);
+      const operation = vi.fn().mockRejectedValue(error);
 
       await expect(callWithRetry(operation)).rejects.toThrow(
         'validation failed',
@@ -331,7 +331,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should throw after max retries', async () => {
       const error = new Error('connection refused');
 
-      const operation = jest.fn().mockRejectedValue(error);
+      const operation = vi.fn().mockRejectedValue(error);
 
       await expect(callWithRetry(operation)).rejects.toThrow(
         'connection refused',
@@ -344,13 +344,13 @@ describe('AuxiliaryBaseRepository', () => {
     it('should apply exponential backoff delays', async () => {
       const error = new Error('connection refused');
 
-      const operation = jest
+      const operation = vi
         .fn()
         .mockRejectedValueOnce(error)
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce('ok');
 
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
       await callWithRetry(operation);
 
@@ -372,7 +372,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should throw original error after max retries', async () => {
       const error = new Error('connection refused');
 
-      const operation = jest.fn().mockRejectedValue(error);
+      const operation = vi.fn().mockRejectedValue(error);
 
       const call = () =>
         (repository as any).withRetry(operation, 'teste-final');
@@ -385,7 +385,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should handle error without message safely', async () => {
       const error = { code: 'P1001' }; // sem message
 
-      const operation = jest
+      const operation = vi
         .fn()
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce('ok');
@@ -481,7 +481,7 @@ describe('AuxiliaryBaseRepository', () => {
       const error = new Error('Erro ao inserir dados da base auxiliar OV:');
 
       mockPrisma.base_auxiliar_ov.createMany.mockRejectedValue(error);
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(repository.insertMarket([])).rejects.toThrow(
         'Falha ao inserir dados da base auxiliar OV',

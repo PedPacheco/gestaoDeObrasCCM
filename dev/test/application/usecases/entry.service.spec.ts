@@ -7,14 +7,14 @@ import {
 } from 'src/interface/dtos/entryDto';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('EntryService', () => {
   let entryService: EntryService;
 
   const mockRepository = {
-    getValuesFromEntry: jest.fn(),
-    getEntryOfWorksByDay: jest.fn(),
+    getValuesFromEntry: vi.fn(),
+    getEntryOfWorksByDay: vi.fn(),
   };
 
   const mockObras = (mo_pend: number | null, mo_planejada: number) => [

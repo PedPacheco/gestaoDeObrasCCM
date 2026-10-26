@@ -7,7 +7,7 @@ import {
 
 // O mapper é mockado para que estes testes não dependam do formato inicial real
 // dos totais: cada chamada devolve um objeto novo e zerado.
-jest.mock('src/application/mappers/monthlySummaryMapper', () => ({
+vi.mock('src/application/mappers/monthlySummaryMapper', () => ({
   createInitialTotals: () => ({
     totalSchedules: 0,
     totalTeams: 0,

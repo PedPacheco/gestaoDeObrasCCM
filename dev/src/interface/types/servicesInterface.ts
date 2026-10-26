@@ -1,4 +1,4 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export interface GetAllServicesOfWorkInterface {
   id: number;
@@ -29,7 +29,7 @@ export interface GetServicesByWorkIdResponse {
   viabilizado: number;
   descricao_operacao: string;
   numero_operacao: string;
-  materiais: { codigo: string; descricao: string; preco: Decimal };
+  materiais: { codigo: string; descricao: string; preco: Prisma.Decimal };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -62,7 +62,7 @@ export interface GetServicesSelectedByWorkIdResponse {
     materiais: {
       codigo: string;
       descricao: string;
-      preco: Decimal;
+      preco: Prisma.Decimal;
     } | null;
     servicos_contratos: {
       material: string;
@@ -120,7 +120,7 @@ export type ServiceToExport = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Decimal;
+    preco: Prisma.Decimal;
     unidade: string;
   } | null;
   servicos_contratos: {
