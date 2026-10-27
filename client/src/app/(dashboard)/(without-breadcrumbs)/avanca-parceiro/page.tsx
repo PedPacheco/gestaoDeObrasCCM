@@ -38,10 +38,12 @@ async function safeGet<T>(
       token,
       requestOptions(),
     );
+
     if (!res.success) {
       console.error(`[AvancaParceira] ${path} falhou:`, res.message);
       return fallback;
     }
+
     return (res.data ?? fallback) as T;
   } catch (error) {
     console.error(`[AvancaParceira] ${path} erro/timeout:`, error);

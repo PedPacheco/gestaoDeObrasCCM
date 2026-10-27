@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+
 import { Complaint } from 'src/domain/entities/complaints/complaints.entity';
 import {
   ComplaintsFilter,
   IComplaintsAndOmbudsmansOfficeRepository,
 } from 'src/domain/repositories/IComplaintsAndOmbudsmansOfficeRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 // `select` (not `include`) to fetch only what the entity uses.

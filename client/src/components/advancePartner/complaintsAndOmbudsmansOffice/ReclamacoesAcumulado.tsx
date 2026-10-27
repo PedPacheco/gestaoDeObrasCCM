@@ -23,11 +23,7 @@ const RED = "#ef4444";
 
 const AXIS_TICK = { fill: "#94a3b8", fontSize: 11 };
 
-export function ReclamacoesAcumuladoChart({
-  data,
-}: {
-  data: MonthAcumulado[];
-}) {
+export function ReclamacoesAcumuladoChart({ data }: { data: any[] }) {
   return (
     <ChartCard title="Acumulado" className="xl:col-span-2">
       <div className="h-[300px]">
@@ -90,7 +86,7 @@ export function ReclamacoesAcumuladoChart({
   );
 }
 
-function MiniTrendChart({ trend }: { trend: EmpreiteiraTrend }) {
+function MiniTrendChart({ trend }: { trend: any }) {
   return (
     <div className="bg-gradient-to-br from-[#1a2d42] to-[#182333] rounded-2xl p-4 border border-white/8 shadow-xl">
       <span className="text-white font-bold uppercase tracking-wide">
@@ -134,11 +130,7 @@ function MiniTrendChart({ trend }: { trend: EmpreiteiraTrend }) {
   );
 }
 
-export function ReclamacoesEmpreiteiraTrends({
-  trends,
-}: {
-  trends: EmpreiteiraTrend[];
-}) {
+export function ReclamacoesEmpreiteiraTrends({ trends }: { trends: any[] }) {
   if (trends.length === 0) return null;
 
   return (

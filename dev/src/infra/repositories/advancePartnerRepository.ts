@@ -21,7 +21,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     // Filtro base: exclui REPROVADO e REPROG. PREVISTA — validado contra BI em 05/05/2026
     let where = Prisma.sql`WHERE 
     (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA')) 
-    AND parceira NOT IN (SELECT turmaFROM construcao_sp.turmasWHERE id IN (${Prisma.join(this.excludedPartners)}))`;
+    AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
 
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;

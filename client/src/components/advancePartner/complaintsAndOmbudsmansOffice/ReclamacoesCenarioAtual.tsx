@@ -12,21 +12,14 @@ import {
 } from "recharts";
 
 import { ExecutionTooltip } from "@/components/entryComponents/edpExecution/ExecutionTooltip";
-import {
-  CenarioAtualItem,
-  MotivosPorEmpreiteira,
-} from "@/utils/reclamacoesOuvidoria/metrics";
+
 import { NUM } from "@/utils/formatValue";
 
 const DARK_BLUE = "#1d3a5f";
 const CYAN = "#38bdf8";
 const AXIS_TICK = { fill: "#94a3b8", fontSize: 11 };
 
-export function ReclamacoesCenarioAtualChart({
-  items,
-}: {
-  items: CenarioAtualItem[];
-}) {
+export function ReclamacoesCenarioAtualChart({ items }: { items: any[] }) {
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col gap-4">
       <h3 className="text-white font-bold text-sm tracking-wide uppercase">
@@ -131,11 +124,7 @@ export function ReclamacoesCenarioAtualChart({
   );
 }
 
-export function ReclamacoesMotivosTable({
-  grupos,
-}: {
-  grupos: MotivosPorEmpreiteira[];
-}) {
+export function ReclamacoesMotivosTable({ grupos }: { grupos: any[] }) {
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl border border-white/5 shadow-xl overflow-hidden flex flex-col">
       <div className="grid grid-cols-[1fr_2fr] bg-[#0d1b30] px-5 py-3">
@@ -162,7 +151,7 @@ export function ReclamacoesMotivosTable({
                 {grupo.empreiteira}
               </span>
               <div className="flex flex-col gap-1">
-                {grupo.itens.map((item, index) => (
+                {grupo.itens.map((item: any, index: number) => (
                   <span key={index} className="text-zinc-400 text-xs">
                     {String(item.count).padStart(2, "0")} – {item.motivo}
                   </span>

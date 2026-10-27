@@ -6,9 +6,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
 import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
 
 interface CustomRequest extends Request {
   idParceira?: number;
