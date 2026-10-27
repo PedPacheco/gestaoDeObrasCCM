@@ -332,9 +332,16 @@ export class D5NoteScheduleMapper {
   private static requiresDP(numDp?: string, serviceType?: string) {
     if (!serviceType) return false;
 
-    const serviceTypeRequireDp = ['DP', 'LV', 'REGULARIZAÇÃO', 'RD'];
+    const serviceTypeRequireDp = [
+      'dp',
+      'lv',
+      'regularização',
+      'desativação rd',
+      'lv + obra livre',
+      'dp + lv',
+    ];
 
-    const require = serviceTypeRequireDp.includes(serviceType.toUpperCase());
+    const require = serviceTypeRequireDp.includes(serviceType.toLowerCase());
 
     if (require && !numDp?.trim()) {
       return true;
