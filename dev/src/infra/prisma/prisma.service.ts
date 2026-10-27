@@ -7,6 +7,18 @@ import {
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from 'src/infra/generated/prisma/client';
 
+function createAdapter(): PrismaPg {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL não está definida');
+  }
+
+  const schema =
+    new URL(connectionString).searchParams.get('schema') ?? 'public';
+
+  return new PrismaPg({ connectionString }, { schema });
+}
+
 @Injectable()
 export class PrismaService
   extends PrismaClient
@@ -16,8 +28,8 @@ export class PrismaService
 
   constructor() {
     super({
-      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
-      log: ['warn', 'error'],
+      adapter: createAdapter(),
+      log: ['warn', 'error'], // temporariamente: ['query', 'warn', 'error']
     });
   }
 

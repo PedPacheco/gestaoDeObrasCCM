@@ -1,4 +1,3 @@
-import type { Mocked, MockedFunction } from 'vitest';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
@@ -6,6 +5,7 @@ import {
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import type { Mocked, MockedFunction } from 'vitest';
 
 import { BadRequestException } from '@nestjs/common';
 import { D5NoteTimeMetricsInfo } from 'src/domain/services/d5Notes/timeMetrics.service';
@@ -24,9 +24,7 @@ vi.mock('src/utils/parseTimeToDate', () => ({
 }));
 
 const entity = D5NoteSchedule as Mocked<typeof D5NoteSchedule>;
-const parseTime = parseTimeToDate as MockedFunction<
-  typeof parseTimeToDate
->;
+const parseTime = parseTimeToDate as MockedFunction<typeof parseTimeToDate>;
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -1334,14 +1332,14 @@ describe('D5NoteScheduleMapper', () => {
       expect(requiresDP('12345678', serviceType)).toBe(false);
     });
 
-    it.each(['DP', 'LV', 'RD'])(
+    it.each(['DP', 'LV', 'DESATIVAÇÃO RD'])(
       'deve devolver true quando %s exige DP e numDp está ausente',
       (serviceType) => {
         expect(requiresDP(undefined, serviceType)).toBe(true);
       },
     );
 
-    it.each(['dp', 'lv', 'rd', 'Dp'])(
+    it.each(['dp', 'lv', 'desativação rd', 'Dp'])(
       'deve ignorar maiúsculas/minúsculas em "%s"',
       (serviceType) => {
         expect(requiresDP(undefined, serviceType)).toBe(true);
