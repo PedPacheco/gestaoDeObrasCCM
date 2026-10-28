@@ -6,6 +6,7 @@ import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
 } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 import { NoteScheduledWork } from 'src/interface/types/d5notes/types';
 
@@ -14,6 +15,7 @@ export class FindD5SchedulesService {
   constructor(
     @Inject(D5_NOTES_SCHEDULES_REPOSITORY)
     private d5SchedulesRepository: ID5NotesSchedulesRepository,
+    private readonly timeMetrics: TimeMetricsService,
   ) {}
 
   async findD5NotesSchedules(filters: D5NotesSchedulesFiltersDTO) {
@@ -26,7 +28,16 @@ export class FindD5SchedulesService {
     ]);
 
     return {
-      d5Notes: D5NoteScheduleMapper.toListItems(rows),
+      d5Notes: D5NoteScheduleMapper.toListItems(rows, (row) => {
+        const tm = this.timeMetrics.calculateTM(
+          row.notas_d5.criado_em,
+          row.notas_d5.conclusao_nota,
+        );
+        return {
+          ...tm,
+          statusPrazo: this.timeMetrics.calculateStatus(tm.tmAberto),
+        };
+      }),
       totals: this.buildTotals(notes),
     };
   }
@@ -47,6 +58,9 @@ export class FindD5SchedulesService {
     // Junta as condições em AND para que nenhum filtro substitua outro
     const and: any[] = [];
 
+    // --- Filtros de lista (aplicados à tabela notas_d5) ---
+    const notaD5: any = {};
+
     // Início do dia de hoje, na data local, guardado como meia-noite UTC
     const hoje = moment.utc(moment().format('YYYY-MM-DD')).toDate();
 
@@ -66,21 +80,35 @@ export class FindD5SchedulesService {
       });
     }
 
-    // --- Filtros de lista ---
     if (filters.idRegional?.length) {
-      and.push({ municipios: { id_regional: { in: filters.idRegional } } });
+      notaD5.municipios = { id_regional: { in: filters.idRegional } };
     }
     if (filters.idMunicipio?.length) {
-      and.push({ id_municipio: { in: filters.idMunicipio } });
+      notaD5.id_municipio = { in: filters.idMunicipio };
     }
     if (filters.idGrupo?.length) {
-      and.push({ id_turma: { in: filters.idGrupo } });
+      notaD5.tipos = { id_grupo: { in: filters.idGrupo } };
     }
     if (filters.idTipo?.length) {
-      and.push({ id_tipo: { in: filters.idTipo } });
+      notaD5.id_tipo = { in: filters.idTipo };
     }
     if (filters.idParceira?.length) {
-      and.push({ id_parceira: { in: filters.idParceira } });
+      notaD5.id_parceira = { in: filters.idParceira };
+    }
+    if (filters.idOvnota?.length) {
+      notaD5.id_obra = { in: filters.idOvnota };
+    }
+    // Só acrescenta o filtro de relação se houver pelo menos um critério
+    if (Object.keys(notaD5).length) {
+      and.push({ notas_d5: { is: notaD5 } });
+    }
+
+    if (filters.idNotaD5?.length) {
+      and.push({ id_nota_d5: { in: filters.idNotaD5 } });
+    }
+
+    if (filters.id?.length) {
+      and.push({ id: { in: filters.id } });
     }
 
     // --- Filtros de estado ---
@@ -92,7 +120,7 @@ export class FindD5SchedulesService {
       and.push(
         { exec: null },
         { data_prog: { gte: hoje } },
-        { OR: [{ reprovada: false }, { reprovada: null }] },
+        { reprovada: false },
       );
     } else {
       if (filters.reprovada) {

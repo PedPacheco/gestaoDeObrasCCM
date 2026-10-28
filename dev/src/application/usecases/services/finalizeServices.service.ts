@@ -1,13 +1,11 @@
 import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ProgressRecalculationService } from './progressRecalculation.service';
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
@@ -18,33 +16,40 @@ import {
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
-  FIND_SCHEDULE_BY_ID_REPOSITORY,
-  IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { ExecutionReportService } from '../executionReport.service';
-import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import {
-  calculateAggregateProgress,
   calculateScheduleProgress,
+  calculateTotalPlanned,
+  calculateWorkExecutionTotals,
   fromHistoryRow,
   planReschedule,
-  ScheduleItem,
+  ReschedulePlan,
+  resolveScheduleOutcome,
+  WorkExecutionTotals,
+  WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 import {
   FINALIZED_SCHEDULE_STATUSES,
   isMaterial,
-  ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
-import { Prisma } from '@prisma/client';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
-const EXECUTION_BATCH_SIZE = 50; // ALTERADO: veio do repositório
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { ExecutionReportService } from '../executionReport.service';
+import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
+import { ProgressRecalculationService } from './progressRecalculation.service';
+
+const EXECUTION_BATCH_SIZE = 50;
 const FINALIZE_TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
 
 @Injectable()
@@ -53,7 +58,7 @@ export class FinalizeServicesService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly progress: ProgressRecalculationService, // ALTERADO
+    private readonly progress: ProgressRecalculationService,
     @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
@@ -64,7 +69,6 @@ export class FinalizeServicesService {
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
-    // REMOVIDOS: workServicesRepository e scheduleProgressCalculator
   ) {}
 
   async performServices(data: PerformServicesDTO[]): Promise<void> {
@@ -73,25 +77,23 @@ export class FinalizeServicesService {
     this.validatePerformPayload(data);
 
     await this.prisma.$transaction(
-      (tx) => this.registerExecutions(data, tx), // ALTERADO
+      (tx) => this.registerExecutions(data, tx),
       FINALIZE_TX_OPTIONS,
     );
   }
 
   /**
-   * Reagenda os itens pendentes de uma programação SEM perder o executado
-   * (regras 1 e 2). A programação fica PARCIAL se mantiver execução; caso
-   * contrário, fica REAGENDADA.
+   * Reagenda os itens de uma programação SEM perder o executado (regras 1 e 2).
+   * Linhas sem apontamento e parciais passam a REPROGRAMADO (prog/real intactos).
+   * A programação fica PARCIAL se mantiver execução; caso contrário, REAGENDADA.
    */
   async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       try {
-        // ALTERADO: a orquestração saiu do repositório
-        const schedule =
-          await this.worksServicesExecutionRepository.findScheduleWork(
-            scheduleId,
-            tx,
-          );
+        const schedule = await this.findScheduleByIdRepository.findById(
+          scheduleId,
+          tx,
+        );
 
         if (!schedule) {
           throw new NotFoundException(
@@ -103,6 +105,12 @@ export class FinalizeServicesService {
           throw new BadRequestException(
             'A programação informada não pertence a esta obra.',
           );
+        }
+
+        if (
+          FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)
+        ) {
+          throw new ConflictException('Esta programação já foi encerrada.');
         }
 
         const rows =
@@ -118,32 +126,16 @@ export class FinalizeServicesService {
           );
         }
 
-        if (plan.releasedRowIds.length > 0) {
-          await this.worksServicesExecutionRepository.deleteScheduleItemsByIds(
-            plan.releasedRowIds,
-            tx,
-          );
-        }
-
-        // Sem nenhuma linha restante, a programação não aparece no recálculo.
-        if (plan.emptiesSchedule) {
-          await this.worksServicesExecutionRepository.zeroScheduleProgress(
-            scheduleId,
-            tx,
-          );
-        }
+        await this.applyReschedulePlan(plan, tx);
 
         await this.progress.recomputeAll(
           plan.affectedServiceIds,
           schedule.id_obra,
           tx,
         );
-        // fim ALTERADO
 
         await this.statusFlowRepository.updateScheduleStatus(
-          plan.hasExecution
-            ? ScheduleStatus.PARCIAL
-            : ScheduleStatus.REAGENDADA,
+          resolveScheduleOutcome(plan), // PARCIAL ou REAGENDADA
           scheduleId,
           tx,
         );
@@ -162,8 +154,8 @@ export class FinalizeServicesService {
 
   /**
    * Finaliza a programação numa ÚNICA transação: executado dos itens (quando
-   * vem em `executions`), relatório de execução, estado e recálculo de todas
-   * as programações da obra. Se algum passo falhar, nada é gravado.
+   * vem em `executions`), encerramento das linhas, relatório de execução,
+   * estado e recálculo. Se algum passo falhar, nada é gravado.
    */
   async finalizeServices(
     workId: number,
@@ -175,12 +167,24 @@ export class FinalizeServicesService {
     await this.prisma.$transaction(async (tx) => {
       try {
         if (executions?.length) {
-          await this.registerExecutions(executions, tx); // ALTERADO
+          this.validatePerformPayload(executions);
+          await this.registerExecutions(executions, tx);
         }
 
         await this.assertScheduleCanBeFinalized(updateData.idSchedule, tx);
 
-        // Lidos DEPOIS de o executado ser gravado, dentro da transação.
+        // Linhas sem apontamento e parciais passam a REPROGRAMADO;
+        // o estado da programação vem das linhas.
+        const rows =
+          await this.worksServicesExecutionRepository.findScheduleItems(
+            updateData.idSchedule,
+            tx,
+          );
+        const plan = planReschedule(rows);
+        await this.applyReschedulePlan(plan, tx);
+        const outcome = resolveScheduleOutcome(plan);
+
+        // Lidos DEPOIS de marcar as linhas, dentro da transação.
         const [services, history] = await Promise.all([
           this.workServicesQueryRepository.getAllServicesOfWork(workId, tx),
           this.workServicesQueryRepository.getServiceScheduleHistory(
@@ -189,14 +193,21 @@ export class FinalizeServicesService {
           ),
         ]);
 
-        const totalPlanned = this.sumServiceQuantities(services);
-        const scheduleItems = history.map(fromHistoryRow); // ALTERADO
+        const scheduleItems = history.map(fromHistoryRow);
+
+        const totalPlanned = calculateTotalPlanned(
+          services.map(this.toWorkItem),
+          scheduleItems,
+        );
 
         const scheduleTotals = calculateScheduleProgress(
-          // ALTERADO
           scheduleItems,
           totalPlanned,
           updateData.idSchedule,
+        );
+        const workTotals = calculateWorkExecutionTotals(
+          scheduleItems,
+          totalPlanned,
         );
 
         const dateProg = history.find(
@@ -224,8 +235,9 @@ export class FinalizeServicesService {
           workId,
           finalizationData,
           executionReportData,
-          totalPlanned,
-          scheduleItems, // ALTERADO
+          outcome,
+          workTotals,
+          plan.affectedServiceIds,
           tx,
           files,
         );
@@ -238,8 +250,29 @@ export class FinalizeServicesService {
 
   // ─── Privados ───────────────────────────────────────────────────────
 
+  /** Marca as linhas do plano como REPROGRAMADO (sem mexer em prog/real). */
+  private async applyReschedulePlan(
+    plan: ReschedulePlan,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    if (plan.releasedRowIds.length === 0) return;
+
+    const updated =
+      await this.worksServicesExecutionRepository.markScheduleItemsAsRescheduled(
+        plan.releasedRowIds,
+        tx,
+      );
+
+    // Outro pedido alterou as linhas entretanto → aborta a transação
+    if (updated !== plan.releasedRowIds.length) {
+      throw new ConflictException(
+        'Alguns itens foram alterados entretanto. Atualize a programação e tente novamente.',
+      );
+    }
+  }
+
   /**
-   * ALTERADO: veio do repositório. Grava o realizado em lotes e recalcula os
+   * Grava o realizado em lotes (e o status correspondente) e recalcula os
    * totalizadores dos serviços pela fonte única.
    */
   private async registerExecutions(
@@ -282,16 +315,23 @@ export class FinalizeServicesService {
             );
           }
 
-          return { rowId: rows[0].id, serviceId: id, real: qtdeRealizada };
+          return {
+            rowId: rows[0].id,
+            serviceId: id,
+            real: qtdeRealizada ?? null, // null → REPROGRAMADO
+          };
         }),
       );
 
-      // 2. Grava o realizado.
-      await this.worksServicesExecutionRepository.updateItemsReal(resolved, tx);
+      // 2. Grava o realizado e o status.
+      await this.worksServicesExecutionRepository.updateItemsExecution(
+        resolved,
+        tx,
+      );
 
       // 3. Recalcula os totalizadores pela fonte única.
       await this.progress.recomputeServiceTotals(
-        resolved.map(({ serviceId }) => serviceId),
+        [...new Set(resolved.map(({ serviceId }) => serviceId))],
         tx,
       );
     }
@@ -317,17 +357,14 @@ export class FinalizeServicesService {
     }
   }
 
-  // ALTERADO: as regras 1 e 4 vivem no domínio; aqui fica só o mapeamento.
-  private sumServiceQuantities(
-    services: GetServicesByWorkIdResponse[],
-  ): number {
-    return services
-      .filter((service) => service.qtde_real !== 0 && !isMaterial(service))
-      .reduce(
-        (sum, service) =>
-          sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
-        0,
-      );
+  private toWorkItem(service: GetServicesByWorkIdResponse): WorkItem {
+    return {
+      serviceId: service.id,
+      isMaterial: isMaterial(service),
+      enabledQuantity: service.viabilizado ?? null,
+      additionalQuantity: service.qtde_adicional ?? null,
+      realQuantity: service.qtde_real ?? null,
+    };
   }
 
   private buildFinalizationData(
@@ -357,19 +394,12 @@ export class FinalizeServicesService {
     workId: number,
     finalizationData: FinalizationData,
     executionReportData: any,
-    totalPlanned: number,
-    scheduleItems: ScheduleItem[], // ALTERADO
+    outcome: number,
+    workTotals: WorkExecutionTotals,
+    affectedServiceIds: number[],
     tx: Prisma.TransactionClient,
     files?: Express.Multer.File[],
   ): Promise<void> {
-    // Total já executado nas DEMAIS programações (agregado, limitado a 100),
-    // para validar a finalização da atual.
-    const executed = calculateAggregateProgress(
-      scheduleItems,
-      totalPlanned,
-      finalizationData.id,
-    ); // ALTERADO
-
     // O relatório é opcional: sem `executionReport` no payload não há nada a criar.
     if (executionReportData && Object.keys(executionReportData).length > 0) {
       await this.executionReportService.create(
@@ -386,26 +416,34 @@ export class FinalizeServicesService {
 
     await this.executionValidator.validatePointByPointExecution(
       finalizationData,
-      executed,
+      outcome,
+      workTotals,
       tx,
     );
 
-    // ALTERADO: a NotFoundException saiu do repositório.
     const updated =
       await this.worksServicesExecutionRepository.finalizeServices(
         finalizationData,
         tx,
       );
+
     if (!updated) {
       throw new NotFoundException(
         `Agendamento com ID ${finalizationData.id} não encontrado`,
       );
     }
 
-    // Fonte única: recalcula prog/exec de TODAS as programações e o executado da obra.
-    await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
+    // Fonte única: totalizadores dos serviços afetados pelo encerramento,
+    // prog/exec de todas as programações e executado da obra.
+    await this.progress.recomputeAll(affectedServiceIds, workId, tx);
   }
 
+  /**
+   * qtdeRealizada:
+   * - null → não executado (REPROGRAMADO)
+   * - 0    → DESCARTADO (regra 1)
+   * - > 0  → executado (total ou parcial)
+   */
   private validatePerformPayload(data: PerformServicesDTO[]): void {
     if (!Array.isArray(data)) {
       throw new BadRequestException('Lista de serviços realizados inválida.');
@@ -420,11 +458,14 @@ export class FinalizeServicesService {
         );
       }
 
-      // real = 0 é válido: significa item DESCARTADO (regra 1).
-      if (!Number.isFinite(item.qtdeRealizada) || item.qtdeRealizada < 0) {
-        console.log(item.qtdeRealizada);
+      const real = item.qtdeRealizada;
+
+      if (
+        real !== null &&
+        (typeof real !== 'number' || !Number.isFinite(real) || real < 0)
+      ) {
         throw new BadRequestException(
-          'A quantidade realizada deve ser um número maior ou igual a zero.',
+          'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior ou igual a zero.',
         );
       }
 

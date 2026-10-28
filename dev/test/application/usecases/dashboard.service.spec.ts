@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 // dashboard.service.spec.ts
 
 import { DashboardService } from 'src/application/usecases/dashboard.service';
@@ -12,20 +13,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 describe('DashboardService', () => {
   let service: DashboardService;
 
-  const mockDashboardRepository: jest.Mocked<IDashboardRepository> = {
-    countTotalWorks: jest.fn(),
-    countConcludedThisMonth: jest.fn(),
-    countWithoutSchedule: jest.fn(),
-    countPortfolio: jest.fn(),
-    countExecutedValue: jest.fn(),
-    findWorksByStatus: jest.fn(),
-    findWorksByRegional: jest.fn(),
-    findMonthlyTrend: jest.fn(),
-    findTopPartners: jest.fn(),
-    findRecentWorks: jest.fn(),
-    countTotalConcluded: jest.fn(),
-    findPartnerStatus: jest.fn(),
-  } as unknown as jest.Mocked<IDashboardRepository>;
+  const mockDashboardRepository: Mocked<IDashboardRepository> = {
+    countTotalWorks: vi.fn(),
+    countConcludedThisMonth: vi.fn(),
+    countWithoutSchedule: vi.fn(),
+    countPortfolio: vi.fn(),
+    countExecutedValue: vi.fn(),
+    findWorksByStatus: vi.fn(),
+    findWorksByRegional: vi.fn(),
+    findMonthlyTrend: vi.fn(),
+    findTopPartners: vi.fn(),
+    findRecentWorks: vi.fn(),
+    countTotalConcluded: vi.fn(),
+    findPartnerStatus: vi.fn(),
+  } as unknown as Mocked<IDashboardRepository>;
 
   const filters: DashboardFiltersDTO = {
     startDate: '2026-01-01',
@@ -33,7 +34,7 @@ describe('DashboardService', () => {
   } as DashboardFiltersDTO;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

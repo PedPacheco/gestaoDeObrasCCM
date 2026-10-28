@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { ExportExecutionCapacityService } from 'src/application/usecases/export/exportExecutionCapacity.service';
 import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
 import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
@@ -93,7 +94,6 @@ export const mockScheduleData: GetScheduleValuesResponse = {
       exec: null,
       mo_prog: 3262.21,
       mo_exec: 3262.21,
-      mat_prog: 2345.32,
       num_dp: '15563352',
       hora_ini: '1970-01-01T14:30:00.000Z',
       hora_ter: '1970-01-01T17:30:00.000Z',
@@ -145,17 +145,17 @@ const mockMonthlySummarySecond = {
 describe('ExportScheduleController', () => {
   let controller: ExportScheduleController;
 
-  let getScheduleValuesService: jest.Mocked<GetScheduleValuesService>;
-  let monthlyMOSummaryService: jest.Mocked<MonthlySummaryService>;
-  let monthlyForecastSummaryService: jest.Mocked<GetMonthlySummaryForecastService>;
-  let goalsService: jest.Mocked<GoalsService>;
-  let exportScheduleService: jest.Mocked<ExportScheduleService>;
-  let exportMonthlyMOSummaryService: jest.Mocked<ExportMonthlyMOSummaryService>;
-  let exportMonthlyForecastSummaryService: jest.Mocked<ExportMonthlyForecastSummaryService>;
-  let exportExecutionCapacityService: jest.Mocked<ExportExecutionCapacityService>;
-  let exportExecutionReportService: jest.Mocked<ExportExecutionReportService>;
-  let exportForecastService: jest.Mocked<ExportForecastService>;
-  let exportGoalsService: jest.Mocked<ExportGoalsService>;
+  let getScheduleValuesService: Mocked<GetScheduleValuesService>;
+  let monthlyMOSummaryService: Mocked<MonthlySummaryService>;
+  let monthlyForecastSummaryService: Mocked<GetMonthlySummaryForecastService>;
+  let goalsService: Mocked<GoalsService>;
+  let exportScheduleService: Mocked<ExportScheduleService>;
+  let exportMonthlyMOSummaryService: Mocked<ExportMonthlyMOSummaryService>;
+  let exportMonthlyForecastSummaryService: Mocked<ExportMonthlyForecastSummaryService>;
+  let exportExecutionCapacityService: Mocked<ExportExecutionCapacityService>;
+  let exportExecutionReportService: Mocked<ExportExecutionReportService>;
+  let exportForecastService: Mocked<ExportForecastService>;
+  let exportGoalsService: Mocked<ExportGoalsService>;
 
   const moFirstResponse = {
     summary: mockMonthlySummaryFirst as any,
@@ -214,7 +214,7 @@ describe('ExportScheduleController', () => {
     exportGoalsService = module.get(ExportGoalsService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

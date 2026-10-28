@@ -6,8 +6,19 @@ import {
   worksInPortfolioInterface,
   worksInPortfolioResponseService,
 } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import type { Mock } from 'vitest';
 
-jest.mock('exceljs');
+vi.mock('exceljs');
+
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
 
 describe('ExportWorksInPortfolio', () => {
   let service: ExportWorksInPortfolioService;
@@ -81,24 +92,26 @@ describe('ExportWorksInPortfolio', () => {
     };
 
     const mockResponse = {
-      setHeader: jest.fn(),
+      setHeader: vi.fn(),
     } as unknown as Response;
 
-    const writeMock = jest.fn();
-    const addRowsMock = jest.fn();
+    const writeMock = vi.fn();
+    const addRowsMock = vi.fn();
 
     const worksheetMock = {
       addRows: addRowsMock,
     };
 
-    const addWorksheetMock = jest.fn().mockReturnValue(worksheetMock);
+    const addWorksheetMock = vi.fn().mockReturnValue(worksheetMock);
 
     const workBookMock = {
       addWorksheet: addWorksheetMock,
       xlsx: { write: writeMock },
     };
 
-    (Exceljs.Workbook as jest.Mock).mockImplementation(() => workBookMock);
+    (Exceljs.Workbook as Mock).mockImplementation(function () {
+      return workBookMock;
+    });
 
     await service.export(mockWorksResponse, mockResponse);
 

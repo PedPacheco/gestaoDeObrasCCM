@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
 
@@ -5,10 +6,10 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { DashboardFiltersBuilder } from 'src/utils/dashboardFilters.builder';
 import { DashboardRepository } from 'src/infra/repositories/dashboardRepository';
 
-jest.mock('src/utils/dashboardFilters.builder', () => ({
+vi.mock('src/utils/dashboardFilters.builder', () => ({
   DashboardFiltersBuilder: {
-    buildObrasWhere: jest.fn(),
-    buildSQLWhere: jest.fn(),
+    buildObrasWhere: vi.fn(),
+    buildSQLWhere: vi.fn(),
   },
 }));
 
@@ -25,10 +26,10 @@ describe('DashboardRepository', () => {
 
   const mockPrismaService = {
     obras: {
-      count: jest.fn(),
-      aggregate: jest.fn(),
+      count: vi.fn(),
+      aggregate: vi.fn(),
     },
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -44,14 +45,14 @@ describe('DashboardRepository', () => {
 
     repository = module.get<DashboardRepository>(DashboardRepository);
 
-    (DashboardFiltersBuilder.buildObrasWhere as jest.Mock).mockReturnValue({});
+    (DashboardFiltersBuilder.buildObrasWhere as Mock).mockReturnValue({});
 
-    (DashboardFiltersBuilder.buildSQLWhere as jest.Mock).mockReturnValue({});
+    (DashboardFiltersBuilder.buildSQLWhere as Mock).mockReturnValue({});
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('countTotalWorks', () => {

@@ -7,7 +7,7 @@ describe('ExecMonitoringService', () => {
   let service: ExecMonitoringService;
 
   const mockRepository = {
-    getData: jest.fn(),
+    getData: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -25,7 +25,7 @@ describe('ExecMonitoringService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should call get method and return data', async () => {

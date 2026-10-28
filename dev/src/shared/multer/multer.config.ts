@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
-import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface.js';
+
 import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname } from 'path';

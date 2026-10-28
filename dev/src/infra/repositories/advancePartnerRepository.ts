@@ -2,12 +2,13 @@ import {
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
-import { PrismaService } from '../prisma/prisma.service';
 import {
   avanca_parceiro_indicadores,
   avanca_parceiro_monitoramento,
   Prisma,
-} from '@prisma/client';
+} from 'src/infra/generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+
 import { Injectable } from '@nestjs/common';
 import {
   CreateAdvancePartnerMonitoringDTO,
@@ -309,8 +310,6 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       GROUP BY parceira
       ORDER BY parceira
     `;
-
-    console.log(query);
 
     return this.prisma.$queryRaw<any[]>(query);
   }

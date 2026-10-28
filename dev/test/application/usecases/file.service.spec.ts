@@ -1,3 +1,4 @@
+import type { MockInstance, MockedFunction } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { access, unlink } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
@@ -8,13 +9,13 @@ import { FileService } from 'src/application/usecases/file.service';
 // ⚠️ O serviço importa 'node:fs/promises' — o mock tem de usar o mesmo
 //    especificador, caso contrário não é intercetado.
 // ---------------------------------------------------------------------------
-jest.mock('node:fs/promises', () => ({
-  access: jest.fn(),
-  unlink: jest.fn(),
+vi.mock('node:fs/promises', () => ({
+  access: vi.fn(),
+  unlink: vi.fn(),
 }));
 
-const accessMock = access as jest.MockedFunction<typeof access>;
-const unlinkMock = unlink as jest.MockedFunction<typeof unlink>;
+const accessMock = access as MockedFunction<typeof access>;
+const unlinkMock = unlink as MockedFunction<typeof unlink>;
 
 const makeErrno = (code: string, message = code): NodeJS.ErrnoException => {
   const error = new Error(message) as NodeJS.ErrnoException;
@@ -24,9 +25,9 @@ const makeErrno = (code: string, message = code): NodeJS.ErrnoException => {
 
 describe('FileService', () => {
   let service: FileService;
-  let logSpy: jest.SpyInstance;
-  let warnSpy: jest.SpyInstance;
-  let errorSpy: jest.SpyInstance;
+  let logSpy: MockInstance;
+  let warnSpy: MockInstance;
+  let errorSpy: MockInstance;
 
   const BASE_DIR = resolve('/var/uploads');
   const INSIDE = resolve(BASE_DIR, 'ficheiro.pdf');
@@ -34,11 +35,11 @@ describe('FileService', () => {
   beforeEach(() => {
     service = new FileService();
 
-    logSpy = jest.spyOn(service['logger'], 'log').mockImplementation(() => {});
-    warnSpy = jest
+    logSpy = vi.spyOn(service['logger'], 'log').mockImplementation(() => {});
+    warnSpy = vi
       .spyOn(service['logger'], 'warn')
       .mockImplementation(() => {});
-    errorSpy = jest
+    errorSpy = vi
       .spyOn(service['logger'], 'error')
       .mockImplementation(() => {});
 
@@ -46,7 +47,7 @@ describe('FileService', () => {
     unlinkMock.mockResolvedValue(undefined);
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it('deve estar definido', () => {
     expect(service).toBeDefined();
@@ -305,7 +306,7 @@ describe('FileService', () => {
     });
 
     it('deve propagar o baseDir a cada remoção', async () => {
-      const spy = jest.spyOn(service, 'deleteFile');
+      const spy = vi.spyOn(service, 'deleteFile');
 
       await service.deleteMany(['/tmp/a.pdf', '/tmp/b.pdf'], BASE_DIR);
 

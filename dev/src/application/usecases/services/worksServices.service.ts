@@ -1,43 +1,58 @@
 import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import {
+  findSchedulingViolation,
+  hasLockedExecution,
+  isRescheduled,
+  SchedulingViolation,
+} from 'src/domain/services/pointByPointRules.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  AddServicesDTO,
+  ApplyAdditonalDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
+import {
+  FINALIZED_SCHEDULE_STATUSES,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
+
+import {
   BadRequestException,
   ConflictException,
   Inject,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { ProgressRecalculationService } from './progressRecalculation.service';
-import {
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import {
-  FIND_SCHEDULE_BY_ID_REPOSITORY,
-  IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
-import { Prisma } from '@prisma/client';
-import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
-import {
-  FINALIZED_SCHEDULE_STATUSES,
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
-import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
 
 const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
+
+type ScheduleHistoryRow = {
+  id_programacao: number;
+  id_servico: number;
+  id_equipe: number;
+  prog: number | null;
+  real: number | null;
+  status: string | null;
+};
 
 export class WorksServicesService {
   private readonly logger = new Logger(WorksServicesService.name);
@@ -316,7 +331,7 @@ export class WorksServicesService {
   private async validateOwnershipAndBalance(
     workId: number,
     data: ScheduleServicesDTO[],
-    history: { id_servico: number; prog: number; real: number }[],
+    history: ScheduleHistoryRow[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const serviceIds = [...new Set(data.map((item) => item.id))];
@@ -326,81 +341,43 @@ export class WorksServicesService {
         serviceIds,
         tx,
       );
-    const servicesById = new Map(
-      services.map((service) => [service.id, service]),
-    );
 
-    const consumedByService = new Map<number, number>();
-    for (const row of history) {
-      consumedByService.set(
-        row.id_servico,
-        (consumedByService.get(row.id_servico) ?? 0) +
-          (row.real ?? row.prog ?? 0),
-      );
-    }
+    const violation = findSchedulingViolation(workId, data, services, history);
 
-    const requestedByService = new Map<number, number>();
-    const additionalByService = new Map<number, number>();
-    for (const item of data) {
-      requestedByService.set(
-        item.id,
-        (requestedByService.get(item.id) ?? 0) + item.prog,
-      );
-      if (item.additional !== undefined && item.additional !== null) {
-        additionalByService.set(item.id, item.additional);
-      }
-    }
-
-    for (const serviceId of serviceIds) {
-      const service = servicesById.get(serviceId);
-
-      if (!service || service.id_obra !== workId) {
-        throw new BadRequestException(
-          `O item ${serviceId} não pertence a esta obra.`,
-        );
-      }
-
-      const label = `${service.operacao ?? ''} ${service.ponto ?? ''}`.trim();
-
-      // Regra 1: item com real = 0 foi descartado.
-      if (service.qtde_real === 0) {
-        throw new BadRequestException(
-          `O item ${label || serviceId} foi descartado e não pode ser programado.`,
-        );
-      }
-
-      if (service.viabilizado === null || service.viabilizado === undefined) {
-        continue;
-      }
-
-      const total =
-        service.viabilizado +
-        (additionalByService.get(serviceId) ?? service.qtde_adicional ?? 0);
-      const available = total - (consumedByService.get(serviceId) ?? 0);
-      const requested = requestedByService.get(serviceId) ?? 0;
-
-      if (requested > available + PROGRESS_EPSILON) {
-        throw new BadRequestException(
-          `Saldo insuficiente para o item ${label || serviceId}: disponível ${Number(
-            Math.max(available, 0).toFixed(4),
-          )}, solicitado ${Number(requested.toFixed(4))}.`,
-        );
-      }
+    if (violation) {
+      throw new BadRequestException(this.toViolationMessage(violation));
     }
   }
+
+  /** As mensagens são iguais às que existiam antes. */
+  private toViolationMessage(violation: SchedulingViolation): string {
+    switch (violation.type) {
+      case 'not_owned':
+        return `O item ${violation.serviceId} não pertence a esta obra.`;
+      case 'discarded':
+        return `O item ${violation.label} foi descartado e não pode ser programado.`;
+      case 'insufficient_balance':
+        return `Saldo insuficiente para o item ${violation.label}: disponível ${Number(
+          Math.max(violation.available, 0).toFixed(4),
+        )}, solicitado ${Number(violation.requested.toFixed(4))}.`;
+    }
+  }
+
+  /**
+   * idSchedule + id_servico + id_equipe identifica o vínculo ATIVO.
+   * Linhas REPROGRAMADO são só histórico e não impedem programar de novo.
+   */
   private validateNotDuplicated(
     data: ScheduleServicesDTO[],
-    history: {
-      id_programacao: number;
-      id_servico: number;
-      id_equipe: number;
-    }[],
+    history: ScheduleHistoryRow[],
   ): void {
-    // idSchedule + id_servico + id_equipe identifica unicamente o vínculo.
     const scheduledServices = new Set(
-      history.map(
-        (item) => `${item.id_programacao}-${item.id_servico}-${item.id_equipe}`,
-      ),
+      history
+        .filter((item) => !isRescheduled(item))
+        .map(
+          (item) =>
+            `${item.id_programacao}-${item.id_servico}-${item.id_equipe}`,
+        ),
     );
 
     const seen = new Set<string>();

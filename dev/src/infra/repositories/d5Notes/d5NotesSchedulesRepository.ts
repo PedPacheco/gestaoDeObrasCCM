@@ -212,7 +212,6 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
           where: { id: d5NoteId },
           data: {
             id_status: 2,
-            status_sap: 'Concluído',
           },
         });
       }

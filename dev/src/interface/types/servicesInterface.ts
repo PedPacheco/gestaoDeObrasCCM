@@ -1,4 +1,4 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export interface GetAllServicesOfWorkInterface {
   id: number;
@@ -29,7 +29,7 @@ export interface GetServicesByWorkIdResponse {
   viabilizado: number;
   descricao_operacao: string;
   numero_operacao: string;
-  materiais: { codigo: string; descricao: string; preco: Decimal };
+  materiais: { codigo: string; descricao: string; preco: Prisma.Decimal };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -62,7 +62,7 @@ export interface GetServicesSelectedByWorkIdResponse {
     materiais: {
       codigo: string;
       descricao: string;
-      preco: Decimal;
+      preco: Prisma.Decimal;
     } | null;
     servicos_contratos: {
       material: string;
@@ -95,6 +95,7 @@ export interface GetServiceScheduleHistoryResponse {
   prog: number;
   real: number;
   adicional: number;
+  status: string | null;
 }
 
 export interface GetServiceOptionsResponse {
@@ -119,7 +120,7 @@ export type ServiceToExport = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Decimal;
+    preco: Prisma.Decimal;
     unidade: string;
   } | null;
   servicos_contratos: {
@@ -146,6 +147,7 @@ export type WorkProgrammingToExport = {
   equipe_linha_viva: number;
   equipe_regularizacao: number;
   tecnicos: { tecnico: string };
+  status_programacao: { status_programacao: string };
 };
 
 export type WorkToExportResponse = {
@@ -190,6 +192,7 @@ export type ExportServicesExcelOutput = {
   parceira: string;
   executado: number;
   empreendimento: string;
+  statusProgramacao: string;
   dataProg: Date | null;
   prog: number | null;
   observacaoProgramacao: string | null;
@@ -205,9 +208,11 @@ export type ExportServicesExcelOutput = {
   ponto: string | null;
   preco: number;
   valorTotal: number;
+  valorTotalExecutado: number;
   tipo: string;
   unidade: string;
   codigo: string;
   descricao: string;
   quantidadeProgramada: number;
+  quantidadeExecutada: number;
 };

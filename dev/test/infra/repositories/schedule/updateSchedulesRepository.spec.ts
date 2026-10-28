@@ -1,17 +1,18 @@
+import type { Mock } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 describe('UpdateSchedulesRepository', () => {
   let repository: UpdateSchedulesRepository;
 
-  const updateMock = jest.fn();
+  const updateMock = vi.fn();
 
   const mockPrisma = {
     programacoes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -51,7 +52,7 @@ describe('UpdateSchedulesRepository', () => {
 
     it('should throw error if  error occurs', async () => {
       const error = new Error('DB connection failed');
-      (mockTx.programacoes.update as jest.Mock).mockRejectedValue(error);
+      (mockTx.programacoes.update as Mock).mockRejectedValue(error);
 
       const input = {
         id: 9999,
@@ -98,7 +99,7 @@ describe('UpdateSchedulesRepository', () => {
 
     it('should throw error if error occurs', async () => {
       const error = new Error('DB connection failed');
-      (mockPrisma.programacoes.findMany as jest.Mock).mockRejectedValue(error);
+      (mockPrisma.programacoes.findMany as Mock).mockRejectedValue(error);
 
       await expect(
         repository.findExecutionOfSchedules(23, 5424),

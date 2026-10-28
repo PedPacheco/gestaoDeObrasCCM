@@ -6,8 +6,8 @@ describe('SuspensionWorkRepository', () => {
   let repository: SuspensionWorkRepository;
 
   const mockPrisma = {
-    suspensoes: { create: jest.fn() },
-    $transaction: jest.fn(),
+    suspensoes: { create: vi.fn() },
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -53,8 +53,8 @@ describe('SuspensionWorkRepository', () => {
   describe('createMultiple', () => {
     it('should create transaction, after call method suspensoes.createMany and obras.updateMany of prisma', async () => {
       const tx = {
-        suspensoes: { createMany: jest.fn() },
-        obras: { updateMany: jest.fn() },
+        suspensoes: { createMany: vi.fn() },
+        obras: { updateMany: vi.fn() },
       };
 
       mockPrisma.$transaction.mockImplementation(async (callback) => {

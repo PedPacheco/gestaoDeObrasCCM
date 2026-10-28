@@ -8,13 +8,13 @@ import { useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { getButtonContent } from "@/utils/getButtonContent";
-import { Transform } from "@/utils/transform";
 import {
   ExtraFilterValue,
   FilterFieldConfig,
   FiltersInterface,
 } from "@/types/genericFilterSchema";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 
 // ATENÇÃO: antes, as chaves/labels dos selects eram inferidas da ordem das
 // chaves do objeto da API (valueKey = 1ª chave, displayKey = 2ª, e
@@ -63,6 +63,13 @@ const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
     filterKey: "idStatus",
     valueKey: "id",
     displayKey: "status",
+  },
+  {
+    type: "select",
+    dataKey: "statusProgramacao",
+    filterKey: "idStatusProgramacao",
+    valueKey: "id",
+    displayKey: "status_programacao",
   },
   {
     type: "select",

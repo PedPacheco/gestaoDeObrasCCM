@@ -2,8 +2,8 @@ import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
-import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/schedule/getMonthlySummaryForecastRepository';
+import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 // import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
 
 describe('GetMonthlySummaryForecastRepository', () => {
@@ -30,10 +30,10 @@ describe('GetMonthlySummaryForecastRepository', () => {
 
   const prismaMock = {
     programacoes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     plano_capex: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -157,12 +157,12 @@ describe('GetMonthlySummaryForecastRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetSummary', () => {
     it('should call the method getSummary without filters and return data correctly', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.programacoes, 'findMany')
         .mockResolvedValue(mockGetSummaryForecastResponse);
 
@@ -213,7 +213,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
     });
 
     it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.programacoes, 'findMany')
         .mockResolvedValue(mockGetSummaryForecastResponse);
 
@@ -264,7 +264,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
 
   describe('GetCapexPlan', () => {
     it('should call the method getCapexPlan without filters and return data correctly', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.plano_capex, 'findMany')
         .mockResolvedValue(mockGetPlanCapex);
 
@@ -297,7 +297,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
     });
 
     it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.plano_capex, 'findMany')
         .mockResolvedValue(mockGetPlanCapex);
 

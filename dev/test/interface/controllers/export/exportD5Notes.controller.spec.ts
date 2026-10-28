@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { TestingModule } from '@nestjs/testing';
 import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
 import { ExportD5NotesService } from 'src/application/usecases/export/exportD5Notes.service';
@@ -24,8 +25,8 @@ const makeD5NotesResult = (
 
 describe('ExportD5NotesController', () => {
   let controller: ExportD5NotesController;
-  let findD5NotesService: jest.Mocked<FindD5NotesService>;
-  let exportD5NotesService: jest.Mocked<ExportD5NotesService>;
+  let findD5NotesService: Mocked<FindD5NotesService>;
+  let exportD5NotesService: Mocked<ExportD5NotesService>;
 
   beforeEach(async () => {
     const module: TestingModule = await createExportTestingModule(
@@ -41,7 +42,7 @@ describe('ExportD5NotesController', () => {
     exportD5NotesService = module.get(ExportD5NotesService);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();

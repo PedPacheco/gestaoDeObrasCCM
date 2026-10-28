@@ -106,12 +106,12 @@ describe('TeamAggregationService', () => {
 
   describe('buildExecutionCapacityTeams', () => {
     beforeAll(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(new Date('2024-03-15T00:00:00.000Z'));
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2024-03-15T00:00:00.000Z'));
     });
 
     afterAll(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should return null values when dates are from different months', () => {

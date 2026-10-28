@@ -41,6 +41,11 @@ export class D5NotesFiltersDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
+  idStatus?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
   idGrupo?: number[];
 
   @IsOptional()
@@ -57,6 +62,11 @@ export class D5NotesFiltersDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idNotaD5?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idOvnota?: number[];
 
   @IsDateString()
   @IsOptional()
@@ -119,6 +129,21 @@ export class D5NotesSchedulesFiltersDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idOvnota?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idNotaD5?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  id?: number[];
 
   @IsOptional()
   @IsBoolean()
@@ -314,8 +339,8 @@ export class RejectD5ScheduleDTO {
   @IsNumber()
   id: number;
 
-  @IsString()
-  reason: string;
+  @IsNumber()
+  restrictionId: number;
 
   @IsString()
   description: string;

@@ -1,10 +1,10 @@
 import * as ExcelJS from 'exceljs';
 import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
 
-// mocks compartilhados (fora do jest.mock)
-const addRowsMock = jest.fn();
-const addWorksheetMock = jest.fn();
-const writeMock = jest.fn();
+// mocks compartilhados (fora do vi.mock)
+const addRowsMock = vi.fn();
+const addWorksheetMock = vi.fn();
+const writeMock = vi.fn();
 
 import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
 
@@ -27,6 +27,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     codigo: 'COD001',
     descricao: 'Instalação de equipamento',
     quantidadeProgramada: 15,
+    quantidadeExecutada: 15,
     preco: 120.5,
     executado: 0,
     observacaoProgramacao: '',
@@ -38,8 +39,10 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     equipeRegul: 0,
     tecnicoResponsavel: '',
     valorTotal: 0,
+    valorTotalExecutado: 0,
     tipo: 'M',
     unidade: '',
+    statusProgramacao: 'Reprovado',
   },
   {
     ovnota: 'OV654321',
@@ -59,6 +62,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     codigo: 'COD002',
     descricao: 'Troca de material',
     quantidadeProgramada: 30,
+    quantidadeExecutada: null,
     preco: 89.99,
     executado: 0,
     observacaoProgramacao: '',
@@ -70,19 +74,21 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     equipeRegul: 0,
     tecnicoResponsavel: '',
     valorTotal: 0,
+    valorTotalExecutado: 0,
     tipo: 'S',
     unidade: '',
+    statusProgramacao: 'Programado',
   },
 ];
 
-jest.mock('exceljs', () => {
+vi.mock('exceljs', () => {
   return {
-    Workbook: jest.fn().mockImplementation(() => ({
+    Workbook: vi.fn().mockImplementation(function () { return ({
       addWorksheet: addWorksheetMock,
       xlsx: {
         write: writeMock,
       },
-    })),
+    }); }),
   };
 });
 

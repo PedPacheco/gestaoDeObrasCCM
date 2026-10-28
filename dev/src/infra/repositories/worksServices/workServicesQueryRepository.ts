@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   IWorkServicesQueryRepository,
   ServiceForScheduling,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -197,6 +197,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         prog: true,
         real: true,
         adicional: true,
+        status: true,
       },
       where: { programacoes: { id_obra: id } },
     });
@@ -263,7 +264,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -317,13 +318,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             equipe_linha_viva: true,
             equipe_regularizacao: true,
             tecnicos: { select: { tecnico: true } },
+            status_programacao: { select: { status_programacao: true } },
           },
         },
         servicos: {
           where: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,

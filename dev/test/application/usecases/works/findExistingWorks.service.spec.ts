@@ -7,10 +7,10 @@ describe('FindExistingWorksService', () => {
   let findExistingWorksService: FindExistingWorksService;
 
   const mockRepository = {
-    findExistingWorks: jest.fn(),
-    findExistingNotes: jest.fn(),
-    findExistingOrders: jest.fn(),
-    findExistingWorksOnSuspension: jest.fn(),
+    findExistingWorks: vi.fn(),
+    findExistingNotes: vi.fn(),
+    findExistingOrders: vi.fn(),
+    findExistingWorksOnSuspension: vi.fn(),
   };
 
   const mockExistingNotes = [

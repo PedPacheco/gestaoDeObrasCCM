@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import {
   ImportServiceItem,
   SchedulesProgressUpdate,
@@ -8,6 +7,7 @@ import {
   DEMOTED_WORK_STATUS,
   ServiceTotals,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import {
   AddServicesDTO,
@@ -18,32 +18,32 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────
 const buildTx = () => ({
   programacoes: {
-    update: jest.fn(),
-    findUnique: jest.fn(),
+    update: vi.fn(),
+    findUnique: vi.fn(),
   },
   programacoes_servicos: {
-    createMany: jest.fn(),
-    findMany: jest.fn(),
-    deleteMany: jest.fn(),
+    createMany: vi.fn(),
+    findMany: vi.fn(),
+    deleteMany: vi.fn(),
   },
   servicos: {
-    create: jest.fn(),
-    createMany: jest.fn(),
-    update: jest.fn(),
-    updateMany: jest.fn(),
-    delete: jest.fn(),
-    deleteMany: jest.fn(),
-    findMany: jest.fn(),
+    create: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    findMany: vi.fn(),
   },
   relatorio: {
-    deleteMany: jest.fn(),
-    upsert: jest.fn(),
+    deleteMany: vi.fn(),
+    upsert: vi.fn(),
   },
   obras: {
-    findUnique: jest.fn(),
-    update: jest.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
   },
-  $executeRaw: jest.fn(),
+  $executeRaw: vi.fn(),
 });
 
 type TxMock = ReturnType<typeof buildTx>;
@@ -71,7 +71,7 @@ describe('WorkServicesRepository', () => {
     tx = buildTx();
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   it('should be defined', () => {
     expect(repository).toBeDefined();
@@ -226,10 +226,10 @@ describe('WorkServicesRepository', () => {
   });
 
   describe('findScheduleItemsExecution', () => {
-    it('should return service id and real of each item', async () => {
+    it('should return service id, real and status of each item', async () => {
       const rows = [
-        { id_servico: 1, real: 5 },
-        { id_servico: 2, real: null },
+        { id_servico: 1, real: 5, status: 'EXECUTADO' },
+        { id_servico: 2, real: null, status: null },
       ];
       tx.programacoes_servicos.findMany.mockResolvedValueOnce(rows);
 
@@ -237,7 +237,7 @@ describe('WorkServicesRepository', () => {
 
       expect(tx.programacoes_servicos.findMany).toHaveBeenCalledWith({
         where: { id_programacao: 3 },
-        select: { id_servico: true, real: true },
+        select: { id_servico: true, real: true, status: true },
       });
       expect(result).toEqual(rows);
     });
@@ -477,6 +477,7 @@ describe('WorkServicesRepository', () => {
     prog: true,
     real: true,
     servicos: { select: { id_material: true } },
+    status: true,
   };
 
   const scheduleRows = [
@@ -486,6 +487,7 @@ describe('WorkServicesRepository', () => {
       prog: 5,
       real: 3,
       servicos: { id_material: null },
+      status: 'EXECUTADO',
     },
     {
       id_programacao: 2,
@@ -493,12 +495,27 @@ describe('WorkServicesRepository', () => {
       prog: 8,
       real: null,
       servicos: { id_material: 99 },
+      status: null,
     },
   ];
 
   const expectedScheduleItems = [
-    { scheduleId: 1, serviceId: 10, prog: 5, real: 3, isMaterial: false },
-    { scheduleId: 2, serviceId: 11, prog: 8, real: null, isMaterial: true },
+    {
+      scheduleId: 1,
+      serviceId: 10,
+      prog: 5,
+      real: 3,
+      isMaterial: false,
+      status: 'EXECUTADO',
+    },
+    {
+      scheduleId: 2,
+      serviceId: 11,
+      prog: 8,
+      real: null,
+      isMaterial: true,
+      status: null,
+    },
   ];
 
   describe('findScheduleItemsByServiceIds', () => {
@@ -529,6 +546,22 @@ describe('WorkServicesRepository', () => {
 
       expect(item.isMaterial).toBe(true);
     });
+
+    it.each([['REPROGRAMADO'], ['NAO_EXECUTADO']])(
+      'should carry the status %s through to the ScheduleItem',
+      async (status) => {
+        tx.programacoes_servicos.findMany.mockResolvedValueOnce([
+          { ...scheduleRows[0], status },
+        ]);
+
+        const [item] = await repository.findScheduleItemsByServiceIds(
+          [10],
+          asTx(tx),
+        );
+
+        expect(item.status).toBe(status);
+      },
+    );
 
     it('should return an empty array when nothing is found', async () => {
       tx.programacoes_servicos.findMany.mockResolvedValueOnce([]);
@@ -565,6 +598,7 @@ describe('WorkServicesRepository', () => {
       expect(tx.servicos.findMany).toHaveBeenCalledWith({
         where: { id_obra: 10 },
         select: {
+          id: true,
           id_material: true,
           viabilizado: true,
           qtde_adicional: true,

@@ -27,6 +27,8 @@ dayjs.extend(utc);
 type ScheduleColumnKey = keyof schedulesDataType;
 type FormattableColumnKey = Exclude<ScheduleColumnKey, "caminhos_arquivos">;
 
+const UPLOADS_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build`;
+
 type ColumnConfig = {
   key: FormattableColumnKey;
   label: string;
@@ -109,14 +111,20 @@ function parseFilePaths(value: unknown): string[] {
   return [];
 }
 
+export function getFileUrl(path: string): string {
+  // Se já vier um URL absoluto, usa-o como está
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const fileName = path.split(/[\\/]/).pop() ?? path;
+  return `${UPLOADS_BASE_URL}/${encodeURIComponent(fileName)}`;
+}
+
 interface SchedulesD5NotePanelItemProps {
   data: schedulesDataType[];
   onEdit?: (data: any) => void;
   onDelete: (confirm: number) => void;
   schedulesToBeRejected: Set<number>;
   setSchedulesToBeRejected: Dispatch<SetStateAction<Set<number>>>;
-  onNewSchedule?: () => void;
-  onRejectSchedules?: () => void;
 }
 
 export default function SchedulesD5NotePanelItem({
@@ -125,8 +133,6 @@ export default function SchedulesD5NotePanelItem({
   onEdit,
   schedulesToBeRejected,
   setSchedulesToBeRejected,
-  onNewSchedule,
-  onRejectSchedules,
 }: SchedulesD5NotePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
@@ -259,7 +265,10 @@ export default function SchedulesD5NotePanelItem({
                     </Box>
                   )}
                 </TableCell>
-                <FilesCell paths={parseFilePaths(item.caminhos_arquivos)} />
+                <FilesCell
+                  paths={parseFilePaths(item.caminhos_arquivos)}
+                  getFileUrl={getFileUrl}
+                />
                 {columnConfig.map((column) => (
                   <TableCell
                     key={column.key}

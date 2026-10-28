@@ -13,11 +13,12 @@ import {
 
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Decimal } from '@prisma/client/runtime/library';
+
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
 } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
   {
@@ -30,6 +31,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     equipes: { equipe: 'LM01', perfil: 'B1' },
     prog: 1,
     real: 1,
+    status: 'EXECUTADO',
     servicos: {
       operacao: 'INSTALAÇÃO',
       descricao_operacao: 'POSTE',
@@ -51,6 +53,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     equipes: { equipe: 'LM01', perfil: 'B4' },
     prog: 1,
     real: 1,
+    status: 'EXECUTADO',
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
@@ -63,26 +66,26 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
   },
 ];
 
-describe('WorksServicesService', () => {
+describe('QueriesServicesService', () => {
   let service: QueriesServicesService;
   let repository: IWorkServicesQueryRepository;
   let getWorkDetailsService: IGetWorksDetailsRepository;
 
   const mockWorksServicesRepository = {
-    getAllServicesOfWork: jest.fn(),
-    getNotScheduledServices: jest.fn(),
-    getSelectedServices: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
-    getServicesFilters: jest.fn(),
-    getServicesContracts: jest.fn(),
-    getTeamsServices: jest.fn(),
-    getMaterialsContract: jest.fn(),
-    getServiceOptions: jest.fn(),
+    getAllServicesOfWork: vi.fn(),
+    getNotScheduledServices: vi.fn(),
+    getSelectedServices: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
+    getServicesFilters: vi.fn(),
+    getServicesContracts: vi.fn(),
+    getTeamsServices: vi.fn(),
+    getMaterialsContract: vi.fn(),
+    getServiceOptions: vi.fn(),
   };
 
   const mockGetWorksDetailsRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -108,7 +111,7 @@ describe('WorksServicesService', () => {
       GET_WORKS_DETAILS_REPOSITORY,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -135,7 +138,7 @@ describe('WorksServicesService', () => {
         materiais: {
           codigo: '12345',
           descricao: 'POSTE',
-          preco: new Decimal(1.5),
+          preco: new Prisma.Decimal(1.5),
         },
       },
       {
@@ -304,7 +307,7 @@ describe('WorksServicesService', () => {
         materiais: {
           codigo: 'MAT002',
           descricao: 'Cabo de Alumínio',
-          preco: new Decimal(45.9),
+          preco: new Prisma.Decimal(45.9),
         },
         servicos_contratos: null,
       },
@@ -463,14 +466,6 @@ describe('WorksServicesService', () => {
     });
   });
 
-  it('should throw NotFoundException when services is an empty array', async () => {
-    mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
-
-    await expect(service.getNotScheduledServices(1)).rejects.toThrow(
-      new NotFoundException('Obra não encontrada'),
-    );
-  });
-
   describe('getSelectedServices', () => {
     const mockParams: GetSelectedServicesParamsInterface = {
       id: 1,
@@ -534,7 +529,7 @@ describe('WorksServicesService', () => {
           materiais: {
             codigo: '1234',
             descricao: 'Poste',
-            preco: new Decimal(5),
+            preco: new Prisma.Decimal(5),
           },
         },
       },

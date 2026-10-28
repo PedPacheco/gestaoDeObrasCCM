@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   ImportServiceItem,
   IWorkServicesRepository,
@@ -8,9 +7,11 @@ import {
 import {
   DEMOTED_WORK_STATUS,
   ScheduleItem,
+  ServiceExecutionStatus,
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
@@ -23,6 +24,7 @@ const SCHEDULE_ITEM_SELECT = {
   prog: true,
   real: true,
   servicos: { select: { id_material: true } },
+  status: true,
 } satisfies Prisma.programacoes_servicosSelect;
 
 type ScheduleItemRow = Prisma.programacoes_servicosGetPayload<{
@@ -35,6 +37,7 @@ const toScheduleItem = (row: ScheduleItemRow): ScheduleItem => ({
   prog: row.prog,
   real: row.real,
   isMaterial: row.servicos.id_material !== null,
+  status: row.status as ServiceExecutionStatus,
 });
 
 @Injectable()
@@ -94,7 +97,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   findScheduleItemsExecution(id: number, tx: Prisma.TransactionClient) {
     return tx.programacoes_servicos.findMany({
       where: { id_programacao: id },
-      select: { id_servico: true, real: true },
+      select: { id_servico: true, real: true, status: true },
     });
   }
 
@@ -228,6 +231,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     const rows = await tx.servicos.findMany({
       where: { id_obra: workId },
       select: {
+        id: true,
         id_material: true,
         viabilizado: true,
         qtde_adicional: true,
@@ -235,6 +239,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       },
     });
     return rows.map((row) => ({
+      serviceId: row.id,
       isMaterial: row.id_material !== null,
       enabledQuantity: row.viabilizado,
       additionalQuantity: row.qtde_adicional,

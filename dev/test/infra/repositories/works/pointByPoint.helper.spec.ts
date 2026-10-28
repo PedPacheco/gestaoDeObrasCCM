@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { resolvePointByPointMode } from 'src/infra/repositories/works/pointByPointMode.helper';
 import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
 
@@ -12,8 +12,8 @@ const CONFLICT_MESSAGE =
   'Não é possível trocar para uma parceira de outro modelo de programação (ponto a ponto / tradicional) em uma obra que já possui programações.';
 
 const buildClient = () => ({
-  obras: { findUnique: jest.fn() },
-  programacoes: { count: jest.fn() },
+  obras: { findUnique: vi.fn() },
+  programacoes: { count: vi.fn() },
 });
 
 type ClientMock = ReturnType<typeof buildClient>;

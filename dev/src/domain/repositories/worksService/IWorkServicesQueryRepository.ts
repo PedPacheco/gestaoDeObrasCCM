@@ -1,9 +1,9 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   GetSelectedServicesParamsInterface,
+  GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
-  GetServiceOptionsResponse,
   GetServicesSelectedByWorkIdResponse,
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';

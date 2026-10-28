@@ -2,9 +2,9 @@ import {
   ExtraFilterValue,
   FilterFieldConfig,
 } from "@/types/genericFilterSchema";
-import { FilterOptionsData } from "./genericFilterBar";
 import { capitalize } from "@/utils/formatValue";
 import { Dayjs } from "dayjs";
+import { FilterOptionsData } from "./genericFilterBar";
 
 export interface ActiveChip {
   id: string;
@@ -30,18 +30,20 @@ export function buildActiveChips(
 
       values.forEach((value) => {
         const match = items.find(
-          (item) => String(item[field.valueKey]) === String(value), // 👈 valueKey
+          (item) => String(item[field.valueKey]) === String(value),
         );
-        const displayLabel = match
-          ? String(match[field.displayKey])
-          : String(value);
+
+        const main = match?.[field.displayKey] ?? value;
+        const secondary =
+          field.secondaryDisplayKey && match?.[field.secondaryDisplayKey];
 
         chips.push({
           id: `${field.filterKey}-${value}`,
           filterKey: field.filterKey,
           kind: "select",
           rawValue: value,
-          label: `${fieldLabel}: ${displayLabel}`,
+          // Join main and secondary labels, skipping empty values
+          label: `${fieldLabel}: ${[main, secondary].filter(Boolean).join(" - ")}`,
         });
       });
     }
