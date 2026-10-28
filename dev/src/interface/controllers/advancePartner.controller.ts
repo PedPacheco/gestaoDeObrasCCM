@@ -16,11 +16,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
 import {
   CreateAdvancePartnerMonitoringDTO,
   IndicatorsDTO,
 } from '../dtos/advancePartnerDTO';
+import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -144,7 +144,7 @@ export class AdvancePartnerController {
   @Post()
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async insertIndicators(@Body() data: CreateAdvancePartnerMonitoringDTO) {
-    await this.service.insertIndicators(data);
+    await this.service.saveIndicators(data);
 
     return {
       statusCode: HttpStatus.OK,

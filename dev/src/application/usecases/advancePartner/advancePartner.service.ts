@@ -1,12 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import moment from 'moment';
 import {
   ADVANCE_PARTNER_REPOSITORY,
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { CreateAdvancePartnerMonitoringDTO } from 'src/interface/dtos/advancePartnerDTO';
 import { GetRestrictionsAdvancePartnerDTO } from 'src/interface/dtos/restrictionsDTO';
+
+const REFLECTION_FIELDS = [
+  'procReflexao',
+  'prazoReflexao',
+  'retrReflexao',
+  'wpaReflexao',
+  'cliReflexao',
+] as const;
 
 @Injectable()
 export class AdvancePartnerService {
@@ -147,7 +161,49 @@ export class AdvancePartnerService {
     }));
   }
 
-  async insertIndicators(data: CreateAdvancePartnerMonitoringDTO) {
-    await this.advancePartnerRepository.insertIndicators(data);
+  async saveIndicators(data: CreateAdvancePartnerMonitoringDTO): Promise<void> {
+    this.assertPeriodNotInFuture(data.mesReferencia, data.anoReferencia);
+
+    const payload: CreateAdvancePartnerMonitoringDTO = { ...data };
+    for (const field of REFLECTION_FIELDS) {
+      payload[field] = (data[field] ?? '').trim();
+    }
+
+    try {
+      await this.advancePartnerRepository.upsertIndicators(payload);
+    } catch (err) {
+      throw this.mapPersistenceError(err);
+    }
+  }
+
+  private assertPeriodNotInFuture(mes: number, ano: number): void {
+    const now = new Date();
+    const requested = ano * 12 + (mes - 1);
+    const current = now.getFullYear() * 12 + now.getMonth();
+
+    if (requested > current) {
+      throw new BadRequestException(
+        'Não é possível lançar indicadores para um mês futuro.',
+      );
+    }
+  }
+
+  private mapPersistenceError(err: unknown): unknown {
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError)) return err;
+
+    switch (err.code) {
+      case 'P2002': // dois pedidos para o mesmo período ao mesmo tempo
+        return new ConflictException(
+          'Os indicadores deste período estão a ser gravados por outro pedido. Tente novamente.',
+        );
+      case 'P2003': // fk_parceira
+        return new BadRequestException('A parceira informada não existe.');
+      case 'P2020': // valor fora do Decimal(5,2) / Decimal(15,2)
+        return new BadRequestException(
+          'Um dos valores informados está fora do intervalo permitido.',
+        );
+      default:
+        return err; // erro inesperado: 500 e mensagem padrão no frontend
+    }
   }
 }

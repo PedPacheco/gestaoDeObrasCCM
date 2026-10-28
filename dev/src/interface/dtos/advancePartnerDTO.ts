@@ -1,3 +1,4 @@
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsInt,
@@ -5,7 +6,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class IndicatorsDTO {
@@ -27,6 +27,10 @@ export class CreateAdvancePartnerMonitoringDTO {
   @IsInt()
   @Type(() => Number)
   idParceira: number;
+
+  @IsInt()
+  @Type(() => Number)
+  anoReferencia: number;
 
   @IsInt()
   @Type(() => Number)

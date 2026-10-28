@@ -913,6 +913,7 @@ model avanca_parceiro_indicadores {
 model avanca_parceiro_monitoramento {
   id                          Int      @id @default(autoincrement())
   id_parceira                 Int
+  ano_referencia              Int
   mes_referencia              Int
   proc_num_semanas_prog       Decimal  @db.Decimal(10, 2)
   proc_aderencia_elim_restr   Decimal  @db.Decimal(5, 2)
@@ -939,7 +940,7 @@ model avanca_parceiro_monitoramento {
   criado_em                   DateTime @default(now()) @db.Timestamp(6)
   turmas                      turmas   @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
 
-  @@unique([id_parceira, mes_referencia])
+  @@unique([id_parceira, ano_referencia, mes_referencia], name: "uk_parceira_periodo", map: "uk_avanca_parceiro_monitoramento")
 }
 
 view exportacao_obras_executadas {

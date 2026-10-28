@@ -3,8 +3,8 @@ import {
   ADVANCE_PARTNER_REPOSITORY,
   IAdvancePartnerRepository,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
+import { avanca_parceiro_monitoramento } from 'src/infra/generated/prisma/client';
 import { IndicatorsDTO } from 'src/interface/dtos/advancePartnerDTO';
-import { avanca_parceiro_monitoramento } from '@prisma/client';
 
 type IndicatorFormat =
   'number' | 'percentage' | 'currency' | 'days' | 'minutes';
@@ -33,8 +33,15 @@ export class GetAdvancePartnerIndicatorsService {
     /** Reflexão só é exposta quando o filtro está restrito a uma única parceira */
     const getReflection = (
       field: keyof avanca_parceiro_monitoramento,
-    ): string | null =>
-      isSinglePartner ? ((latestMonitoring?.[field] as string) ?? null) : null;
+    ): string | null => {
+      console.log(isSinglePartner, params.idParceira);
+      if (!isSinglePartner || !latestMonitoring) return null;
+
+      const value = latestMonitoring[field];
+      console.log(value);
+
+      return typeof value === 'string' && value.trim() !== '' ? value : null;
+    };
 
     const sum = (field: keyof avanca_parceiro_monitoramento): number =>
       monitoringList.reduce((acc, m) => acc + (Number(m?.[field]) || 0), 0);

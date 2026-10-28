@@ -1,7 +1,7 @@
 import {
   avanca_parceiro_indicadores,
   avanca_parceiro_monitoramento,
-} from '@prisma/client';
+} from 'src/infra/generated/prisma/client';
 import {
   CreateAdvancePartnerMonitoringDTO,
   IndicatorsDTO,
@@ -29,7 +29,7 @@ export interface IAdvancePartnerRepository {
     params: IndicatorsDTO,
   ): Promise<avanca_parceiro_monitoramento[]>;
   getIndicatorsAdvancePartner(): Promise<avanca_parceiro_indicadores>;
-  insertIndicators(data: CreateAdvancePartnerMonitoringDTO): Promise<void>;
+  upsertIndicators(data: CreateAdvancePartnerMonitoringDTO): Promise<void>;
 }
 
 export const ADVANCE_PARTNER_REPOSITORY = Symbol('AdvancePartnerRepository');

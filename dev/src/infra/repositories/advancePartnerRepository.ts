@@ -15,6 +15,11 @@ import {
   IndicatorsDTO,
 } from 'src/interface/dtos/advancePartnerDTO';
 
+type IndicatorColumns = Omit<
+  Prisma.avanca_parceiro_monitoramentoUncheckedCreateInput,
+  'id' | 'id_parceira' | 'ano_referencia' | 'mes_referencia' | 'criado_em'
+>;
+
 @Injectable()
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -337,66 +342,55 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     });
   }
 
-  async insertIndicators(
+  async upsertIndicators(
     data: CreateAdvancePartnerMonitoringDTO,
   ): Promise<void> {
+    const columns = this.toInidcatorColumns(data);
+
     await this.prisma.avanca_parceiro_monitoramento.upsert({
       where: {
-        id_parceira_mes_referencia: {
+        uk_parceira_periodo: {
           id_parceira: data.idParceira,
+          ano_referencia: data.anoReferencia,
           mes_referencia: data.mesReferencia,
         },
       },
-      update: {
-        proc_num_semanas_prog: data.procNumSemanasProg,
-        proc_aderencia_elim_restr: data.procAderenciaElimRestr,
-        proc_aderencia_prog: data.procAderenciaProg,
-        prazo_aderencia_exec: data.prazoAderenciaExec,
-        prazo_multas: data.prazoMultas,
-        prazo_backlog_vencidas: data.prazoBacklogVencidas,
-        retr_tempo_resol_d5: data.retrTempoResolD5,
-        retr_backlog_d5_qtd: data.retrBacklogD5Qtd,
-        retr_backlog_d5_valor: data.retrBacklogD5Valor,
-        retr_taxa: data.retrTaxa,
-        wpa_ociosidade: data.wpaOciosidade,
-        wpa_tms_saida_base: data.wpaTmsSaidaBase,
-        wpa_ocupacao: data.wpaOcupacao,
-        wpa_aderencia_disp: data.wpaAderenciaDisp,
-        cli_entrada_reclamacoes: data.cliEntradaReclamacoes,
-        cli_reclamacoes_fora_prazo: data.cliReclamacoesForaPrazo,
-        cli_procedencia_reclamacoes: data.cliProcedenciaReclamacoes,
-        proc_reflexao: data.procReflexao,
-        prazo_reflexao: data.prazoReflexao,
-        retr_reflexao: data.retrReflexao,
-        wpa_reflexao: data.wpaReflexao,
-        cli_reflexao: data.cliReflexao,
-      },
+      update: columns,
       create: {
         id_parceira: data.idParceira,
+        ano_referencia: data.anoReferencia,
         mes_referencia: data.mesReferencia,
-        proc_num_semanas_prog: data.procNumSemanasProg,
-        proc_aderencia_elim_restr: data.procAderenciaElimRestr,
-        proc_aderencia_prog: data.procAderenciaProg,
-        prazo_aderencia_exec: data.prazoAderenciaExec,
-        prazo_multas: data.prazoMultas,
-        prazo_backlog_vencidas: data.prazoBacklogVencidas,
-        retr_tempo_resol_d5: data.retrTempoResolD5,
-        retr_backlog_d5_qtd: data.retrBacklogD5Qtd,
-        retr_backlog_d5_valor: data.retrBacklogD5Valor,
-        retr_taxa: data.retrTaxa,
-        wpa_ociosidade: data.wpaOciosidade,
-        wpa_tms_saida_base: data.wpaTmsSaidaBase,
-        wpa_ocupacao: data.wpaOcupacao,
-        wpa_aderencia_disp: data.wpaAderenciaDisp,
-        cli_entrada_reclamacoes: data.cliEntradaReclamacoes,
-        cli_reclamacoes_fora_prazo: data.cliReclamacoesForaPrazo,
-        cli_procedencia_reclamacoes: data.cliProcedenciaReclamacoes,
-        proc_reflexao: data.procReflexao,
-        prazo_reflexao: data.prazoReflexao,
-        retr_reflexao: data.retrReflexao,
-        wpa_reflexao: data.wpaReflexao,
-        cli_reflexao: data.cliReflexao,
+        ...columns,
       },
     });
+  }
+
+  private toInidcatorColumns(
+    data: CreateAdvancePartnerMonitoringDTO,
+  ): IndicatorColumns {
+    return {
+      proc_num_semanas_prog: data.procNumSemanasProg,
+      proc_aderencia_elim_restr: data.procAderenciaElimRestr,
+      proc_aderencia_prog: data.procAderenciaProg,
+      prazo_aderencia_exec: data.prazoAderenciaExec,
+      prazo_multas: data.prazoMultas,
+      prazo_backlog_vencidas: data.prazoBacklogVencidas,
+      retr_tempo_resol_d5: data.retrTempoResolD5,
+      retr_backlog_d5_qtd: data.retrBacklogD5Qtd,
+      retr_backlog_d5_valor: data.retrBacklogD5Valor,
+      retr_taxa: data.retrTaxa,
+      wpa_ociosidade: data.wpaOciosidade,
+      wpa_tms_saida_base: data.wpaTmsSaidaBase,
+      wpa_ocupacao: data.wpaOcupacao,
+      wpa_aderencia_disp: data.wpaAderenciaDisp,
+      cli_entrada_reclamacoes: data.cliEntradaReclamacoes,
+      cli_reclamacoes_fora_prazo: data.cliReclamacoesForaPrazo,
+      cli_procedencia_reclamacoes: data.cliProcedenciaReclamacoes,
+      proc_reflexao: data.procReflexao,
+      prazo_reflexao: data.prazoReflexao,
+      retr_reflexao: data.retrReflexao,
+      wpa_reflexao: data.wpaReflexao,
+      cli_reflexao: data.cliReflexao,
+    };
   }
 }
