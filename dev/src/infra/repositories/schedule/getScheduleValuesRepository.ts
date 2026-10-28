@@ -65,7 +65,6 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
       ovnota,
       pendente,
       idStatusSap,
-      idTecnico,
     } = filters;
 
     if (dataInicial && dataFinal) {

@@ -11,8 +11,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
-import { ScheduleServicesDTO } from './workServicesDTO';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { ScheduleServicesDTO } from './workServicesDTO';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
@@ -108,11 +108,6 @@ export class GetScheduleValuesDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idStatusSap?: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idTecnico: number[];
 
   @IsOptional()
   @IsString()
