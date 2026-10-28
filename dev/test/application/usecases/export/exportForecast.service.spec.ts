@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import type { Mock, Mocked } from 'vitest';
 
@@ -9,8 +8,6 @@ import {
   IExportRepository,
 } from 'src/domain/repositories/IExportRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-
-vi.mock('exceljs');
 
 const { WorkbookMock } = vi.hoisted(() => ({
   WorkbookMock: vi.fn(),
@@ -47,7 +44,7 @@ describe('ExportForecastService', () => {
       },
     };
 
-    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+    WorkbookMock.mockImplementation(function () {
       return mockWorkbook;
     });
 

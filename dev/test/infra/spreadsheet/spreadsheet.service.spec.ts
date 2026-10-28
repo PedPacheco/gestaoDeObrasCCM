@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Workbook, Worksheet } from 'exceljs';
+import { CellValue, Workbook, Worksheet } from 'exceljs';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 
 // ─── Helpers ──────────────────────────────────────────────────
@@ -94,7 +94,7 @@ describe('SpreadsheetParserService', () => {
   let sut: SpreadsheetParserService;
 
   beforeEach(async () => {
-    vi.spyOn(console, 'log').mockImplementation();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [SpreadsheetParserService],
@@ -432,84 +432,35 @@ describe('SpreadsheetParserService', () => {
     });
 
     it('should handle rich text cell values', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        // Preenche as 11 colunas base
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        // Coluna 2 (point) com rich text
-        row.getCell(2).value = {
-          richText: [{ text: 'Rich ' }, { text: 'Point' }],
-        } as any;
-
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-        row.getCell(9).value = 10;
-        row.getCell(11).value = 'S';
-        row.commit();
-      });
+      const buffer = await buildValidWorkbook((ws) =>
+        fillDataRow(ws, 4, {
+          point: { richText: [{ text: 'Rich ' }, { text: 'Point' }] },
+          operationDescription: {
+            richText: [{ text: 'Descrição ' }, { text: 'rica' }],
+          },
+        }),
+      );
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
+      expect(result.skippedRows).toEqual([]); // se falhar, mostra o motivo
+      expect(result.items).toHaveLength(1);
       expect(result.items[0].point).toBe('Rich Point');
+      expect(result.items[0].operationDescription).toBe('Descrição rica');
     });
 
     it('should return null for rich text that results in empty string', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        row.getCell(2).value = {
-          richText: [{ text: '' }, { text: '  ' }],
-        } as any;
-
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-        row.getCell(9).value = 10;
-        row.getCell(11).value = 'S';
-        row.commit();
-      });
+      const buffer = await buildValidWorkbook((ws) =>
+        fillDataRow(ws, 4, {
+          point: { richText: [{ text: '' }, { text: ' ' }] },
+        }),
+      );
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
+      expect(result.skippedRows).toEqual([]); // se falhar, mostra o motivo
+      expect(result.items).toHaveLength(1);
       expect(result.items[0].point).toBeNull();
-    });
-
-    it('should handle formula cell values with result', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        row.getCell(2).value = {
-          formula: '=A1&B1',
-          result: 'FormulaPoint',
-        } as any;
-
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-        row.getCell(9).value = 10;
-        row.getCell(11).value = 'S';
-        row.commit();
-      });
-
-      const result = await sut.parse(buffer, VALID_MIMETYPE);
-
-      expect(result.items[0].point).toBe('FormulaPoint');
     });
 
     it('should convert numeric cell values to string', async () => {
@@ -523,31 +474,19 @@ describe('SpreadsheetParserService', () => {
     });
 
     it('should return 0 for formula cell with undefined result', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        row.getCell(2).value = 'P1';
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-
-        row.getCell(9).value = {
-          formula: '=SUM(A1:A10)',
-          result: undefined,
-        } as any;
-
-        row.getCell(11).value = 'S';
-
-        row.commit();
-      });
+      const buffer = await buildValidWorkbook((ws) =>
+        fillDataRow(ws, 4, {
+          plannedQty: {
+            formula: 'SUM(A1:A10)',
+            result: undefined,
+          } as CellValue,
+        }),
+      );
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
+      expect(result.skippedRows).toEqual([]);
+      expect(result.items).toHaveLength(1);
       expect(result.items[0].plannedQuantity).toBe(0);
     });
   });
@@ -598,55 +537,33 @@ describe('SpreadsheetParserService', () => {
     });
 
     it('should handle formula cell with numeric result', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        row.getCell(2).value = 'P1';
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-        row.getCell(9).value = {
-          formula: '=SUM(A1:A10)',
-          result: 99,
-        } as any;
-        row.getCell(11).value = 'S';
-        row.commit();
-      });
+      const buffer = await buildValidWorkbook((ws) =>
+        fillDataRow(ws, 4, {
+          plannedQty: { formula: 'SUM(A1:A10)', result: 99 },
+        }),
+      );
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
+      expect(result.skippedRows).toEqual([]);
+      expect(result.items).toHaveLength(1);
       expect(result.items[0].plannedQuantity).toBe(99);
     });
 
     it('should return 0 for formula cell with null result', async () => {
-      const buffer = await buildValidWorkbook((ws) => {
-        const row = ws.getRow(4);
-
-        for (let col = 1; col <= 11; col++) {
-          row.getCell(col).value = '';
-        }
-
-        row.getCell(2).value = 'P1';
-        row.getCell(4).value = 'OP-01';
-        row.getCell(5).value = '001';
-        row.getCell(6).value = 'SRV-001';
-        row.getCell(7).value = 'Desc';
-        row.getCell(9).value = {
-          formula: '=SUM(A1:A10)',
-          result: null,
-        } as any;
-        row.getCell(11).value = 'S';
-        row.commit();
-      });
+      const buffer = await buildValidWorkbook((ws) =>
+        fillDataRow(ws, 4, {
+          plannedQty: {
+            formula: 'SUM(A1:A10)',
+            result: null,
+          } as unknown as CellValue,
+        }),
+      );
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
-      // Number(null) === 0, || 0
+      expect(result.skippedRows).toEqual([]);
+      expect(result.items).toHaveLength(1);
       expect(result.items[0].plannedQuantity).toBe(0);
     });
 

@@ -216,6 +216,37 @@ describe('D5NotesController', () => {
   });
 
   // -------------------------------------------------------------------------
+  // GET /programacoes
+  // -------------------------------------------------------------------------
+  describe('getSchedules', () => {
+    it('deve retornar os detalhes da nota D5', async () => {
+      const data = { id: 5, descricao: 'Nota teste' };
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue(data);
+
+      const result = await controller.getSchedules(
+        { id: [2, 4] },
+        buildRequest(),
+      );
+
+      expect(findD5SchedulesService.findD5NotesSchedules).toHaveBeenCalledWith({
+        id: [2, 4],
+      });
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Programações da Nota D5 retornado com sucesso',
+        data,
+      });
+    });
+
+    it('deve propagar erros do serviço (ex.: NotFound)', async () => {
+      const error = new Error('Nota não encontrada');
+      findD5NotesService.getById.mockRejectedValue(error);
+
+      await expect(controller.getById(404)).rejects.toThrow(error);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // GET /notas-d5/programacoes/:id
   // -------------------------------------------------------------------------
   describe('getSchedulesByD5NoteId', () => {
@@ -241,7 +272,10 @@ describe('D5NotesController', () => {
     });
   });
 
-  describe('getSchedulesByD5NoteId', () => {
+  // -------------------------------------------------------------------------
+  // GET /notas-d5/reprovações/:id
+  // -------------------------------------------------------------------------
+  describe('getRejections', () => {
     it('deve retornar as reprovações da nota informada', async () => {
       const data = [{ id: 1, notaId: 7 }];
       findD5SchedulesService.findRejectionsByD5Note.mockResolvedValue(data);
