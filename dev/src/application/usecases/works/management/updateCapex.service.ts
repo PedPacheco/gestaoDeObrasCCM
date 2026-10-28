@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import { ProgressEmitter } from 'src/application/shared/capex.types';
 import {
   AUXILIARY_BASE_REPOSITORY,
@@ -9,6 +10,7 @@ import {
   UPDATE_CAPEX_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateCapexRepository';
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
+import { toSafeCapexErrorMessage } from '../../auxiliaryBase/capex/capexProcessing.service';
 
 export interface CalculatedValue {
   id: number;
@@ -45,6 +47,9 @@ export class UpdateCapexService {
    *
    * Quando chamado pelo CapexFullPipelineService (fluxo único), o caller
    * injeta um emitter que já mapeia para a faixa correta do pipeline completo.
+   *
+   * Em caso de falha emite 'error' com mensagem segura (sem detalhes internos)
+   * e relança o erro original para o caller.
    *
    * @param onProgress  Callback opcional para push de progresso via WebSocket.
    *                    Se omitido, o serviço funciona de forma silenciosa
@@ -120,7 +125,10 @@ export class UpdateCapexService {
         phase: 'error',
         processed: 0,
         percentage: 0,
-        message: error.message ?? 'Erro desconhecido na atualização do CAPEX',
+        message: toSafeCapexErrorMessage(
+          error,
+          'Erro inesperado durante a atualização do CAPEX.',
+        ),
       });
       throw error;
     }
@@ -154,6 +162,9 @@ export class UpdateCapexService {
       const fatorKey = `${material.material}|${material.def_proj}`;
       const fator = fatorMap.get(fatorKey) ?? 0;
 
+      // material pode vir nulo da importação: não deve derrubar o cálculo todo
+      const isDeletedMaterial = deletedSet.has(material.material?.trim() ?? '');
+
       let current = capexMap.get(material.id_obra);
       if (!current) {
         current = {
@@ -180,7 +191,7 @@ export class UpdateCapexService {
         }
       }
 
-      if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
+      if (isDeletedMaterial && material.cti === 'N') {
         current.mo_calc += material.preco * material.qtd_necessaria;
         current.mo_exec += material.preco * material.qtd_recebida;
         current.mo_pend += material.preco * material.qtd_falta;
@@ -191,11 +202,7 @@ export class UpdateCapexService {
         material.elemento_pep,
       );
 
-      if (
-        deletedSet.has(material.material.trim()) &&
-        material.cti === 'N' &&
-        canIncludeCapex
-      ) {
+      if (isDeletedMaterial && material.cti === 'N' && canIncludeCapex) {
         current.capex_mo_plan += material.preco * material.qtd_necessaria;
 
         if (material.reserva?.trim()) {

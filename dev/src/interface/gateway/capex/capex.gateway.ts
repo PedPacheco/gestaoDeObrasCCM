@@ -1,137 +1,176 @@
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleDestroy } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { isUUID } from 'class-validator';
+import { Namespace, Socket } from 'socket.io';
 import { CapexProgressPayload } from 'src/application/shared/capex.types';
+import {
+  extractTokenFromSocket,
+  isPayloadExpired,
+} from 'src/core/guards/wsAuth.util';
+
+const FINISHED_TTL_MS = 10 * 60_000; // após done/error: tempo para o cliente reconectar
+const IDLE_TTL_MS = 2 * 60 * 60_000; // sem eventos durante 2 h: job considerado abandonado
 
 export interface CapexProgressEvent extends CapexProgressPayload {
   jobId: string;
 }
 
 interface JobCache {
-  lastState: CapexProgressEvent;
+  ownerId: string;
+  finished: boolean;
+  lastState?: CapexProgressEvent;
   cleanupTimer?: ReturnType<typeof setTimeout>;
 }
 
+/** Ajuste ao campo de identificação do utilizador no payload do JWT */
+export const getUserId = (user: any): string => {
+  const id = user?.id ?? user?.sub;
+  if (id === undefined || id === null) {
+    throw new Error('JWT sem identificador de usuário');
+  }
+  return String(id);
+};
+
 /**
- * Gateway único para os dois fluxos do CAPEX (importação e atualização).
+ * Gateway único para os fluxos do CAPEX (importação e atualização).
  *
- * Resolve a condição de corrida entre HTTP e WS:
- * O gateway mantém o último estado emitido por jobId em cache.
- * Quando o cliente faz 'join' — mesmo após eventos já emitidos —
- * recebe imediatamente o estado atual, sem perder progresso.
+ * Fluxo do cliente:
+ *  1. Liga-se ao namespace /socketCapex com auth: { token }
+ *  2. POST /base-auxiliar/capex/pipeline (ou /obras/atualizar-capex), recebe { jobId }
+ *  3. Emite 'join' com o jobId e recebe de imediato o último estado (replay)
+ *  4. Escuta 'capex:progress' até phase 'done' ou 'error'
  *
- * Fluxo do cliente (igual para fluxos separados e único):
- *   1. POST /base-auxiliar/capex  ou  POST /obras/atualizar-capex
- *   2. Recebe { jobId } no corpo da resposta 202
- *   3. Conecta ao namespace /capex  (pode ser feito antes do POST também)
- *   4. Emite 'join' com o jobId recebido
- *   5. Escuta 'capex:progress' — recebe replay imediato se já houve eventos
- *   6. Ao receber status 'done' ou 'error', desconecta
+ * Autorização: quem cria o job já passou pelos guards HTTP (área/permissão de
+ * edição). No WS basta provar que o socket é dono do job (ou admin), por isso
+ * o 'join' NÃO usa os guards de área, que foram escritos para HTTP.
  */
 @WebSocketGateway({
   namespace: '/socketCapex',
-  cors: { origin: process.env.CORS_ORIGIN ?? '*' },
+  cors: { origin: process.env.CORS_ORIGIN?.split(',') ?? false },
 })
-export class CapexGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer()
-  private readonly server: Server;
-
+export class CapexGateway
+  implements
+    OnGatewayInit,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleDestroy
+{
   private readonly logger = new Logger(CapexGateway.name);
-
-  /**
-   * Cache do último estado emitido por jobId.
-   * Permite replay imediato para clientes que conectam após o início do job.
-   * TTL de limpeza: 10 minutos após conclusão (done/error).
-   */
   private readonly jobCache = new Map<string, JobCache>();
 
-  // ─── Lifecycle ────────────────────────────────────────────────────
+  @WebSocketServer()
+  private readonly server: Namespace;
 
-  handleConnection(client: Socket): void {
+  constructor(private readonly jwtService: JwtService) {}
+
+  // ─── Autenticação na ligação ─────────────────────────────────────
+  afterInit(server: Namespace) {
+    server.use(async (socket, next) => {
+      const token = extractTokenFromSocket(socket);
+      if (!token) return next(new Error('Não autorizado'));
+      try {
+        socket.data.user = await this.jwtService.verifyAsync(token);
+        next();
+      } catch {
+        next(new Error('Token inválido ou expirado')); // chega ao cliente em 'connect_error'
+      }
+    });
+  }
+
+  handleConnection(client: Socket) {
     this.logger.debug(`WS conectado: ${client.id}`);
   }
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect(client: Socket) {
     this.logger.debug(`WS desconectado: ${client.id}`);
   }
 
-  // ─── Eventos do cliente ───────────────────────────────────────────
-
-  /**
-   * Cliente entra no room isolado do jobId.
-   *
-   * Se o job já tiver estado em cache (cliente conectou tarde),
-   * o último estado é reenviado imediatamente para esse cliente.
-   * Isso garante que o frontend nunca fique com a barra de progresso
-   * parada em 0% caso haja alguma latência na conexão WS.
-   */
+  // ─── Eventos do cliente ──────────────────────────────────────────
   @SubscribeMessage('join')
-  handleJoin(
-    @MessageBody() jobId: string,
-    @ConnectedSocket() client: Socket,
-  ): void {
+  handleJoin(@MessageBody() jobId: unknown, @ConnectedSocket() client: Socket) {
+    const user = client.data.user;
+
+    // O socket continua ligado depois de o JWT expirar: verifica o exp a cada join.
+    if (!user || isPayloadExpired(user)) {
+      throw new WsException('Sessão expirada');
+    }
+
+    if (typeof jobId !== 'string' || !isUUID(jobId, 4)) {
+      throw new WsException('jobId inválido');
+    }
+
+    const job = this.jobCache.get(jobId);
+    if (!job) {
+      throw new WsException('Job não encontrado ou expirado');
+    }
+
+    if (!user.is_admin && job.ownerId !== getUserId(user)) {
+      throw new WsException('Sem acesso a este job');
+    }
+
     client.join(jobId);
     this.logger.debug(`Client ${client.id} entrou no room ${jobId}`);
 
-    const cached = this.jobCache.get(jobId);
-    if (cached) {
-      client.emit('capex:progress', cached.lastState);
-      this.logger.debug(
-        `Replay de estado para ${client.id}: phase=${cached.lastState.phase} %${cached.lastState.percentage}`,
-      );
+    if (job.lastState) {
+      client.emit('capex:progress', job.lastState);
     }
+
+    return { joined: jobId }; // ack para o cliente
   }
 
-  // ─── API interna (usada pelos serviços via createEmitter) ─────────
-
-  /**
-   * Emite o evento de progresso para todos os clientes do room
-   * e atualiza o cache interno do job.
-   */
-  emitProgress(jobId: string, payload: CapexProgressPayload): void {
-    const event: CapexProgressEvent = { jobId, ...payload };
-
-    this.updateCache(jobId, event);
-    this.server.to(jobId).emit('capex:progress', event);
-  }
-
-  /**
-   * Retorna um ProgressEmitter já vinculado ao jobId.
-   * É o que os controllers injetam nos serviços — mantém os serviços
-   * completamente agnósticos ao gateway e ao protocolo WS.
-   */
-  createEmitter(jobId: string) {
+  // ─── API interna ─────────────────────────────────────────────────
+  /** Regista o job e o seu dono. Deve ser chamado antes de devolver o jobId ao cliente. */
+  createEmitter(jobId: string, ownerId: string | number) {
+    this.jobCache.set(jobId, { ownerId: String(ownerId), finished: false });
+    this.scheduleCleanup(jobId, IDLE_TTL_MS);
     return (payload: CapexProgressPayload) => this.emitProgress(jobId, payload);
   }
 
-  // ─── Cache helpers ────────────────────────────────────────────────
+  emitProgress(jobId: string, payload: CapexProgressPayload): void {
+    const job = this.jobCache.get(jobId);
+    // Estado terminal é final: eventos tardios ou duplicados são ignorados.
+    if (!job || job.finished) return;
 
-  private updateCache(jobId: string, event: CapexProgressEvent): void {
-    const existing = this.jobCache.get(jobId);
+    const isError = payload.phase === 'error';
+    const finished = isError || payload.phase === 'done';
+    const previous = job.lastState?.percentage ?? 0;
 
-    // Cancela timer anterior para evitar limpeza prematura em jobs lentos
-    if (existing?.cleanupTimer) {
-      clearTimeout(existing.cleanupTimer);
-    }
+    // Erro mantém o último percentual; o progresso nunca regride (rede de segurança).
+    const percentage = isError
+      ? previous
+      : Math.min(100, Math.max(previous, payload.percentage));
 
-    const entry: JobCache = { lastState: event };
+    const event: CapexProgressEvent = { jobId, ...payload, percentage };
+    job.lastState = event;
+    job.finished = finished;
+    this.scheduleCleanup(jobId, finished ? FINISHED_TTL_MS : IDLE_TTL_MS);
 
-    // Agenda limpeza do cache somente quando o job termina
-    if (event.phase === 'done' || event.phase === 'error') {
-      entry.cleanupTimer = setTimeout(
-        () => this.jobCache.delete(jobId),
-        10 * 60 * 1_000, // 10 min: tempo suficiente para o cliente reconectar se necessário
-      );
-    }
+    this.server.to(jobId).emit('capex:progress', event);
+  }
 
-    this.jobCache.set(jobId, entry);
+  onModuleDestroy() {
+    for (const job of this.jobCache.values()) clearTimeout(job.cleanupTimer);
+    this.jobCache.clear();
+  }
+
+  // ─── Cache ───────────────────────────────────────────────────────
+  private scheduleCleanup(jobId: string, ms: number): void {
+    const job = this.jobCache.get(jobId);
+    if (!job) return;
+
+    if (job.cleanupTimer) clearTimeout(job.cleanupTimer);
+    job.cleanupTimer = setTimeout(() => this.jobCache.delete(jobId), ms);
+    job.cleanupTimer.unref?.(); // não impede o processo de terminar
   }
 }

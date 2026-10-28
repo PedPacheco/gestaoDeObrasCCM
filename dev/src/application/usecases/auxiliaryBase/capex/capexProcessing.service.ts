@@ -1,6 +1,7 @@
 import * as ExcelJS from 'exceljs';
 import { promises as fs } from 'fs';
 import pLimit from 'p-limit';
+
 import {
   CapexProgressPayload,
   ProgressEmitter,
@@ -10,7 +11,7 @@ import {
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 
 interface CapexItem {
   diagrama_rede: string;
@@ -30,6 +31,16 @@ interface CapexItem {
   reserva: any;
 }
 
+export const CAPEX_GENERIC_ERROR_MESSAGE =
+  'Ocorreu um erro inesperado ao processar o CAPEX.';
+
+export function toSafeCapexErrorMessage(
+  error: unknown,
+  fallback: string = CAPEX_GENERIC_ERROR_MESSAGE,
+): string {
+  return error instanceof HttpException ? error.message : fallback;
+}
+
 export type ImportProgressState = CapexProgressPayload;
 
 @Injectable()
@@ -39,19 +50,23 @@ export class CapexProcessingService {
   private readonly obraCache = new Map<string, number>();
   private readonly progressMap = new Map<string, ImportProgressState>();
 
-  // 🆕 ignorados por job
+  // ignorados por job
   private readonly ignoredMap = new Map<string, CapexItem[]>();
 
   private readonly BATCH_SIZE = 1000;
   private readonly MAX_CACHE = 50_000;
   private readonly CONCURRENCY = 5;
-  private readonly READ_EMIT_INTERVAL = 1000;
   private readonly DRAIN_EVERY = 20;
 
-  // 🆕 proteção de memória
+  // proteção de memória
   private readonly MAX_IGNORED = 10_000;
 
-  private readonly limit = pLimit(this.CONCURRENCY);
+  /**
+   * O stream do exceljs não informa o total de linhas, então o percentual é
+   * uma estimativa: curva que satura perto de 99% e nunca chega a 100%
+   * antes de a importação terminar de fato (o 100% vem no 'completed').
+   */
+  private readonly ESTIMATED_ROWS_SCALE = 60_000;
 
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
@@ -70,11 +85,43 @@ export class CapexProcessingService {
       onProgress?.(payload);
     };
 
+    // Limite de concorrência por execução (não compartilhado entre jobs).
+    const limit = pLimit(this.CONCURRENCY);
+
     let tasks: Promise<void>[] = [];
-    let batchesDispatched = 0;
+    let failed = false;
+    let failure: unknown;
+
+    // As promises guardadas em `tasks` nunca rejeitam: o primeiro erro é
+    // registrado e os batches seguintes viram no-op. Assim não há unhandled
+    // rejection e nada é inserido depois da falha.
+    const dispatch = (chunk: CapexItem[]) => {
+      tasks.push(
+        limit(async () => {
+          if (failed) return;
+          await this.processBatch(chunk, jobId);
+        }).catch((err) => {
+          if (!failed) {
+            failed = true;
+            failure = err;
+          }
+        }),
+      );
+    };
+
+    const throwIfFailed = () => {
+      if (failed) throw failure;
+    };
 
     try {
       await this.repository.truncateCN52N();
+
+      emit({
+        phase: 'reading',
+        processed: 0,
+        percentage: 0,
+        message: 'Lendo arquivo...',
+      });
 
       const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
         entries: 'emit',
@@ -84,106 +131,98 @@ export class CapexProcessingService {
       });
 
       let batch: CapexItem[] = [];
-      let processed = 0;
-      let total = 0;
+      let rowsRead = 0;
+      let batchesDispatched = 0;
 
       for await (const worksheet of workbook) {
         for await (const row of worksheet) {
           if (row.number <= 2) continue;
 
-          total++;
-
-          const values = row.values as any[];
-
-          batch.push({
-            diagrama_rede: values[2] ? String(values[2]) : null,
-            def_proj: values[3],
-            material: values[4] ? String(values[4]) : null,
-            texto_breve: values[5],
-            centro: values[6],
-            dep: values[7],
-            cti: values[8],
-            elemento_pep: values[9],
-            und: values[10],
-            preco: values[11],
-            qtd_necessaria: values[12],
-            qtd_retirada: values[13],
-            qtd_recebida: values[14],
-            qtd_falta: values[15],
-            reserva: values[17],
-          });
-
-          if (total % this.READ_EMIT_INTERVAL === 0) {
-            emit({
-              phase: 'reading',
-              processed: total,
-              percentage: this.calcReadingPct(total),
-              message: `Lendo linha ${total}...`,
-            });
-          }
+          rowsRead++;
+          batch.push(this.mapRow(row.values as any[]));
 
           if (batch.length >= this.BATCH_SIZE) {
-            const chunk = batch;
+            dispatch(batch);
             batch = [];
-
-            tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
-
-            processed += chunk.length;
             batchesDispatched++;
 
+            throwIfFailed(); // falha cedo
+
+            // Um único evento de progresso por batch: percentual monotônico.
             emit({
               phase: 'processing',
-              processed,
-              percentage: this.calcProcessingPct(processed),
-              message: this.buildProgressMessage(jobId, processed),
+              processed: rowsRead,
+              percentage: this.estimatePercentage(rowsRead),
+              message: this.buildProgressMessage(jobId, rowsRead),
             });
 
             if (batchesDispatched % this.DRAIN_EVERY === 0) {
               await Promise.all(tasks);
               tasks = [];
+              throwIfFailed();
             }
           }
         }
       }
 
       if (batch.length > 0) {
-        const chunk = batch;
-
-        tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
-
-        processed += chunk.length;
+        dispatch(batch);
       }
 
       await Promise.all(tasks);
+      throwIfFailed();
 
       emit({
         phase: 'completed',
-        processed,
+        processed: rowsRead,
         percentage: 100,
-        message: this.buildProgressMessage(jobId, processed, true),
+        message: this.buildProgressMessage(jobId, rowsRead, true),
       });
-
-      this.scheduleCleanup(jobId);
     } catch (error: any) {
-      const errPayload: CapexProgressPayload = {
+      failed = true; // batches ainda na fila viram no-op
+      await Promise.all(tasks); // espera só os que já estavam em execução
+
+      this.logger.error(`Erro no processamento do job ${jobId}`, error?.stack);
+
+      emit({
         phase: 'error',
         processed: 0,
         percentage: 0,
-        message: error.message ?? 'Erro durante a importação',
-      };
+        message: toSafeCapexErrorMessage(
+          error,
+          'Erro inesperado durante a importação do CAPEX.',
+        ),
+      });
 
-      this.progressMap.set(jobId, errPayload);
-      onProgress?.(errPayload);
-
-      this.logger.error(`Erro no processamento do job ${jobId}`, error.stack);
       throw error;
     } finally {
+      this.scheduleCleanup(jobId); // também no erro, para não vazar os maps
       await fs
         .unlink(filePath)
         .catch(() =>
           this.logger.warn(`Não foi possível remover o arquivo ${filePath}`),
         );
     }
+  }
+
+  private mapRow(values: any[]): CapexItem {
+    return {
+      diagrama_rede: values[2] ? String(values[2]) : null,
+      def_proj: values[3],
+      material: values[4] ? String(values[4]) : null,
+      texto_breve: values[5],
+      centro: values[6],
+      dep: values[7],
+      cti: values[8],
+      elemento_pep: values[9],
+      und: values[10],
+      preco: values[11],
+      qtd_necessaria: values[12],
+      qtd_retirada: values[13],
+      qtd_recebida: values[14],
+      qtd_falta: values[15],
+      reserva: values[17],
+    };
   }
 
   private async processBatch(batch: CapexItem[], jobId: string): Promise<void> {
@@ -223,7 +262,7 @@ export class CapexProcessingService {
       });
     }
 
-    // 🔴 armazenar ignorados com limite
+    // armazenar ignorados com limite
     if (ignoredItems.length > 0) {
       const current = this.ignoredMap.get(jobId) ?? [];
 
@@ -257,13 +296,9 @@ export class CapexProcessingService {
     return this.ignoredMap.get(jobId) ?? [];
   }
 
-  private calcReadingPct(linesRead: number): number {
-    const approx = Math.min(linesRead / 100_000, 1);
-    return Math.floor(approx * 100);
-  }
-
-  private calcProcessingPct(processed: number): number {
-    return Math.min(Math.floor(processed / 1000), 100);
+  private estimatePercentage(rowsRead: number): number {
+    const ratio = 1 - Math.exp(-rowsRead / this.ESTIMATED_ROWS_SCALE);
+    return Math.min(99, Math.floor(ratio * 100));
   }
 
   private initProgress(jobId: string): void {
@@ -278,9 +313,10 @@ export class CapexProcessingService {
   }
 
   private scheduleCleanup(jobId: string, ttlMs = 5 * 60 * 1000): void {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       this.progressMap.delete(jobId);
-      this.ignoredMap.delete(jobId); // 🧹 limpeza completa
+      this.ignoredMap.delete(jobId); // limpeza completa
     }, ttlMs);
+    timer.unref?.(); // não impede o processo de terminar
   }
 }

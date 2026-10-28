@@ -1,7 +1,8 @@
-import type { Mock } from 'vitest';
+import { BadRequestException } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { promises as fs } from 'fs';
 import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
+import type { Mock } from 'vitest';
 
 vi.mock('fs', () => ({
   promises: {
@@ -104,9 +105,11 @@ describe('CapexProcessingService', () => {
       ],
     ];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(
       new Map([['D1', 1]]),
@@ -131,9 +134,11 @@ describe('CapexProcessingService', () => {
   it('should ignore records when id_obra is not found', async () => {
     const rows = [[], [], [null, null, null, 'P1', 'MAT1']];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     // 🔥 nenhum id_obra encontrado
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
@@ -166,9 +171,11 @@ describe('CapexProcessingService', () => {
       [null, null, 'D3'], // aqui estoura o cache
     ];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     // cada chamada retorna um novo map com os diagramas
     mockRepository.getObraIdsByDiagramas.mockImplementation(
@@ -205,9 +212,11 @@ describe('CapexProcessingService', () => {
       'MAT',
     ]);
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook([[], [], ...rows]) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockImplementation(
       async (diagramas: string[]) => {
@@ -231,9 +240,11 @@ describe('CapexProcessingService', () => {
 
     rows.push([null, null, null]);
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook([[], [], ...rows]) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -265,9 +276,11 @@ describe('CapexProcessingService', () => {
       [null, null, 'D4'],
     ];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -283,12 +296,14 @@ describe('CapexProcessingService', () => {
   // 📡 PROGRESS (reading + processing)
   // ============================================================
 
-  it('should emit reading progress', async () => {
+  it('should emit a single reading event before streaming starts', async () => {
     const rows = Array.from({ length: 1005 }, () => [null, null, 'D1']);
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook([[], [], ...rows]) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -296,19 +311,58 @@ describe('CapexProcessingService', () => {
 
     await service.process('file.xlsx', 'job-1', progress);
 
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'reading',
-      }),
+    const events = progress.mock.calls.map(([payload]) => payload);
+    const readingEvents = events.filter((e) => e.phase === 'reading');
+
+    // durante o stream só 'processing' é emitido (evita oscilação da barra)
+    expect(readingEvents).toHaveLength(1);
+    expect(readingEvents[0]).toMatchObject({ processed: 0, percentage: 0 });
+    expect(events[0].phase).toBe('reading');
+  });
+
+  it('should emit monotonic percentages and only reach 100 on completed', async () => {
+    const rows = Array.from({ length: 3005 }, (_, i) => [null, null, `D${i}`]);
+
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook([[], [], ...rows]) as any;
+      },
     );
+
+    mockRepository.getObraIdsByDiagramas.mockImplementation(
+      async (diagramas: string[]) =>
+        new Map(diagramas.map((d, i) => [d, i + 1])),
+    );
+
+    const progress = vi.fn();
+
+    await service.process('file.xlsx', 'job-1', progress);
+
+    const events = progress.mock.calls.map(([payload]) => payload);
+    const processingPcts = events
+      .filter((e) => e.phase === 'processing')
+      .map((e) => e.percentage);
+
+    expect(processingPcts).toHaveLength(3);
+    expect([...processingPcts].sort((a, b) => a - b)).toEqual(processingPcts);
+    expect(Math.max(...processingPcts)).toBeLessThanOrEqual(99);
+
+    const last = events[events.length - 1];
+    expect(last).toMatchObject({
+      phase: 'completed',
+      percentage: 100,
+      processed: 3005,
+    });
   });
 
   it('should emit processing progress', async () => {
     const rows = Array.from({ length: 1001 }, (_, i) => [null, null, `D${i}`]);
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook([[], [], ...rows]) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook([[], [], ...rows]) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockImplementation(
       async (diagramas: string[]) => {
@@ -338,9 +392,11 @@ describe('CapexProcessingService', () => {
       [null, null, 'D3'],
     ];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -409,9 +465,11 @@ describe('CapexProcessingService', () => {
   it('should emit error and rethrow', async () => {
     const error = new Error('fail');
 
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(function () {
-      throw error;
-    });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        throw error;
+      },
+    );
 
     const progress = vi.fn();
 
@@ -432,9 +490,11 @@ describe('CapexProcessingService', () => {
     const error = new Error();
     (error as any).message = undefined;
 
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(function () {
-      throw error;
-    });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        throw error;
+      },
+    );
 
     const progress = vi.fn();
 
@@ -445,11 +505,127 @@ describe('CapexProcessingService', () => {
     expect(progress).toHaveBeenCalledWith(
       expect.objectContaining({
         phase: 'error',
-        message: 'Erro durante a importação',
+        message: 'Erro inesperado durante a importação do CAPEX.',
       }),
     );
 
     expect(mockLogger.error).toHaveBeenCalled();
+  });
+
+  it('should not leak internal error details to the client', async () => {
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        throw new Error('detalhe interno do banco');
+      },
+    );
+
+    const progress = vi.fn();
+
+    await expect(
+      service.process('file.xlsx', 'job-1', progress),
+    ).rejects.toThrow('detalhe interno do banco');
+
+    const errorEvent = progress.mock.calls
+      .map(([payload]) => payload)
+      .find((payload) => payload.phase === 'error');
+
+    expect(errorEvent).toMatchObject({ processed: 0, percentage: 0 });
+    expect(errorEvent.message).toBe(
+      'Erro inesperado durante a importação do CAPEX.',
+    );
+    expect(errorEvent.message).not.toContain('banco');
+  });
+
+  it('should forward the message of business errors (HttpException)', async () => {
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        throw new BadRequestException('Planilha inválida');
+      },
+    );
+
+    const progress = vi.fn();
+
+    await expect(
+      service.process('file.xlsx', 'job-1', progress),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(progress).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: 'error',
+        message: 'Planilha inválida',
+      }),
+    );
+  });
+
+  it('should fail fast when a batch fails and not run the remaining batches afterwards', async () => {
+    (service as any).BATCH_SIZE = 2;
+    (service as any).CONCURRENCY = 1;
+
+    const rows = [
+      [],
+      [],
+      [null, null, 'D1'],
+      [null, null, 'D2'], // batch 1 (falha)
+      [null, null, 'D3'],
+      [null, null, 'D4'], // batch 2
+      [null, null, 'D5'],
+      [null, null, 'D6'], // batch 3
+      [null, null, 'D7'],
+      [null, null, 'D8'], // batch 4
+    ];
+
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
+
+    const failure = new Error('db fail');
+
+    const processBatchSpy = vi
+      .spyOn(service as any, 'processBatch')
+      .mockRejectedValueOnce(failure)
+      .mockResolvedValue(undefined);
+
+    const progress = vi.fn();
+
+    await expect(service.process('file.xlsx', 'job-1', progress)).rejects.toBe(
+      failure,
+    );
+
+    const callsAtFailure = processBatchSpy.mock.calls.length;
+
+    // nem todos os batches chegaram a ser processados...
+    expect(callsAtFailure).toBeLessThan(4);
+
+    // ...e nada continua rodando em background depois do erro
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(processBatchSpy.mock.calls.length).toBe(callsAtFailure);
+
+    expect(progress).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'error' }),
+    );
+    expect(progress).not.toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'completed' }),
+    );
+  });
+
+  it('should remove the file and cleanup the maps even when the job fails', async () => {
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        throw new Error('fail');
+      },
+    );
+
+    await expect(service.process('file.xlsx', 'job-1')).rejects.toThrow('fail');
+
+    expect(fs.unlink).toHaveBeenCalledWith('file.xlsx');
+    expect((service as any).progressMap.has('job-1')).toBe(true);
+
+    vi.advanceTimersByTime(5 * 60 * 1000);
+
+    expect((service as any).progressMap.has('job-1')).toBe(false);
+    expect((service as any).ignoredMap.has('job-1')).toBe(false);
   });
 
   // ============================================================
@@ -459,9 +635,11 @@ describe('CapexProcessingService', () => {
   it('should cleanup progressMap after ttl', async () => {
     const rows = [[], [], [null, null, 'D1']];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -477,9 +655,11 @@ describe('CapexProcessingService', () => {
   it('should cleanup ignoredMap after ttl', async () => {
     const rows = [[], [], [null, null, 'D1']];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -497,16 +677,24 @@ describe('CapexProcessingService', () => {
   // ============================================================
 
   describe('helpers', () => {
-    it('calcReadingPct should scale correctly', () => {
-      const result = (service as any).calcReadingPct(50_000);
-
-      expect(result).toBe(50);
+    it('estimatePercentage should start at zero', () => {
+      expect((service as any).estimatePercentage(0)).toBe(0);
     });
 
-    it('calcProcessingPct should scale correctly', () => {
-      const result = (service as any).calcProcessingPct(2000);
+    it('estimatePercentage should follow the saturating curve', () => {
+      // 1 - e^-1 ≈ 0.632 quando linhas lidas = ESTIMATED_ROWS_SCALE
+      const result = (service as any).estimatePercentage(60_000);
 
-      expect(result).toBe(2);
+      expect(result).toBe(63);
+    });
+
+    it('estimatePercentage should be monotonic and capped at 99', () => {
+      const values = [0, 1_000, 10_000, 100_000, 1_000_000, 10_000_000].map(
+        (rows) => (service as any).estimatePercentage(rows),
+      );
+
+      expect([...values].sort((a, b) => a - b)).toEqual(values);
+      expect(Math.max(...values)).toBe(99);
     });
 
     it('initProgress should initialize correctly', () => {
@@ -560,9 +748,11 @@ describe('CapexProcessingService', () => {
       [null, null, 'D6'], // batch 3
     ];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
@@ -598,9 +788,11 @@ describe('CapexProcessingService', () => {
 
     const rows = [[], [], [null, null, 'D1']];
 
-    vi
-      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
-      .mockImplementation(function () { return mockWorkbook(rows) as any; });
+    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
+      function () {
+        return mockWorkbook(rows) as any;
+      },
+    );
 
     mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 

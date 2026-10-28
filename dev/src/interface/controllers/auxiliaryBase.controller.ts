@@ -1,32 +1,40 @@
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
+  Logger,
   Param,
   ParseIntPipe,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { randomUUID } from 'crypto';
+import type { Request } from 'express'; // evita confusão com o Request global do fetch
+import { promises as fs } from 'fs';
+import { diskStorage } from 'multer';
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
 import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import {
-  InsertBaseAuxiliaryMarketDTO,
-  NotesDTO,
-} from '../dtos/auxiliaryBaseDTO';
-import { OperationType } from '../types/baseAuxiliaryInterface';
-import { diskStorage } from 'multer';
-import { randomUUID } from 'crypto';
-import { CapexGateway } from '../gateway/capex/capex.gateway';
+import { toSafeCapexErrorMessage } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import {
+  InsertBaseAuxiliaryMarketDTO,
+  NotesDTO,
+} from '../dtos/auxiliaryBaseDTO';
+import { CapexGateway, getUserId } from '../gateway/capex/capex.gateway';
+import { OperationType } from '../types/baseAuxiliaryInterface';
 
 const capexFileInterceptor = FileInterceptor('file', {
   storage: diskStorage({
@@ -49,6 +57,8 @@ const capexFileInterceptor = FileInterceptor('file', {
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
+  private readonly logger = new Logger(AuxiliaryBaseController.name);
+
   constructor(
     private readonly auxiliaryBaseService: AuxiliaryBaseService,
     private readonly capexFullPipelineService: CapexFullPipelineService,
@@ -56,16 +66,41 @@ export class AuxiliaryBaseController {
   ) {}
 
   @Post('capex/pipeline')
+  @HttpCode(HttpStatus.ACCEPTED)
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   @UseInterceptors(capexFileInterceptor)
-  async importAndUpdateCapex(@UploadedFile() file: Express.Multer.File) {
-    const jobId = randomUUID();
+  async importAndUpdateCapex(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request & { user: any },
+  ) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo foi enviado.');
+    }
 
-    this.capexFullPipelineService
-      .run(file.path, jobId, this.capexGateway.createEmitter(jobId))
-      .catch((err) =>
-        console.error(`[capex/pipeline] Erro no job ${jobId}:`, err.stack),
+    // Já existe um pipeline rodando: o service não chegará a ser chamado,
+    // então quem remove o arquivo enviado é este controller.
+    if (this.capexFullPipelineService.isRunning) {
+      await fs.unlink(file.path).catch(() => undefined);
+      throw new ConflictException(
+        'Já existe uma atualização de CAPEX em andamento.',
       );
+    }
+
+    const jobId = randomUUID();
+    const emit = this.capexGateway.createEmitter(jobId, getUserId(req.user));
+
+    // Os services já emitem 'error' (com mensagem segura) e removem o arquivo.
+    // O catch abaixo é a rede de segurança para falhas fora deles; o gateway
+    // ignora este evento se o job já terminou.
+    this.capexFullPipelineService.run(file.path, jobId, emit).catch((err) => {
+      this.logger.error(`[capex/pipeline] Erro no job ${jobId}`, err?.stack);
+      emit({
+        phase: 'error',
+        processed: 0,
+        percentage: 0,
+        message: toSafeCapexErrorMessage(err),
+      });
+    });
 
     return {
       statusCode: HttpStatus.ACCEPTED,
