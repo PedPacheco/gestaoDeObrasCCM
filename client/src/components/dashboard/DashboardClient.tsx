@@ -3,14 +3,13 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import AdvancePartnerDashboard, {
-  AdvancePartnerPillar,
-} from "./advancePartner/advancePartner";
+import { useUser } from "@/contexts/userContext";
+import { LoadingComponent } from "../common/Loading";
+import AdvancePartnerDashboard from "./advancePartner/advancePartner";
+import { AdvancePartnerPillarResult } from "./advancePartner/indicators/types";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
-import { useUser } from "@/contexts/userContext";
-import { LoadingComponent } from "../common/Loading";
 
 // ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
@@ -78,7 +77,7 @@ interface Props {
   initialReasonsReascheduling: any[];
   initialLaborMoveForwardPartner: any;
   initialDailyGoalMoveForwardPartner: number;
-  initialIndicators: AdvancePartnerPillar[];
+  initialIndicators: AdvancePartnerPillarResult[];
   filtersData: any;
 }
 

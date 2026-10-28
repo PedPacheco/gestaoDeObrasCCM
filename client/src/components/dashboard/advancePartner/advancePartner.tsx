@@ -1,12 +1,12 @@
 "use client";
 
+import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
 import { AdvancePartnerFilters } from "./advancePartnerFilters";
+import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
+import { AdvancePartnerIndicatorsSection } from "./indicators/components/advancePartnerIndicator";
+import { AdvancePartnerPillarResult } from "./indicators/types";
 import { KpiSection } from "./kpiSection";
 import { SparklinesSection } from "./sparklinesSection";
-import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
-import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
-import { AdvancePartnerIndicatorsSection } from "./indicators/components/advancePartnerIndicator";
-import { AdvancePartnerIndicator } from "./indicators/components/indicatorItem";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -38,19 +38,13 @@ export interface MotivoRow {
   observacao_execucao?: string | null;
 }
 
-export interface AdvancePartnerPillar {
-  pillar: string;
-  reflection?: string;
-  indicators: AdvancePartnerIndicator[];
-}
-
 interface Props {
   initialEliminacao: EliminacaoRow[];
   initialAderencia: AderenciaRow[];
   initialSparklinesPartners: any[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: any[];
-  initialIndicators: AdvancePartnerPillar[];
+  initialIndicators: AdvancePartnerPillarResult[];
   initialSummary: any;
   initialDailyGoal: number;
   filtersData: any;
@@ -222,7 +216,10 @@ export default function AdvancePartnerDashboard({
       </div>
 
       <div className="w-full px-4 sm:px-5">
-        <AdvancePartnerIndicatorsSection indicators={indicadores} />
+        <AdvancePartnerIndicatorsSection
+          indicators={indicadores}
+          partners={filtersData.parceira || []}
+        />
       </div>
     </div>
   );

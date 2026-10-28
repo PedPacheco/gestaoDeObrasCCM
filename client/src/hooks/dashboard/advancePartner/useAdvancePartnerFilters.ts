@@ -5,18 +5,18 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
-import { Transform } from "@/utils/transform";
-import { findCurrentWeek, WEEKS } from "@/utils/weeks";
 import {
   AderenciaRow,
-  AdvancePartnerPillar,
   EliminacaoRow,
   MotivoRow,
   pctExact,
 } from "@/components/dashboard/advancePartner/advancePartner";
-import dayjs, { Dayjs } from "dayjs";
+import { AdvancePartnerPillarResult } from "@/components/dashboard/advancePartner/indicators/types";
 import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { Transform } from "@/utils/transform";
+import { findCurrentWeek, WEEKS } from "@/utils/weeks";
+import dayjs, { Dayjs } from "dayjs";
 
 interface UseAdvancePartnerFiltersProps {
   token: string;
@@ -26,7 +26,7 @@ interface UseAdvancePartnerFiltersProps {
   initialSparklinesPartners: SparklineRow[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: MotivoRow[];
-  initialIndicators: AdvancePartnerPillar[];
+  initialIndicators: AdvancePartnerPillarResult[];
   initialSummary: any;
   initialDailyGoal: number;
 }
@@ -79,7 +79,7 @@ export function useAdvancePartnerFilters({
   );
 
   const [selParceira, setSelParceira] = useState<string[]>(
-    () => filters?.parceira ?? [],
+    () => filters?.turma ?? [],
   );
 
   /* -------------------------------------------------------------------------- */
@@ -118,9 +118,8 @@ export function useAdvancePartnerFilters({
 
   const [dailyGoal, setDailyGoal] = useState<number>(initialDailyGoal ?? 0);
 
-  const [indicadores, setIndicadores] = useState<AdvancePartnerPillar[]>(
-    initialIndicators || [],
-  );
+  const [indicadores, setIndicadores] =
+    useState<AdvancePartnerPillarResult[]>(initialIndicators);
 
   const [sparklines, setSparklines] = useState<SparklineRow[]>(
     initialSparklinesPartners ?? [],
@@ -286,7 +285,7 @@ export function useAdvancePartnerFilters({
         ),
         await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/indicadores`,
-          undefined,
+          selParceira ? { idParceira: selParceira } : undefined,
           token,
           { cache: "no-store" },
         ),
@@ -302,7 +301,7 @@ export function useAdvancePartnerFilters({
         indicadores: indicadoresRes,
       };
     },
-    [token, motivoTab],
+    [motivoTab, token, selParceira],
   );
 
   /* -------------------------------------------------------------------------- */
