@@ -312,12 +312,6 @@ export class WorksServicesService {
           'Serviço e equipe devem ser informados para cada item.',
         );
       }
-
-      if (!Number.isFinite(item.prog) || item.prog < 0) {
-        throw new BadRequestException(
-          'A quantidade programada deve ser um número maior ou igual a zero.',
-        );
-      }
     }
   }
 

@@ -345,18 +345,6 @@ describe('WorksServicesService', () => {
         expect(mockSchedulesRepository.findById).not.toHaveBeenCalled();
       });
 
-      it.each([[-1], [-0.01], [NaN], [Infinity], [undefined], ['5']])(
-        'should reject prog = %p',
-        async (prog) => {
-          await expectError(
-            run([item({ prog } as any)]),
-            BadRequestException,
-            'A quantidade programada deve ser um número maior ou igual a zero.',
-          );
-          expect(mockSchedulesRepository.findById).not.toHaveBeenCalled();
-        },
-      );
-
       it('should accept prog = 0', async () => {
         await run([item({ prog: 0 })]);
 
