@@ -1,10 +1,10 @@
-import type { MockInstance, Mocked } from 'vitest';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
+import type { MockInstance, Mocked } from 'vitest';
 
 // Noon UTC: yields the same calendar day in virtually any timezone
 const FIXED_NOW = new Date('2026-10-16T12:00:00.000Z');
@@ -43,7 +43,6 @@ describe('FindD5SchedulesService', () => {
   beforeEach(() => {
     vi.useFakeTimers({
       now: FIXED_NOW,
-      doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'],
     });
 
     timeMetrics = {
@@ -391,6 +390,19 @@ describe('FindD5SchedulesService', () => {
       });
     });
 
+    it('should apply the statusSap filter', async () => {
+      await service.findD5NotesSchedules(
+        makeFilters({ statusSap: 'Pendente' }),
+      );
+
+      expect(whereFromGet()).toEqual({
+        AND: [
+          { notas_d5: { is: { status_sap: 'Pendente' } } },
+          ...DEFAULT_STATE_CONDITIONS,
+        ],
+      });
+    });
+
     it.each([
       'idRegional',
       'idMunicipio',
@@ -418,6 +430,7 @@ describe('FindD5SchedulesService', () => {
           idOvnota: [6],
           idNotaD5: [7],
           id: [8],
+          statusSap: 'Pendente',
           reprovada: true,
         } as any),
       );
@@ -433,6 +446,7 @@ describe('FindD5SchedulesService', () => {
           {
             notas_d5: {
               is: {
+                status_sap: 'Pendente',
                 municipios: { id_regional: { in: [1] } },
                 id_municipio: { in: [2] },
                 tipos: { id_grupo: { in: [3] } },
