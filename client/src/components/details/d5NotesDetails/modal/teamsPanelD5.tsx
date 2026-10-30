@@ -59,7 +59,7 @@ export const TeamsPanelD5: React.FC<TeamsPanelD5Props> = ({
               disabled={disabled}
             />
           }
-          label="Apenas fiscalização pendente (sem envio de equipes)"
+          label="Pendência Documental (Caso selecionado, não necessário envio de equipes)"
         />
         {formErrors.fiscalization && (
           <FormHelperText error>{formErrors.fiscalization}</FormHelperText>
