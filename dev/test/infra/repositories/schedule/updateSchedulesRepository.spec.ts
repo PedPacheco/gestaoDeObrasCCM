@@ -1,9 +1,9 @@
-import type { Mock } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
+import type { Mock } from 'vitest';
 
 describe('UpdateSchedulesRepository', () => {
   let repository: UpdateSchedulesRepository;

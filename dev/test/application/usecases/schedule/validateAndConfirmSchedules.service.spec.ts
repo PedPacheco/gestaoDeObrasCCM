@@ -1,4 +1,3 @@
-import type { Mock, MockInstance } from 'vitest';
 import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
@@ -11,6 +10,7 @@ import {
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
+import type { Mock, MockInstance } from 'vitest';
 
 import {
   BadRequestException,
@@ -19,7 +19,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 // ─── Constantes e helpers ────────────────────────────────────────────
 const OPEN_STATUS = ScheduleStatus.CONFIRMADA; // qualquer status NÃO finalizado

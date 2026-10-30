@@ -7,7 +7,7 @@ import { Readable } from 'stream';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -288,11 +288,12 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      vi
-        .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
-        .mockImplementationOnce(() => {
-          throw new Error('Erro forçado no create');
-        });
+      vi.spyOn(
+        ExecutionReportEntity.ExecutionReport,
+        'create',
+      ).mockImplementationOnce(() => {
+        throw new Error('Erro forçado no create');
+      });
 
       const result = service.update(
         1,
@@ -313,11 +314,12 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      vi
-        .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
-        .mockImplementationOnce(() => {
-          throw new Error('Erro forçado no create');
-        });
+      vi.spyOn(
+        ExecutionReportEntity.ExecutionReport,
+        'create',
+      ).mockImplementationOnce(() => {
+        throw new Error('Erro forçado no create');
+      });
 
       const result = service.update(1, mockUpdateExecutionReportDTO);
 
