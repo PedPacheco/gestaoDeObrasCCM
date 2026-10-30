@@ -1,9 +1,9 @@
 "use client";
 
-import { useUser } from "@/contexts/userContext";
-import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
+import { useUser } from "@/contexts/userContext";
 import { ReactNode, useMemo } from "react";
+import DataItem from "./dataItem";
 
 interface typeData {
   id_turma: string;
@@ -37,6 +37,11 @@ const statusOrder = [
   "REPROGRAMAR",
 ];
 
+const ALLOWED_STATUS_BY_CURRENT: Record<number, number[]> = {
+  4: [42, 45, 4],
+  42: [42, 45, 4, 3],
+};
+
 export const EditableColumn = ({
   data,
   feasibilitySubmissionDate,
@@ -48,10 +53,16 @@ export const EditableColumn = ({
   const { permissions } = useUser();
 
   const getFilteredAndSortedStatus = useMemo(() => {
-    const filtered =
-      data.id_status === 42 && data.data_empreitamento === null
-        ? options.status.filter((item) => [42, 45, 4, 3].includes(item.id))
-        : options.status.filter((item) => item.id !== 42);
+    const allowedIds =
+      data.data_empreitamento === null
+        ? ALLOWED_STATUS_BY_CURRENT[data.id_status]
+        : undefined;
+
+    const filtered = allowedIds
+      ? options.status.filter((item) => allowedIds.includes(item.id))
+      : options.status.filter((item) => item.id !== 42);
+
+    console.log(filtered, data.id_status, data.data_empreitamento);
 
     return filtered.sort(
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
