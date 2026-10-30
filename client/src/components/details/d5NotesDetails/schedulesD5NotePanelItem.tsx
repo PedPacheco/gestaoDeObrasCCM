@@ -57,6 +57,7 @@ const columnConfig: ColumnConfig[] = [
   { key: "equipe_lm", label: "Equipe LM" },
   { key: "equipe_lv", label: "Equipe LV" },
   { key: "equipe_reg", label: "Equipe Reg" },
+  { key: "fiscalizacao", label: "Pendência de Documentos" },
   { key: "tecnico", label: "Técnico responsável" },
   { key: "restricao", label: "Motivo da restrição" },
   { key: "responsavel_restricao", label: "Responsabilidade" },
@@ -192,7 +193,7 @@ export default function SchedulesD5NotePanelItem({
         >
           <TableHead>
             <TableRow>
-              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20" />
+              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-30" />
               <TableCell className="sticky top-0 z-20 whitespace-nowrap border-r border-solid border-zinc-700 bg-[#53FF75] px-2 py-2 text-center text-sm font-semibold text-zinc-700 md:text-base xl:text-lg">
                 Arquivos As Built
               </TableCell>

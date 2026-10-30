@@ -185,8 +185,6 @@ export abstract class BaseSchedule {
     const isValidDp = BaseSchedule.DP_REGEX.test(value);
     const isValidBra = value.length >= BaseSchedule.MIN_NUM_BRA;
 
-    console.log(value, rule, isValidBra, isValidDp);
-
     if (rule === 'DP' && !isValidDp) {
       throw new BadRequestException(
         'Número do DP deve conter exatamente 8 dígitos',

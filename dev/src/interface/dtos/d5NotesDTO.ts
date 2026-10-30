@@ -299,6 +299,11 @@ export class CreateProgramacaoD5Dto {
   @IsInt()
   @Type(() => Number)
   modifyingUserId: number;
+
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  fiscalization?: boolean;
 }
 
 export class UpdateScheduleD5Dto extends PartialType(
