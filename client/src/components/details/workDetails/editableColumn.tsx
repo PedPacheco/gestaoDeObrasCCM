@@ -62,8 +62,6 @@ export const EditableColumn = ({
       ? options.status.filter((item) => allowedIds.includes(item.id))
       : options.status.filter((item) => item.id !== 42);
 
-    console.log(filtered, data.id_status, data.data_empreitamento);
-
     return filtered.sort(
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
     );

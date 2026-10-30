@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { BaseSchedule, BaseScheduleProps } from './baseSchedule.entity';
 
 export interface D5ScheduleProps extends BaseScheduleProps {
+  fiscalization?: boolean;
   d5NoteId: number;
   creatorUserId?: number;
   modifyingUserId: number;
@@ -14,6 +15,7 @@ export type D5ScheduleChanges = Omit<
 >;
 
 export class D5NoteSchedule extends BaseSchedule {
+  readonly fiscalization?: boolean;
   readonly d5NoteId: number;
   readonly creatorUserId?: number;
   readonly modifyingUserId: number;
@@ -25,6 +27,7 @@ export class D5NoteSchedule extends BaseSchedule {
   constructor(props: D5ScheduleProps) {
     super(props);
 
+    this.fiscalization = props.fiscalization ?? false;
     this.d5NoteId = props.d5NoteId;
     this.creatorUserId = props.creatorUserId;
     this.modifyingUserId = props.modifyingUserId;
@@ -81,7 +84,7 @@ export class D5NoteSchedule extends BaseSchedule {
   private validateTeams(): void {
     const teams = [this.lmTeam, this.lvTeam, this.regulTeam];
 
-    if (teams.every((t) => !t)) {
+    if (teams.every((t) => !t) && !this.fiscalization) {
       throw new BadRequestException(
         'Informe pelo menos uma equipe(LM, LV ou Regularização)',
       );
@@ -146,6 +149,7 @@ export class D5NoteSchedule extends BaseSchedule {
   public toPublicProps(): D5ScheduleProps {
     return {
       ...this.baseProps(),
+      fiscalization: this.fiscalization,
       d5NoteId: this.d5NoteId,
       creatorUserId: this.creatorUserId,
       modifyingUserId: this.modifyingUserId,

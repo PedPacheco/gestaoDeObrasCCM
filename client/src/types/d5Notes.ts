@@ -25,6 +25,7 @@ export type schedulesDataType = {
   idRestricao: number;
   caminhos_arquivos: string[];
   reprovada: boolean;
+  fiscalizacao: boolean;
 };
 
 export type D5NotesRejectionsDataType = {

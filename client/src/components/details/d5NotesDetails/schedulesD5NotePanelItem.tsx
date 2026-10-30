@@ -57,6 +57,7 @@ const columnConfig: ColumnConfig[] = [
   { key: "equipe_lm", label: "Equipe LM" },
   { key: "equipe_lv", label: "Equipe LV" },
   { key: "equipe_reg", label: "Equipe Reg" },
+  { key: "fiscalizacao", label: "Fiscalização" },
   { key: "tecnico", label: "Técnico responsável" },
   { key: "restricao", label: "Motivo da restrição" },
   { key: "responsavel_restricao", label: "Responsabilidade" },
