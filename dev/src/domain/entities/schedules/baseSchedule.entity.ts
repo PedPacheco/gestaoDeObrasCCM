@@ -1,4 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
+import {
+  DocumentRule,
+  getDocumentRule as resolveDocumentRule,
+} from 'src/domain/services/requireDpNumber.service';
 
 export interface BaseScheduleProps {
   // Obrigatórios
@@ -56,6 +60,14 @@ export abstract class BaseSchedule {
   readonly rejected: boolean;
 
   private static readonly MAX_NUM_DP = 8;
+  private static readonly MIN_NUM_BRA = 12;
+  private static readonly DP_REGEX = /^\d{8}$/;
+
+  private static readonly MISSING_MESSAGES: Record<DocumentRule, string> = {
+    DP: 'Falta inserir número do DP',
+    BRA: 'Falta inserir número do BRA',
+    DP_OR_BRA: 'Falta inserir número do DP ou do BRA',
+  };
 
   protected constructor(props: BaseScheduleProps) {
     this.dataProg = props.dataProg;
@@ -128,51 +140,68 @@ export abstract class BaseSchedule {
       );
     }
 
-    if (this.numDp && this.numDp.length > BaseSchedule.MAX_NUM_DP) {
-      throw new BadRequestException(
-        `Número do DP deve ter no máximo ${BaseSchedule.MAX_NUM_DP} caracteres`,
-      );
-    }
-
     this.validateSpecific();
+    this.validateDpFormat();
   }
 
   /** Regras próprias de cada tipo de programação. */
   protected abstract validateSpecific(): void;
 
-  protected checkTypeOfService(): boolean {
-    if (!this.serviceType) return false;
-
-    const serviceTypeRequireDp = ['dp', 'lv', 'regularização', 'rd'];
-
-    return serviceTypeRequireDp.includes(this.serviceType.toLowerCase());
+  /**
+   * Documento esperado no numDp (regra definida em service-document.rule.ts):
+   * - "dp + lv"                                → DP ou BRA
+   * - "lv", "lv + obra livre"                  → BRA
+   * - "dp", "regularização", "desativação rd"  → DP
+   * - fora da lista                            → null
+   */
+  protected getDocumentRule(): DocumentRule | null {
+    return resolveDocumentRule(this.serviceType);
   }
 
+  /** Valida o formato do número, se estiver preenchido (sem o tornar obrigatório). */
   protected validateDpFormat(): void {
-    const dp = this.numDp?.trim();
+    const value = this.numDp?.trim();
+    if (!value) return;
 
-    if (!dp) return;
+    // Tipos fora da lista mantêm a validação de DP
+    this.assertDocumentFormat(value, this.getDocumentRule() ?? 'DP');
+  }
 
-    if (!/^\d{8}$/.test(dp)) {
+  /** Regra de confirmação: DP (8 dígitos) e/ou BRA (mín. 12 caracteres) obrigatório. */
+  public requireDpNumber(): void {
+    const rule = this.getDocumentRule();
+    if (!rule) return;
+
+    const value = this.numDp?.trim();
+
+    if (!value || value === '0') {
+      throw new BadRequestException(BaseSchedule.MISSING_MESSAGES[rule]);
+    }
+
+    this.assertDocumentFormat(value, rule);
+  }
+
+  private assertDocumentFormat(value: string, rule: DocumentRule): void {
+    const isValidDp = BaseSchedule.DP_REGEX.test(value);
+    const isValidBra = value.length >= BaseSchedule.MIN_NUM_BRA;
+
+    console.log(value, rule, isValidBra, isValidDp);
+
+    if (rule === 'DP' && !isValidDp) {
       throw new BadRequestException(
         'Número do DP deve conter exatamente 8 dígitos',
       );
     }
-  }
 
-  /** Regra de confirmação: DP obrigatório com 8 dígitos. */
-  public requireDpNumber(): void {
-    if (!this.checkTypeOfService()) return;
-
-    const dp = this.numDp?.trim();
-
-    if (!dp || dp === '0') {
-      throw new BadRequestException('Falta inserir número do DP');
+    if (rule === 'BRA' && !isValidBra) {
+      throw new BadRequestException(
+        `Número do BRA deve conter no mínimo ${BaseSchedule.MIN_NUM_BRA} caracteres`,
+      );
     }
 
-    if (!/^\d{8}$/.test(dp)) {
+    if (rule === 'DP_OR_BRA' && !isValidDp && !isValidBra) {
       throw new BadRequestException(
-        'Número do DP deve conter exatamente 8 dígitos',
+        `Número inválido: o DP deve conter exatamente 8 dígitos e o BRA no mínimo ${BaseSchedule.MIN_NUM_BRA} caracteres`,
       );
     }
   }

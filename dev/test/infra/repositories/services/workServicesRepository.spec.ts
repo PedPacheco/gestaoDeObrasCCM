@@ -708,8 +708,8 @@ describe('WorkServicesRepository', () => {
       const query = getRawQuery(tx);
       expect(normalize(query.sql)).toBe(
         'UPDATE programacoes ' +
-          'SET prog = CASE id WHEN ? THEN ? WHEN ? THEN ? END, ' +
-          'exec = CASE id WHEN ? THEN ? WHEN ? THEN ? END ' +
+          'SET prog = CASE id WHEN ?::INT THEN ?::DOUBLE PRECISION WHEN ?::INT THEN ?::DOUBLE PRECISION END, ' +
+          'exec = CASE id WHEN ?::INT THEN ?::DOUBLE PRECISION WHEN ?::INT THEN ?::DOUBLE PRECISION END ' +
           'WHERE id IN (?,?)',
       );
       expect(query.values).toEqual([
@@ -736,7 +736,7 @@ describe('WorkServicesRepository', () => {
 
       const query = getRawQuery(tx);
       expect(normalize(query.sql)).toContain(
-        'exec = CASE id WHEN ? THEN NULL::DOUBLE PRECISION WHEN ? THEN ? END',
+        'exec = CASE id WHEN ?::INT THEN NULL::DOUBLE PRECISION WHEN ?::INT THEN ?::DOUBLE PRECISION END',
       );
       expect(query.values).toEqual([
         1,

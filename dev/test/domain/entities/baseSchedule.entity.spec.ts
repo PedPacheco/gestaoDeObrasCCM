@@ -1,381 +1,442 @@
-import { BadRequestException } from '@nestjs/common';
 import {
   BaseSchedule,
   BaseScheduleProps,
 } from 'src/domain/entities/schedules/baseSchedule.entity';
+import { describe, expect, it } from 'vitest';
 
-// ---------------------------------------------------------------------------
-// Subclasse concreta mínima: a base é abstrata e o construtor é protected.
-// Como a base não chama validate() no construtor, a subclasse o faz (igual
-// às subclasses reais).
-// ---------------------------------------------------------------------------
-const specificSpy = vi.fn();
-
+// Subclasse concreta apenas para testes
 class TestSchedule extends BaseSchedule {
   constructor(props: BaseScheduleProps) {
     super(props);
-    this.validate();
   }
 
   protected validateSpecific(): void {
-    specificSpy();
+    this.validateDpFormat();
   }
 
-  // Expõe membros protected para teste
-  public exposeCheckTypeOfService(): boolean {
-    return this.checkTypeOfService();
+  public validateForTest(): void {
+    this.validate();
   }
 
-  public exposeValidateDpFormat(): void {
-    return this.validateDpFormat();
+  public getDocumentRuleForTest() {
+    return this.getDocumentRule();
   }
 
-  public exposeBaseProps(): BaseScheduleProps {
+  public basePropsForTest(): BaseScheduleProps {
     return this.baseProps();
   }
 }
 
-const START = new Date('2026-01-15T08:00:00.000Z');
-const FINISH = new Date('2026-01-15T17:00:00.000Z');
-
 const makeProps = (
   overrides: Partial<BaseScheduleProps> = {},
 ): BaseScheduleProps => ({
-  dataProg: new Date('2026-01-15T00:00:00.000Z'),
+  dataProg: new Date('2026-01-15T10:00:00.000Z'),
   prog: 50,
   rejected: false,
   ...overrides,
 });
 
-const build = (overrides: Partial<BaseScheduleProps> = {}) =>
-  new TestSchedule(makeProps(overrides));
-
-const expectBadRequest = (fn: () => unknown, message: string) => {
-  expect(fn).toThrow(BadRequestException);
-  expect(fn).toThrow(message);
-};
+const makeSchedule = (
+  overrides: Partial<BaseScheduleProps> = {},
+): TestSchedule => new TestSchedule(makeProps(overrides));
 
 describe('BaseSchedule', () => {
-  beforeEach(() => specificSpy.mockClear());
-
-  // -------------------------------------------------------------------------
-  // Construção e valores padrão
-  // -------------------------------------------------------------------------
-  describe('construção', () => {
-    it('deve aplicar os valores padrão quando os opcionais são omitidos', () => {
-      const entity = build();
-
-      expect(entity.lmTeam).toBe(0);
-      expect(entity.regulTeam).toBe(0);
-      expect(entity.lvTeam).toBe(0);
-      expect(entity.temporaryKey).toBe(false);
-      expect(entity.idTechnical).toBe(1);
-      expect(entity.idExecutionRestriction).toBe(1);
-    });
-
-    it('deve preservar os valores informados em vez dos padrões', () => {
-      const entity = build({
-        id: 5,
-        exec: 30,
-        lmTeam: 2,
-        regulTeam: 3,
-        lvTeam: 4,
-        temporaryKey: true,
-        idTechnical: 9,
-        idExecutionRestriction: 7,
-        observation: 'obs',
-        executionObservation: 'obs exec',
-        serviceType: 'X',
-        chi: 12,
-        responsibility: 'resp',
-      });
-
-      expect(entity).toMatchObject({
-        id: 5,
-        exec: 30,
-        lmTeam: 2,
-        regulTeam: 3,
-        lvTeam: 4,
-        temporaryKey: true,
-        idTechnical: 9,
-        idExecutionRestriction: 7,
-        observation: 'obs',
-        executionObservation: 'obs exec',
-        serviceType: 'X',
-        chi: 12,
-        responsibility: 'resp',
-      });
-    });
-
-    it('não deve validar automaticamente no construtor da base', () => {
-      // A base só expõe validate(); quem chama é a subclasse (aqui, TestSchedule)
-      expect(() => build()).not.toThrow();
-      expect(specificSpy).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // validate — programado
-  // -------------------------------------------------------------------------
-  describe('validação de prog', () => {
-    it.each([
-      ['negativo', -1],
-      ['acima de 100', 101],
-    ])('deve rejeitar prog %s', (_label, prog) => {
-      expectBadRequest(
-        () => build({ prog }),
-        'Programado deve estar entre 0 e 100',
-      );
-    });
-
-    it.each([
-      ['mínimo', 0],
-      ['máximo', 100],
-    ])('deve aceitar prog no limite %s', (_label, prog) => {
-      expect(() => build({ prog })).not.toThrow();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // validate — executado
-  // -------------------------------------------------------------------------
-  describe('validação de exec', () => {
-    it.each([
-      ['negativo', -1],
-      ['acima de 100', 101],
-    ])('deve rejeitar exec %s', (_label, exec) => {
-      expectBadRequest(
-        () => build({ exec }),
-        'Executado deve estar entre 0 e 100',
-      );
-    });
-
-    it.each([
-      ['omitido', undefined],
-      ['mínimo', 0],
-      ['máximo', 100],
-    ])('deve aceitar exec %s', (_label, exec) => {
-      expect(() => build({ exec })).not.toThrow();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // validate — janela horária
-  // -------------------------------------------------------------------------
-  describe('validação de horários', () => {
-    it('deve rejeitar fim igual ao início', () => {
-      expectBadRequest(
-        () => build({ startTime: START, finishTime: START }),
-        'Horário de fim deve ser posterior ao início',
-      );
-    });
-
-    it('deve rejeitar fim anterior ao início', () => {
-      expectBadRequest(
-        () => build({ startTime: FINISH, finishTime: START }),
-        'Horário de fim deve ser posterior ao início',
-      );
-    });
-
-    it('deve aceitar fim posterior ao início', () => {
-      expect(() =>
-        build({ startTime: START, finishTime: FINISH }),
-      ).not.toThrow();
-    });
-
-    it.each([
-      ['apenas início', { startTime: START }],
-      ['apenas término', { finishTime: FINISH }],
-      ['nenhum', {}],
-    ])('não deve comparar horários quando há %s', (_label, times) => {
-      expect(() => build(times)).not.toThrow();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // validate — tamanho do numDp
-  // -------------------------------------------------------------------------
-  describe('validação do tamanho de numDp', () => {
-    it('deve rejeitar numDp com mais de 8 caracteres', () => {
-      expectBadRequest(
-        () => build({ numDp: '123456789' }),
-        'Número do DP deve ter no máximo 8 caracteres',
-      );
-    });
-
-    it.each([
-      ['exatamente 8 caracteres (limite)', '12345678'],
-      ['vazio', ''],
-      ['omitido', undefined],
-    ])('deve aceitar numDp %s', (_label, numDp) => {
-      expect(() => build({ numDp })).not.toThrow();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // validate — template method
-  // -------------------------------------------------------------------------
-  describe('template method', () => {
-    it('deve chamar validateSpecific após as regras comuns', () => {
-      build();
-
-      expect(specificSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('não deve chamar validateSpecific quando uma regra comum falha', () => {
-      expect(() => build({ prog: 101 })).toThrow(BadRequestException);
-      expect(specificSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // checkTypeOfService
-  // -------------------------------------------------------------------------
-  describe('checkTypeOfService', () => {
-    it.each([
-      ['omitido', undefined, false],
-      ['vazio', '', false],
-      ['sem DP', 'MANUTENCAO', false],
-      ['DP', 'DP', true],
-      ['dp em minúsculas', 'dp', true],
-      ['LV', 'LV', true],
-      ['RD', 'rd', true],
-      ['Regularização', 'Regularização', true],
-      ['REGULARIZAÇÃO em maiúsculas', 'REGULARIZAÇÃO', true],
-      ['texto que apenas contém dp', 'servico dp', false],
-    ])('serviceType %s', (_label, serviceType, expected) => {
-      expect(build({ serviceType }).exposeCheckTypeOfService()).toBe(expected);
-    });
-  });
-
-  describe('validateDpFormat', () => {
-    it.each([
-      ['omitido', undefined],
-      ['vazio', ''],
-      ['apenas espaços', '  '],
-    ])('não deve validar formato quando numDp é %s', (_label, numDp) => {
-      const entity = build({ numDp });
-      expect(() => entity.exposeValidateDpFormat()).not.toThrow();
-    });
-
-    it.each([
-      ['menos de 8 dígitos', '1234567'],
-      ['com letras', 'ABCDEFGH'],
-      ['zero', '0'],
-    ])('deve rejeitar numDp %s', (_label, numDp) => {
-      const entity = build({ numDp });
-      expectBadRequest(
-        () => entity.exposeValidateDpFormat(),
-        'Número do DP deve conter exatamente 8 dígitos',
-      );
-    });
-
-    it('deve aceitar numDp com exatamente 8 dígitos', () => {
-      const entity = build({ numDp: '12345678' });
-      expect(() => entity.exposeValidateDpFormat()).not.toThrow();
-    });
-
-    // it('deve aplicar trim antes de validar o formato', () => {
-    //   const entity = build({ numDp: '  12345678  ' });
-    //   expect(() => entity.exposeValidateDpFormat()).not.toThrow();
-    // });
-
-    it('deve validar o formato independentemente do tipo de serviço', () => {
-      const entity = build({ serviceType: 'MANUTENCAO', numDp: 'ABCDEFGH' });
-      expectBadRequest(
-        () => entity.exposeValidateDpFormat(),
-        'Número do DP deve conter exatamente 8 dígitos',
-      );
-    });
-  });
-
-  describe('requireDpNumber', () => {
-    it.each([
-      ['omitido', undefined],
-      ['sem DP', 'MANUTENCAO'],
-    ])(
-      'não deve exigir número do DP quando serviceType é %s',
-      (_label, type) => {
-        const entity = build({ serviceType: type, numDp: undefined });
-        expect(() => entity.requireDpNumber()).not.toThrow();
-      },
-    );
-
-    it.each([
-      ['omitido', undefined],
-      ['vazio', ''],
-      ['apenas espaços', '  '],
-      ['zero', '0'],
-      ['zero com espaços', '  0  '],
-    ])(
-      'deve exigir número quando serviço é DP e numDp é %s',
-      (_label, numDp) => {
-        const entity = build({ serviceType: 'DP', numDp });
-        expectBadRequest(
-          () => entity.requireDpNumber(),
-          'Falta inserir número do DP',
-        );
-      },
-    );
-
-    it.each([
-      ['menos de 8 dígitos', '1234567'],
-      ['com letras', 'ABCDEFGH'],
-    ])('deve rejeitar numDp %s', (_label, numDp) => {
-      const entity = build({ serviceType: 'DP', numDp });
-      expectBadRequest(
-        () => entity.requireDpNumber(),
-        'Número do DP deve conter exatamente 8 dígitos',
-      );
-    });
-
-    it('deve aceitar numDp com exatamente 8 dígitos', () => {
-      const entity = build({ serviceType: 'DP', numDp: '12345678' });
-      expect(() => entity.requireDpNumber()).not.toThrow();
-    });
-
-    // it('deve aceitar numDp com 8 dígitos e espaços em volta', () => {
-    //   const entity = build({ serviceType: 'DP', numDp: '  12345678  ' });
-    //   expect(() => entity.requireDpNumber()).not.toThrow();
-    // });
-  });
-
-  // -------------------------------------------------------------------------
-  // baseProps
-  // -------------------------------------------------------------------------
-  describe('baseProps', () => {
-    it('deve devolver todos os campos, incluindo os padrões aplicados', () => {
-      const dataProg = new Date('2026-01-15T00:00:00.000Z');
-      const props = build({ dataProg, prog: 40, id: 3 }).exposeBaseProps();
-
-      expect(props).toEqual({
+  describe('construção e baseProps', () => {
+    it('deve copiar as propriedades fornecidas', () => {
+      const dataProg = new Date('2026-02-01T09:00:00.000Z');
+      const schedule = makeSchedule({
         dataProg,
-        prog: 40,
-        id: 3,
-        exec: undefined,
-        startTime: undefined,
-        finishTime: undefined,
-        observation: undefined,
-        executionObservation: undefined,
-        serviceType: undefined,
-        numDp: undefined,
-        chi: undefined,
+        prog: 75,
+        id: 123,
+        exec: 50,
+        serviceType: 'dp',
+        numDp: '12345678',
+        rejected: true,
+      });
+
+      expect(schedule.dataProg).toBe(dataProg);
+      expect(schedule.prog).toBe(75);
+      expect(schedule.id).toBe(123);
+      expect(schedule.exec).toBe(50);
+      expect(schedule.serviceType).toBe('dp');
+      expect(schedule.numDp).toBe('12345678');
+      expect(schedule.rejected).toBe(true);
+    });
+
+    it('deve aplicar os valores predefinidos às propriedades opcionais', () => {
+      const schedule = makeSchedule();
+
+      expect(schedule.lmTeam).toBe(0);
+      expect(schedule.regulTeam).toBe(0);
+      expect(schedule.lvTeam).toBe(0);
+      expect(schedule.temporaryKey).toBe(false);
+      expect(schedule.idTechnical).toBe(1);
+      expect(schedule.idExecutionRestriction).toBe(1);
+      expect(schedule.rejected).toBe(false);
+    });
+
+    it('deve devolver as propriedades com os valores predefinidos aplicados', () => {
+      const props = makeProps({
+        id: 10,
+        exec: 80,
+        serviceType: 'lv',
+        numDp: 'BRA-123456789',
+        responsibility: 'Equipa técnica',
+      });
+
+      const schedule = makeSchedule(props);
+
+      expect(schedule.basePropsForTest()).toEqual({
+        ...props,
         lmTeam: 0,
         regulTeam: 0,
         lvTeam: 0,
         temporaryKey: false,
         idTechnical: 1,
         idExecutionRestriction: 1,
-        responsibility: undefined,
-        rejected: false,
       });
     });
+  });
 
-    it('deve permitir reconstruir uma instância equivalente', () => {
-      const original = build({ id: 2, exec: 10, lmTeam: 3 });
-      const rebuilt = new TestSchedule(original.exposeBaseProps());
+  describe('getDocumentRule', () => {
+    it.each([
+      ['dp', 'DP'],
+      ['regularização', 'DP'],
+      ['desativação rd', 'DP'],
+      ['lv', 'BRA'],
+      ['lv + obra livre', 'BRA'],
+      ['dp + lv', 'DP_OR_BRA'],
+    ] as const)(
+      'deve devolver a regra %s para o tipo de serviço "%s"',
+      (serviceType, expectedRule) => {
+        const schedule = makeSchedule({ serviceType });
 
-      expect(rebuilt.exposeBaseProps()).toEqual(original.exposeBaseProps());
+        expect(schedule.getDocumentRuleForTest()).toBe(expectedRule);
+      },
+    );
+
+    it('deve normalizar maiúsculas e espaços extra no tipo de serviço', () => {
+      const schedule = makeSchedule({
+        serviceType: '  DP  +   LV  ',
+      });
+
+      expect(schedule.getDocumentRuleForTest()).toBe('DP_OR_BRA');
+    });
+
+    it.each([undefined, '', 'outro serviço'])(
+      'deve devolver null para um tipo de serviço não abrangido: %s',
+      (serviceType) => {
+        const schedule = makeSchedule({ serviceType });
+
+        expect(schedule.getDocumentRuleForTest()).toBeNull();
+      },
+    );
+  });
+
+  describe('validate()', () => {
+    it('deve aceitar prog nos limites permitidos', () => {
+      expect(() => makeSchedule({ prog: 0 }).validateForTest()).not.toThrow();
+      expect(() => makeSchedule({ prog: 100 }).validateForTest()).not.toThrow();
+    });
+
+    it.each([-1, 101])('deve rejeitar prog fora do intervalo: %i', (prog) => {
+      expect(() => makeSchedule({ prog }).validateForTest()).toThrow(
+        'Programado deve estar entre 0 e 100',
+      );
+    });
+
+    it('deve aceitar exec nos limites permitidos', () => {
+      expect(() => makeSchedule({ exec: 0 }).validateForTest()).not.toThrow();
+
+      expect(() => makeSchedule({ exec: 100 }).validateForTest()).not.toThrow();
+    });
+
+    it.each([-1, 101])('deve rejeitar exec fora do intervalo: %i', (exec) => {
+      expect(() => makeSchedule({ exec }).validateForTest()).toThrow(
+        'Executado deve estar entre 0 e 100',
+      );
+    });
+
+    it('deve aceitar quando exec não está definido', () => {
+      expect(() =>
+        makeSchedule({ exec: undefined }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve aceitar horários em que o fim é posterior ao início', () => {
+      expect(() =>
+        makeSchedule({
+          startTime: new Date('2026-01-15T10:00:00.000Z'),
+          finishTime: new Date('2026-01-15T11:00:00.000Z'),
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar quando o fim é igual ao início', () => {
+      const time = new Date('2026-01-15T10:00:00.000Z');
+
+      expect(() =>
+        makeSchedule({
+          startTime: time,
+          finishTime: time,
+        }).validateForTest(),
+      ).toThrow('Horário de fim deve ser posterior ao início');
+    });
+
+    it('deve rejeitar quando o fim é anterior ao início', () => {
+      expect(() =>
+        makeSchedule({
+          startTime: new Date('2026-01-15T11:00:00.000Z'),
+          finishTime: new Date('2026-01-15T10:00:00.000Z'),
+        }).validateForTest(),
+      ).toThrow('Horário de fim deve ser posterior ao início');
+    });
+
+    it('deve rejeitar mais de 8 caracteres para um tipo sem BRA', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '123456789',
+        }).validateForTest(),
+      ).toThrow("Número do DP deve conter exatamente 8 dígitos");
+    });
+
+    it('deve permitir mais de 8 caracteres para um serviço BRA', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: 'BRA-123456789',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve permitir mais de 8 caracteres para dp + lv', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: 'BRA-123456789',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('não deve tornar o número obrigatório durante validate()', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: undefined,
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+  });
+
+  describe('validateDpFormat()', () => {
+    it('deve aceitar DP com exatamente 8 dígitos', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '12345678',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar DP com caracteres não numéricos', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '1234AB78',
+        }).validateForTest(),
+      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
+    });
+
+    it('deve rejeitar DP com menos de 8 dígitos', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '1234567',
+        }).validateForTest(),
+      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
+    });
+
+    it('deve aceitar BRA com pelo menos 12 caracteres', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: 'BRA-123456789',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar BRA com menos de 12 caracteres', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: 'BRA-123456',
+        }).validateForTest(),
+      ).toThrow('Número do BRA deve conter no mínimo 12 caracteres');
+    });
+
+    it('deve aceitar DP ou BRA válido para "dp + lv"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: '12345678',
+        }).validateForTest(),
+      ).not.toThrow();
+
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: 'BRA-123456789',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar valor que não seja DP nem BRA válido para "dp + lv"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: '1234567',
+        }).validateForTest(),
+      ).toThrow(
+        'Número inválido: o DP deve conter exatamente 8 dígitos e o BRA no mínimo 12 caracteres',
+      );
+    });
+
+    it('deve ignorar espaços à volta do valor antes de validar', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: ' 12345678 ',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('deve ignorar o formato quando o número está vazio ou só tem espaços', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '   ',
+        }).validateForTest(),
+      ).not.toThrow();
+    });
+
+    it('para tipos fora da lista, deve aplicar a validação de DP se houver valor', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'outro serviço',
+          numDp: '1234567',
+        }).validateForTest(),
+      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
+    });
+  });
+
+  describe('requireDpNumber()', () => {
+    it('deve exigir DP para o serviço "dp"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: undefined,
+        }).requireDpNumber(),
+      ).toThrow('Falta inserir número do DP');
+    });
+
+    it('deve considerar "0" como DP em falta', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '0',
+        }).requireDpNumber(),
+      ).toThrow('Falta inserir número do DP');
+    });
+
+    it('deve aceitar DP válido', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '12345678',
+        }).requireDpNumber(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar DP com formato inválido', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: '1234567',
+        }).requireDpNumber(),
+      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
+    });
+
+    it('deve exigir BRA para o serviço "lv"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: undefined,
+        }).requireDpNumber(),
+      ).toThrow('Falta inserir número do BRA');
+    });
+
+    it('deve aceitar BRA com pelo menos 12 caracteres', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: 'BRA-123456789',
+        }).requireDpNumber(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar BRA com menos de 12 caracteres', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'lv',
+          numDp: 'BRA-123456',
+        }).requireDpNumber(),
+      ).toThrow('Número do BRA deve conter no mínimo 12 caracteres');
+    });
+
+    it('deve aceitar um DP ou um BRA válido para "dp + lv"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: '12345678',
+        }).requireDpNumber(),
+      ).not.toThrow();
+
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: 'BRA-123456789',
+        }).requireDpNumber(),
+      ).not.toThrow();
+    });
+
+    it('deve rejeitar valor inválido para "dp + lv"', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp + lv',
+          numDp: '1234567',
+        }).requireDpNumber(),
+      ).toThrow(
+        'Número inválido: o DP deve conter exatamente 8 dígitos e o BRA no mínimo 12 caracteres',
+      );
+    });
+
+    it('não deve exigir documento para tipos fora da lista', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'outro serviço',
+          numDp: undefined,
+        }).requireDpNumber(),
+      ).not.toThrow();
+    });
+
+    it('deve aceitar espaços à volta de um DP válido', () => {
+      expect(() =>
+        makeSchedule({
+          serviceType: 'dp',
+          numDp: ' 12345678 ',
+        }).requireDpNumber(),
+      ).not.toThrow();
     });
   });
 });

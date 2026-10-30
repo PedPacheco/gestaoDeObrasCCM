@@ -15,6 +15,8 @@ import {
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
 
+const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
+
 const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
   { type: "dateRange", key: "data", label: "Data" }, // gera dataInicial / dataFinal
   {
@@ -53,11 +55,10 @@ const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
     displayKey: "grupo",
   },
   {
-    type: "select",
-    dataKey: "status",
-    filterKey: "idStatus",
-    valueKey: "id",
-    displayKey: "status",
+    type: "options",
+    key: "statusD5Sap",
+    label: "Status D5 (SAP)",
+    options: STATUS_D5_SAP_OPTIONS,
   },
   {
     type: "select",
@@ -117,6 +118,7 @@ const EMPTY_EXTRA_VALUES: Record<string, ExtraFilterValue> = {
   executado: "",
   pendente: "",
   reprovada: "",
+  statusSap: "",
 };
 
 interface D5NotesSchedulesFiltersProps {
@@ -169,6 +171,7 @@ export default function D5NotesSchedulesFilters({
         executado: saved.executado ?? "",
         pendente: saved.pendente ?? "",
         reprovada: saved.reprovada || "",
+        statusSap: saved.statusSap ?? "",
       });
     }
   }, [filters]);
@@ -183,6 +186,7 @@ export default function D5NotesSchedulesFilters({
       executado: (extraValues.executado as string) ?? "",
       pendente: (extraValues.pendente as string) ?? "",
       reprovada: (extraValues.reprovada as string) ?? "",
+      statusSap: (extraValues.statusSap as string) ?? "",
     };
   }
 
@@ -198,11 +202,18 @@ export default function D5NotesSchedulesFilters({
       reprovada: (extraValues.reprovada === "true").toString(),
       dataInicial: toBr(extraValues.dataInicial),
       dataFinal: toBr(extraValues.dataFinal),
+      statusSap: extraValues.statusD5Sap as string,
     };
   }
 
   function handleApplyFilters() {
     saveFilters(selectedItems, buildSavedExtras());
+
+    console.log({
+      ...Transform(selectedItems),
+      ...buildApiParams(""),
+      page: "0",
+    });
 
     searchFilteredData({
       ...Transform(selectedItems),

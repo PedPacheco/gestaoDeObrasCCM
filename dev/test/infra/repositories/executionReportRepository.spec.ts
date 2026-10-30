@@ -3,7 +3,7 @@ import { ExecutionReportRepository } from 'src/infra/repositories/executionRepor
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   ScheduleStatus,
   WorkStatus,

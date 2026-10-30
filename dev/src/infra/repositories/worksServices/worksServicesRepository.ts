@@ -281,14 +281,17 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     if (data.length === 0) return;
 
     const progCases = Prisma.join(
-      data.map((d) => Prisma.sql`WHEN ${d.idProgramacao} THEN ${d.prog}`),
+      data.map(
+        (d) =>
+          Prisma.sql`WHEN ${d.idProgramacao}::INT THEN ${d.prog}::DOUBLE PRECISION`,
+      ),
       ' ',
     );
     const execCases = Prisma.join(
       data.map((d) =>
-        d.exec === null
-          ? Prisma.sql`WHEN ${d.idProgramacao} THEN NULL::DOUBLE PRECISION`
-          : Prisma.sql`WHEN ${d.idProgramacao} THEN ${d.exec}`,
+        d.exec == null
+          ? Prisma.sql`WHEN ${d.idProgramacao}::INT THEN NULL::DOUBLE PRECISION`
+          : Prisma.sql`WHEN ${d.idProgramacao}::INT THEN ${d.exec}::DOUBLE PRECISION`,
       ),
       ' ',
     );

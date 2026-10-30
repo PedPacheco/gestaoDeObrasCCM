@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { resolvePointByPointMode } from 'src/infra/repositories/works/pointByPointMode.helper';
 import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
 
