@@ -193,7 +193,7 @@ export default function SchedulesD5NotePanelItem({
         >
           <TableHead>
             <TableRow>
-              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20" />
+              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-30" />
               <TableCell className="sticky top-0 z-20 whitespace-nowrap border-r border-solid border-zinc-700 bg-[#53FF75] px-2 py-2 text-center text-sm font-semibold text-zinc-700 md:text-base xl:text-lg">
                 Arquivos As Built
               </TableCell>
