@@ -140,8 +140,6 @@ export default function D5ScheduleFormDialog({
     startTransition(async () => {
       const payload = isInsert ? buildJsonPayload() : buildFormData();
 
-      console.log(payload);
-
       const response = await upsertD5ScheduleAction(
         schedule?.id,
         d5NoteId,
