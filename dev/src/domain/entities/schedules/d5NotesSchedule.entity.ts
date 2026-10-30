@@ -33,7 +33,6 @@ export class D5NoteSchedule extends BaseSchedule {
     this.validate();
     this.validateFiles();
     this.validateExecutionFields();
-    this.validateDpFormat();
   }
 
   private get hasExecution(): boolean {

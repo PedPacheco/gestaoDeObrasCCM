@@ -18,16 +18,11 @@ describe('UpdateWorkService', () => {
     },
   } as unknown as Prisma.TransactionClient;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateWorkService,
-        { provide: UPDATE_WORK_REPOSITORY, useValue: mockRepository },
-      ],
-    }).compile();
+  beforeEach(() => {
+  vi.clearAllMocks();
+  updateWorkService = new UpdateWorkService(mockRepository as any);
+});
 
-    updateWorkService = module.get<UpdateWorkService>(UpdateWorkService);
-  });
 
   describe('update', () => {
     it('should call method update and throw error if no data send', async () => {

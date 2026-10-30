@@ -12,7 +12,6 @@ import {
   FiltersInterface,
 } from "@/types/genericFilterSchema";
 import { Transform } from "@/utils/transform";
-const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 
 // Schema declarativo: substitui ~150 linhas de JSX repetido por uma lista de
 // configuração. `filterKey` é explícito para cada select em vez de inferido
@@ -21,6 +20,9 @@ const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 // valueKey é "id" em todos os filtros (é a primeira chave de cada item em
 // FiltersInterface); displayKey varia por filtro — note que "parceira" usa
 // "turma" e "tipo" usa "tipo_obra", não o nome do próprio filtro.
+
+const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
+
 const D5_FILTER_SCHEMA: FilterFieldConfig[] = [
   {
     type: "select",
