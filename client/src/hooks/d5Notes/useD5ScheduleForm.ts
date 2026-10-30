@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import dayjs from "dayjs";
 import { mapD5ScheduleToForm } from "@/utils/transform";
+import dayjs from "dayjs";
+import { useCallback, useEffect, useState } from "react";
 
 export interface D5FormData {
   scheduledDate: string;
@@ -23,6 +23,7 @@ export interface D5FormData {
   observation: string;
   executionObservation: string;
   rejected: boolean;
+  fiscalization: boolean;
 }
 
 export interface D5ScheduleData {
@@ -47,6 +48,7 @@ export interface D5ScheduleData {
   observacao_execucao: string | null;
   caminhos_arquivos: string[];
   reprovada: boolean;
+  fiscalizacao: boolean;
 }
 
 interface Props {
@@ -82,6 +84,7 @@ function getInitialFormData(): D5FormData {
     observation: "",
     executionObservation: "",
     rejected: false,
+    fiscalization: false,
   };
 }
 
@@ -160,6 +163,20 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     }
   };
 
+  /** marca a nota como "apenas fiscalização" e limpa as equipes */
+  const handleFiscalizationChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const checked = event.target.checked;
+    setFieldValue("fiscalization", checked);
+
+    if (checked) {
+      setFieldValue("lmTeam", "");
+      setFieldValue("lvTeam", "");
+      setFieldValue("regulTeam", "");
+    }
+  };
+
   /* ---------------- Payload ---------------- */
 
   const buildFormData = (): FormData => {
@@ -201,6 +218,7 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     payload.append("technicalId", String(formData.technicalId));
     payload.append("restrictionId", String(formData.restrictionId));
     payload.append("rejected", String(formData.rejected));
+    payload.append("fiscalization", String(formData.fiscalization));
 
     // campo omitido = não mexer nos anexos
     if (filesChanged) {
@@ -226,6 +244,7 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     if (formData.chi !== "") payload.chi = Number(formData.chi);
     if (formData.lmTeam !== "") payload.lmTeam = Number(formData.lmTeam);
     if (formData.lvTeam !== "") payload.lvTeam = Number(formData.lvTeam);
+    if (formData.fiscalization) payload.fiscalization = formData.fiscalization;
     if (formData.regulTeam !== "")
       payload.regulTeam = Number(formData.regulTeam);
     if (formData.numDp) payload.numDp = formData.numDp;
@@ -250,6 +269,7 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     handleInputChange,
     setFieldValue,
     handleExecChange,
+    handleFiscalizationChange,
 
     keptFiles,
     newFiles,

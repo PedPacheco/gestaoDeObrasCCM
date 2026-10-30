@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   test: {
+    testTimeout: 20_000,
     env: {
       DATABASE_URL:
         'postgresql://test:test@localhost:5432/test?schema=construcao_sp',

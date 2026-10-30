@@ -209,12 +209,6 @@ export default function D5NotesSchedulesFilters({
   function handleApplyFilters() {
     saveFilters(selectedItems, buildSavedExtras());
 
-    console.log({
-      ...Transform(selectedItems),
-      ...buildApiParams(""),
-      page: "0",
-    });
-
     searchFilteredData({
       ...Transform(selectedItems),
       ...buildApiParams(""),
