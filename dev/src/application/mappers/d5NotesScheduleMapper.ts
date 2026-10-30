@@ -4,6 +4,7 @@ import {
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { D5NoteTimeMetricsInfo } from 'src/domain/services/d5Notes/timeMetrics.service';
+import { isDocumentMissing } from 'src/domain/services/requireDpNumber.service';
 
 import {
   CreateProgramacaoD5Dto,
@@ -329,24 +330,7 @@ export class D5NoteScheduleMapper {
     };
   }
 
-  private static requiresDP(numDp?: string, serviceType?: string) {
-    if (!serviceType) return false;
-
-    const serviceTypeRequireDp = [
-      'dp',
-      'lv',
-      'regularização',
-      'desativação rd',
-      'lv + obra livre',
-      'dp + lv',
-    ];
-
-    const require = serviceTypeRequireDp.includes(serviceType.toLowerCase());
-
-    if (require && !numDp?.trim()) {
-      return true;
-    }
-
-    return false;
+  private static requiresDP(numDp?: string, serviceType?: string): boolean {
+    return isDocumentMissing(numDp, serviceType);
   }
 }

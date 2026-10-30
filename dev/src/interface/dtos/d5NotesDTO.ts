@@ -146,6 +146,12 @@ export class D5NotesSchedulesFiltersDTO {
   id?: number[];
 
   @IsOptional()
+  @IsIn(['Concluído', 'Pendente'], {
+    message: 'o Status enviado deve ser "Concluído" ou "Pendente"',
+  })
+  statusSap?: 'Concluído' | 'Pendente';
+
+  @IsOptional()
   @IsBoolean()
   @Transform(toBoolean)
   executado?: boolean;
