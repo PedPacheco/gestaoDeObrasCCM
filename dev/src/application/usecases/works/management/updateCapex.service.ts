@@ -1,59 +1,50 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { toSafeCapexErrorMessage } from 'src/application/shared/capex-error.util';
 import { ProgressEmitter } from 'src/application/shared/capex.types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateCapexRepository';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
-import { toSafeCapexErrorMessage } from '../../auxiliaryBase/capex/capexProcessing.service';
+} from 'src/domain/contracts/works/IUpdateCapexRepository';
+import {
+  CalculatedValue,
+  GetAuxiliaryBaseMaterialsInterface,
+} from 'src/domain/entities/capex.entity';
 
-export interface CalculatedValue {
-  id: number;
-  qtde_calc: number;
-  qtde_pend: number;
-  mo_calc: number;
-  mo_exec: number;
-  mo_pend: number;
-  capex_mo_plan: number;
-  capex_mat_plan: number;
-  capex_mo_pend: number;
-  capex_mat_pend: number;
-}
+import { CapexCalculatorService } from 'src/domain/services/capexCalculator.service';
 
+// Mantido por compatibilidade: o tipo agora vive em domain/entities/capex.entity.
+export type { CalculatedValue };
+
+/**
+ * Orquestra a atualização do CAPEX nas obras: carrega os dados, delega o
+ * cálculo ao CapexCalculatorService e grava via repositório.
+ *
+ * Progresso: cada fase informa o percentual DENTRO dela (0–100). Quem
+ * orquestra (CapexFullPipelineService) converte para a escala global.
+ *
+ *   loading     → carga de cn52n, fatores e materiais de contratos
+ *   calculating → cálculo em memória
+ *   updating    → gravação (reportada pelo repositório)
+ *   done        → 100
+ */
 @Injectable()
 export class UpdateCapexService {
-  private readonly CAPEX_DIAGRAM_PREFIXES = ['170', '180', '200'];
-
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly auxiliaryBaseRepository: IAuxiliaryBaseRepository,
     @Inject(UPDATE_CAPEX_REPOSITORY)
     private readonly updateCapexRepository: IUpdateCapexRepository,
+    private readonly calculator: CapexCalculatorService,
   ) {}
 
   /**
-   * Executa o pipeline de atualização do CAPEX nas obras.
-   *
-   * Faixas de progresso quando chamado de forma isolada (fluxo separado):
-   *   loading     →  0% – 40%
-   *   calculating → 40% – 50%
-   *   updating    → 50% – 99%  (delegado ao repositório)
-   *   done        → 100%
-   *
-   * Quando chamado pelo CapexFullPipelineService (fluxo único), o caller
-   * injeta um emitter que já mapeia para a faixa correta do pipeline completo.
-   *
-   * Em caso de falha emite 'error' com mensagem segura (sem detalhes internos)
-   * e relança o erro original para o caller.
-   *
    * @param onProgress  Callback opcional para push de progresso via WebSocket.
-   *                    Se omitido, o serviço funciona de forma silenciosa
-   *                    (compatibilidade com chamadas sem WS).
+   *                    Se omitido, o serviço funciona de forma silenciosa.
    */
   async update(onProgress?: ProgressEmitter): Promise<void> {
     try {
@@ -61,7 +52,7 @@ export class UpdateCapexService {
       onProgress?.({
         phase: 'loading',
         processed: 0,
-        percentage: 5,
+        percentage: 0,
         message: 'Carregando materiais da base auxiliar...',
       });
 
@@ -71,7 +62,7 @@ export class UpdateCapexService {
       onProgress?.({
         phase: 'loading',
         processed: 1,
-        percentage: 15,
+        percentage: 40,
         message: `${materials.length} materiais carregados. Buscando fatores...`,
       });
 
@@ -82,7 +73,7 @@ export class UpdateCapexService {
       onProgress?.({
         phase: 'loading',
         processed: 2,
-        percentage: 30,
+        percentage: 80,
         message: 'Buscando materiais de contratos...',
       });
 
@@ -93,11 +84,11 @@ export class UpdateCapexService {
       onProgress?.({
         phase: 'calculating',
         processed: 3,
-        percentage: 40,
+        percentage: 0,
         message: `Calculando CAPEX para ${materials.length} registros...`,
       });
 
-      const capexValues = this.calculateCapexValues(
+      const capexValues: CalculatedValue[] = this.calculator.calculate(
         materials,
         fatorMap,
         deletedMaterials,
@@ -106,7 +97,7 @@ export class UpdateCapexService {
       onProgress?.({
         phase: 'calculating',
         processed: 3,
-        percentage: 50,
+        percentage: 100,
         message: `${capexValues.length} obras calculadas. Gravando...`,
       });
 
@@ -134,8 +125,6 @@ export class UpdateCapexService {
     }
   }
 
-  // ─── Helpers privados ──────────────────────────────────────────────
-
   private extractAllMaterials(
     validatedData: GetAuxiliaryBaseMaterialsInterface[],
   ) {
@@ -143,100 +132,5 @@ export class UpdateCapexService {
       material: item.material,
       pep_ref: item.def_proj,
     }));
-  }
-
-  private calculateCapexValues(
-    materialData: GetAuxiliaryBaseMaterialsInterface[],
-    fatorMap: Map<string, number>,
-    deletedMaterials: any[],
-  ): CalculatedValue[] {
-    const deletedSet = new Set<string>(
-      deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),
-    );
-
-    const capexMap = new Map<number, CalculatedValue>();
-
-    for (const material of materialData) {
-      if (!material.id_obra) continue;
-
-      const fatorKey = `${material.material}|${material.def_proj}`;
-      const fator = fatorMap.get(fatorKey) ?? 0;
-
-      // material pode vir nulo da importação: não deve derrubar o cálculo todo
-      const isDeletedMaterial = deletedSet.has(material.material?.trim() ?? '');
-
-      let current = capexMap.get(material.id_obra);
-      if (!current) {
-        current = {
-          id: material.id_obra,
-          qtde_calc: 0,
-          qtde_pend: 0,
-          mo_calc: 0,
-          mo_exec: 0,
-          mo_pend: 0,
-          capex_mat_plan: 0,
-          capex_mo_plan: 0,
-          capex_mo_pend: 0,
-          capex_mat_pend: 0,
-        };
-        capexMap.set(material.id_obra, current);
-      }
-
-      if (fator > 0) {
-        current.qtde_calc += material.qtd_necessaria / fator;
-
-        if (material.reserva?.trim()) {
-          current.qtde_pend +=
-            (material.qtd_necessaria - material.qtd_retirada) / fator;
-        }
-      }
-
-      if (isDeletedMaterial && material.cti === 'N') {
-        current.mo_calc += material.preco * material.qtd_necessaria;
-        current.mo_exec += material.preco * material.qtd_recebida;
-        current.mo_pend += material.preco * material.qtd_falta;
-      }
-
-      const canIncludeCapex = this.canIncludeCapex(
-        material.diagrama_rede,
-        material.elemento_pep,
-      );
-
-      if (isDeletedMaterial && material.cti === 'N' && canIncludeCapex) {
-        current.capex_mo_plan += material.preco * material.qtd_necessaria;
-
-        if (material.reserva?.trim()) {
-          current.capex_mo_pend += Math.max(
-            0,
-            material.preco * material.qtd_falta,
-          );
-        }
-      }
-
-      if (material.cti === 'L' && canIncludeCapex) {
-        current.capex_mat_plan += material.qtd_necessaria * material.preco;
-
-        if (material.reserva?.trim()) {
-          current.capex_mat_pend += Math.max(
-            0,
-            material.preco * (material.qtd_necessaria - material.qtd_retirada),
-          );
-        }
-      }
-    }
-
-    return Array.from(capexMap.values());
-  }
-
-  private canIncludeCapex(diagramaRede: string, elementoPep?: string): boolean {
-    if (!diagramaRede) return false;
-
-    if (diagramaRede.startsWith('200')) {
-      return !!elementoPep && elementoPep.includes('-2');
-    }
-
-    return this.CAPEX_DIAGRAM_PREFIXES.some((prefix) =>
-      diagramaRede.startsWith(prefix),
-    );
   }
 }

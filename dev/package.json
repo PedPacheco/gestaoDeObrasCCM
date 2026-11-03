@@ -45,11 +45,13 @@
     "dotenv": "^18.0.8",
     "exceljs": "^4.4.0",
     "helmet": "^8.3.0",
+    "jszip": "^3.10.2",
     "moment": "^2.31.0",
     "pdfkit": "^0.20.2",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "saxes": "^6.0.0",
     "socket.io": "^4.8.4"
   },
   "devDependencies": {

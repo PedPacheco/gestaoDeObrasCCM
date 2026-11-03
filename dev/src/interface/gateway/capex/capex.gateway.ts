@@ -1,5 +1,6 @@
 import { Logger, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   ConnectedSocket,
   MessageBody,
@@ -47,7 +48,7 @@ export const getUserId = (user: any): string => {
  *
  * Fluxo do cliente:
  *  1. Liga-se ao namespace /socketCapex com auth: { token }
- *  2. POST /base-auxiliar/capex/pipeline (ou /obras/atualizar-capex), recebe { jobId }
+ *  2. POST /base-auxiliar/capex/pipeline, recebe { jobId }
  *  3. Emite 'join' com o jobId e recebe de imediato o último estado (replay)
  *  4. Escuta 'capex:progress' até phase 'done' ou 'error'
  *
@@ -55,10 +56,12 @@ export const getUserId = (user: any): string => {
  * edição). No WS basta provar que o socket é dono do job (ou admin), por isso
  * o 'join' NÃO usa os guards de área, que foram escritos para HTTP.
  */
-@WebSocketGateway({
-  namespace: '/socketCapex',
-  cors: { origin: process.env.CORS_ORIGIN?.split(',') ?? false },
-})
+// Eventos de WebSocket não devem consumir o limite de requisições HTTP do
+// ThrottlerGuard global (feito para HTTP). Defensivo: no @nestjs/throttler 6.7
+// o guard não interfere nos eventos, mas versões anteriores assumem HTTP.
+// O CORS do socket é resolvido em tempo de execução pelo SocketIoAdapter.
+@SkipThrottle()
+@WebSocketGateway({ namespace: '/socketCapex' })
 export class CapexGateway
   implements
     OnGatewayInit,

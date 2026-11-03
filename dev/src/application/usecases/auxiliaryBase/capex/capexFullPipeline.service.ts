@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
+
 import {
   CapexProgressPayload,
   ProgressEmitter,
@@ -18,19 +19,21 @@ type PhaseRanges = Readonly<Partial<Record<string, PhaseRange>>>;
  *
  *   Fase           Serviço responsável         Faixa %
  *   ─────────────────────────────────────────────────────
- *   reading        CapexProcessingService        0% →   5%  (abertura do arquivo)
- *   processing     CapexProcessingService        5% →  45%  (leitura + gravação)
+ *   reading        CapexProcessingService        0% →  20%  (leitura + validação do xlsx)
+ *   processing     CapexProcessingService       20% →  45%  (carga em cn52n)
  *   completed      CapexProcessingService       fixa em 45% (fim da importação)
  *   loading        UpdateCapexService           45% →  65%
  *   calculating    UpdateCapexService           65% →  70%
  *   updating       UpdateCapexRepository        70% →  99%
  *   done           UpdateCapexService           100%
  *
+ * Cada serviço informa o percentual DENTRO da própria fase (0–100); o
+ * orquestrador converte para a escala global do pipeline.
  * 'error' não está nos mapas: passa direto (o gateway mantém o último %).
  */
 const IMPORT_RANGES: PhaseRanges = {
-  reading: { min: 0, max: 5 },
-  processing: { min: 5, max: 45 },
+  reading: { min: 0, max: 20 },
+  processing: { min: 20, max: 45 },
   // Sem isto, o 'completed' (100%) do import vazaria como 100% no meio do pipeline.
   completed: { min: 45, max: 45 },
 };
@@ -108,7 +111,7 @@ export class CapexFullPipelineService {
    * Cria um emitter derivado que remapeia o percentual de cada fase
    * para uma faixa específica do pipeline completo.
    *
-   * Ex: processing com 50% interno + faixa { min:5, max:45 } → emite 25%
+   * Ex: processing com 50% interno + faixa { min:20, max:45 } → emite 32%
    *
    * Fases fora do mapa são repassadas sem alteração.
    */
