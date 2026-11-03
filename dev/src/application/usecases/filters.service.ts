@@ -2,7 +2,7 @@ import { Cache } from 'cache-manager';
 import {
   FILTERS_REPOSITORY,
   IFiltersRepository,
-} from 'src/domain/repositories/IFiltersRepository';
+} from 'src/domain/contracts/IFiltersRepository';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';

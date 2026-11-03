@@ -1,10 +1,10 @@
-import type { Mocked } from 'vitest';
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
 import { FileService } from 'src/application/usecases/file.service';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
+import type { Mocked } from 'vitest';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

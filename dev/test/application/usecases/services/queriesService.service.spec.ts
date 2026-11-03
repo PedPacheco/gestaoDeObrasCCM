@@ -3,7 +3,7 @@ import { QueriesServicesService } from 'src/application/usecases/services/querie
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
@@ -17,7 +17,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [

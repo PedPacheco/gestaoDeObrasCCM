@@ -1,4 +1,4 @@
-import { IGetCompletedWorksRepository } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
+import { IGetCompletedWorksRepository } from 'src/domain/contracts/works/IGetCompletedWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import {

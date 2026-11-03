@@ -2,6 +2,7 @@ import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySum
 import { MonthlySummaryMapper } from 'src/application/mappers/monthlySummaryMapper';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
 import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
 import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
@@ -13,22 +14,21 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/works/sch
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
-import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
-import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
-import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
-import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
-import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
-import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
-import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
-import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/contracts/IExecutionCapacityRepository';
+import { FORECAST_SNAPSHOT } from 'src/domain/contracts/IForecastSnapshotRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IAddSchedulesRepository';
+import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IDeleteSchedulesRepository';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/contracts/schedule/IExecMonitoringRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
+import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/contracts/schedule/IGetMonthlySummaryRepository';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
+import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
+import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import {
   MONTHLY_SUMMARY_CALCULATOR,
@@ -60,14 +60,14 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 import { ScheduleController } from '../controllers/schedules/schedule.controller';
 import { SchedulesActionsController } from '../controllers/schedules/schedulesActions.controller';
 import { ExecutionReportModule } from './executionReport.module';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { WorksServicesModule } from './worksServices.module';
-import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
-import { ProgressRecalculationModule } from './progressRecalculation.module';
 
 @Module({
   imports: [

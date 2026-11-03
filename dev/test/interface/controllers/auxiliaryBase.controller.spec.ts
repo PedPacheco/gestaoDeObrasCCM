@@ -1,268 +1,201 @@
-import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { UsersService } from 'src/application/usecases/users.service';
-import { AuxiliaryBaseController } from 'src/interface/controllers/auxiliaryBase.controller';
+import { AuthGuard } from 'src/core/guards/auth.guard';
 
-import { HttpStatus } from '@nestjs/common';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { WsException } from '@nestjs/websockets';
 
-import {
-  mockInsertAuxiliaryBaseMarket,
-  mockInsertAuxiliaryBaseNotes,
-  mockMappedMarketWorks,
-  mockMappedNotes,
-} from '../../mocks/mocksAuxiliaryBaseController';
-import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
-
-describe('AuxiliaryBaseController', () => {
-  let auxiliaryBaseController: AuxiliaryBaseController;
-  let auxiliaryBaseService: AuxiliaryBaseService;
+describe('AuthGuard', () => {
+  let authGuard: AuthGuard;
+  let jwtService: JwtService;
+  let reflector: Reflector;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuxiliaryBaseController],
+    vi.resetAllMocks();
+
+    const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
+        AuthGuard,
         {
-          provide: AuxiliaryBaseService,
+          provide: JwtService,
           useValue: {
-            getNotes: vi.fn(),
-            getMarket: vi.fn(),
-            delete: vi.fn(),
-            insertAuxiliaryBaseNotes: vi.fn(),
-            insertAuxiliaryBaseMarket: vi.fn(),
+            verifyAsync: vi.fn(),
           },
         },
-        { provide: CapexFullPipelineService, useValue: { run: vi.fn() } },
-        { provide: CapexGateway, useValue: { createEmitter: vi.fn() } },
-        { provide: UsersService, useValue: { findUser: vi.fn() } },
+        {
+          provide: Reflector,
+          useValue: {
+            getAllAndOverride: vi.fn(),
+          },
+        },
       ],
     }).compile();
 
-    auxiliaryBaseController = module.get<AuxiliaryBaseController>(
-      AuxiliaryBaseController,
+    authGuard = moduleRef.get<AuthGuard>(AuthGuard);
+    jwtService = moduleRef.get<JwtService>(JwtService);
+    reflector = moduleRef.get<Reflector>(Reflector);
+  });
+
+  it('should be defined', () => {
+    expect(authGuard).toBeDefined();
+  });
+
+  it('should allow access to public routes', async () => {
+    const context = createMockExecutionContext();
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+
+    expect(await authGuard.canActivate(context)).toBe(true);
+  });
+
+  it('should throw UnauthorizedExpection if token is null', async () => {
+    const context = createMockExecutionContext();
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
     );
-    auxiliaryBaseService =
-      module.get<AuxiliaryBaseService>(AuxiliaryBaseService);
   });
 
-  it('Should be defined', () => {
-    expect(auxiliaryBaseController).toBeDefined();
+  it('should throw UnauthorizedExpection if token is invalid', async () => {
+    const context = createMockExecutionContext('Bearer invalidtoken');
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+      new Error('Invalid token'),
+    );
+
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
-  describe('getAuxiliaryBaseMarket', () => {
-    it('should be call the method getAuxiliaryBaseMarket and return correctly data', async () => {
-      vi
-        .spyOn(auxiliaryBaseService, 'getMarket')
-        .mockResolvedValue(mockMappedMarketWorks);
+  it('should validate and attach user to the request', async () => {
+    const mockPayload = { sub: 1, username: 'testuser' };
 
-      const result = await auxiliaryBaseController.GetAuxiliaryBaseMarket(1);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Valores retornados com sucesso',
-        data: mockMappedMarketWorks,
-      };
+    const context = createMockExecutionContext('Bearer mockToken');
 
-      expect(auxiliaryBaseService.getMarket).toHaveBeenCalledWith(1);
-      expect(result).toEqual(expectedResponse);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockPayload);
+
+    const result = await authGuard.canActivate(context);
+
+    const request = context.switchToHttp().getRequest();
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual(mockPayload);
+  });
+
+  // ============================================================
+  // 🔌 CONTEXTO WEBSOCKET
+  // ============================================================
+
+  describe('WebSocket context', () => {
+    const makeClient = (opts: { user?: any; token?: string } = {}) => ({
+      data: { user: opts.user } as Record<string, any>,
+      handshake: {
+        auth: opts.token ? { token: opts.token } : {},
+        headers: {},
+      },
     });
-  });
 
-  describe('getAuxiliaryBaseNotes', () => {
-    it('should be call the method getAuxiliaryBaseNotes and return correctly data', async () => {
-      vi
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockMappedNotes);
-
-      const result = await auxiliaryBaseController.GetAuxiliaryBaseNotes(1);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Valores das notas na base auxiliar retornadas com sucesso',
-        data: mockMappedNotes,
-      };
-
-      expect(auxiliaryBaseService.getNotes).toHaveBeenCalledWith(1);
-      expect(result).toEqual(expectedResponse);
+    beforeEach(() => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     });
-  });
 
-  describe('InsertAuxiliaryBaseNotes', () => {
-    it('should be call the method InsertAuxiliaryBaseNotes and return correctly data', async () => {
-      vi
-        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseNotes')
-        .mockResolvedValue({
-          insertedCount: 1,
-          skippedNotes: ['2135534'],
-        });
+    it('should allow a socket that was already authenticated', async () => {
+      const client = makeClient({ user: { sub: 1 } });
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseNotes({
-        data: mockInsertAuxiliaryBaseNotes,
-        operation: 'insert',
+      const result = await authGuard.canActivate(createMockWsContext(client));
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).not.toHaveBeenCalled();
+    });
+
+    it('should reject an authenticated socket whose JWT already expired', async () => {
+      const client = makeClient({
+        user: { sub: 1, exp: Math.floor(Date.now() / 1000) - 10 },
       });
-      const expectedResponse = {
-        statusCode: HttpStatus.CREATED,
-        message: 'Notas inseridas na base auxiliar com sucesso',
-        res: {
-          insertedCount: 1,
-          skippedNotes: ['2135534'],
-        },
-      };
 
-      expect(
-        auxiliaryBaseService.insertAuxiliaryBaseNotes,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseNotes, 'insert');
-      expect(result).toEqual(expectedResponse);
+      const promise = authGuard.canActivate(createMockWsContext(client));
+
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Sessão expirada');
     });
-  });
 
-  describe('InsertAuxilaryBaseMarket', () => {
-    it('should be call the method insertAuxiliaryBaseMarket and return correctly data', async () => {
-      vi
-        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseMarket')
-        .mockResolvedValue();
+    it('should reject when there is no user and no token', async () => {
+      const client = makeClient();
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseMarket({
-        data: mockInsertAuxiliaryBaseMarket,
-        operation: 'insert',
-      });
-      const expectedResponse = {
-        statusCode: HttpStatus.CREATED,
-        message: 'Obras de mercado inseridas na base auxiliar com sucesso',
-      };
-
-      expect(
-        auxiliaryBaseService.insertAuxiliaryBaseMarket,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseMarket, 'insert');
-      expect(result).toEqual(expectedResponse);
+      await expect(
+        authGuard.canActivate(createMockWsContext(client)),
+      ).rejects.toThrow('Não autorizado');
     });
-  });
 
-  describe('importAndUpdateCapex', () => {
-    it('should start pipeline and return jobId', async () => {
-      const mockRun = vi.fn().mockResolvedValue(undefined);
-      const mockEmitter = vi.fn();
+    it('should verify the token and attach the user when the socket has no user yet', async () => {
+      const payload = { sub: 1, username: 'testuser' };
+      const client = makeClient({ token: 'mockToken' });
 
-      const mockFile = {
-        path: '/uploads/test.xlsx',
-      } as Express.Multer.File;
+      vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(payload);
 
-      const mockGateway = auxiliaryBaseController['capexGateway'];
-      const mockPipeline = auxiliaryBaseController['capexFullPipelineService'];
+      const result = await authGuard.canActivate(createMockWsContext(client));
 
-      vi.spyOn(mockGateway, 'createEmitter').mockReturnValue(mockEmitter);
-      vi.spyOn(mockPipeline, 'run').mockImplementation(mockRun);
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('mockToken');
+      expect(client.data.user).toEqual(payload);
+    });
 
-      const result =
-        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
+    it('should reject an invalid token with WsException', async () => {
+      const client = makeClient({ token: 'invalid' });
 
-      expect(mockGateway.createEmitter).toHaveBeenCalled();
-      expect(mockPipeline.run).toHaveBeenCalledWith(
-        mockFile.path,
-        expect.any(String),
-        mockEmitter,
+      vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+        new Error('Invalid token'),
       );
 
-      expect(result).toEqual({
-        statusCode: HttpStatus.ACCEPTED,
-        message:
-          'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
-        jobId: expect.any(String),
-      });
+      const promise = authGuard.canActivate(createMockWsContext(client));
+
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Token inválido ou expirado');
     });
 
-    it('should not throw if pipeline fails (fire-and-forget)', async () => {
-      const error = new Error('pipeline error');
+    it('should still allow public handlers in a WebSocket context', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
 
-      const mockFile = {
-        path: '/uploads/test.xlsx',
-      } as Express.Multer.File;
-
-      vi
-        .spyOn(auxiliaryBaseController['capexFullPipelineService'], 'run')
-        .mockRejectedValue(error);
-
-      vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      const result =
-        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
-
-      expect(result.statusCode).toBe(HttpStatus.ACCEPTED);
-
-      // garante que erro foi logado
-      await Promise.resolve(); // flush microtask queue
-
-      expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[capex/pipeline]'),
-        error.stack,
+      const result = await authGuard.canActivate(
+        createMockWsContext(makeClient()),
       );
+
+      expect(result).toBe(true);
     });
   });
 
-  describe('DeleteAuxiliaryBaseNotes', () => {
-    it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
-      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+  function createMockWsContext(client: unknown): ExecutionContext {
+    return {
+      getType: () => 'ws',
+      switchToWs: () => ({
+        getClient: () => client,
+      }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 
-      const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes(56);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Nota removida com sucesso',
-      };
+  function createMockExecutionContext(tokenHeader?: string): ExecutionContext {
+    const request = {
+      headers: {
+        authorization: tokenHeader,
+      },
+      user: undefined,
+    };
 
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseNotes', 56);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseMarket', () => {
-    it('should be call the method DeleteAuxiliaryBaseMarket and return correctly data', async () => {
-      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseMarket(56);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obra removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv', 56);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseMarketWithoutId', () => {
-    it('should be call the method DeleteAuxiliaryBaseMarketWithoutId and return correctly data', async () => {
-      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseMarketWithoutId();
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obra removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
-        'baseOv',
-        undefined,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseNotesWithoutId', () => {
-    it('should be call the method DeleteAuxiliaryBaseNotesWithoutId and return correctly data', async () => {
-      vi.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseNotesWithoutId();
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Nota removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
-        'baseNotes',
-        undefined,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
+    return {
+      getType: () => 'http',
+      switchToHttp: () => ({
+        getRequest: () => request,
+      }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 });

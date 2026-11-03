@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   D5NotePagination,
   ID5NotesRepository,
-} from 'src/domain/repositories/d5Notes/ID5notesRepository';
+} from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
 import {

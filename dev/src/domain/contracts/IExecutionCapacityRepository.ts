@@ -1,7 +1,7 @@
 import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,
-} from './../../interface/dtos/executionCapacityDTO';
+} from '../../interface/dtos/executionCapacityDTO';
 
 export interface IExecutionCapacityRepository {
   get(filters: ExecutionCapacityDTO): Promise<any>;

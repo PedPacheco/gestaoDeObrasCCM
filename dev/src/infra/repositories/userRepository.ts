@@ -1,5 +1,5 @@
+import { IUserRepository } from 'src/domain/contracts/IUserRepository';
 import { User } from 'src/domain/entities/user.entity';
-import { IUserRepository } from 'src/domain/repositories/IUserRepository';
 // import { userInterface } from 'src/interface/types/userInterface';
 
 import { Injectable } from '@nestjs/common';

@@ -1,12 +1,16 @@
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
+import {
+  CapexInsertItem,
+  GetAuxiliaryBaseMaterialsInterface,
+} from 'src/domain/entities/capex.entity';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -149,12 +153,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   }
 
   async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
-    try {
-      const result = await this.prisma.$queryRawUnsafe<
-        GetAuxiliaryBaseMaterialsInterface[]
-      >(`
-      SELECT 
-        id_obra,
+    // O schema vem da DATABASE_URL (search_path), como nas demais queries.
+    return this.prisma.$queryRaw<GetAuxiliaryBaseMaterialsInterface[]>`
+      SELECT
+        cn52n.id_obra,
         obras.ovnota,
         cn52n.diagrama_rede,
         cn52n.elemento_pep,
@@ -168,47 +170,47 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.qtd_falta,
         cn52n.reserva AS reserva
       FROM cn52n
-      INNER JOIN construcao_sp.obras ON obras.id = cn52n.id_obra
-    `);
-
-      return result;
-    } catch (error) {
-      throw error;
-    }
+      INNER JOIN obras ON obras.id = cn52n.id_obra
+    `;
   }
 
+  /**
+   * Fator de conversão por par (material, pep_ref).
+   *
+   * O join é feito por par no banco. O filtro anterior (IN de materiais ×
+   * IN de pep_refs) trazia o produto cartesiano e refiltrava em JS.
+   */
   async getFator(
     materialDefs: { material: string; pep_ref: string }[],
   ): Promise<Map<string, number>> {
-    if (materialDefs.length === 0) {
+    const pairs = new Map<string, { material: string; pep_ref: string }>();
+
+    for (const def of materialDefs) {
+      if (def.material == null || def.pep_ref == null) continue;
+      pairs.set(`${def.material}|${def.pep_ref}`, def);
+    }
+
+    if (pairs.size === 0) {
       return new Map();
     }
 
-    const materials = [...new Set(materialDefs.map((m) => m.material))];
-    const pepRefs = [...new Set(materialDefs.map((m) => m.pep_ref))];
+    const materials = [...pairs.values()].map((p) => p.material);
+    const pepRefs = [...pairs.values()].map((p) => p.pep_ref);
 
-    const fatores = await this.prisma.conversao.findMany({
-      where: {
-        material: { in: materials },
-        pep_ref: { in: pepRefs },
-      },
-      select: {
-        material: true,
-        pep_ref: true,
-        fator: true,
-      },
-    });
-
-    const requestedSet = new Set(
-      materialDefs.map((m) => `${m.material}|${m.pep_ref}`),
-    );
+    const fatores = await this.prisma.$queryRaw<
+      { material: string; pep_ref: string; fator: number | null }[]
+    >`
+      SELECT c.material, c.pep_ref, c.fator
+      FROM conversao c
+      JOIN unnest(${materials}::text[], ${pepRefs}::text[]) AS p(material, pep_ref)
+        ON c.material = p.material
+       AND c.pep_ref = p.pep_ref
+    `;
 
     const fatorMap = new Map<string, number>();
     for (const f of fatores) {
-      const key = `${f.material}|${f.pep_ref}`;
-      if (requestedSet.has(key)) {
-        fatorMap.set(key, f.fator);
-      }
+      if (f.fator == null) continue;
+      fatorMap.set(`${f.material}|${f.pep_ref}`, Number(f.fator));
     }
 
     return fatorMap;
@@ -332,44 +334,68 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
    * Cada mini-batch roda com retry + backoff exponencial para absorver
    * quedas de conexão transitórias sem derrubar o job inteiro.
    */
-  async insertCapex(data: any[]): Promise<void> {
+  async insertCapex(data: CapexInsertItem[]): Promise<void> {
     for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
       const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
 
-      await this.withRetry(() =>
-        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
-      );
+      // Sem skipDuplicates: cn52n só tem o PK autoincrement, então ele nunca
+      // conflitaria e a opção só enganava quem lê o código.
+      await this.withRetry(() => this.prisma.cn52n.createMany({ data: batch }));
     }
   }
 
   async truncateCN52N(): Promise<void> {
-    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
+    await this.prisma.$executeRaw`TRUNCATE TABLE cn52n`;
   }
 
+  /**
+   * Obras de cada diagrama (ordem_dci, ordem_dcd, ordem_dca, ordem_dcim ou
+   * diagrama). Um diagrama pode pertencer a mais de uma obra: todas são
+   * devolvidas e o chamador decide o que fazer com a ambiguidade.
+   *
+   * Cada coluna é consultada em um SELECT próprio (UNION ALL), o que permite
+   * usar o índice de cada uma, ao contrário de um JOIN com OR.
+   */
   async getObraIdsByDiagramas(
     diagramas: string[],
-  ): Promise<Map<string, number>> {
+  ): Promise<Map<string, number[]>> {
     if (diagramas.length === 0) return new Map();
 
-    const obras = await this.prisma.$queryRaw<
-      { diagrama_ref: string; id: number }[]
+    const rows = await this.prisma.$queryRaw<
+      { diagrama_ref: string; ids: number[] }[]
     >`
-    SELECT DISTINCT
-      dl.diagrama AS diagrama_ref,
-      o.id
-    FROM unnest(${diagramas}::text[]) AS dl(diagrama)
-    JOIN obras o
-      ON  o.ordem_dci  = dl.diagrama
-      OR o.ordem_dcd  = dl.diagrama
-      OR o.ordem_dca  = dl.diagrama
-      OR o.ordem_dcim = dl.diagrama
-      OR o.diagrama::text = dl.diagrama
-  `;
+      SELECT m.diagrama_ref, array_agg(DISTINCT m.id) AS ids
+      FROM (
+        SELECT dl.diagrama AS diagrama_ref, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dci = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcd = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dca = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcim = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.diagrama::text = dl.diagrama
+      ) m
+      GROUP BY m.diagrama_ref
+    `;
 
-    const map = new Map<string, number>();
-    obras.forEach((obra) => {
-      map.set(obra.diagrama_ref, obra.id);
-    });
+    const map = new Map<string, number[]>();
+    for (const row of rows) {
+      map.set(
+        row.diagrama_ref,
+        row.ids.map((id) => Number(id)),
+      );
+    }
 
     return map;
   }

@@ -7,8 +7,8 @@ import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/mana
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 import { FileService } from 'src/application/usecases/file.service';
-import { D5_NOTES_REPOSITORY } from 'src/domain/repositories/d5Notes/ID5notesRepository';
-import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { D5_NOTES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5notesRepository';
+import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { D5NotesRepository } from 'src/infra/repositories/d5Notes/d5NotesRepository';

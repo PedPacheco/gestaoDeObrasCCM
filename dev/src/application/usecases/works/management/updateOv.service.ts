@@ -1,11 +1,11 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { FindExistingWorksService } from './findExistingWorks.service';
 import {
   IUpdateOvRepository,
   UPDATE_OV_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateOvRepository';
+} from 'src/domain/contracts/works/IUpdateOvRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
+import { FindExistingWorksService } from './findExistingWorks.service';
 
 @Injectable()
 export class UpdateOvService {

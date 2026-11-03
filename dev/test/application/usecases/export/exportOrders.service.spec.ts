@@ -4,7 +4,7 @@ import { ExportOrdersService } from 'src/application/usecases/export/exportOrder
 import type { Mock } from 'vitest';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { EXPORT_REPOSITORY } from 'src/domain/contracts/IExportRepository';
 
 vi.mock('exceljs');
 

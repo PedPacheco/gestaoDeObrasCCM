@@ -1,4 +1,5 @@
-import { IEntryRepository } from 'src/domain/repositories/IEntryRepository';
+import { Injectable } from '@nestjs/common';
+import { IEntryRepository } from 'src/domain/contracts/IEntryRepository';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
@@ -8,7 +9,6 @@ import {
   entryResponse,
 } from 'src/interface/types/entryInterface';
 import { PrismaService } from '../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class EntryRespository implements IEntryRepository {

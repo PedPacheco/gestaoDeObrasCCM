@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
-} from 'src/domain/repositories/IAdvancePartnerRepository';
+} from 'src/domain/contracts/IAdvancePartnerRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 

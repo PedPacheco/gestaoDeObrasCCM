@@ -5,7 +5,7 @@ import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthly
 
 import { Injectable } from '@nestjs/common';
 
-import { IGetMonthlySummaryRepository } from '../../../domain/repositories/schedule/IGetMonthlySummaryRepository';
+import { IGetMonthlySummaryRepository } from '../../../domain/contracts/schedule/IGetMonthlySummaryRepository';
 
 @Injectable()
 export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository {

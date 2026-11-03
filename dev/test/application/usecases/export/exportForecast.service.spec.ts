@@ -7,7 +7,7 @@ import { ExportForecastService } from 'src/application/usecases/export/exportFor
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 vi.mock('exceljs');

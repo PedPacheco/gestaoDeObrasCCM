@@ -4,7 +4,7 @@ import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   IRestrictionsRepository,
   ProcessedRestrictionsFilters,
-} from 'src/domain/repositories/IRestrictionsRepository';
+} from 'src/domain/contracts/IRestrictionsRepository';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,

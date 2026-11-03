@@ -1,9 +1,9 @@
 import { compare, genSalt, hash } from 'bcrypt';
-import { User } from 'src/domain/entities/user.entity';
 import {
   AUTH_REPOSITORY,
   IAuthRepository,
-} from 'src/domain/repositories/IAuthRepository';
+} from 'src/domain/contracts/IAuthRepository';
+import { User } from 'src/domain/entities/user.entity';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { loginInterfaceService } from 'src/interface/types/userInterface';
 

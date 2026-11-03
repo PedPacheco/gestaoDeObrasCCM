@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { IUpdateNoteRepository } from 'src/domain/contracts/works/IUpdateNoteRepository';
 import { NoteWorks } from 'src/domain/entities/works.entity';
-import { IUpdateNoteRepository } from 'src/domain/repositories/works/IUpdateNoteRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { resolvePointByPointMode } from './pointByPointMode.helper';
 
