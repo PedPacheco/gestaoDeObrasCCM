@@ -7,7 +7,7 @@ import { ExportRejectionsService } from 'src/application/usecases/export/exportR
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 
 vi.mock('exceljs');
 

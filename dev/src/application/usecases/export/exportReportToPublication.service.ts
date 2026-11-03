@@ -6,7 +6,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 import { buildEquipamentosFormatados } from 'src/utils/buildFormattedEquipments';
 
 @Injectable()

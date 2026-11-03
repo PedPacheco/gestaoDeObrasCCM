@@ -3,7 +3,7 @@ import {
   ImportServiceItem,
   IWorkServicesRepository,
   SchedulesProgressUpdate,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
   DEMOTED_WORK_STATUS,
   ScheduleItem,

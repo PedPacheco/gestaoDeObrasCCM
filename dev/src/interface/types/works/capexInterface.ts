@@ -1,3 +1,8 @@
+import type { GetAuxiliaryBaseMaterialsInterface } from 'src/domain/entities/capex.entity';
+
+// Mantido por compatibilidade: o tipo agora vive em domain/entities/capex.entity.
+export type { GetAuxiliaryBaseMaterialsInterface };
+
 export interface materialsInterface {
   diagrama_rede: string;
   def_proj: string;
@@ -14,21 +19,4 @@ export interface materialsInterface {
   qtd_falta: number;
   qtd_entrada: number;
   reserva: string;
-}
-
-export interface GetAuxiliaryBaseMaterialsInterface {
-  ovnota: string;
-  ordem_diagrama: string;
-  diagrama_rede: string;
-  elemento_pep: string;
-  def_proj: string;
-  material: string;
-  cti: string;
-  preco: number;
-  qtd_necessaria: number;
-  qtd_retirada: number;
-  qtd_recebida: number;
-  qtd_falta: number;
-  reserva: string;
-  id_obra: number;
 }

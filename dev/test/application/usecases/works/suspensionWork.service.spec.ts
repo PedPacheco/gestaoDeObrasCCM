@@ -1,6 +1,6 @@
 import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
 import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
-import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/contracts/works/ISuspensionWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -70,9 +70,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should call method create of suspensionWorkRepository with correct data', async () => {
-      vi
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [
         { ovnota: '2134', ordemDiagrama: '190000', motivo: 'Obra suspensa' },
@@ -86,9 +87,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      vi
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [{ ovnota: '2134', ordemDiagrama: '190000', motivo: '' }];
 
@@ -104,9 +106,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      vi
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [
         { ovnota: '21355', ordemDiagrama: '190000', motivo: 'ano do plano' },

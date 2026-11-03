@@ -9,7 +9,7 @@ import {
   IWorkServicesRepository,
   ParsedSpreadsheetItem,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 

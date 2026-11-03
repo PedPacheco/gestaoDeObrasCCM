@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { IGetMonthlySummaryForecastRepository } from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
+import { IGetMonthlySummaryForecastRepository } from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {

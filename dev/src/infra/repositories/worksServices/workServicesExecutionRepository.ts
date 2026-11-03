@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import {
   deriveExecutionStatus,
   ScheduleExecutionRow,

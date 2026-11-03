@@ -1,8 +1,8 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FileService } from 'src/application/usecases/file.service';
+import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/contracts/IExecutionReportRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
-import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { Readable } from 'stream';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -288,11 +288,12 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      vi
-        .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
-        .mockImplementationOnce(() => {
-          throw new Error('Erro forçado no create');
-        });
+      vi.spyOn(
+        ExecutionReportEntity.ExecutionReport,
+        'create',
+      ).mockImplementationOnce(() => {
+        throw new Error('Erro forçado no create');
+      });
 
       const result = service.update(
         1,
@@ -313,11 +314,12 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
       });
 
-      vi
-        .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
-        .mockImplementationOnce(() => {
-          throw new Error('Erro forçado no create');
-        });
+      vi.spyOn(
+        ExecutionReportEntity.ExecutionReport,
+        'create',
+      ).mockImplementationOnce(() => {
+        throw new Error('Erro forçado no create');
+      });
 
       const result = service.update(1, mockUpdateExecutionReportDTO);
 

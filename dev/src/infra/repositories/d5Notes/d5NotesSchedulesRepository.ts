@@ -1,5 +1,5 @@
-import { D5NotePagination } from 'src/domain/repositories/d5Notes/ID5notesRepository';
-import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { D5NotePagination } from 'src/domain/contracts/d5Notes/ID5notesRepository';
+import { ID5NotesSchedulesRepository } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   D5NoteScheduleCreateData,

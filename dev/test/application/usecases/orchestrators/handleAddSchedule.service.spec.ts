@@ -1,13 +1,13 @@
-import type { Mock } from 'vitest';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   CreateScheduleWithServicesDTO,
   SchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
+import type { Mock } from 'vitest';
 
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

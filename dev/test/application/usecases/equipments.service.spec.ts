@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EquipmentService } from 'src/application/usecases/equipment.service';
-import { EQUIPMENT_REPOSITORY } from 'src/domain/repositories/IEquipmentRepository';
+import { EQUIPMENT_REPOSITORY } from 'src/domain/contracts/IEquipmentRepository';
 
 describe('EquipmentService', () => {
   let service: EquipmentService;

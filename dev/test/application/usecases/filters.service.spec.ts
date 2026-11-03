@@ -1,5 +1,5 @@
 import { FiltersService } from 'src/application/usecases/filters.service';
-import { FILTERS_REPOSITORY } from 'src/domain/repositories/IFiltersRepository';
+import { FILTERS_REPOSITORY } from 'src/domain/contracts/IFiltersRepository';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';

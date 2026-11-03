@@ -9,7 +9,7 @@ import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
   ID5NotesRepository,
-} from 'src/domain/repositories/d5Notes/ID5notesRepository';
+} from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';

@@ -1,10 +1,10 @@
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
@@ -14,19 +14,19 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
-import { ServicesController } from '../controllers/services/worksServices.controller';
-import { ExecutionReportModule } from './executionReport.module';
-import { UsersModule } from './users.module';
-import { WorksModule } from './works.module';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
-import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
-import { ScheduleModule } from './schedule.module';
+import { ServicesController } from '../controllers/services/worksServices.controller';
+import { ExecutionReportModule } from './executionReport.module';
 import { ProgressRecalculationModule } from './progressRecalculation.module';
+import { ScheduleModule } from './schedule.module';
+import { UsersModule } from './users.module';
+import { WorksModule } from './works.module';
 
 @Module({
   imports: [

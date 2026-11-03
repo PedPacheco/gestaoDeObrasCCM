@@ -1,803 +1,426 @@
 import { BadRequestException } from '@nestjs/common';
-import * as ExcelJS from 'exceljs';
-import { promises as fs } from 'fs';
+import { existsSync } from 'node:fs';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
-import type { Mock } from 'vitest';
 
-vi.mock('fs', () => ({
-  promises: {
-    unlink: vi.fn(),
-  },
-}));
+// ─── Helpers ──────────────────────────────────────────────────────────
 
-vi.mock('exceljs', () => {
-  return {
-    stream: {
-      xlsx: {
-        WorkbookReader: vi.fn(),
-      },
-    },
-  };
+type Row = Record<string, unknown> & { diagrama_rede: string | null };
+
+const makeRow = (diagrama: string | null, material = '71000460'): Row => ({
+  diagrama_rede: diagrama,
+  def_proj: 'B/000215',
+  material,
+  texto_breve: 'SRV CCM',
+  centro: 'C001',
+  dep: null,
+  cti: 'N',
+  elemento_pep: null,
+  und: 'M',
+  preco: 3.2,
+  qtd_necessaria: 510.9,
+  qtd_retirada: 0,
+  qtd_recebida: 0,
+  qtd_falta: 510.9,
+  reserva: null,
 });
+
+const makeRows = (length: number, diagrama = 'D1'): Row[] =>
+  Array.from({ length }, () => makeRow(diagrama));
+
+/** Obras por diagrama usadas pelo mock de getObraIdsByDiagramas. */
+const OBRAS = new Map<string, number[]>([
+  ['D1', [10]],
+  ['D2', [20]],
+  ['AMB', [30, 31]], // diagrama presente em duas obras → ambíguo
+]);
 
 describe('CapexProcessingService', () => {
   let service: CapexProcessingService;
+  let dir: string;
+  let filePath: string;
+  let ndjsonPath: string;
 
-  const mockRepository = {
+  const repository = {
     truncateCN52N: vi.fn(),
     getObraIdsByDiagramas: vi.fn(),
     insertCapex: vi.fn(),
   };
 
-  const mockLogger = {
-    error: vi.fn(),
-    warn: vi.fn(),
-  };
+  const parser = { parse: vi.fn() };
 
-  beforeEach(() => {
-    vi.useFakeTimers();
+  const logger = { error: vi.fn(), warn: vi.fn(), log: vi.fn() };
 
-    service = new CapexProcessingService(mockRepository as any);
-    (service as any).logger = mockLogger;
+  /** Escreve o NDJSON e configura o parser para o devolver. */
+  async function givenParsedRows(rows: Row[], extraLines: string[] = []) {
+    const lines = [...rows.map((row) => JSON.stringify(row)), ...extraLines];
+    await writeFile(ndjsonPath, lines.join('\n') + '\n', 'utf8');
 
-    (fs.unlink as Mock).mockResolvedValue(undefined);
+    parser.parse.mockImplementation(
+      async (_file: string, onProgress?: (rowsRead: number) => void) => {
+        onProgress?.(rows.length);
+        return { totalRows: rows.length, ndjsonPath };
+      },
+    );
+  }
 
+  /** Todos os itens enviados ao insertCapex, independentemente do lote. */
+  const insertedItems = () =>
+    repository.insertCapex.mock.calls.flatMap(([items]) => items);
+
+  beforeEach(async () => {
     vi.clearAllMocks();
-  });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  // ============================================================
-  // 🧪 MOCK DO EXCEL STREAM
-  // ============================================================
-
-  const mockWorkbook = (rows: any[]) => {
-    const worksheet = {
-      async *[Symbol.asyncIterator]() {
-        let index = 0;
-
-        for (const row of rows) {
-          index++;
-          yield {
-            number: index,
-            values: row,
-          };
-        }
-      },
-    };
-
-    return {
-      async *[Symbol.asyncIterator]() {
-        yield worksheet;
-      },
-    };
-  };
-
-  // ============================================================
-  // 🚀 PROCESS - SUCESSO
-  // ============================================================
-
-  it('should process file successfully', async () => {
-    const rows = [
-      [], // header
-      [],
-      [
-        null,
-        null,
-        'D1',
-        'P1',
-        'MAT1',
-        '',
-        '',
-        '',
-        'L',
-        '',
-        '',
-        10,
-        5,
-        3,
-        2,
-        '',
-        '',
-        'X',
-      ],
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(
-      new Map([['D1', 1]]),
-    );
-
-    const progress = vi.fn();
-
-    await service.process('file.xlsx', 'job-1', progress);
-
-    expect(mockRepository.truncateCN52N).toHaveBeenCalled();
-    expect(mockRepository.insertCapex).toHaveBeenCalled();
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'completed',
-      }),
-    );
-
-    expect(fs.unlink).toHaveBeenCalledWith('file.xlsx');
-  });
-
-  it('should ignore records when id_obra is not found', async () => {
-    const rows = [[], [], [null, null, null, 'P1', 'MAT1']];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    // 🔥 nenhum id_obra encontrado
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    // ✅ não deve inserir
-    expect(mockRepository.insertCapex).not.toHaveBeenCalled();
-
-    // ✅ deve armazenar ignorados
-    const ignored = service.getIgnored('job-1');
-
-    expect(ignored).toHaveLength(1);
-
-    expect(ignored[0]).toMatchObject({
-      diagrama_rede: null,
-      material: 'MAT1',
-    });
-  });
-
-  it('should evict oldest cache entry when MAX_CACHE is exceeded (FIFO)', async () => {
-    // 🔥 reduz o cache pra forçar overflow rápido
-    (service as any).MAX_CACHE = 2;
-
-    const rows = [
-      [],
-      [],
-      [null, null, 'D1'],
-      [null, null, 'D2'],
-      [null, null, 'D3'], // aqui estoura o cache
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    // cada chamada retorna um novo map com os diagramas
-    mockRepository.getObraIdsByDiagramas.mockImplementation(
-      async (diagramas: string[]) => {
-        return new Map(diagramas.map((d, i) => [d, i + 1]));
-      },
-    );
-
-    await service.process('file.xlsx', 'job-1');
-
-    const cache = (service as any).obraCache;
-
-    // 🔥 garante que o tamanho respeita o limite
-    expect(cache.size).toBeLessThanOrEqual(2);
-
-    // 🔥 D1 deve ter sido removido (FIFO)
-    expect(cache.has('D1')).toBe(false);
-
-    // 🔥 os mais recentes permanecem
-    expect(cache.has('D2')).toBe(true);
-    expect(cache.has('D3')).toBe(true);
-  });
-
-  // ============================================================
-  // 🔥 BATCH PROCESSING
-  // ============================================================
-
-  it('should process multiple batches', async () => {
-    const rows = Array.from({ length: 2005 }, (_, i) => [
-      null,
-      null,
-      `D${i}`,
-      'P',
-      'MAT',
-    ]);
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook([[], [], ...rows]) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockImplementation(
-      async (diagramas: string[]) => {
-        return new Map(diagramas.map((d, i) => [d, i + 1]));
-      },
-    );
-
-    await service.process('file.xlsx', 'job-1');
-
-    expect(mockRepository.insertCapex).toHaveBeenCalledTimes(3);
-  });
-
-  it('should not execute final batch block when batch is empty at the end', async () => {
-    const BATCH_SIZE = (service as any).BATCH_SIZE;
-
-    const rows = Array.from({ length: BATCH_SIZE }, (_, i) => [
-      null,
-      null,
-      `D${i}`,
-    ]);
-
-    rows.push([null, null, null]);
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook([[], [], ...rows]) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    const processBatchSpy = vi.spyOn(service as any, 'processBatch');
-
-    await service.process('file.xlsx', 'job-1');
-
-    // 🔥 processBatch deve ser chamado exatamente 1 vez (no loop principal)
-    expect(processBatchSpy).toHaveBeenCalledTimes(2);
-
-    // 🔥 garante que NÃO houve chamada extra (do bloco final)
-    expect(processBatchSpy).not.toHaveBeenCalledTimes(3);
-
-    // 🔥 sanity check
-    expect(mockRepository.insertCapex).toHaveBeenCalledTimes(0);
-  });
-
-  it('should add ignored items only until remaining space limit', async () => {
-    (service as any).MAX_IGNORED = 3;
-
-    // 🔥 já existe 1
-    (service as any).ignoredMap.set('job-1', [{ diagrama_rede: 'A' }]);
-
-    const rows = [
-      [],
-      [],
-      [null, null, 'D2'],
-      [null, null, 'D3'],
-      [null, null, 'D4'],
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    const ignored = service.getIgnored('job-1');
-
-    // 🔥 só pode completar até 3
-    expect(ignored).toHaveLength(3);
-  });
-
-  // ============================================================
-  // 📡 PROGRESS (reading + processing)
-  // ============================================================
-
-  it('should emit a single reading event before streaming starts', async () => {
-    const rows = Array.from({ length: 1005 }, () => [null, null, 'D1']);
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook([[], [], ...rows]) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    const progress = vi.fn();
-
-    await service.process('file.xlsx', 'job-1', progress);
-
-    const events = progress.mock.calls.map(([payload]) => payload);
-    const readingEvents = events.filter((e) => e.phase === 'reading');
-
-    // durante o stream só 'processing' é emitido (evita oscilação da barra)
-    expect(readingEvents).toHaveLength(1);
-    expect(readingEvents[0]).toMatchObject({ processed: 0, percentage: 0 });
-    expect(events[0].phase).toBe('reading');
-  });
-
-  it('should emit monotonic percentages and only reach 100 on completed', async () => {
-    const rows = Array.from({ length: 3005 }, (_, i) => [null, null, `D${i}`]);
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook([[], [], ...rows]) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockImplementation(
+    dir = await mkdtemp(join(tmpdir(), 'capex-spec-'));
+    filePath = join(dir, 'upload.xlsx');
+    ndjsonPath = join(dir, 'upload.xlsx.ndjson');
+    await writeFile(filePath, 'conteúdo irrelevante');
+
+    repository.truncateCN52N.mockResolvedValue(undefined);
+    repository.insertCapex.mockResolvedValue(undefined);
+    repository.getObraIdsByDiagramas.mockImplementation(
       async (diagramas: string[]) =>
-        new Map(diagramas.map((d, i) => [d, i + 1])),
+        new Map(
+          diagramas
+            .filter((d) => OBRAS.has(d))
+            .map((d) => [d, OBRAS.get(d) as number[]]),
+        ),
     );
 
-    const progress = vi.fn();
-
-    await service.process('file.xlsx', 'job-1', progress);
-
-    const events = progress.mock.calls.map(([payload]) => payload);
-    const processingPcts = events
-      .filter((e) => e.phase === 'processing')
-      .map((e) => e.percentage);
-
-    expect(processingPcts).toHaveLength(3);
-    expect([...processingPcts].sort((a, b) => a - b)).toEqual(processingPcts);
-    expect(Math.max(...processingPcts)).toBeLessThanOrEqual(99);
-
-    const last = events[events.length - 1];
-    expect(last).toMatchObject({
-      phase: 'completed',
-      percentage: 100,
-      processed: 3005,
-    });
+    service = new CapexProcessingService(repository as any, parser as any);
+    (service as any).logger = logger;
   });
 
-  it('should emit processing progress', async () => {
-    const rows = Array.from({ length: 1001 }, (_, i) => [null, null, `D${i}`]);
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook([[], [], ...rows]) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockImplementation(
-      async (diagramas: string[]) => {
-        return new Map(diagramas.map((d, i) => [d, i + 1]));
-      },
-    );
-
-    const progress = vi.fn();
-
-    await service.process('file.xlsx', 'job-1', progress);
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'processing',
-      }),
-    );
-  });
-
-  it('should respect MAX_IGNORED limit', async () => {
-    (service as any).MAX_IGNORED = 2;
-
-    const rows = [
-      [],
-      [],
-      [null, null, 'D1'],
-      [null, null, 'D2'],
-      [null, null, 'D3'],
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    const ignored = service.getIgnored('job-1');
-
-    expect(ignored).toHaveLength(2);
-  });
-
-  it('should initialize ignored array when jobId does not exist in ignoredMap', async () => {
-    const batch = [{ diagrama_rede: 'INVALID-1' }];
-
-    // 🔥 nenhum id_obra encontrado
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    // 🔥 sanity check
-    expect((service as any).ignoredMap.has('job-1')).toBe(false);
-
-    await (service as any).processBatch(batch, 'job-1');
-
-    const ignored = service.getIgnored('job-1');
-
-    expect(ignored).toHaveLength(1);
-
-    expect(ignored[0]).toMatchObject({
-      diagrama_rede: 'INVALID-1',
-    });
-  });
-
-  it('should not add ignored items when MAX_IGNORED is already reached', async () => {
-    (service as any).MAX_IGNORED = 2;
-
-    // 🔥 mapa já cheio
-    (service as any).ignoredMap.set('job-1', [
-      { diagrama_rede: 'A' },
-      { diagrama_rede: 'B' },
-    ]);
-
-    const batch = [{ diagrama_rede: 'D3' }, { diagrama_rede: 'D4' }];
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await (service as any).processBatch(batch, 'job-1');
-
-    const ignored = service.getIgnored('job-1');
-
-    // 🔥 continua exatamente igual
-    expect(ignored).toEqual([{ diagrama_rede: 'A' }, { diagrama_rede: 'B' }]);
-
-    expect(ignored).toHaveLength(2);
-  });
-
-  it('should build progress message with ignored count', () => {
-    (service as any).ignoredMap.set('job-1', [{}, {}]);
-
-    const result = (service as any).buildProgressMessage('job-1', 100);
-
-    expect(result).toBe('100 registros processados (2 ignorados)');
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
   });
 
   // ============================================================
-  // ⚠️ ERRO
+  // Fase 1 — validação
   // ============================================================
 
-  it('should emit error and rethrow', async () => {
-    const error = new Error('fail');
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        throw error;
-      },
+  describe('quando a planilha é inválida', () => {
+    const validationError = new BadRequestException(
+      'Planilha inválida, nenhum dado foi alterado. linha 3, coluna B (diagrama_rede): tipo de célula não suportado',
     );
 
-    const progress = vi.fn();
-
-    await expect(
-      service.process('file.xlsx', 'job-1', progress),
-    ).rejects.toThrow('fail');
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'error',
-      }),
-    );
-
-    expect(mockLogger.error).toHaveBeenCalled();
-  });
-
-  it('should emit error and rethrow with default message', async () => {
-    const error = new Error();
-    (error as any).message = undefined;
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        throw error;
-      },
-    );
-
-    const progress = vi.fn();
-
-    await expect(
-      service.process('file.xlsx', 'job-1', progress),
-    ).rejects.toThrow();
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'error',
-        message: 'Erro inesperado durante a importação do CAPEX.',
-      }),
-    );
-
-    expect(mockLogger.error).toHaveBeenCalled();
-  });
-
-  it('should not leak internal error details to the client', async () => {
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        throw new Error('detalhe interno do banco');
-      },
-    );
-
-    const progress = vi.fn();
-
-    await expect(
-      service.process('file.xlsx', 'job-1', progress),
-    ).rejects.toThrow('detalhe interno do banco');
-
-    const errorEvent = progress.mock.calls
-      .map(([payload]) => payload)
-      .find((payload) => payload.phase === 'error');
-
-    expect(errorEvent).toMatchObject({ processed: 0, percentage: 0 });
-    expect(errorEvent.message).toBe(
-      'Erro inesperado durante a importação do CAPEX.',
-    );
-    expect(errorEvent.message).not.toContain('banco');
-  });
-
-  it('should forward the message of business errors (HttpException)', async () => {
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        throw new BadRequestException('Planilha inválida');
-      },
-    );
-
-    const progress = vi.fn();
-
-    await expect(
-      service.process('file.xlsx', 'job-1', progress),
-    ).rejects.toThrow(BadRequestException);
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'error',
-        message: 'Planilha inválida',
-      }),
-    );
-  });
-
-  it('should fail fast when a batch fails and not run the remaining batches afterwards', async () => {
-    (service as any).BATCH_SIZE = 2;
-    (service as any).CONCURRENCY = 1;
-
-    const rows = [
-      [],
-      [],
-      [null, null, 'D1'],
-      [null, null, 'D2'], // batch 1 (falha)
-      [null, null, 'D3'],
-      [null, null, 'D4'], // batch 2
-      [null, null, 'D5'],
-      [null, null, 'D6'], // batch 3
-      [null, null, 'D7'],
-      [null, null, 'D8'], // batch 4
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    const failure = new Error('db fail');
-
-    const processBatchSpy = vi
-      .spyOn(service as any, 'processBatch')
-      .mockRejectedValueOnce(failure)
-      .mockResolvedValue(undefined);
-
-    const progress = vi.fn();
-
-    await expect(service.process('file.xlsx', 'job-1', progress)).rejects.toBe(
-      failure,
-    );
-
-    const callsAtFailure = processBatchSpy.mock.calls.length;
-
-    // nem todos os batches chegaram a ser processados...
-    expect(callsAtFailure).toBeLessThan(4);
-
-    // ...e nada continua rodando em background depois do erro
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(processBatchSpy.mock.calls.length).toBe(callsAtFailure);
-
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({ phase: 'error' }),
-    );
-    expect(progress).not.toHaveBeenCalledWith(
-      expect.objectContaining({ phase: 'completed' }),
-    );
-  });
-
-  it('should remove the file and cleanup the maps even when the job fails', async () => {
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        throw new Error('fail');
-      },
-    );
-
-    await expect(service.process('file.xlsx', 'job-1')).rejects.toThrow('fail');
-
-    expect(fs.unlink).toHaveBeenCalledWith('file.xlsx');
-    expect((service as any).progressMap.has('job-1')).toBe(true);
-
-    vi.advanceTimersByTime(5 * 60 * 1000);
-
-    expect((service as any).progressMap.has('job-1')).toBe(false);
-    expect((service as any).ignoredMap.has('job-1')).toBe(false);
-  });
-
-  // ============================================================
-  // 🧹 CLEANUP (scheduleCleanup)
-  // ============================================================
-
-  it('should cleanup progressMap after ttl', async () => {
-    const rows = [[], [], [null, null, 'D1']];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    expect((service as any).progressMap.has('job-1')).toBe(true);
-
-    vi.advanceTimersByTime(5 * 60 * 1000);
-
-    expect((service as any).progressMap.has('job-1')).toBe(false);
-  });
-
-  it('should cleanup ignoredMap after ttl', async () => {
-    const rows = [[], [], [null, null, 'D1']];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    expect((service as any).ignoredMap.has('job-1')).toBe(true);
-
-    vi.advanceTimersByTime(5 * 60 * 1000);
-
-    expect((service as any).ignoredMap.has('job-1')).toBe(false);
-  });
-
-  // ============================================================
-  // 🧠 HELPERS
-  // ============================================================
-
-  describe('helpers', () => {
-    it('estimatePercentage should start at zero', () => {
-      expect((service as any).estimatePercentage(0)).toBe(0);
+    beforeEach(() => {
+      parser.parse.mockRejectedValue(validationError);
     });
 
-    it('estimatePercentage should follow the saturating curve', () => {
-      // 1 - e^-1 ≈ 0.632 quando linhas lidas = ESTIMATED_ROWS_SCALE
-      const result = (service as any).estimatePercentage(60_000);
-
-      expect(result).toBe(63);
-    });
-
-    it('estimatePercentage should be monotonic and capped at 99', () => {
-      const values = [0, 1_000, 10_000, 100_000, 1_000_000, 10_000_000].map(
-        (rows) => (service as any).estimatePercentage(rows),
+    it('não altera o banco (sem truncate nem insert)', async () => {
+      await expect(service.process(filePath, 'job-1')).rejects.toThrow(
+        validationError,
       );
 
-      expect([...values].sort((a, b) => a - b)).toEqual(values);
-      expect(Math.max(...values)).toBe(99);
+      expect(repository.truncateCN52N).not.toHaveBeenCalled();
+      expect(repository.insertCapex).not.toHaveBeenCalled();
     });
 
-    it('initProgress should initialize correctly', () => {
-      (service as any).initProgress('job-1');
+    it('emite a fase de erro com a mensagem de validação', async () => {
+      const onProgress = vi.fn();
 
-      const state = (service as any).progressMap.get('job-1');
+      await expect(
+        service.process(filePath, 'job-1', onProgress),
+      ).rejects.toThrow();
 
-      expect(state).toMatchObject({
-        phase: 'reading',
-        percentage: 0,
+      expect(onProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          phase: 'error',
+          percentage: 0,
+          message: expect.stringContaining('Planilha inválida'),
+        }),
+      );
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('job-1'),
+        validationError.stack,
+      );
+    });
+
+    it('remove o arquivo enviado', async () => {
+      await expect(service.process(filePath, 'job-1')).rejects.toThrow();
+
+      expect(existsSync(filePath)).toBe(false);
+    });
+  });
+
+  // ============================================================
+  // Fase 2 — carga
+  // ============================================================
+
+  describe('quando a planilha é válida', () => {
+    it('faz o truncate só depois da validação e antes dos inserts', async () => {
+      await givenParsedRows(makeRows(3));
+
+      await service.process(filePath, 'job-1');
+
+      const [parseOrder] = parser.parse.mock.invocationCallOrder;
+      const [truncateOrder] = repository.truncateCN52N.mock.invocationCallOrder;
+      const [insertOrder] = repository.insertCapex.mock.invocationCallOrder;
+
+      expect(parseOrder).toBeLessThan(truncateOrder);
+      expect(truncateOrder).toBeLessThan(insertOrder);
+      expect(repository.truncateCN52N).toHaveBeenCalledTimes(1);
+    });
+
+    it('vincula cada linha à obra do diagrama', async () => {
+      await givenParsedRows([makeRow('D1'), makeRow('D2')]);
+
+      await service.process(filePath, 'job-1');
+
+      expect(insertedItems()).toEqual([
+        expect.objectContaining({ diagrama_rede: 'D1', id_obra: 10 }),
+        expect.objectContaining({ diagrama_rede: 'D2', id_obra: 20 }),
+      ]);
+    });
+
+    it('insere em lotes de 1000 linhas', async () => {
+      await givenParsedRows(makeRows(2500));
+
+      await service.process(filePath, 'job-1');
+
+      const batchSizes = repository.insertCapex.mock.calls
+        .map(([items]) => items.length)
+        .sort((a, b) => b - a);
+
+      expect(batchSizes).toEqual([1000, 1000, 500]);
+      expect(insertedItems()).toHaveLength(2500);
+    });
+
+    it('ignora linhas vazias do NDJSON', async () => {
+      await givenParsedRows([makeRow('D1')], ['', '']);
+
+      await service.process(filePath, 'job-1');
+
+      expect(insertedItems()).toHaveLength(1);
+    });
+
+    it('consulta cada diagrama uma única vez por lote', async () => {
+      await givenParsedRows([makeRow('D1'), makeRow('D1'), makeRow('D2')]);
+
+      await service.process(filePath, 'job-1');
+
+      expect(repository.getObraIdsByDiagramas).toHaveBeenCalledTimes(1);
+      expect(repository.getObraIdsByDiagramas).toHaveBeenCalledWith([
+        'D1',
+        'D2',
+      ]);
+    });
+
+    it('remove o arquivo enviado e o NDJSON temporário', async () => {
+      await givenParsedRows(makeRows(3));
+
+      await service.process(filePath, 'job-1');
+
+      expect(existsSync(filePath)).toBe(false);
+      expect(existsSync(ndjsonPath)).toBe(false);
+    });
+  });
+
+  // ============================================================
+  // Linhas ignoradas e ambíguas
+  // ============================================================
+
+  describe('linhas sem obra única', () => {
+    it('ignora diagramas sem obra e linhas sem diagrama', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows([
+        makeRow('D1'),
+        makeRow('SEM_OBRA'),
+        makeRow(null),
+      ]);
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      expect(insertedItems()).toHaveLength(1);
+      expect(onProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          phase: 'completed',
+          message: expect.stringContaining('2 ignorados'),
+        }),
+      );
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('SEM_OBRA'),
+      );
+    });
+
+    it('não importa diagramas presentes em mais de uma obra', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows([makeRow('D1'), makeRow('AMB'), makeRow('AMB')]);
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      expect(insertedItems()).toEqual([
+        expect.objectContaining({ diagrama_rede: 'D1' }),
+      ]);
+      expect(onProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('2 ambíguos'),
+        }),
+      );
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('ambíguas'),
+      );
+    });
+
+    it('não chama insertCapex quando nenhuma linha tem obra', async () => {
+      await givenParsedRows([makeRow('SEM_OBRA')]);
+
+      await service.process(filePath, 'job-1');
+
+      expect(repository.insertCapex).not.toHaveBeenCalled();
+    });
+  });
+
+  // ============================================================
+  // Progresso
+  // ============================================================
+
+  describe('progresso', () => {
+    it('emite as fases pela ordem reading → processing → completed', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows(makeRows(2500));
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      const phases = onProgress.mock.calls.map(([event]) => event.phase);
+      const firstProcessing = phases.indexOf('processing');
+
+      expect(phases[0]).toBe('reading');
+      expect(firstProcessing).toBeGreaterThan(phases.lastIndexOf('reading'));
+      expect(phases.at(-1)).toBe('completed');
+    });
+
+    it('conclui a validação com 100% e o total de linhas', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows(makeRows(3));
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      expect(onProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phase: 'reading',
+          processed: 3,
+          percentage: 100,
+        }),
+      );
+    });
+
+    it('calcula o percentual exato da carga, sem passar de 99%', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows(makeRows(2500));
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      const processing = onProgress.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event.phase === 'processing');
+
+      expect(processing.map((e) => e.percentage)).toEqual([40, 80]);
+      expect(processing.map((e) => e.processed)).toEqual([1000, 2000]);
+    });
+
+    it('termina com completed a 100%', async () => {
+      const onProgress = vi.fn();
+      await givenParsedRows(makeRows(3));
+
+      await service.process(filePath, 'job-1', onProgress);
+
+      expect(onProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          phase: 'completed',
+          processed: 3,
+          percentage: 100,
+          message: expect.stringContaining('Importação concluída'),
+        }),
+      );
+    });
+
+    it('funciona sem callback de progresso', async () => {
+      await givenParsedRows(makeRows(3));
+
+      await expect(service.process(filePath, 'job-1')).resolves.toBeUndefined();
+    });
+  });
+
+  // ============================================================
+  // Falhas durante a carga
+  // ============================================================
+
+  describe('quando o insert falha', () => {
+    it('relança o erro, emite erro genérico e remove os arquivos', async () => {
+      const onProgress = vi.fn();
+      const dbError = new Error('connection terminated: host=10.0.0.1');
+      repository.insertCapex.mockRejectedValue(dbError);
+      await givenParsedRows(makeRows(2500));
+
+      await expect(
+        service.process(filePath, 'job-1', onProgress),
+      ).rejects.toThrow(dbError);
+
+      const lastEvent = onProgress.mock.calls.at(-1)?.[0];
+      expect(lastEvent).toMatchObject({ phase: 'error', percentage: 0 });
+      // detalhes internos não chegam ao cliente
+      expect(lastEvent.message).not.toContain('10.0.0.1');
+
+      expect(existsSync(filePath)).toBe(false);
+      expect(existsSync(ndjsonPath)).toBe(false);
+    });
+
+    it('não emite completed depois da falha', async () => {
+      const onProgress = vi.fn();
+      repository.insertCapex.mockRejectedValue(new Error('DB error'));
+      await givenParsedRows(makeRows(3));
+
+      await expect(
+        service.process(filePath, 'job-1', onProgress),
+      ).rejects.toThrow();
+
+      const phases = onProgress.mock.calls.map(([event]) => event.phase);
+      expect(phases).not.toContain('completed');
+    });
+  });
+
+  // ============================================================
+  // Limpeza de arquivos
+  // ============================================================
+
+  it('não falha se o arquivo enviado já tiver sido removido', async () => {
+    await givenParsedRows(makeRows(1));
+    await rm(filePath);
+
+    await expect(service.process(filePath, 'job-1')).resolves.toBeUndefined();
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Não foi possível remover'),
+    );
+  });
+
+  // ============================================================
+  // estimateReadingPercentage (private)
+  // ============================================================
+
+  describe('estimateReadingPercentage', () => {
+    const estimate = (rows: number): number =>
+      (service as any).estimateReadingPercentage(rows);
+
+    it('começa em 0', () => {
+      expect(estimate(0)).toBe(0);
+    });
+
+    it('nunca passa de 99', () => {
+      expect(estimate(10_000_000)).toBe(99);
+    });
+
+    it('é crescente', () => {
+      const values = [1_000, 10_000, 60_000, 200_000].map(estimate);
+
+      values.forEach((value, i) => {
+        if (i > 0) expect(value).toBeGreaterThanOrEqual(values[i - 1]);
       });
     });
-
-    it('buildProgressMessage should return zero ignored when job does not exist', () => {
-      const result = (service as any).buildProgressMessage('unknown-job', 10);
-
-      expect(result).toBe('10 registros processados (0 ignorados)');
-    });
-
-    it('buildProgressMessage should return completed message', () => {
-      (service as any).ignoredMap.set('job-1', [{}, {}]);
-
-      const result = (service as any).buildProgressMessage('job-1', 100, true);
-
-      expect(result).toBe('Importação concluída: 100 registros (2 ignorados)');
-    });
-
-    it('getIgnored should return empty array when job does not exist', () => {
-      expect(service.getIgnored('unknown-job')).toEqual([]);
-    });
-  });
-
-  // ============================================================
-  // 🧠 DRAIN EVERY
-  // ============================================================
-
-  it('should drain task pool periodically (DRAIN_EVERY)', async () => {
-    // 🔥 força cenário controlado
-    (service as any).BATCH_SIZE = 2;
-    (service as any).DRAIN_EVERY = 2;
-    (service as any).CONCURRENCY = 1;
-
-    const rows = [
-      [],
-      [],
-      [null, null, 'D1'],
-      [null, null, 'D2'], // batch 1
-      [null, null, 'D3'],
-      [null, null, 'D4'], // batch 2 -> DRAIN aqui
-      [null, null, 'D5'],
-      [null, null, 'D6'], // batch 3
-    ];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    // 🔥 controle de execução
-    let runningTasks = 0;
-    let maxParallel = 0;
-
-    vi.spyOn(service as any, 'processBatch').mockImplementation(async () => {
-      runningTasks++;
-      maxParallel = Math.max(maxParallel, runningTasks);
-
-      // simula async real
-      await Promise.resolve();
-
-      runningTasks--;
-    });
-
-    await service.process('file.xlsx', 'job-1');
-
-    // 🔥 garante que não acumulou tasks descontroladamente
-    expect(maxParallel).toBeLessThanOrEqual(1);
-
-    // 🔥 sanity check: processBatch foi chamado
-    expect((service as any).processBatch).toHaveBeenCalled();
-  });
-
-  // ============================================================
-  // 🧾 FS ERROR
-  // ============================================================
-
-  it('should warn if unlink fails', async () => {
-    (fs.unlink as Mock).mockRejectedValue(new Error('fs error'));
-
-    const rows = [[], [], [null, null, 'D1']];
-
-    vi.spyOn(ExcelJS.stream.xlsx, 'WorkbookReader').mockImplementation(
-      function () {
-        return mockWorkbook(rows) as any;
-      },
-    );
-
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
-
-    await service.process('file.xlsx', 'job-1');
-
-    expect(mockLogger.warn).toHaveBeenCalled();
   });
 });

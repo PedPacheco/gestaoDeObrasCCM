@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import {
   ExportServicesExcelOutput,

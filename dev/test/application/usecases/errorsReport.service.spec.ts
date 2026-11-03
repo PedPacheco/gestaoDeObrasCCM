@@ -1,9 +1,9 @@
-import type { Mocked } from 'vitest';
 import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
 import {
   ERRORS_REPORT_REPOSITORY,
   IErrorsReportRepository,
-} from 'src/domain/repositories/IErrorsReportRepository';
+} from 'src/domain/contracts/IErrorsReportRepository';
+import type { Mocked } from 'vitest';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

@@ -1,5 +1,5 @@
 import { GoalsService } from 'src/application/usecases/goals.service';
-import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
+import { GOALS_REPOSITORY } from 'src/domain/contracts/IGoalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';

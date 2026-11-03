@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   DELETE_SCHEDULES_REPOSITORY,
   IDeleteSchedulesRepository,
-} from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
+} from 'src/domain/contracts/schedule/IDeleteSchedulesRepository';
 
 @Injectable()
 export class DeleteSchedulesService {

@@ -4,7 +4,7 @@ import {
   ADVANCE_PARTNER_REPOSITORY,
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
-} from 'src/domain/repositories/IAdvancePartnerRepository';
+} from 'src/domain/contracts/IAdvancePartnerRepository';
 import { GetRestrictionsAdvancePartnerDTO } from 'src/interface/dtos/restrictionsDTO';
 
 @Injectable()

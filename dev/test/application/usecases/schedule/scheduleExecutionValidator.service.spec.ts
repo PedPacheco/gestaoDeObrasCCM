@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';

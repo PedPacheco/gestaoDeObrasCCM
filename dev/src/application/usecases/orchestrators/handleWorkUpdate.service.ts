@@ -1,7 +1,7 @@
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import {
@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorkDetailsService } from '../works/management/getWorkDetails.service';
-import { UpdateWorkService } from '../works/management/updateWork.service';
 import { SuspensionWorkService } from '../works/management/suspensionWork.service';
+import { UpdateWorkService } from '../works/management/updateWork.service';
 
 import moment from 'moment';
 

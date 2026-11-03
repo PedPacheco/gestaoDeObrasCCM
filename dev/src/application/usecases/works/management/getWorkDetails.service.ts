@@ -7,7 +7,7 @@ import {
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
 import { TeamCounterService } from 'src/domain/services/teamCounter.service';
 import { QueriesServicesService } from '../../services/queriesServices.service';
 

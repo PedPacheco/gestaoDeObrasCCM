@@ -1,5 +1,5 @@
 import { GoalsService } from 'src/application/usecases/goals.service';
-import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
+import { GOALS_REPOSITORY } from 'src/domain/contracts/IGoalsRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { GoalsRepository } from 'src/infra/repositories/goalsRepository';
 

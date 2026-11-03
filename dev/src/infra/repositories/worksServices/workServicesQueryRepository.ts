@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   IWorkServicesQueryRepository,
   ServiceForScheduling,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';

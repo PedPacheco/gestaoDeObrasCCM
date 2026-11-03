@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IExecutionCapacityRepository } from 'src/domain/repositories/IExecutionCapacityRepository';
+import { IExecutionCapacityRepository } from 'src/domain/contracts/IExecutionCapacityRepository';
 import { PrismaService } from '../prisma/prisma.service';
 
 import {
