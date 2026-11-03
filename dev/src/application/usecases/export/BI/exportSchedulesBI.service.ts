@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
-import * as ExcelJS from 'exceljs';
+} from 'src/domain/contracts/IExportRepository';
 
 @Injectable()
 export class ExportSchedulesBIService {

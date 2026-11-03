@@ -7,11 +7,11 @@ import {
 import { join } from 'path';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { AppLogger } from 'src/core/logger/logger.service';
-import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
-} from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+} from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
+import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
 import {
   CreateProgramacaoD5Dto,

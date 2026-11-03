@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
-import { D5NotePagination } from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { D5NotePagination } from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
-} from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+} from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 import { NoteScheduledWork } from 'src/interface/types/d5notes/types';

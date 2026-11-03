@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CustomExceptionFilter } from './core/error/customExpection.filter';
 import { AuthGuard } from './core/guards/auth.guard';
 import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
@@ -10,6 +11,9 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
+import { CapexModule } from './interface/modules/capex.module';
+
+import { D5NotesModule } from './interface/modules/d5Notes.module';
 import { DashboardModule } from './interface/modules/dashboard.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
@@ -26,8 +30,6 @@ import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { WorksServicesModule } from './interface/modules/worksServices.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { D5NotesModule } from './interface/modules/d5Notes.module';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { D5NotesModule } from './interface/modules/d5Notes.module';
     WorksServicesModule,
     ExecutionReportModule,
     AuxiliaryBaseModule,
+    CapexModule,
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,

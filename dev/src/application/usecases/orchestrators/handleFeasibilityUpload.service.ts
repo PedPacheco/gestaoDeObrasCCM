@@ -1,11 +1,11 @@
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';

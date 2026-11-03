@@ -1,7 +1,6 @@
-import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
   ScheduleItem,
   ServiceExecutionStatus,
@@ -10,6 +9,7 @@ import {
   calculateWorkProgress,
 } from 'src/domain/services/pointByPointRules.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import type { Mock } from 'vitest';
 
 import { WorkStatus } from 'src/utils/pointByPoint/serviceType.utils';
 

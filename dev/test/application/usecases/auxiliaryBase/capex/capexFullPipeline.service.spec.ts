@@ -1,208 +1,201 @@
-import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
+import { AuthGuard } from 'src/core/guards/auth.guard';
 
-describe('CapexFullPipelineService', () => {
-  let service: CapexFullPipelineService;
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
+import { WsException } from '@nestjs/websockets';
 
-  const mockProcessingService = {
-    process: vi.fn(),
-  };
+describe('AuthGuard', () => {
+  let authGuard: AuthGuard;
+  let jwtService: JwtService;
+  let reflector: Reflector;
 
-  const mockUpdateService = {
-    update: vi.fn(),
-  };
+  beforeEach(async () => {
+    vi.resetAllMocks();
 
-  const mockLogger = {
-    error: vi.fn(),
-  };
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthGuard,
+        {
+          provide: JwtService,
+          useValue: {
+            verifyAsync: vi.fn(),
+          },
+        },
+        {
+          provide: Reflector,
+          useValue: {
+            getAllAndOverride: vi.fn(),
+          },
+        },
+      ],
+    }).compile();
 
-  beforeEach(() => {
-    service = new CapexFullPipelineService(
-      mockProcessingService as any,
-      mockUpdateService as any,
+    authGuard = moduleRef.get<AuthGuard>(AuthGuard);
+    jwtService = moduleRef.get<JwtService>(JwtService);
+    reflector = moduleRef.get<Reflector>(Reflector);
+  });
+
+  it('should be defined', () => {
+    expect(authGuard).toBeDefined();
+  });
+
+  it('should allow access to public routes', async () => {
+    const context = createMockExecutionContext();
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+
+    expect(await authGuard.canActivate(context)).toBe(true);
+  });
+
+  it('should throw UnauthorizedExpection if token is null', async () => {
+    const context = createMockExecutionContext();
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should throw UnauthorizedExpection if token is invalid', async () => {
+    const context = createMockExecutionContext('Bearer invalidtoken');
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+      new Error('Invalid token'),
     );
 
-    (service as any).logger = mockLogger;
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
 
-    vi.clearAllMocks();
+  it('should validate and attach user to the request', async () => {
+    const mockPayload = { sub: 1, username: 'testuser' };
+
+    const context = createMockExecutionContext('Bearer mockToken');
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockPayload);
+
+    const result = await authGuard.canActivate(context);
+
+    const request = context.switchToHttp().getRequest();
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual(mockPayload);
   });
 
   // ============================================================
-  // 🚀 run()
+  // 🔌 CONTEXTO WEBSOCKET
   // ============================================================
 
-  describe('run', () => {
-    it('should execute processing and update in sequence', async () => {
-      mockProcessingService.process.mockResolvedValue(undefined);
-      mockUpdateService.update.mockResolvedValue(undefined);
-
-      const emitter = vi.fn();
-
-      await service.run('file.xlsx', 'job-1', emitter);
-
-      expect(mockProcessingService.process).toHaveBeenCalled();
-      expect(mockUpdateService.update).toHaveBeenCalled();
-
-      // garante ordem
-      expect(
-        mockProcessingService.process.mock.invocationCallOrder[0],
-      ).toBeLessThan(mockUpdateService.update.mock.invocationCallOrder[0]);
+  describe('WebSocket context', () => {
+    const makeClient = (opts: { user?: any; token?: string } = {}) => ({
+      data: { user: opts.user } as Record<string, any>,
+      handshake: {
+        auth: opts.token ? { token: opts.token } : {},
+        headers: {},
+      },
     });
 
-    it('should pass remapped emitter to services', async () => {
-      mockProcessingService.process.mockImplementation(
-        async (_file, _job, emitter) => {
-          emitter({
-            phase: 'reading',
-            percentage: 50,
-            processed: 1,
-            message: 'reading',
-          });
-        },
-      );
+    beforeEach(() => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    });
 
-      mockUpdateService.update.mockImplementation(async (emitter) => {
-        emitter({
-          phase: 'loading',
-          percentage: 50,
-          processed: 1,
-          message: 'loading',
-        });
+    it('should allow a socket that was already authenticated', async () => {
+      const client = makeClient({ user: { sub: 1 } });
+
+      const result = await authGuard.canActivate(createMockWsContext(client));
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).not.toHaveBeenCalled();
+    });
+
+    it('should reject an authenticated socket whose JWT already expired', async () => {
+      const client = makeClient({
+        user: { sub: 1, exp: Math.floor(Date.now() / 1000) - 10 },
       });
 
-      const emitter = vi.fn();
+      const promise = authGuard.canActivate(createMockWsContext(client));
 
-      await service.run('file.xlsx', 'job-1', emitter);
-
-      // reading 50% dentro de 0-20 => 10
-      expect(emitter).toHaveBeenCalledWith(
-        expect.objectContaining({ percentage: 10 }),
-      );
-
-      // loading 50% dentro de 45-65 => 55
-      expect(emitter).toHaveBeenCalledWith(
-        expect.objectContaining({ percentage: 55 }),
-      );
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Sessão expirada');
     });
 
-    it('should propagate error and log', async () => {
-      const error = new Error('pipeline error');
+    it('should reject when there is no user and no token', async () => {
+      const client = makeClient();
 
-      mockProcessingService.process.mockRejectedValue(error);
+      await expect(
+        authGuard.canActivate(createMockWsContext(client)),
+      ).rejects.toThrow('Não autorizado');
+    });
 
-      const emitter = vi.fn();
+    it('should verify the token and attach the user when the socket has no user yet', async () => {
+      const payload = { sub: 1, username: 'testuser' };
+      const client = makeClient({ token: 'mockToken' });
 
-      await expect(service.run('file.xlsx', 'job-1', emitter)).rejects.toThrow(
-        'pipeline error',
+      vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(payload);
+
+      const result = await authGuard.canActivate(createMockWsContext(client));
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('mockToken');
+      expect(client.data.user).toEqual(payload);
+    });
+
+    it('should reject an invalid token with WsException', async () => {
+      const client = makeClient({ token: 'invalid' });
+
+      vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+        new Error('Invalid token'),
       );
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Erro no pipeline completo de CAPEX'),
-        error.stack,
+      const promise = authGuard.canActivate(createMockWsContext(client));
+
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Token inválido ou expirado');
+    });
+
+    it('should still allow public handlers in a WebSocket context', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+
+      const result = await authGuard.canActivate(
+        createMockWsContext(makeClient()),
       );
+
+      expect(result).toBe(true);
     });
   });
 
-  // ============================================================
-  // 🧠 remapEmitter (private)
-  // ============================================================
+  function createMockWsContext(client: unknown): ExecutionContext {
+    return {
+      getType: () => 'ws',
+      switchToWs: () => ({
+        getClient: () => client,
+      }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 
-  describe('remapEmitter', () => {
-    it('should remap percentage correctly', () => {
-      const target = vi.fn();
+  function createMockExecutionContext(tokenHeader?: string): ExecutionContext {
+    const request = {
+      headers: {
+        authorization: tokenHeader,
+      },
+      user: undefined,
+    };
 
-      const emitter = (service as any).remapEmitter(target, {
-        reading: { min: 0, max: 20 },
-      });
-
-      emitter({
-        phase: 'reading',
-        percentage: 50,
-        processed: 1,
-        message: 'test',
-      });
-
-      // 50% de 0-20 => 10
-      expect(target).toHaveBeenCalledWith(
-        expect.objectContaining({ percentage: 10 }),
-      );
-    });
-
-    it('should return max when percentage is 100', () => {
-      const target = vi.fn();
-
-      const emitter = (service as any).remapEmitter(target, {
-        reading: { min: 0, max: 20 },
-      });
-
-      emitter({
-        phase: 'reading',
-        percentage: 100,
-        processed: 1,
-        message: 'done',
-      });
-
-      expect(target).toHaveBeenCalledWith(
-        expect.objectContaining({ percentage: 20 }),
-      );
-    });
-
-    it('should pass through when phase is not mapped', () => {
-      const target = vi.fn();
-
-      const emitter = (service as any).remapEmitter(target, {});
-
-      const payload = {
-        phase: 'done',
-        percentage: 100,
-        processed: 1,
-        message: 'done',
-      };
-
-      emitter(payload);
-
-      expect(target).toHaveBeenCalledWith(payload);
-    });
-
-    it('should handle multiple ranges correctly', () => {
-      const target = vi.fn();
-
-      const emitter = (service as any).remapEmitter(target, {
-        loading: { min: 45, max: 65 },
-      });
-
-      emitter({
-        phase: 'loading',
-        percentage: 25,
-        processed: 1,
-        message: 'loading',
-      });
-
-      // 25% de (45-65) => 45 + 5 = 50
-      expect(target).toHaveBeenCalledWith(
-        expect.objectContaining({ percentage: 50 }),
-      );
-    });
-
-    it('should floor percentage values', () => {
-      const target = vi.fn();
-
-      const emitter = (service as any).remapEmitter(target, {
-        processing: { min: 20, max: 45 },
-      });
-
-      emitter({
-        phase: 'processing',
-        percentage: 33,
-        processed: 1,
-        message: 'processing',
-      });
-
-      // valida arredondamento
-      expect(target).toHaveBeenCalledWith(
-        expect.objectContaining({
-          percentage: Math.floor(20 + (33 / 100) * 25),
-        }),
-      );
-    });
-  });
+    return {
+      getType: () => 'http',
+      switchToHttp: () => ({
+        getRequest: () => request,
+      }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 });

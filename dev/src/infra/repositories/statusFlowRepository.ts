@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IStatusFlowRepository } from 'src/domain/repositories/IStatusFlowRepository';
+import { IStatusFlowRepository } from 'src/domain/contracts/IStatusFlowRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()

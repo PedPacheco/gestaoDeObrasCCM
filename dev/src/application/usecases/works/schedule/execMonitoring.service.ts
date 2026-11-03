@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   EXEC_MONITORING_REPOSITORY,
   IExecMonitoringRepository,
-} from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+} from 'src/domain/contracts/schedule/IExecMonitoringRepository';
 import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 
 @Injectable()

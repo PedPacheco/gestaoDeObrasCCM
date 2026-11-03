@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   ContractUpdateRepositoryInterface,
   IContractUpdateRepository,
-} from 'src/domain/repositories/works/IContractUpdateRepository';
+} from 'src/domain/contracts/works/IContractUpdateRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

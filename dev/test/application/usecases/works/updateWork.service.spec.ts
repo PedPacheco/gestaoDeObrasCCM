@@ -1,4 +1,5 @@
 import { UpdateWorkService } from 'src/application/usecases/works/management/updateWork.service';
+import { UPDATE_WORK_REPOSITORY } from 'src/domain/contracts/works/IUpdateWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Prisma } from 'src/infra/generated/prisma/client';

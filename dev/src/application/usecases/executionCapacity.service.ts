@@ -1,7 +1,7 @@
 import {
   EXECUTION_CAPACITY_REPOSITORY,
   IExecutionCapacityRepository,
-} from 'src/domain/repositories/IExecutionCapacityRepository';
+} from 'src/domain/contracts/IExecutionCapacityRepository';
 import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,

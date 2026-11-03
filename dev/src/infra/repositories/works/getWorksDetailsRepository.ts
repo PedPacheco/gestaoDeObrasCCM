@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IGetWorksDetailsRepository } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+import { IGetWorksDetailsRepository } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDetailsResponse } from 'src/interface/types/works/getWorksDetailsInterface';
 

@@ -6,7 +6,7 @@ import {
 import {
   GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY,
   IGetMonthlySummaryForecastRepository,
-} from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
+} from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
 import {
   IMonthlySummaryForecastCalculator,
   MONTHLY_SUMMARY_FORECAST_CALCULATOR,

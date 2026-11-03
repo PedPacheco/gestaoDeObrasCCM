@@ -1,6 +1,6 @@
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
-import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { ID5NotesSchedulesRepository } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IGoalsRepository } from 'src/domain/repositories/IGoalsRepository';
+import { IGoalsRepository } from 'src/domain/contracts/IGoalsRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { goalsInterfaceRepository } from 'src/interface/types/goalsInterface';

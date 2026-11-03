@@ -1,6 +1,6 @@
 import { ExportServicesPdfOutput } from 'src/application/usecases/export/services/exportPdfServices.service';
 import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import {
   ExportServicesExcelOutput,

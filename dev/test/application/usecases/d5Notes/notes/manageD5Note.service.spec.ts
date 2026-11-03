@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
-import { ID5NotesRepository } from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { ID5NotesRepository } from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
 import type { Mocked } from 'vitest';

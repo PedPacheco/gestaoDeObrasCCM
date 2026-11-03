@@ -1,5 +1,5 @@
 import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
-import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
+import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/contracts/IExecutionCapacityRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

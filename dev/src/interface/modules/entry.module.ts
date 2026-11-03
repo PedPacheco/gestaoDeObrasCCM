@@ -1,5 +1,5 @@
 import { EntryService } from 'src/application/usecases/entry.service';
-import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
+import { ENTRY_REPOSITORY } from 'src/domain/contracts/IEntryRepository';
 import { EntryRespository } from 'src/infra/repositories/entryRepository';
 
 import { Module } from '@nestjs/common';

@@ -5,6 +5,9 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
+
+import { SocketIoAdapter } from './core/adapters/socketIo.adapter';
+import { getAllowedOrigins } from './core/config/cors.config';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
 async function bootstrap() {
@@ -28,15 +31,12 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  const corsOrigins =
-    process.env.CORS_ORIGINS?.split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean) ?? [];
-
+  // Mesma lista de origens para HTTP e WebSocket (CORS_ORIGINS).
   app.enableCors({
-    origin: corsOrigins,
+    origin: getAllowedOrigins(),
     credentials: true,
   });
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
   await app.listen(process.env.PORT, '0.0.0.0');
 }
 bootstrap();

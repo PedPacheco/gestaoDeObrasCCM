@@ -1,11 +1,11 @@
-import type { Mock } from 'vitest';
 import { compare, genSalt, hash } from 'bcrypt';
 import { AuthService } from 'src/application/usecases/auth.service';
 import { UsersService } from 'src/application/usecases/users.service';
+import { AUTH_REPOSITORY } from 'src/domain/contracts/IAuthRepository';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { generateRandomPassword } from 'src/utils/generatePassword';
+import type { Mock } from 'vitest';
 
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -98,9 +98,7 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedExpection if password is incorrect', async () => {
-      vi
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(new User(loginUser));
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
       (compare as Mock).mockResolvedValue(false);
 
       await expect(
@@ -124,9 +122,7 @@ describe('AuthService', () => {
     it('should return user and access_token if login is successful', async () => {
       const access_token = 'jwt_token';
 
-      vi
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(new User(loginUser));
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
       (compare as Mock).mockResolvedValue(true);
       vi.spyOn(jwtService, 'signAsync').mockResolvedValue(access_token);
 
@@ -150,9 +146,7 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should throw BadRequestExpection when user already exists', async () => {
-      vi
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(new User(loginUser));
+      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
 
       await expect(authService.register(loginUser)).rejects.toThrow(
         new BadRequestException('Nome de usuário já está em uso.'),

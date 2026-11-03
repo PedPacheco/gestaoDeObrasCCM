@@ -11,10 +11,10 @@ import type { Mock, MockInstance } from 'vitest';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service'; // ajuste
 
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
   hasLockedExecution,
   ServiceExecutionStatus,

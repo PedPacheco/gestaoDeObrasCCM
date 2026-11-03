@@ -1,6 +1,6 @@
-import { IEquipmentRepository } from 'src/domain/repositories/IEquipmentRepository';
-import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { IEquipmentRepository } from 'src/domain/contracts/IEquipmentRepository';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class EquipmentRepository implements IEquipmentRepository {

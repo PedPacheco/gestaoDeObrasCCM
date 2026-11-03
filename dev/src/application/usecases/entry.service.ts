@@ -2,7 +2,7 @@ import moment from 'moment';
 import {
   ENTRY_REPOSITORY,
   IEntryRepository,
-} from 'src/domain/repositories/IEntryRepository';
+} from 'src/domain/contracts/IEntryRepository';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,

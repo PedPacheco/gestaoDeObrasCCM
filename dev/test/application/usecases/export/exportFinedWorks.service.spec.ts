@@ -1,10 +1,10 @@
 import type { Mock, Mocked } from 'vitest';
 // test/application/export/exportFinedWorks.service.spec.ts
 import * as ExcelJS from 'exceljs';
-import moment from 'moment';
 import { Response } from 'express';
+import moment from 'moment';
 import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
-import { IExportRepository } from 'src/domain/repositories/IExportRepository';
+import { IExportRepository } from 'src/domain/contracts/IExportRepository';
 
 vi.mock('exceljs', () => {
   const addRowsMock = vi.fn();
@@ -16,10 +16,12 @@ vi.mock('exceljs', () => {
     };
   });
   const writeMock = vi.fn();
-  const WorkbookMock = vi.fn(function () { return ({
-    addWorksheet: addWorksheetMock,
-    xlsx: { write: writeMock },
-  }); });
+  const WorkbookMock = vi.fn(function () {
+    return {
+      addWorksheet: addWorksheetMock,
+      xlsx: { write: writeMock },
+    };
+  });
 
   return {
     Workbook: WorkbookMock,

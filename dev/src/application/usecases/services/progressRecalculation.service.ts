@@ -1,7 +1,7 @@
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
   calculateServiceTotals,
   calculateWorkProgress,

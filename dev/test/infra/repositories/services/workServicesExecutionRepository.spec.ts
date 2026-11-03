@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FinalizationData } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { FinalizationData } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import { ServiceExecutionStatus } from 'src/domain/services/pointByPointRules.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
