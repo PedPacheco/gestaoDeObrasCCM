@@ -32,7 +32,9 @@ export function getDocumentRule(serviceType?: string): DocumentRule | null {
 
   if (hasDp && hasLv) return 'DP_OR_BRA';
   if (hasLv) return 'BRA';
-  return 'DP';
+  if (hasDp) return 'DP';
+
+  return null;
 }
 
 /** Indica se o número (DP/BRA) é obrigatório e está em falta. */

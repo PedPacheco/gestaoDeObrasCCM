@@ -95,6 +95,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
         id_tecnico: true,
         caminhos_arquivos: true,
         reprovada: true,
+        fiscalizacao: true,
       },
     });
   }
@@ -117,6 +118,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
         usuario_modificador: { select: { nome: true } },
         caminhos_arquivos: true,
         reprovada: true,
+        fiscalizacao: true,
       },
     });
   }

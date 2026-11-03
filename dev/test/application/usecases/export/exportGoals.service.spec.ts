@@ -1,6 +1,6 @@
-import type { Mock } from 'vitest';
 import * as ExcelJS from 'exceljs';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
+import type { Mock } from 'vitest';
 
 vi.mock('exceljs', () => {
   const addRowsMock = vi.fn();
@@ -13,12 +13,14 @@ vi.mock('exceljs', () => {
   const writeMock = vi.fn();
 
   return {
-    Workbook: vi.fn().mockImplementation(function () { return ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    }); }),
+    Workbook: vi.fn().mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    }),
   };
 });
 
@@ -39,12 +41,14 @@ describe('ExportGoalsService', () => {
       addRows: addRowsMock,
     });
 
-    (ExcelJS.Workbook as unknown as Mock).mockImplementation(function () { return ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    }); });
+    (ExcelJS.Workbook as unknown as Mock).mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    });
 
     service = new ExportGoalsService();
   });

@@ -164,7 +164,7 @@ export abstract class BaseSchedule {
     if (!value) return;
 
     // Tipos fora da lista mantêm a validação de DP
-    this.assertDocumentFormat(value, this.getDocumentRule() ?? 'DP');
+    this.assertDocumentFormat(value, this.getDocumentRule());
   }
 
   /** Regra de confirmação: DP (8 dígitos) e/ou BRA (mín. 12 caracteres) obrigatório. */
@@ -184,8 +184,6 @@ export abstract class BaseSchedule {
   private assertDocumentFormat(value: string, rule: DocumentRule): void {
     const isValidDp = BaseSchedule.DP_REGEX.test(value);
     const isValidBra = value.length >= BaseSchedule.MIN_NUM_BRA;
-
-    console.log(value, rule, isValidBra, isValidDp);
 
     if (rule === 'DP' && !isValidDp) {
       throw new BadRequestException(

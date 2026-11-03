@@ -133,6 +133,7 @@ export class D5NoteScheduleMapper {
       idExecutionRestriction: row.id_restricao,
       responsibility: row.responsavel_restricao,
       rejected: row.reprovada,
+      fiscalization: row.fiscalizacao,
     });
   }
 
@@ -327,6 +328,7 @@ export class D5NoteScheduleMapper {
       id_restricao: entity.idExecutionRestriction,
       responsavel_restricao: entity.responsibility,
       caminhos_arquivos: entity.filePaths,
+      fiscalizacao: entity.fiscalization,
     };
   }
 

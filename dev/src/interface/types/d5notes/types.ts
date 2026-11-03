@@ -101,6 +101,7 @@ export type SchedulesD5NotesByNoteIdQueryResult = {
   responsavel_restricao: string | null;
   caminhos_arquivos: string[];
   reprovada: boolean;
+  fiscalizacao: boolean;
 };
 
 export type SchedulesD5NotesQueryResult = {
@@ -179,6 +180,7 @@ export type SchedulesD5NotesByIdQueryResult = {
   id_tecnico: number;
   caminhos_arquivos: string[];
   reprovada: boolean;
+  fiscalizacao: boolean;
 };
 
 export type D5NoteScheduleCreateData = {
@@ -283,6 +285,7 @@ export type D5NoteScheduleResponse = {
   responsavel_restricao: string | null;
   caminhos_arquivos: string[];
   reprovada: boolean;
+  fiscalizacao: boolean;
 };
 
 export type D5ScheduleRejectionData = {

@@ -544,6 +544,7 @@ model programacoes_d5 {
   id_usuario_modificador Int
   caminhos_arquivos      String[]
   reprovada              Boolean              @default(false)
+  fiscalizacao           Boolean              @default(false)
   notas_d5               notas_d5             @relation(fields: [id_nota_d5], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nota_d5")
   restricoes             restricoes           @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricao")
   tecnicos               tecnicos             @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnico")
