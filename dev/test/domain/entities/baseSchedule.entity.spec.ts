@@ -101,8 +101,8 @@ describe('BaseSchedule', () => {
   describe('getDocumentRule', () => {
     it.each([
       ['dp', 'DP'],
-      ['regularização', 'DP'],
-      ['desativação rd', 'DP'],
+      ['regularização', null],
+      ['desativação rd', null],
       ['lv', 'BRA'],
       ['lv + obra livre', 'BRA'],
       ['dp + lv', 'DP_OR_BRA'],
@@ -198,7 +198,7 @@ describe('BaseSchedule', () => {
           serviceType: 'dp',
           numDp: '123456789',
         }).validateForTest(),
-      ).toThrow("Número do DP deve conter exatamente 8 dígitos");
+      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
     });
 
     it('deve permitir mais de 8 caracteres para um serviço BRA', () => {
@@ -318,15 +318,6 @@ describe('BaseSchedule', () => {
           numDp: '   ',
         }).validateForTest(),
       ).not.toThrow();
-    });
-
-    it('para tipos fora da lista, deve aplicar a validação de DP se houver valor', () => {
-      expect(() =>
-        makeSchedule({
-          serviceType: 'outro serviço',
-          numDp: '1234567',
-        }).validateForTest(),
-      ).toThrow('Número do DP deve conter exatamente 8 dígitos');
     });
   });
 

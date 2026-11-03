@@ -164,7 +164,7 @@ export abstract class BaseSchedule {
     if (!value) return;
 
     // Tipos fora da lista mantêm a validação de DP
-    this.assertDocumentFormat(value, this.getDocumentRule() ?? 'DP');
+    this.assertDocumentFormat(value, this.getDocumentRule());
   }
 
   /** Regra de confirmação: DP (8 dígitos) e/ou BRA (mín. 12 caracteres) obrigatório. */

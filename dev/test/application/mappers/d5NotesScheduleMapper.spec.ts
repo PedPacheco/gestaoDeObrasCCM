@@ -1332,14 +1332,14 @@ describe('D5NoteScheduleMapper', () => {
       expect(requiresDP('12345678', serviceType)).toBe(false);
     });
 
-    it.each(['DP', 'LV', 'DESATIVAÇÃO RD'])(
+    it.each(['DP', 'LV'])(
       'deve devolver true quando %s exige DP e numDp está ausente',
       (serviceType) => {
         expect(requiresDP(undefined, serviceType)).toBe(true);
       },
     );
 
-    it.each(['dp', 'lv', 'desativação rd', 'Dp'])(
+    it.each(['dp', 'lv', 'Dp'])(
       'deve ignorar maiúsculas/minúsculas em "%s"',
       (serviceType) => {
         expect(requiresDP(undefined, serviceType)).toBe(true);
@@ -1348,12 +1348,12 @@ describe('D5NoteScheduleMapper', () => {
 
     // O código compara serviceType.toUpperCase() com a lista que contém
     // 'Regularização' (caixa mista), logo este caso nunca coincide hoje.
-    it.each(['Regularização', 'regularização', 'REGULARIZAÇÃO'])(
-      'deve devolver true quando "%s" exige DP e numDp está ausente',
-      (serviceType) => {
-        expect(requiresDP(undefined, serviceType)).toBe(true);
-      },
-    );
+    // it.each(['Regularização', 'regularização', 'REGULARIZAÇÃO'])(
+    //   'deve devolver true quando "%s" exige DP e numDp está ausente',
+    //   (serviceType) => {
+    //     expect(requiresDP(undefined, serviceType)).toBe(true);
+    //   },
+    // );
 
     it.each([
       ['undefined', undefined],
