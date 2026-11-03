@@ -1,9 +1,9 @@
-import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import type { Mock } from 'vitest';
 
 describe('FeasibilityRepository', () => {
   let repository: FeasibilityRepository;
@@ -424,9 +424,9 @@ describe('FeasibilityRepository', () => {
         feasibilityReportId: 2,
       } as RejectFeasibilityDTO;
 
-      (
-        mockTx.reprovacoes_viabilidade.create as Mock
-      ).mockRejectedValueOnce(new Error('FK constraint violation'));
+      (mockTx.reprovacoes_viabilidade.create as Mock).mockRejectedValueOnce(
+        new Error('FK constraint violation'),
+      );
 
       await expect(repository.reject(data, mockTx)).rejects.toThrow(
         'FK constraint violation',

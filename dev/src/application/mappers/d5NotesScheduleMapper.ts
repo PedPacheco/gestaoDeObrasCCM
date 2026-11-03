@@ -4,6 +4,7 @@ import {
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { D5NoteTimeMetricsInfo } from 'src/domain/services/d5Notes/timeMetrics.service';
+import { isDocumentMissing } from 'src/domain/services/requireDpNumber.service';
 
 import {
   CreateProgramacaoD5Dto,
@@ -132,6 +133,7 @@ export class D5NoteScheduleMapper {
       idExecutionRestriction: row.id_restricao,
       responsibility: row.responsavel_restricao,
       rejected: row.reprovada,
+      fiscalization: row.fiscalizacao,
     });
   }
 
@@ -326,27 +328,11 @@ export class D5NoteScheduleMapper {
       id_restricao: entity.idExecutionRestriction,
       responsavel_restricao: entity.responsibility,
       caminhos_arquivos: entity.filePaths,
+      fiscalizacao: entity.fiscalization,
     };
   }
 
-  private static requiresDP(numDp?: string, serviceType?: string) {
-    if (!serviceType) return false;
-
-    const serviceTypeRequireDp = [
-      'dp',
-      'lv',
-      'regularização',
-      'desativação rd',
-      'lv + obra livre',
-      'dp + lv',
-    ];
-
-    const require = serviceTypeRequireDp.includes(serviceType.toLowerCase());
-
-    if (require && !numDp?.trim()) {
-      return true;
-    }
-
-    return false;
+  private static requiresDP(numDp?: string, serviceType?: string): boolean {
+    return isDocumentMissing(numDp, serviceType);
   }
 }

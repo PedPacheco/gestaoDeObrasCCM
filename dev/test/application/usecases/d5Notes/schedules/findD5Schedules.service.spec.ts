@@ -43,7 +43,6 @@ describe('FindD5SchedulesService', () => {
   beforeEach(() => {
     vi.useFakeTimers({
       now: FIXED_NOW,
-      doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'],
     });
 
     timeMetrics = {
@@ -391,6 +390,19 @@ describe('FindD5SchedulesService', () => {
       });
     });
 
+    it('should apply the statusSap filter', async () => {
+      await service.findD5NotesSchedules(
+        makeFilters({ statusSap: 'Pendente' }),
+      );
+
+      expect(whereFromGet()).toEqual({
+        AND: [
+          { notas_d5: { is: { status_sap: 'Pendente' } } },
+          ...DEFAULT_STATE_CONDITIONS,
+        ],
+      });
+    });
+
     it.each([
       'idRegional',
       'idMunicipio',
@@ -418,6 +430,7 @@ describe('FindD5SchedulesService', () => {
           idOvnota: [6],
           idNotaD5: [7],
           id: [8],
+          statusSap: 'Pendente',
           reprovada: true,
         } as any),
       );
@@ -433,6 +446,7 @@ describe('FindD5SchedulesService', () => {
           {
             notas_d5: {
               is: {
+                status_sap: 'Pendente',
                 municipios: { id_regional: { in: [1] } },
                 id_municipio: { in: [2] },
                 tipos: { id_grupo: { in: [3] } },

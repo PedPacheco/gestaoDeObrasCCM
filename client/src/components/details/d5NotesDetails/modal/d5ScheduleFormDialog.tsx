@@ -1,7 +1,7 @@
 // components/d5Notes/details/d5ScheduleFormDialog.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Box,
   Dialog,
@@ -13,20 +13,20 @@ import {
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useTransition } from "react";
 
+import { upsertD5ScheduleAction } from "@/actions/d5Notes";
 import { ButtonComponent } from "@/components/common/Button";
 import { AccordionPanel } from "@/components/executionReport/accordionPanel";
 import { useD5ScheduleForm } from "@/hooks/d5Notes/useD5ScheduleForm";
 import { D5ScheduleSchema } from "@/validations/d5NoteScheduleValidation";
-import { upsertD5ScheduleAction } from "@/actions/d5Notes";
 
+import { useRouter } from "next/navigation";
+import { AdditionalInfoPanelD5 } from "./additionalInfoPanelD5";
 import { BasicInfoPanelD5 } from "./basicInfoPanelD5";
+import { ExecutionInfoPanelD5 } from "./executionInfoPanelD5";
 import { ServiceEquipmentPanelD5 } from "./serviceEquipmentPanelD5";
 import { TeamsPanelD5 } from "./teamsPanelD5";
-import { AdditionalInfoPanelD5 } from "./additionalInfoPanelD5";
-import { ExecutionInfoPanelD5 } from "./executionInfoPanelD5";
-import { useRouter } from "next/navigation";
 
 const MAX_FILES = 5;
 
@@ -90,6 +90,7 @@ export default function D5ScheduleFormDialog({
     handleAccordionChange,
     handleInputChange,
     handleExecChange,
+    handleFiscalizationChange,
     keptFiles,
     newFiles,
     setKeptFiles,
@@ -228,6 +229,7 @@ export default function D5ScheduleFormDialog({
               formData={formData}
               formErrors={formErrors}
               onInputChange={handleInputChange}
+              onFiscalizationChange={handleFiscalizationChange}
             />
           </AccordionPanel>
 

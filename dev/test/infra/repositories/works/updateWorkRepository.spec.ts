@@ -1,7 +1,7 @@
-import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
+import type { Mock } from 'vitest';
 
 describe('UpdateWorkRepository', () => {
   let repository: UpdateWorkRepository;

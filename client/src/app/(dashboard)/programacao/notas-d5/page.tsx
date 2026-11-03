@@ -28,7 +28,6 @@ export default async function D5NotesSchedules() {
       tipo: true,
       municipio: true,
       grupo: true,
-      status: true,
       notaD5: true,
       ovnota: true,
     }),

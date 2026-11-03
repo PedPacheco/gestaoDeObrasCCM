@@ -1,6 +1,6 @@
+import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 import dayjs from "dayjs";
 import { formatDateToInput, formatToHHMM } from "./formatValue";
-import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 
 export function Transform(filters: Record<string, string[]>) {
   return Object.fromEntries(
@@ -130,6 +130,7 @@ export function mapD5ScheduleToForm(
     restrictionResponsible: schedule.responsavel_restricao ?? "",
     executionObservation: schedule.observacao_execucao ?? "",
     rejected: schedule.reprovada ?? false,
+    fiscalization: schedule.fiscalizacao ?? false,
   };
 }
 

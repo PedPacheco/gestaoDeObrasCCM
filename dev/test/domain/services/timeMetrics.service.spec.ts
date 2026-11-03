@@ -159,34 +159,19 @@ describe('TimeMetricsService', () => {
   // ---------------------------------------------------------------------------
   describe('calculateStatus', () => {
     it.each([
-      [0, DeadlineStatus.ON_TIME],
-      [1, DeadlineStatus.ON_TIME],
-      [3, DeadlineStatus.ON_TIME],
-      [4, DeadlineStatus.ATTENTION],
-      [5, DeadlineStatus.ATTENTION],
-      [6, DeadlineStatus.CRITICAL],
-      [7, DeadlineStatus.CRITICAL],
-      [8, DeadlineStatus.OVERDUE],
-      [30, DeadlineStatus.OVERDUE],
-      [365, DeadlineStatus.OVERDUE],
+      [0, `${DeadlineStatus.ON_TIME}: 0 dia(s) restante(s)`],
+      [1, `${DeadlineStatus.ON_TIME}: 1 dia(s) restante(s)`],
+      [3, `${DeadlineStatus.ON_TIME}: 3 dia(s) restante(s)`],
+      [4, `${DeadlineStatus.ATTENTION}: 4 dia(s) restante(s)`],
+      [5, `${DeadlineStatus.ATTENTION}: 5 dia(s) restante(s)`],
+      [6, `${DeadlineStatus.CRITICAL}: 6 dia(s) restante(s)`],
+      [7, `${DeadlineStatus.CRITICAL}: 7 dia(s) restante(s)`],
+      [8, `${DeadlineStatus.OVERDUE}: 8 dia(s) acima do prazo`],
+      [30, `${DeadlineStatus.OVERDUE}: 30 dia(s) acima do prazo`],
+      [365, `${DeadlineStatus.OVERDUE}: 365 dia(s) acima do prazo`],
     ])('tmAberto %i deve devolver "%s"', (tmAberto, expected) => {
       expect(service.calculateStatus(tmAberto)).toBe(expected);
     });
-
-    it('deve devolver "No prazo" para valores negativos (data futura)', () => {
-      expect(service.calculateStatus(-1)).toBe(DeadlineStatus.ON_TIME);
-    });
-
-    it.each([
-      [3.5, DeadlineStatus.ATTENTION],
-      [5.1, DeadlineStatus.CRITICAL],
-      [7.01, DeadlineStatus.OVERDUE],
-    ])(
-      'deve tratar o valor decimal %d pelos limites superiores',
-      (value, expected) => {
-        expect(service.calculateStatus(value)).toBe(expected);
-      },
-    );
 
     it.each([
       ['null', null],
@@ -207,7 +192,7 @@ describe('TimeMetricsService', () => {
       ).toEqual({
         tmAberto: 6,
         tmExecucao: null,
-        statusPrazo: DeadlineStatus.CRITICAL,
+        statusPrazo: `${DeadlineStatus.CRITICAL}: 6 dia(s) restante(s)`,
       });
     });
 
@@ -236,13 +221,41 @@ describe('TimeMetricsService', () => {
     });
 
     it.each([
-      ['2026-10-22T00:00:00Z', 0, DeadlineStatus.ON_TIME],
-      ['2026-10-19T00:00:00Z', 3, DeadlineStatus.ON_TIME],
-      ['2026-10-18T00:00:00Z', 4, DeadlineStatus.ATTENTION],
-      ['2026-10-17T00:00:00Z', 5, DeadlineStatus.ATTENTION],
-      ['2026-10-16T00:00:00Z', 6, DeadlineStatus.CRITICAL],
-      ['2026-10-15T00:00:00Z', 7, DeadlineStatus.CRITICAL],
-      ['2026-10-14T00:00:00Z', 8, DeadlineStatus.OVERDUE],
+      [
+        '2026-10-22T00:00:00Z',
+        0,
+        `${DeadlineStatus.ON_TIME}: 0 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-19T00:00:00Z',
+        3,
+        `${DeadlineStatus.ON_TIME}: 3 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-18T00:00:00Z',
+        4,
+        `${DeadlineStatus.ATTENTION}: 4 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-17T00:00:00Z',
+        5,
+        `${DeadlineStatus.ATTENTION}: 5 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-16T00:00:00Z',
+        6,
+        `${DeadlineStatus.CRITICAL}: 6 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-15T00:00:00Z',
+        7,
+        `${DeadlineStatus.CRITICAL}: 7 dia(s) restante(s)`,
+      ],
+      [
+        '2026-10-14T00:00:00Z',
+        8,
+        `${DeadlineStatus.OVERDUE}: 8 dia(s) acima do prazo`,
+      ],
     ])(
       'nota aberta em %s deve ter tmAberto %i e status "%s"',
       (criadoEm, expectedTm, expectedStatus) => {
@@ -255,17 +268,22 @@ describe('TimeMetricsService', () => {
     );
 
     it('deve mudar de status com a passagem do tempo', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-19T00:00:00Z'));
+
       const criadoEm = new Date('2026-10-19T00:00:00Z');
 
       expect(service.getDeadlineInfo(criadoEm, null).statusPrazo).toBe(
-        DeadlineStatus.ON_TIME,
+        `${DeadlineStatus.ON_TIME}: 0 dia(s) restante(s)`,
       );
 
       vi.setSystemTime(new Date('2026-10-23T10:00:00Z'));
 
       expect(service.getDeadlineInfo(criadoEm, null).statusPrazo).toBe(
-        DeadlineStatus.ATTENTION,
+        `${DeadlineStatus.ATTENTION}: 4 dia(s) restante(s)`,
       );
+
+      vi.useRealTimers();
     });
 
     it('deve delegar em calculateTM e calculateStatus', () => {

@@ -79,7 +79,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
     <Grid item xs={12} sm={6}>
       <TextField
         fullWidth
-        label="Número DP"
+        label="Número DP/BRA"
         value={formData.numDp}
         onChange={onInputChange("numDp")}
         disabled={disabledFields() || permissionVisualization === "PARCEIRA"}

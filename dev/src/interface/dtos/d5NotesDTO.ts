@@ -146,6 +146,12 @@ export class D5NotesSchedulesFiltersDTO {
   id?: number[];
 
   @IsOptional()
+  @IsIn(['Concluído', 'Pendente'], {
+    message: 'o Status enviado deve ser "Concluído" ou "Pendente"',
+  })
+  statusSap?: 'Concluído' | 'Pendente';
+
+  @IsOptional()
   @IsBoolean()
   @Transform(toBoolean)
   executado?: boolean;
@@ -293,6 +299,11 @@ export class CreateProgramacaoD5Dto {
   @IsInt()
   @Type(() => Number)
   modifyingUserId: number;
+
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  fiscalization?: boolean;
 }
 
 export class UpdateScheduleD5Dto extends PartialType(

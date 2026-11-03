@@ -9,6 +9,7 @@ import { D5NotesController } from 'src/interface/controllers/d5Notes.controller'
 import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
+  D5NotesSchedulesFiltersDTO,
   RejectD5ScheduleDTO,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
@@ -216,6 +217,102 @@ describe('D5NotesController', () => {
   });
 
   // -------------------------------------------------------------------------
+  // GET /programacoes
+  // -------------------------------------------------------------------------
+  describe('getSchedules', () => {
+    const filters = { page: 1 } as unknown as D5NotesSchedulesFiltersDTO;
+
+    it('deve retornar as notas D5 com o envelope de resposta correto', async () => {
+      const data = [{ id: 1 }, { id: 2 }];
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue(data);
+
+      const result = await controller.getSchedules(filters, buildRequest());
+
+      expect(findD5SchedulesService.findD5NotesSchedules).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(findD5SchedulesService.findD5NotesSchedules).toHaveBeenCalledWith(
+        filters,
+      );
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Programações da Nota D5 retornado com sucesso',
+        data,
+      });
+    });
+
+    it('deve manter o idParceira da query para usuários internos', async () => {
+      const internalFilters = {
+        ...filters,
+        idParceira: [5, 7],
+      } as unknown as D5NotesSchedulesFiltersDTO;
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue([]);
+
+      await controller.getSchedules(internalFilters, buildRequest());
+
+      expect(findD5SchedulesService.findD5NotesSchedules).toHaveBeenCalledWith(
+        expect.objectContaining({ idParceira: [5, 7] }),
+      );
+    });
+
+    it('deve sobrescrever o idParceira da query pela parceira do usuário parceiro', async () => {
+      const maliciousFilters = {
+        ...filters,
+        idParceira: [99],
+      } as unknown as D5NotesSchedulesFiltersDTO;
+      const req = buildRequest({
+        user: { tipo_usuario: 'PARCEIRA' },
+        idParceira: 10,
+      } as Partial<CustomRequest>);
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue([]);
+
+      await controller.getSchedules(maliciousFilters, req);
+
+      const [calledFilters] =
+        findD5SchedulesService.findD5NotesSchedules.mock.calls[0];
+      expect(calledFilters.idParceira).toEqual(10);
+      expect(calledFilters.idParceira).not.toEqual([99]);
+    });
+
+    it('deve aplicar a parceira do usuário mesmo sem idParceira na query', async () => {
+      const req = buildRequest({
+        user: { tipo_usuario: 'PARCEIRA' },
+        idParceira: 10,
+      } as Partial<CustomRequest>);
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue([]);
+
+      await controller.getSchedules(filters, req);
+
+      expect(findD5SchedulesService.findD5NotesSchedules).toHaveBeenCalledWith({
+        ...filters,
+        idParceira: 10,
+      });
+    });
+
+    it('não deve mutar o DTO original', async () => {
+      const original = {
+        ...filters,
+        idParceira: [99],
+      } as unknown as D5NotesSchedulesFiltersDTO;
+      const req = buildRequest({ idParceira: 10 } as Partial<CustomRequest>);
+      findD5SchedulesService.findD5NotesSchedules.mockResolvedValue([]);
+
+      await controller.getSchedules(original, req);
+
+      expect(original.idParceira).toEqual([99]);
+    });
+
+    it('deve propagar erros do serviço', async () => {
+      const error = new Error('falha ao buscar notas');
+      findD5SchedulesService.findD5NotesSchedules.mockRejectedValue(error);
+
+      await expect(
+        controller.getSchedules(filters, buildRequest()),
+      ).rejects.toThrow(error);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // GET /notas-d5/programacoes/:id
   // -------------------------------------------------------------------------
   describe('getSchedulesByD5NoteId', () => {
@@ -241,7 +338,10 @@ describe('D5NotesController', () => {
     });
   });
 
-  describe('getSchedulesByD5NoteId', () => {
+  // -------------------------------------------------------------------------
+  // GET /notas-d5/reprovacoes/:id
+  // -------------------------------------------------------------------------
+  describe('getRejections', () => {
     it('deve retornar as reprovações da nota informada', async () => {
       const data = [{ id: 1, notaId: 7 }];
       findD5SchedulesService.findRejectionsByD5Note.mockResolvedValue(data);

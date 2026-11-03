@@ -98,6 +98,9 @@ export class FindD5SchedulesService {
     if (filters.idOvnota?.length) {
       notaD5.id_obra = { in: filters.idOvnota };
     }
+    if (filters.statusSap) {
+      notaD5.status_sap = filters.statusSap;
+    }
     // Só acrescenta o filtro de relação se houver pelo menos um critério
     if (Object.keys(notaD5).length) {
       and.push({ notas_d5: { is: notaD5 } });

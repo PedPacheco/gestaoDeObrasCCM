@@ -41,7 +41,6 @@ export default function D5NotesSchedulesMain({
   const fetchWorks = useCallback(
     (params: Record<string, string | string[] | boolean | null>) => {
       startTransition(async () => {
-        console.log(params);
         try {
           const response = await fetchData(
             `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,

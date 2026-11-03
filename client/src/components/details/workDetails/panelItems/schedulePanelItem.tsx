@@ -50,7 +50,7 @@ const columnConfig = [
     wide: true,
   },
   { key: "chi", label: "CHI", type: "text" },
-  { key: "num_dp", label: "Número DP", type: "text" },
+  { key: "num_dp", label: "Número DP/BRA", type: "text" },
   { key: "chave_provisoria", label: "Chave provisória", type: "text" },
   { key: "equipe_linha_morta", label: "Equipe LM", type: "text" },
   { key: "equipe_linha_viva", label: "Equipe LV", type: "text" },

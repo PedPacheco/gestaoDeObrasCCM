@@ -16,7 +16,7 @@ const D5_NOTE_THRESHOLDS = {
 export interface D5NoteTimeMetricsInfo {
   tmAberto: number | null;
   tmExecucao: number | null;
-  statusPrazo: DeadlineStatus | null;
+  statusPrazo: string | null;
 }
 
 @Injectable()
@@ -64,16 +64,16 @@ export class TimeMetricsService {
     };
   }
 
-  calculateStatus(tmAberto: number | null | undefined): DeadlineStatus | null {
+  calculateStatus(tmAberto: number | null | undefined): string | null {
     if (tmAberto == null || Number.isNaN(tmAberto)) return null;
 
     if (tmAberto <= D5_NOTE_THRESHOLDS.ON_TIME_MAX_DAYS)
-      return DeadlineStatus.ON_TIME;
+      return `${DeadlineStatus.ON_TIME}: ${tmAberto} dia(s) restante(s)`;
     if (tmAberto <= D5_NOTE_THRESHOLDS.ATTENTION_MAX_DAYS)
-      return DeadlineStatus.ATTENTION;
+      return `${DeadlineStatus.ATTENTION}: ${tmAberto} dia(s) restante(s)`;
     if (tmAberto <= D5_NOTE_THRESHOLDS.CRITICAL_MAX_DAYS)
-      return DeadlineStatus.CRITICAL;
+      return `${DeadlineStatus.CRITICAL}: ${tmAberto} dia(s) restante(s)`;
 
-    return DeadlineStatus.OVERDUE;
+    return `${DeadlineStatus.OVERDUE}: ${tmAberto} dia(s) acima do prazo`;
   }
 }
