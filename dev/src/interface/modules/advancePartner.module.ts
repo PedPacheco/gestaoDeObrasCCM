@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { UsersModule } from './users.module';
-import { AdvancePartnerController } from '../controllers/advancePartner.controller';
+import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
 import { ADVANCE_PARTNER_REPOSITORY } from 'src/domain/contracts/IAdvancePartnerRepository';
 import { AdvancePartnerRepository } from 'src/infra/repositories/advancePartnerRepository';
-import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
+import { AdvancePartnerController } from '../controllers/advancePartner.controller';
+import { UsersModule } from './users.module';
 
 @Module({
   imports: [UsersModule],

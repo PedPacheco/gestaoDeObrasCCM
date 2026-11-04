@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
+import { GetTotalValueScheduleRepository } from 'src/infra/repositories/works/schedule/getTotalValuesScheduleRepository';
 
 import { Test } from '@nestjs/testing';
 
@@ -12,7 +12,7 @@ describe('GetTotalValuesSchedule', () => {
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const initialQuery = `SELECT turma, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS jan_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS jan_exec, 
@@ -81,7 +81,7 @@ describe('GetTotalValuesSchedule', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetTotalValues', () => {
@@ -93,6 +93,7 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: undefined,
         idCircuito: undefined,
         idGrupo: undefined,
+        idTecnico: undefined,
         ano: undefined,
       };
 
@@ -119,6 +120,7 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: [1],
         idCircuito: [1],
         idGrupo: [1],
+        idTecnico: [1],
         ano: 2024,
       };
 

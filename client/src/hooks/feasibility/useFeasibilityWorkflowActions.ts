@@ -21,12 +21,14 @@ interface useFeasibilityWorkflowActionsProps {
   reviewData: FeasibilityServiceItem[];
   termsAccepted: boolean;
   handleUpload: any;
+  handleUploadComplementaryFiles: any;
   onRejectSettled: () => void;
 }
 
 export function useFeasibilityWorkflowActions({
   feasibilityReportId,
   handleUpload,
+  handleUploadComplementaryFiles,
   hasFiles,
   idWork,
   onRejectSettled,
@@ -85,7 +87,23 @@ export function useFeasibilityWorkflowActions({
 
   const handleApprove = () => {
     startTransition(async () => {
-      await approveFeasibility(idWork);
+      try {
+        await handleUploadComplementaryFiles();
+
+        const response = await approveFeasibility(idWork);
+
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        showSuccess(response.message);
+        router.push(`/detalhes/${idWork}`);
+      } catch (err) {
+        showError(
+          err instanceof Error ? err.message : "Erro ao reprovar viabilidade",
+        );
+      }
     });
   };
 

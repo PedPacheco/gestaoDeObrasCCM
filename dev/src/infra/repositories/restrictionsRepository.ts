@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import {
   IRestrictionsRepository,
@@ -8,10 +8,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 
 import {
-  InsertPublicationRestrictionsDTO,
-  UpdatePublicationRestrictionsDTO,
-} from 'src/interface/dtos/restrictionsDTO';
-import {
   GetPublicationRestricionResponse,
   GetPublicationRestrictionByWorkIdResponse,
   GetScheduleRestrictionsResponse,
@@ -19,6 +15,10 @@ import {
   ScheduleRestrictions,
   ScheduleRestrictionsTotalsResponse,
 } from 'src/domain/types';
+import {
+  InsertPublicationRestrictionsDTO,
+  UpdatePublicationRestrictionsDTO,
+} from 'src/interface/dtos/restrictionsDTO';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {

@@ -17,12 +17,13 @@ import { DropzoneOfTechnicalFiles } from "./dropzoneOfTechnicalFiles";
 import { DropzoneOfComplementaryFiles } from "./dropzoneOfComplementaryFiles";
 import { UseTechnicalFilesUploadResult } from "@/hooks/feasibility/useTechnicalFilesUpload";
 import { UseComplementaryFilesUploadResult } from "@/hooks/feasibility/useComplementaryFilesUpload";
+import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
 
 interface FeasibilityFileUploadStepProps {
   technicalFilesUpload: UseTechnicalFilesUploadResult;
   complementaryFilesUpload: UseComplementaryFilesUploadResult;
   termsAccepted: boolean;
-  workflowStatus: string;
+  workflowStatus: FeasibilityWorkflowStatus;
   onTermsAccepted: React.Dispatch<boolean>;
 }
 
@@ -84,7 +85,8 @@ export function FeasibilityFileUploadStep({
   const canEditTechnicalFiles = workflowStatus === "adicao";
 
   const canEditComplementaryFiles =
-    workflowStatus === "aprovado" && permissions?.tipo_usuario === "INTERNO";
+    ["aprovado", "aprovacao"].includes(workflowStatus) &&
+    permissions?.tipo_usuario === "INTERNO";
 
   return (
     <>
@@ -119,6 +121,7 @@ export function FeasibilityFileUploadStep({
         setSelectedFile={setSelectedFile}
         setSelectedIndex={setSelectedIndex}
         setSelectedFileType={setSelectedFileType}
+        workflowStatus={workflowStatus}
       />
 
       <ModalComponent

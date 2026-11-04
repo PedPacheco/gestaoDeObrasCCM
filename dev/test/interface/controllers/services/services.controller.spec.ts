@@ -13,18 +13,18 @@ describe('ServicesController', () => {
   let service: WorksServicesService;
 
   const mockWorksServicesService = {
-    scheduleServices: jest.fn(),
-    reascheduleServices: jest.fn(),
-    applyAdditional: jest.fn(),
-    cancelServices: jest.fn(),
-    addItem: jest.fn(),
-    delete: jest.fn(),
-    deleteAll: jest.fn(),
-    importFromSpreadsheet: jest.fn(),
+    scheduleServices: vi.fn(),
+    reascheduleServices: vi.fn(),
+    applyAdditional: vi.fn(),
+    cancelServices: vi.fn(),
+    addItem: vi.fn(),
+    delete: vi.fn(),
+    deleteAll: vi.fn(),
+    importFromSpreadsheet: vi.fn(),
   };
 
   const mockImportServicesService = {
-    importFromSpreadsheet: jest.fn(),
+    importFromSpreadsheet: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -45,7 +45,7 @@ describe('ServicesController', () => {
     controller = module.get<ServicesController>(ServicesController);
     service = module.get<WorksServicesService>(WorksServicesService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -100,6 +100,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
@@ -136,6 +137,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
@@ -160,6 +162,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
     });
 
@@ -171,7 +174,7 @@ describe('ServicesController', () => {
       const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result.statusCode).toBe(HttpStatus.OK);
-      expect(service.scheduleServices).toHaveBeenCalledWith(1, []);
+      expect(service.scheduleServices).toHaveBeenCalledWith(1, [], null);
     });
 
     it('should schedule services with all fields populated', async () => {
@@ -216,6 +219,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
     });
   });
@@ -324,7 +328,7 @@ describe('ServicesController', () => {
 
   describe('deleteMaterialAndService', () => {
     it('Should call deleteSchedules and return message', async () => {
-      jest.spyOn(service, 'delete').mockResolvedValue();
+      vi.spyOn(service, 'delete').mockResolvedValue();
 
       const result = await controller.deleteMaterialAndService(1, 4);
 
@@ -338,7 +342,7 @@ describe('ServicesController', () => {
 
   describe('deleteAllServices', () => {
     it('Should call delete all services and materials and return message', async () => {
-      jest.spyOn(service, 'deleteAll').mockResolvedValue();
+      vi.spyOn(service, 'deleteAll').mockResolvedValue();
 
       const result = await controller.deleteAllServices(1);
 

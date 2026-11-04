@@ -6,11 +6,11 @@ describe('AdvancePartnerService', () => {
   let service: AdvancePartnerService;
 
   const mockRepository = {
-    getRestrictionsAdvancePartner: jest.fn(),
-    getGripPartner: jest.fn(),
-    getReaschedulingReasons: jest.fn(),
-    getSparklinesByPartner: jest.fn(),
-    getWeeksByPartner: jest.fn(),
+    getRestrictionsAdvancePartner: vi.fn(),
+    getGripPartner: vi.fn(),
+    getReaschedulingReasons: vi.fn(),
+    getSparklinesByPartner: vi.fn(),
+    getWeeksByPartner: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -23,8 +23,8 @@ describe('AdvancePartnerService', () => {
 
     service = module.get<AdvancePartnerService>(AdvancePartnerService);
 
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should be defined', () => {
@@ -168,7 +168,7 @@ describe('AdvancePartnerService', () => {
 
   describe('getSparklinesByPartner', () => {
     it('should group sparkline data by partner and calculate percentages correctly', async () => {
-      jest.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
+      vi.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
 
       mockRepository.getSparklinesByPartner.mockResolvedValue({
         aderencia: [
@@ -242,7 +242,7 @@ describe('AdvancePartnerService', () => {
     });
 
     it('should return 0 percentage when total is zero', async () => {
-      jest.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
+      vi.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
 
       mockRepository.getSparklinesByPartner.mockResolvedValue({
         aderencia: [
@@ -285,7 +285,7 @@ describe('AdvancePartnerService', () => {
     });
 
     it('should create separate groups for different partners', async () => {
-      jest.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
+      vi.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
 
       mockRepository.getSparklinesByPartner.mockResolvedValue({
         aderencia: [
@@ -334,7 +334,7 @@ describe('AdvancePartnerService', () => {
 
   describe('getWeeksByPartner', () => {
     it('should return mapped weeks by partner with numeric conversion', async () => {
-      jest.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
+      vi.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
 
       mockRepository.getWeeksByPartner.mockResolvedValue([
         {
@@ -367,7 +367,7 @@ describe('AdvancePartnerService', () => {
     });
 
     it('should return empty array when repository returns no data', async () => {
-      jest.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
+      vi.spyOn(service as any, 'parseEliminationFilters').mockReturnValue({});
 
       mockRepository.getWeeksByPartner.mockResolvedValue([]);
 

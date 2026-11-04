@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { IErrorsReportRepository } from 'src/domain/contracts/IErrorsReportRepository';
-import { PrismaService } from '../prisma/prisma.service';
 import {
   DivergentConclusionResponse,
   ExecutionDifferentialResponse,
@@ -10,6 +9,7 @@ import {
   WorksWithoutYearPlanResponse,
   ZeroCapexResponse,
 } from 'src/domain/types';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ErrorsReportRepository implements IErrorsReportRepository {

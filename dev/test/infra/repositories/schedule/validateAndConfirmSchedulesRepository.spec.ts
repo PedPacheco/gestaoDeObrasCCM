@@ -1,17 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
-import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/works/schedule/validateAndConfirmSchedulesRepository';
+import type { Mock } from 'vitest';
 
 describe('ValidateAndConfirmSchedulesRepository', () => {
   let repository: ValidateAndConfirmSchedulesRepository;
 
   const mockTransaction = {
     programacoes: {
-      updateMany: jest.fn(),
-      update: jest.fn(),
+      updateMany: vi.fn(),
+      update: vi.fn(),
     },
     programacoes_reprovacoes: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -25,7 +26,7 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('validate', () => {
     it('Should call method validate and correctly update the schedules that have been validated', async () => {
@@ -148,7 +149,7 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
       const error = new Error('DB connection failed');
 
       (
-        mockTransaction.programacoes_reprovacoes.create as jest.Mock
+        mockTransaction.programacoes_reprovacoes.create as Mock
       ).mockRejectedValue(error);
 
       await expect(repository.reject(data, mockTransaction)).rejects.toThrow(

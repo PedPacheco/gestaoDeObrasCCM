@@ -1,7 +1,7 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
-import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
@@ -14,19 +14,19 @@ describe('HandleUpdateScheduleService', () => {
   let service: HandleSchedulesUpdateService;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   const mockUpdateSchedulesService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockExecutionReportService = {
-    create: jest.fn(),
+    create: vi.fn(),
   };
 
   const mockGetDetailsService = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -51,7 +51,7 @@ describe('HandleUpdateScheduleService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   const mockDTO = {
     updateData: {

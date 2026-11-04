@@ -9,6 +9,7 @@ export type GetScheduleFilters = {
   idStatus?: number[];
   idStatusProgramacao?: number[];
   idStatusSap?: number[];
+  idTecnico?: number[];
   ovnota?: string;
   page?: number;
   executado: boolean;
@@ -35,11 +36,10 @@ export type GetScheduleValuesResponseItem = {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
-  moPlanejadaPontoAPonto: number;
-  moExecutadoPontoAPonto: number;
   capex_mat_pend: number;
   capex_mo_pend: number;
-  mat_prog: number;
+  moPlanejadaPontoAPonto: number;
+  moExecutadoPontoAPonto: number;
   num_dp: string | null;
   hora_ini: string;
   hora_ter: string;
@@ -65,9 +65,15 @@ export type GetScheduleValuesResponseItem = {
 
 export type GetScheduleValuesTotals = {
   total_obras: number;
+  total_exec: number;
   total_mo_planejada: number;
   total_mo_exec: number;
   total_qtde_planejada: number;
+  total_equipe_linha_morta: number;
+  total_equipe_linha_viva: number;
+  total_equipe_regularizacao: number;
+  total_ponto_a_ponto_programado: number;
+  total_ponto_a_ponto_executado: number;
 };
 
 export type GetScheduleValuesRepositoryResponse = {

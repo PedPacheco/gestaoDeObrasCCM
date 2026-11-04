@@ -1,3 +1,8 @@
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   GetAllItemsOutput,
@@ -8,14 +13,9 @@ import {
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
 import { GetSelectedServicesParamsRequest } from 'src/domain/types';
-
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
 
 @Injectable()
 export class QueriesServicesService {
@@ -36,7 +36,7 @@ export class QueriesServicesService {
 
     const response = services.map((service) => {
       const preco = Number(
-        service.servicos_contratos?.preco ?? service.materiais?.preco ?? 0,
+        service.servicos_contratos?.preco ?? service.materiais?.preco,
       );
 
       const qtdeTotal = service.qtde_plan + service.qtde_adicional;
@@ -73,20 +73,20 @@ export class QueriesServicesService {
     const services =
       await this.workServicesQueryRepository.getNotScheduledServices(id);
 
-    if (!services || services.length === 0) {
+    if (!services) {
       throw new NotFoundException('Obra não encontrada');
     }
 
     return services.reduce((acc, service) => {
       const total = (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0);
-      const totalReal = service.qtde_real ?? 0;
-      const totalProg = service.qtde_prog ?? 0;
+      const totalReal = service.qtde_real;
+      const totalProg = service.qtde_prog;
 
       if (totalReal === total || totalProg === total) return acc;
 
       const precoServico = service.servicos_contratos?.preco;
       const precoMaterial = service.materiais?.preco;
-      const preco = Number(precoServico ?? precoMaterial ?? 0);
+      const preco = Number(precoServico ?? precoMaterial);
 
       const saldoDisponivel = total - Math.max(totalReal, totalProg);
 
@@ -131,7 +131,7 @@ export class QueriesServicesService {
       const service = item.servicos;
 
       const preco = Number(
-        service.servicos_contratos?.preco ?? service.materiais?.preco ?? 0,
+        service.servicos_contratos?.preco ?? service.materiais?.preco,
       );
 
       return {

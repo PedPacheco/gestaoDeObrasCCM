@@ -13,8 +13,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { UsersService } from './users.service';
 import { AuthLoginInput, AuthLoginOutput, RegisterUserInput } from '../types';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class AuthService {

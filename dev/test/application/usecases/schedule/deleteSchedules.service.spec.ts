@@ -1,5 +1,5 @@
-import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
-import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IDeleteSchedulesRepository';
+import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
+import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IDeleteSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -8,7 +8,7 @@ describe('DeleteSchedulesService', () => {
   let deleteSchedulesService: DeleteSchedulesService;
 
   const mockRepository = {
-    delete: jest.fn(),
+    delete: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('DeleteSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('delete', () => {
     it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {

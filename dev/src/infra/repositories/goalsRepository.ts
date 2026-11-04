@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 import { IGoalsRepository } from 'src/domain/contracts/IGoalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { GetGoalsResponse } from 'src/domain/types';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GoalsRepository implements IGoalsRepository {

@@ -13,20 +13,20 @@ describe('FeasibilityController', () => {
   let handleFeasibility: HandleFeasibilityService;
 
   const mockFeasibilityService = {
-    feasibilityExists: jest.fn(),
-    handleUpload: jest.fn(),
-    getRejections: jest.fn(),
+    feasibilityExists: vi.fn(),
+    handleUpload: vi.fn(),
+    getRejections: vi.fn(),
   };
 
   const mockHandleFeasibility = {
-    upload: jest.fn(),
-    uploadComplementaryFiles: jest.fn(),
-    reject: jest.fn(),
-    approve: jest.fn(),
+    upload: vi.fn(),
+    uploadComplementaryFiles: vi.fn(),
+    reject: vi.fn(),
+    approve: vi.fn(),
   };
 
   const mockPermissionGuard = {
-    canActivate: jest.fn(() => true),
+    canActivate: vi.fn(() => true),
   };
 
   const mockReq = {
@@ -56,7 +56,7 @@ describe('FeasibilityController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Definição', () => {

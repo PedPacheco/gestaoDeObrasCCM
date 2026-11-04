@@ -11,13 +11,13 @@ export type GetFiltersInput = {
   statusProgramacao?: boolean;
   conjunto?: boolean;
   ovnota?: boolean;
-  ovnotaExec?: boolean;
   empreendimento?: boolean;
   restricao?: boolean;
   tipoRestricao?: string[];
   tecnico?: boolean;
   statusSap?: boolean;
   equipes?: boolean;
+  notaD5?: boolean;
 };
 
 export type SelectOption = {
@@ -55,9 +55,23 @@ export type ConjuntoFilterOutput = {
   conjunto: string;
 };
 
+export type OvnotaFilterRow = {
+  id: number;
+  ovnota: string | null;
+  data_conclusao: Date | null;
+  diagrama: string | null;
+  ordem_dci: string | null;
+  ordem_dca: string | null;
+  ordem_dcd: string | null;
+  ordem_dcim: string | null;
+};
+
+/** Item devolvido ao cliente no filtro de OV/Nota. */
 export type OvnotaFilterOutput = {
   id: number;
-  ovnota: string;
+  ovnota: string | null;
+  concluida: boolean;
+  ordemDiagrama: string | null;
 };
 
 export type EmpreendimentoFilterOutput = {
@@ -84,6 +98,11 @@ export type StatusSapFilterOutput = {
   status_sap: string;
 };
 
+export type NotasD5FilterOutput = {
+  id: number;
+  nota_d5: string;
+};
+
 export type GetFiltersOutput = {
   regional?: RegionalFilterOutput[];
   parceira?: PartnerFilterOutput[];
@@ -92,9 +111,9 @@ export type GetFiltersOutput = {
   statusProgramacao?: StatusProgramadoFilterOutput[];
   conjunto?: ConjuntoFilterOutput[];
   ovnota?: OvnotaFilterOutput[];
-  ovnotaExec?: OvnotaFilterOutput[];
   empreendimento?: EmpreendimentoFilterOutput[];
   restricao?: RestricaoFilterOutput[];
   tecnico?: TecnicoFilterOutput[];
   statusSap?: StatusSapFilterOutput[];
+  notaD5?: NotasD5FilterOutput[];
 };

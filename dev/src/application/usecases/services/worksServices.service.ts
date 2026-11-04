@@ -1,12 +1,20 @@
 import {
-  AddServiceInput,
-  ApplyAdditionalInput,
-  ScheduleServicesInput,
-} from 'src/application/types';
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { AddServiceInput, ApplyAdditionalInput } from 'src/application/types';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/contracts/IStatusFlowRepository';
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
@@ -15,89 +23,126 @@ import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesRepository';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-import { GetServicesByWorkIdResponse } from 'src/domain/types';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { isMaterial, ScheduleStatus } from 'src/utils/serviceType.utils';
-
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+  findSchedulingViolation,
+  hasLockedExecution,
+  isRescheduled,
+  SchedulingViolation,
+} from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  FINALIZED_SCHEDULE_STATUSES,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
+import { ProgressRecalculationService } from './progressRecalculation.service';
 
-@Injectable()
+const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
+
+type ScheduleHistoryRow = {
+  id_programacao: number;
+  id_servico: number;
+  id_equipe: number;
+  prog: number | null;
+  real: number | null;
+  status: string | null;
+};
+
 export class WorksServicesService {
   private readonly logger = new Logger(WorksServicesService.name);
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly progress: ProgressRecalculationService, // ALTERADO
     @Inject(WORK_SERVICES_REPOSITORY)
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly schedulesRepository: IFindScheduleByIdRepository,
-    private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
+    @Inject(STATUS_FLOW_REPOSITORY)
+    private readonly statusFlowRepository: IStatusFlowRepository,
   ) {}
 
+  /**
+   * Programa os itens numa programação existente.
+   *
+   * Quando é chamado a partir de outro caso de uso que já tem transação (ex.:
+   * criação da programação), recebe o `tx` dela: a programação recém-criada só
+   * é visível dentro dessa transação. Sem `tx`, abre a própria.
+   */
   async scheduleServices(
     workId: number,
-    data: ScheduleServicesInput[],
+    data: ScheduleServicesDTO[],
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       throw new BadRequestException('Programação não enviada.');
     }
 
-    const idSchedule = data[0]?.idSchedule;
+    if (tx) {
+      await this.scheduleServicesInTransaction(workId, data, tx);
+      return;
+    }
 
-    const { id_status_programacao } =
-      await this.schedulesRepository.findById(idSchedule);
-
-    const onlyServices = data.filter((item) => item.type === 'S');
-
-    const prog = await this.calculateScheduledProgress(workId, onlyServices);
-
-    await this.validateScheduleServices(workId, data, prog);
-
-    const newStatus =
-      id_status_programacao === ScheduleStatus.PENDENTE_REVISAO
-        ? ScheduleStatus.APROVADA
-        : undefined;
-
-    await this.workServicesRepository.scheduleServices(
-      data,
-      { increment: prog },
-      idSchedule,
-      newStatus,
+    await this.prisma.$transaction(
+      (innerTx) => this.scheduleServicesInTransaction(workId, data, innerTx),
+      TX_OPTIONS,
     );
   }
 
+  // ALTERADO: a orquestração saiu do repositório
   async cancelServices(id: number): Promise<void> {
-    await this.workServicesRepository.cancelServices(id);
+    await this.prisma.$transaction(async (tx) => {
+      const schedule = await this.workServicesRepository.findScheduleStatus(
+        id,
+        tx,
+      );
+
+      if (!schedule) {
+        throw new NotFoundException(`Programação com ID ${id} não encontrada`);
+      }
+
+      const rows = await this.workServicesRepository.findScheduleItemsExecution(
+        id,
+        tx,
+      );
+
+      // Regra 2: o executado não pode ser perdido. Uma programação com execução
+      // lançada (real preenchido, inclusive 0 = descartado) ou já finalizada
+      // como executada/parcial só pode ser alterada desfazendo a finalização.
+      if (hasLockedExecution(schedule.id_status_programacao, rows)) {
+        throw new ConflictException(
+          'Programação com execução lançada ou finalizada não pode ter os serviços cancelados. Desfaça a finalização antes.',
+        );
+      }
+
+      await this.workServicesRepository.deleteScheduleItems(id, tx);
+      await this.workServicesRepository.resetScheduleProgress(id, tx);
+
+      await this.progress.recomputeAll(
+        rows.map((row) => row.id_servico),
+        schedule.id_obra,
+        tx,
+      );
+    }, TX_OPTIONS);
   }
 
   async applyAdditional(
     workId: number,
     data: ApplyAdditionalInput[],
   ): Promise<void> {
-    await this.prisma.$transaction(
-      async (tx) => {
-        try {
-          await this.workServicesRepository.applyAdditional(data, tx);
-          await this.recalculateAllSchedulesProgress(workId, tx);
-        } catch (error) {
-          this.logger.error(error);
-          throw error;
-        }
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        await this.workServicesRepository.applyAdditional(data, tx);
+        await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    }, TX_OPTIONS);
   }
 
   async addItem(
@@ -111,9 +156,7 @@ export class WorksServicesService {
 
     const itemsMap = new Map(
       items.map((item) => [
-        `${
-          type === 'service' ? item.id_contrato_servico : item.id_material
-        }:${item.ponto}:${item.descricao_operacao}`,
+        `${type === 'service' ? item.id_contrato_servico : item.id_material}:${item.ponto}:${item.descricao_operacao}`,
         item,
       ]),
     );
@@ -124,21 +167,15 @@ export class WorksServicesService {
       );
     }
 
-    await this.prisma.$transaction(
-      async (tx) => {
-        try {
-          await this.workServicesRepository.addItem(data, type, tx);
-          await this.recalculateAllSchedulesProgress(idWork, tx);
-        } catch (error) {
-          this.logger.error(error);
-          throw error;
-        }
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        await this.workServicesRepository.addItem(data, type, tx);
+        await this.progress.recomputeWorkProgress(idWork, tx); // ALTERADO
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    }, TX_OPTIONS);
   }
 
   async delete(id: number, workId: number) {
@@ -148,155 +185,203 @@ export class WorksServicesService {
       );
     }
 
-    await this.prisma.$transaction(
-      async (tx) => {
-        try {
-          await this.workServicesRepository.delete(id, tx);
-          await this.recalculateAllSchedulesProgress(workId, tx);
-        } catch (error) {
-          this.logger.error(error);
-          throw error;
-        }
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        await this.workServicesRepository.delete(id, tx);
+        await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    }, TX_OPTIONS);
   }
 
   async deleteAll(workId: number) {
-    await this.prisma.$transaction(
-      async (tx) => {
-        try {
-          await this.workServicesRepository.deleteAll(workId, tx);
-          await this.recalculateAllSchedulesProgress(workId, tx);
-        } catch (error) {
-          this.logger.error(error);
-          throw error;
-        }
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        await this.workServicesRepository.deleteAll(workId, tx);
+        await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    }, TX_OPTIONS);
   }
 
-  private async recalculateAllSchedulesProgress(
+  private async scheduleServicesInTransaction(
     workId: number,
+    data: ScheduleServicesDTO[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const [services, history] = await Promise.all([
-      this.workServicesQueryRepository.getAllServicesOfWork(workId, tx),
-      this.workServicesQueryRepository.getServiceScheduleHistory(workId, tx),
-    ]);
+    this.validatePayload(data);
 
-    const totalPlanned = this.sumServiceQuantities(services);
+    const idSchedule = data[0].idSchedule;
+    const schedule = await this.schedulesRepository.findById(idSchedule, tx);
 
-    const schedulesProgress =
-      this.scheduleProgressCalculator.calculateAllSchedulesProgress(
-        history,
-        totalPlanned,
+    if (!schedule) {
+      throw new NotFoundException(
+        `Programação com ID ${idSchedule} não encontrada.`,
+      );
+    }
+
+    if (schedule.id_obra !== workId) {
+      throw new BadRequestException(
+        'A programação informada não pertence a esta obra.',
+      );
+    }
+
+    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)) {
+      throw new ConflictException(
+        'Programação já finalizada: não é possível programar novos serviços.',
+      );
+    }
+
+    const realWorkId = schedule.id_obra;
+
+    const history =
+      await this.workServicesQueryRepository.getServiceScheduleHistory(
+        realWorkId,
+        tx,
       );
 
-    const executed = history
-      .filter((item) => item.real !== 0 && !isMaterial(item.servicos))
-      .reduce((sum, item) => sum + (item.real ?? 0), 0);
+    await this.validateOwnershipAndBalance(realWorkId, data, history, tx);
+    this.validateNotDuplicated(data, history);
 
-    const workProgress =
-      totalPlanned > 0
-        ? Number(((executed / totalPlanned) * 100).toFixed(4))
-        : 0;
+    const newStatus =
+      schedule.id_status_programacao === ScheduleStatus.PENDENTE_REVISAO
+        ? ScheduleStatus.APROVADA
+        : undefined;
 
-    await this.workServicesRepository.updateSchedulesProgress(
-      schedulesProgress,
+    // ALTERADO: antes era workServicesRepository.scheduleServices(...)
+    if (newStatus !== undefined) {
+      await this.workServicesRepository.updateScheduleStatus(
+        idSchedule,
+        newStatus,
+        tx,
+      );
+    }
+
+    await this.workServicesRepository.createScheduleItems(idSchedule, data, tx);
+
+    // O adicional informado na programação passa a valer para o serviço.
+    await this.workServicesRepository.updateServicesAdditional(
+      data
+        .filter(
+          ({ additional }) => additional !== undefined && additional !== null,
+        )
+        .map(({ id, additional }) => ({ id, additional })),
       tx,
     );
 
-    await this.workServicesRepository.updateWorkExecuted(
-      workId,
-      workProgress,
+    // Fonte única dos totalizadores: qtde_prog/qtde_real dos serviços,
+    // prog/exec de todas as programações e executado da obra.
+    await this.progress.recomputeAll(
+      data.map(({ id }) => id),
+      realWorkId,
       tx,
     );
-  }
+    // fim ALTERADO
 
-  private calculateProgress(scheduledPlan: number, totalPlan: number): number {
-    if (totalPlan === 0) {
-      return 0;
-    }
-
-    if (Math.abs(totalPlan - scheduledPlan) < 0.01) {
-      return 100;
-    }
-
-    return Number(((scheduledPlan / totalPlan) * 100).toFixed(2));
-  }
-
-  private async calculateScheduledProgress(
-    workId: number,
-    servicesSelected: ScheduleServicesInput[],
-  ): Promise<number> {
-    const services =
-      await this.workServicesQueryRepository.getAllServicesOfWork(workId);
-
-    const totalPlan = this.sumServiceQuantities(services);
-
-    const scheduledPlan = servicesSelected.reduce(
-      (sum, item) => sum + item.prog,
-      0,
-    );
-
-    return this.calculateProgress(scheduledPlan, totalPlan);
-  }
-
-  private sumServiceQuantities(
-    services: GetServicesByWorkIdResponse[],
-  ): number {
-    return services
-      .filter((item) => item.qtde_real !== 0 && !isMaterial(item))
-      .reduce(
-        (sum, service) =>
-          sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
-        0,
+    // Sair de "reprovada" reabre a programação, e a obra acompanha (mesmo
+    // comportamento do PATCH de cabeçalho da programação).
+    if (newStatus !== undefined) {
+      await this.statusFlowRepository.updateStatusWorks(
+        WorkStatus.PROGRAMADA,
+        realWorkId,
+        tx,
       );
+    }
   }
 
-  private async validateScheduleServices(
-    workId: number,
-    data: ScheduleServicesInput[],
-    progress?: number,
-  ): Promise<void> {
+  private validatePayload(data: ScheduleServicesDTO[]): void {
     const scheduleIds = new Set(data.map((item) => item.idSchedule));
 
-    if (scheduleIds.size !== 1) {
+    if (scheduleIds.size !== 1 || scheduleIds.has(undefined)) {
       throw new BadRequestException(
         'Todos os serviços devem pertencer à mesma programação.',
       );
     }
 
-    if (!progress && progress !== 0) {
-      throw new BadRequestException('Valor do programado tem que ser enviado');
+    for (const item of data) {
+      if (!Number.isFinite(item.id) || !Number.isFinite(item.idTeam)) {
+        throw new BadRequestException(
+          'Serviço e equipe devem ser informados para cada item.',
+        );
+      }
     }
+  }
 
-    const history =
-      await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
+  /**
+   * Garante, dentro da transação, que:
+   * - todo item pertence à obra da programação;
+   * - item descartado (real = 0) não volta a ser programado;
+   * - a soma programada não ultrapassa o saldo do item
+   *   (viabilizado + adicional - o que já está programado/executado).
+   */
+  private async validateOwnershipAndBalance(
+    workId: number,
+    data: ScheduleServicesDTO[],
+    history: ScheduleHistoryRow[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const serviceIds = [...new Set(data.map((item) => item.id))];
 
-    // idSchedule + id_servico já identifica unicamente o vínculo — ponto e
-    // operação são atributos fixos do próprio serviço, não variam por linha
-    // do histórico, então não precisam entrar na chave de deduplicação.
-    const scheduledServices = new Set(
-      history.map((item) => `${item.id_programacao}-${item.id_servico}`),
-    );
-
-    const hasDuplicate = data.some((service) =>
-      scheduledServices.has(`${service.idSchedule}-${service.id}`),
-    );
-
-    if (hasDuplicate) {
-      throw new BadRequestException(
-        'Esse serviço já foi programado, nessa programação atual!!',
+    const services =
+      await this.workServicesQueryRepository.findServicesForScheduling(
+        serviceIds,
+        tx,
       );
+
+    const violation = findSchedulingViolation(workId, data, services, history);
+
+    if (violation) {
+      throw new BadRequestException(this.toViolationMessage(violation));
+    }
+  }
+
+  /** As mensagens são iguais às que existiam antes. */
+  private toViolationMessage(violation: SchedulingViolation): string {
+    switch (violation.type) {
+      case 'not_owned':
+        return `O item ${violation.serviceId} não pertence a esta obra.`;
+      case 'discarded':
+        return `O item ${violation.label} foi descartado e não pode ser programado.`;
+      case 'insufficient_balance':
+        return `Saldo insuficiente para o item ${violation.label}: disponível ${Number(
+          Math.max(violation.available, 0).toFixed(4),
+        )}, solicitado ${Number(violation.requested.toFixed(4))}.`;
+    }
+  }
+
+  /**
+   * idSchedule + id_servico + id_equipe identifica o vínculo ATIVO.
+   * Linhas REPROGRAMADO são só histórico e não impedem programar de novo.
+   */
+  private validateNotDuplicated(
+    data: ScheduleServicesDTO[],
+    history: ScheduleHistoryRow[],
+  ): void {
+    const scheduledServices = new Set(
+      history
+        .filter((item) => !isRescheduled(item))
+        .map(
+          (item) =>
+            `${item.id_programacao}-${item.id_servico}-${item.id_equipe}`,
+        ),
+    );
+
+    const seen = new Set<string>();
+
+    for (const service of data) {
+      const key = `${service.idSchedule}-${service.id}-${service.idTeam}`;
+
+      if (scheduledServices.has(key) || seen.has(key)) {
+        throw new BadRequestException(
+          'Esse serviço já foi programado, nessa programação atual!!',
+        );
+      }
+
+      seen.add(key);
     }
   }
 }

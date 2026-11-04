@@ -1,3 +1,5 @@
+import { Prisma } from 'src/infra/generated/prisma/client';
+
 export type ScheduleStatus = {
   status_programacao: string;
 };
@@ -62,6 +64,25 @@ export type WorkDetailsSchedule = {
   data_resolucao2: Date | null;
   usuario: WorkUser | null;
   usuario_ultima_atualizacao?: WorkUser | null;
+};
+
+export type ServicesType = {
+  id: number;
+  qtde_real: number;
+  viabilizado: number;
+  qtde_adicional: number;
+  materiais: {
+    codigo: string | null;
+    descricao: string | null;
+    preco: Prisma.Decimal;
+    unidade: string;
+  } | null;
+  servicos_contratos: {
+    material: string | null;
+    texto_breve: string | null;
+    preco: number;
+    medida: string;
+  } | null;
 };
 
 export type WorkDetailsRepositoryResponse = {

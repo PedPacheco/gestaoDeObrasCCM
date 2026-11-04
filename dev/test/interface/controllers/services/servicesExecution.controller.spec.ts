@@ -8,9 +8,9 @@ describe('ServicesExecutionController', () => {
   let controller: ServicesExecutionController;
 
   const mockFinalizeServices = {
-    finalizeServices: jest.fn(),
-    performServices: jest.fn(),
-    reascheduleServices: jest.fn(),
+    finalizeServices: vi.fn(),
+    performServices: vi.fn(),
+    reascheduleServices: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -25,7 +25,7 @@ describe('ServicesExecutionController', () => {
       ServicesExecutionController,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

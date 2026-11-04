@@ -4,8 +4,8 @@ import { ScheduleModule } from 'src/interface/modules/schedule.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-jest.mock('src/shared/multer/multer.config', () => ({
-  createMulterConfig: jest.fn().mockReturnValue({
+vi.mock('src/shared/multer/multer.config', () => ({
+  createMulterConfig: vi.fn().mockReturnValue({
     storage: { mock: true },
   }),
 }));

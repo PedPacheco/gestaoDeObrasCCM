@@ -1,4 +1,5 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@prisma/client/runtime/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export type GetSelectedServicesParamsRequest = {
   id: number;
@@ -6,6 +7,7 @@ export type GetSelectedServicesParamsRequest = {
 };
 
 export type GetServicesByWorkIdResponse = {
+  id: number;
   id_obra: number;
   id_contrato_servico: number;
   id_material: number;
@@ -18,7 +20,7 @@ export type GetServicesByWorkIdResponse = {
   viabilizado: number;
   descricao_operacao: string;
   numero_operacao: string;
-  materiais: { codigo: string; descricao: string; preco: Decimal };
+  materiais: { codigo: string; descricao: string; preco: Prisma.Decimal };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -37,11 +39,15 @@ export type GetServicesSelectedByWorkIdResponse = {
     id_obra: number;
     operacao: string;
     ponto: string;
-    qtde_plan: number;
-    viabilizado: number;
-    descricao_operacao: string;
-    numero_operacao: string;
-    materiais: { codigo: string; descricao: string; preco: Decimal };
+    qtde_plan: number | null;
+    viabilizado: number | null;
+    descricao_operacao: string | null;
+    numero_operacao: string | null;
+    materiais: {
+      codigo: string;
+      descricao: string;
+      preco: Prisma.Decimal;
+    } | null;
     servicos_contratos: {
       material: string;
       texto_breve: string;
@@ -53,6 +59,7 @@ export type GetServicesSelectedByWorkIdResponse = {
 export type GetServiceScheduleHistoryResponse = {
   id: number;
   id_servico: number;
+  id_equipe: number;
   servicos: {
     materiais?: { descricao: string; codigo: string };
     servicos_contratos?: { texto_breve: string; material: string };
@@ -69,6 +76,7 @@ export type GetServiceScheduleHistoryResponse = {
   prog: number;
   real: number;
   adicional: number;
+  status: string | null;
 };
 
 export type GetServiceScheduleHistoryByIdScheduleResponse = {
@@ -105,6 +113,7 @@ export type GetServicesContractsResponse = {
   id: number;
   texto_breve: string;
   material: string;
+  material_antigo: string;
   preco: number;
   contrato: string;
   medida: string;
@@ -143,7 +152,7 @@ export type ServiceToExport = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Decimal;
+    preco: Prisma.Decimal;
     unidade: string;
   } | null;
   servicos_contratos: {
@@ -170,6 +179,7 @@ export type WorkProgrammingToExport = {
   equipe_linha_viva: number;
   equipe_regularizacao: number;
   tecnicos: { tecnico: string };
+  status_programacao: { status_programacao: string };
 };
 
 export type WorkToExportResponse = {
@@ -214,6 +224,7 @@ export type ExportServicesExcelOutput = {
   parceira: string;
   executado: number;
   empreendimento: string;
+  statusProgramacao: string;
   dataProg: Date | null;
   prog: number | null;
   observacaoProgramacao: string | null;
@@ -229,9 +240,11 @@ export type ExportServicesExcelOutput = {
   ponto: string | null;
   preco: number;
   valorTotal: number;
+  valorTotalExecutado: number;
   tipo: string;
   unidade: string;
   codigo: string;
   descricao: string;
   quantidadeProgramada: number;
+  quantidadeExecutada: number;
 };

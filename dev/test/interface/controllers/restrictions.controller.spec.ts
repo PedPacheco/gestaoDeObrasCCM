@@ -26,15 +26,15 @@ describe('RestrictionController ', () => {
         {
           provide: RestrictionsService,
           useValue: {
-            getScheduleRestricion: jest.fn(),
-            getPublicationRestriction: jest.fn(),
-            insertPublicationRestriction: jest.fn(),
-            updatePublicationRestriction: jest.fn(),
-            deletePublicationRestriction: jest.fn(),
-            getPublicationRestrictionsByWorkId: jest.fn(),
+            getScheduleRestricion: vi.fn(),
+            getPublicationRestriction: vi.fn(),
+            insertPublicationRestriction: vi.fn(),
+            updatePublicationRestriction: vi.fn(),
+            deletePublicationRestriction: vi.fn(),
+            getPublicationRestrictionsByWorkId: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -43,7 +43,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call getPublicationRestriction service method with the provided filters and return a successful response with the expected structure', async () => {
-    jest
+    vi
       .spyOn(service, 'getPublicationRestriction')
       .mockResolvedValue({ works: [mockGetScheduleRestrictions] });
 
@@ -63,7 +63,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call getScheduleRestricion service method with the provided filters and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
+    vi.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
       works: [mockGetScheduleRestrictions],
       totals: { total_obras: 1 },
     });
@@ -87,7 +87,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call getScheduleRestricion service method with the provided filters, without idParceira in req and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
+    vi.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
       works: [mockGetScheduleRestrictions],
       totals: { total_obras: 1 },
     });
@@ -114,7 +114,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call getPublicationRestriction service method with the provided filters, without insufficientPermission in req and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
+    vi.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
       works: [mockGetScheduleRestrictions],
       totals: { total_obras: 1 },
     });
@@ -141,7 +141,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call getPublicationRestrictionsByWorkId service method with the data and return a successful response with the expected structure', async () => {
-    jest
+    vi
       .spyOn(service, 'getPublicationRestrictionsByWorkId')
       .mockResolvedValue([]);
 
@@ -156,7 +156,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call insertPublicationRestriction service method with the data and return a successful response with the expected structure', async () => {
-    jest
+    vi
       .spyOn(service, 'insertPublicationRestriction')
       .mockResolvedValue(undefined);
 
@@ -174,7 +174,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call updatePublicationRestriction service method with the data and return a successful response with the expected structure', async () => {
-    jest
+    vi
       .spyOn(service, 'updatePublicationRestriction')
       .mockResolvedValue(undefined);
 
@@ -192,7 +192,7 @@ describe('RestrictionController ', () => {
   });
 
   it('Should call deletePublicationRestriction service method with the data and return a successful response with the expected structure', async () => {
-    jest
+    vi
       .spyOn(service, 'deletePublicationRestriction')
       .mockResolvedValue(undefined);
 

@@ -1,39 +1,66 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { CalculatedValue } from 'src/domain/entities/capex.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
+
+const makeItem = (id: number): CalculatedValue => ({
+  id,
+  capex_mat_pend: 1,
+  capex_mat_plan: 2,
+  capex_mo_pend: 3,
+  capex_mo_plan: 4,
+  mo_calc: 5,
+  mo_exec: 6,
+  mo_pend: 7,
+  qtde_calc: 8,
+  qtde_pend: 9,
+});
+
+const makeData = (length: number) =>
+  Array.from({ length }, (_, i) => makeItem(i + 1));
+
+/** Texto SQL de uma chamada a $executeRaw (tagged template ou Prisma.sql). */
+function sqlOf(args: unknown[]): string {
+  const [first] = args;
+  if (Array.isArray(first)) return first.join('?');
+  if (first && typeof first === 'object') {
+    const sql = first as { sql?: string; strings?: string[] };
+    return sql.sql ?? sql.strings?.join('?') ?? '';
+  }
+  return String(first);
+}
 
 describe('UpdateCapexRepository', () => {
   let repository: UpdateCapexRepository;
 
+  const tx = { $executeRaw: vi.fn() };
+
   const mockPrisma = {
-    obras: {
-      update: jest.fn(),
-    },
-    servicos_contratos: {
-      findMany: jest.fn(),
-    },
-    cn52n: {
-      deleteMany: jest.fn(),
-    },
+    $transaction: vi.fn(),
+    servicos_contratos: { findMany: vi.fn() },
   };
 
-  const mockLogger = {
-    error: jest.fn(),
-  };
+  const mockLogger = { error: vi.fn(), log: vi.fn(), warn: vi.fn() };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateCapexRepository,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
-    }).compile();
+  const executedSql = () => tx.$executeRaw.mock.calls.map(sqlOf);
+  const updateStatements = () =>
+    executedSql().filter((sql) => /\bupdate\b/i.test(sql));
+  const truncateStatements = () =>
+    executedSql().filter((sql) => /\btruncate\b/i.test(sql));
 
-    repository = module.get(UpdateCapexRepository);
+  beforeEach(() => {
+    vi.clearAllMocks();
 
+    tx.$executeRaw.mockResolvedValue(0);
+    // Transação interativa: executa o callback com o cliente "tx"
+    mockPrisma.$transaction.mockImplementation(
+      async (fn: (client: typeof tx) => Promise<unknown>) => fn(tx),
+    );
+
+    // Instanciação direta: evita o custo do Test.createTestingModule
+    repository = new UpdateCapexRepository(
+      mockPrisma as unknown as PrismaService,
+    );
     (repository as any).logger = mockLogger;
-
-    jest.clearAllMocks();
   });
 
   // ============================================================
@@ -50,7 +77,6 @@ describe('UpdateCapexRepository', () => {
 
   it('should return deleted materials', async () => {
     const mock = [{ material: 'MAT1' }];
-
     mockPrisma.servicos_contratos.findMany.mockResolvedValue(mock);
 
     const result = await repository.getDeletedMaterials();
@@ -59,133 +85,108 @@ describe('UpdateCapexRepository', () => {
       select: { material: true },
       distinct: ['material'],
     });
-
     expect(result).toEqual(mock);
   });
 
   // ============================================================
-  // 🚀 update - fluxo principal
+  // 🚀 update — transação, lotes e truncate
   // ============================================================
 
-  it('should update all items and delete cn52n at the end', async () => {
-    const data = Array.from({ length: 10 }, (_, i) => ({
-      id: i,
-      capex_mat_pend: 1,
-      capex_mat_plan: 2,
-      capex_mo_pend: 3,
-      capex_mo_plan: 4,
-      mo_calc: 5,
-      mo_exec: 6,
-      mo_pend: 7,
-      qtde_calc: 8,
-      qtde_pend: 9,
-    }));
+  describe('update', () => {
+    it('should run all statements in a single transaction', async () => {
+      await repository.update(makeData(10));
 
-    mockPrisma.obras.update.mockResolvedValue({});
-    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
-
-    await repository.update(data);
-
-    expect(mockPrisma.obras.update).toHaveBeenCalledTimes(10);
-
-    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
-  });
-
-  // ============================================================
-  // 🔥 batch + concorrência
-  // ============================================================
-
-  it('should process in batches of 500 and chunks of 50', async () => {
-    const data = Array.from({ length: 600 }, (_, i) => ({
-      id: i,
-      capex_mat_pend: 1,
-      capex_mat_plan: 2,
-      capex_mo_pend: 3,
-      capex_mo_plan: 4,
-      mo_calc: 5,
-      mo_exec: 6,
-      mo_pend: 7,
-      qtde_calc: 8,
-      qtde_pend: 9,
-    }));
-
-    mockPrisma.obras.update.mockResolvedValue({});
-    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
-
-    await repository.update(data);
-
-    expect(mockPrisma.obras.update).toHaveBeenCalledTimes(600);
-  });
-
-  // ============================================================
-  // 📡 progresso
-  // ============================================================
-
-  it('should emit progress correctly', async () => {
-    const data = Array.from({ length: 100 }, (_, i) => ({
-      id: i,
-      capex_mat_pend: 1,
-      capex_mat_plan: 2,
-      capex_mo_pend: 3,
-      capex_mo_plan: 4,
-      mo_calc: 5,
-      mo_exec: 6,
-      mo_pend: 7,
-      qtde_calc: 8,
-      qtde_pend: 9,
-    }));
-
-    const progressMock = jest.fn();
-
-    mockPrisma.obras.update.mockResolvedValue({});
-    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
-
-    await repository.update(data, progressMock);
-
-    expect(progressMock).toHaveBeenCalled();
-
-    expect(progressMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        phase: 'updating',
-        processed: 100,
-      }),
-    );
-  });
-
-  // ============================================================
-  // ⚠️ erro
-  // ============================================================
-
-  it('should log error and rethrow', async () => {
-    const error = new Error('DB error');
-
-    mockPrisma.obras.update.mockRejectedValue(error);
-
-    await expect(repository.update([{ id: 1 } as any])).rejects.toThrow(
-      'DB error',
-    );
-
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      'Erro ao atualizar capex nas obras',
-      error.stack,
-    );
-  });
-
-  // ============================================================
-  // 🧮 calcPercentage (private)
-  // ============================================================
-
-  describe('calcPercentage', () => {
-    it('should return 50 when total is 0', () => {
-      const result = (repository as any).calcPercentage(0, 0);
-
-      expect(result).toBe(50);
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
     });
 
-    it('should calculate correctly', () => {
-      const result = (repository as any).calcPercentage(50, 100);
+    it('should run one UPDATE per batch of 1000 works', async () => {
+      await repository.update(makeData(2500));
 
-      expect(result).toBe(Math.floor(50 + (50 / 100) * 49));
+      expect(updateStatements()).toHaveLength(3); // 1000 + 1000 + 500
+    });
+
+    it('should run a single UPDATE when data fits in one batch', async () => {
+      await repository.update(makeData(10));
+
+      expect(updateStatements()).toHaveLength(1);
+    });
+
+    it('should truncate cn52n once, after all updates', async () => {
+      await repository.update(makeData(2500));
+
+      const sql = executedSql();
+      expect(truncateStatements()).toHaveLength(1);
+      expect(sql.at(-1)).toMatch(/truncate/i);
+      expect(sql.at(-1)).toMatch(/cn52n/i);
+    });
+
+    // ==========================================================
+    // 📡 progresso
+    // ==========================================================
+
+    it('should emit progress up to the total number of works', async () => {
+      const progressMock = vi.fn();
+
+      await repository.update(makeData(2500), progressMock);
+
+      expect(progressMock).toHaveBeenCalled();
+      expect(progressMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ phase: 'updating', processed: 2500 }),
+      );
+    });
+
+    it('should emit non-decreasing percentages within 0–100', async () => {
+      const progressMock = vi.fn();
+
+      await repository.update(makeData(2500), progressMock);
+
+      const percentages = progressMock.mock.calls.map(
+        ([event]) => event.percentage as number,
+      );
+
+      percentages.forEach((value, i) => {
+        expect(value).toBeGreaterThanOrEqual(0);
+        expect(value).toBeLessThanOrEqual(100);
+        if (i > 0) expect(value).toBeGreaterThanOrEqual(percentages[i - 1]);
+      });
+    });
+
+    it('should work without a progress callback', async () => {
+      await expect(repository.update(makeData(10))).resolves.not.toThrow();
+    });
+
+    // ==========================================================
+    // ⚠️ erro
+    // ==========================================================
+
+    it('should log the error and rethrow', async () => {
+      const error = new Error('DB error');
+      tx.$executeRaw.mockRejectedValueOnce(error);
+
+      await expect(repository.update(makeData(10))).rejects.toThrow('DB error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.any(String),
+        error.stack,
+      );
+    });
+
+    it('should not truncate cn52n when an UPDATE fails', async () => {
+      tx.$executeRaw.mockRejectedValueOnce(new Error('DB error'));
+
+      await expect(repository.update(makeData(2500))).rejects.toThrow();
+
+      expect(truncateStatements()).toHaveLength(0);
+    });
+
+    it('should propagate transaction failures (rollback)', async () => {
+      mockPrisma.$transaction.mockRejectedValueOnce(
+        new Error('transaction aborted'),
+      );
+
+      await expect(repository.update(makeData(10))).rejects.toThrow(
+        'transaction aborted',
+      );
     });
   });
 });

@@ -1,13 +1,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
+import { DeleteSchedulesRepository } from 'src/infra/repositories/works/schedule/deleteSchedulesRepository';
 
 describe('DeleteSchedulesRepository', () => {
   let repository: DeleteSchedulesRepository;
 
   const mockPrisma = {
-    programacoes: { delete: jest.fn() },
+    programacoes: { delete: vi.fn() },
   };
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('DeleteSchedulesRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('delete', () => {
     it('Should call method delete and throw NotFoundExpection if id not found', async () => {

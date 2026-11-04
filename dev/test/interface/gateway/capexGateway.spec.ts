@@ -1,206 +1,201 @@
-import { CapexPhase } from 'src/application/types';
-import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
+import { AuthGuard } from 'src/core/guards/auth.guard';
 
-describe('CapexGateway', () => {
-  let gateway: CapexGateway;
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
+import { WsException } from '@nestjs/websockets';
 
-  const mockEmit = jest.fn();
+describe('AuthGuard', () => {
+  let authGuard: AuthGuard;
+  let jwtService: JwtService;
+  let reflector: Reflector;
 
-  const mockServer = {
-    to: jest.fn().mockReturnValue({
-      emit: mockEmit,
-    }),
-  };
+  beforeEach(async () => {
+    vi.resetAllMocks();
 
-  const mockClient = {
-    id: 'client-1',
-    join: jest.fn(),
-    emit: jest.fn(),
-  };
+    const moduleRef: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthGuard,
+        {
+          provide: JwtService,
+          useValue: {
+            verifyAsync: vi.fn(),
+          },
+        },
+        {
+          provide: Reflector,
+          useValue: {
+            getAllAndOverride: vi.fn(),
+          },
+        },
+      ],
+    }).compile();
 
-  const mockLogger = {
-    debug: jest.fn(),
-  };
-
-  beforeEach(() => {
-    jest.useFakeTimers();
-
-    gateway = new CapexGateway();
-
-    (gateway as any).server = mockServer;
-    (gateway as any).logger = mockLogger;
-
-    jest.clearAllMocks();
+    authGuard = moduleRef.get<AuthGuard>(AuthGuard);
+    jwtService = moduleRef.get<JwtService>(JwtService);
+    reflector = moduleRef.get<Reflector>(Reflector);
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  it('should be defined', () => {
+    expect(authGuard).toBeDefined();
   });
 
-  // ============================================================
-  // 🔌 Lifecycle
-  // ============================================================
+  it('should allow access to public routes', async () => {
+    const context = createMockExecutionContext();
 
-  it('should handle connection', () => {
-    gateway.handleConnection(mockClient as any);
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
 
-    expect(mockLogger.debug).toHaveBeenCalledWith(
-      expect.stringContaining('WS conectado'),
+    expect(await authGuard.canActivate(context)).toBe(true);
+  });
+
+  it('should throw UnauthorizedExpection if token is null', async () => {
+    const context = createMockExecutionContext();
+
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
     );
   });
 
-  it('should handle disconnect', () => {
-    gateway.handleDisconnect(mockClient as any);
+  it('should throw UnauthorizedExpection if token is invalid', async () => {
+    const context = createMockExecutionContext('Bearer invalidtoken');
 
-    expect(mockLogger.debug).toHaveBeenCalledWith(
-      expect.stringContaining('WS desconectado'),
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+      new Error('Invalid token'),
+    );
+
+    await expect(authGuard.canActivate(context)).rejects.toThrow(
+      UnauthorizedException,
     );
   });
 
-  // ============================================================
-  // 🚪 Join
-  // ============================================================
+  it('should validate and attach user to the request', async () => {
+    const mockPayload = { sub: 1, username: 'testuser' };
 
-  it('should join room without cache', () => {
-    gateway.handleJoin('job-1', mockClient as any);
+    const context = createMockExecutionContext('Bearer mockToken');
 
-    expect(mockClient.join).toHaveBeenCalledWith('job-1');
-    expect(mockClient.emit).not.toHaveBeenCalled();
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(mockPayload);
+
+    const result = await authGuard.canActivate(context);
+
+    const request = context.switchToHttp().getRequest();
+
+    expect(result).toBe(true);
+    expect(request['user']).toEqual(mockPayload);
   });
 
-  it('should replay cached state on join', () => {
-    const event = {
-      jobId: 'job-1',
-      phase: 'loading',
-      percentage: 10,
-      processed: 1,
-      message: 'test',
-    };
+  // ============================================================
+  // 🔌 CONTEXTO WEBSOCKET
+  // ============================================================
 
-    (gateway as any).jobCache.set('job-1', {
-      lastState: event,
+  describe('WebSocket context', () => {
+    const makeClient = (opts: { user?: any; token?: string } = {}) => ({
+      data: { user: opts.user } as Record<string, any>,
+      handshake: {
+        auth: opts.token ? { token: opts.token } : {},
+        headers: {},
+      },
     });
 
-    gateway.handleJoin('job-1', mockClient as any);
-
-    expect(mockClient.emit).toHaveBeenCalledWith('capex:progress', event);
-  });
-
-  // ============================================================
-  // 📡 emitProgress
-  // ============================================================
-
-  it('should emit progress and update cache', () => {
-    const payload = {
-      phase: 'loading' as CapexPhase,
-      percentage: 20,
-      processed: 2,
-      message: 'test',
-    };
-
-    gateway.emitProgress('job-1', payload);
-
-    expect(mockServer.to).toHaveBeenCalledWith('job-1');
-    expect(mockEmit).toHaveBeenCalledWith('capex:progress', {
-      jobId: 'job-1',
-      ...payload,
+    beforeEach(() => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     });
 
-    const cache = (gateway as any).jobCache.get('job-1');
+    it('should allow a socket that was already authenticated', async () => {
+      const client = makeClient({ user: { sub: 1 } });
 
-    expect(cache.lastState).toMatchObject(payload);
+      const result = await authGuard.canActivate(createMockWsContext(client));
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).not.toHaveBeenCalled();
+    });
+
+    it('should reject an authenticated socket whose JWT already expired', async () => {
+      const client = makeClient({
+        user: { sub: 1, exp: Math.floor(Date.now() / 1000) - 10 },
+      });
+
+      const promise = authGuard.canActivate(createMockWsContext(client));
+
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Sessão expirada');
+    });
+
+    it('should reject when there is no user and no token', async () => {
+      const client = makeClient();
+
+      await expect(
+        authGuard.canActivate(createMockWsContext(client)),
+      ).rejects.toThrow('Não autorizado');
+    });
+
+    it('should verify the token and attach the user when the socket has no user yet', async () => {
+      const payload = { sub: 1, username: 'testuser' };
+      const client = makeClient({ token: 'mockToken' });
+
+      vi.spyOn(jwtService, 'verifyAsync').mockResolvedValue(payload);
+
+      const result = await authGuard.canActivate(createMockWsContext(client));
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('mockToken');
+      expect(client.data.user).toEqual(payload);
+    });
+
+    it('should reject an invalid token with WsException', async () => {
+      const client = makeClient({ token: 'invalid' });
+
+      vi.spyOn(jwtService, 'verifyAsync').mockRejectedValue(
+        new Error('Invalid token'),
+      );
+
+      const promise = authGuard.canActivate(createMockWsContext(client));
+
+      await expect(promise).rejects.toThrow(WsException);
+      await expect(promise).rejects.toThrow('Token inválido ou expirado');
+    });
+
+    it('should still allow public handlers in a WebSocket context', async () => {
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true);
+
+      const result = await authGuard.canActivate(
+        createMockWsContext(makeClient()),
+      );
+
+      expect(result).toBe(true);
+    });
   });
 
-  // ============================================================
-  // 🧠 createEmitter
-  // ============================================================
-
-  it('should create emitter bound to jobId', () => {
-    const emitter = gateway.createEmitter('job-1');
-
-    const payload = {
-      phase: 'loading' as CapexPhase,
-      percentage: 10,
-      processed: 1,
-      message: 'test',
-    };
-
-    emitter(payload);
-
-    expect(mockEmit).toHaveBeenCalledWith(
-      'capex:progress',
-      expect.objectContaining({
-        jobId: 'job-1',
+  function createMockWsContext(client: unknown): ExecutionContext {
+    return {
+      getType: () => 'ws',
+      switchToWs: () => ({
+        getClient: () => client,
       }),
-    );
-  });
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 
-  // ============================================================
-  // 🧹 Cache behavior
-  // ============================================================
+  function createMockExecutionContext(tokenHeader?: string): ExecutionContext {
+    const request = {
+      headers: {
+        authorization: tokenHeader,
+      },
+      user: undefined,
+    };
 
-  it('should overwrite cache and clear previous timer', () => {
-    const clearSpy = jest.spyOn(global, 'clearTimeout');
-
-    const firstTimer = setTimeout(() => {}, 1000);
-
-    (gateway as any).jobCache.set('job-1', {
-      lastState: {} as any,
-      cleanupTimer: firstTimer,
-    });
-
-    gateway.emitProgress('job-1', {
-      phase: 'loading',
-      percentage: 10,
-      processed: 1,
-      message: 'test',
-    });
-
-    expect(clearSpy).toHaveBeenCalledWith(firstTimer);
-  });
-
-  it('should schedule cleanup on done', () => {
-    gateway.emitProgress('job-1', {
-      phase: 'done',
-      percentage: 100,
-      processed: 10,
-      message: 'done',
-    });
-
-    expect((gateway as any).jobCache.has('job-1')).toBe(true);
-
-    jest.advanceTimersByTime(10 * 60 * 1000);
-
-    expect((gateway as any).jobCache.has('job-1')).toBe(false);
-  });
-
-  it('should schedule cleanup on error', () => {
-    gateway.emitProgress('job-1', {
-      phase: 'error',
-      percentage: 0,
-      processed: 0,
-      message: 'error',
-    });
-
-    jest.advanceTimersByTime(10 * 60 * 1000);
-
-    expect((gateway as any).jobCache.has('job-1')).toBe(false);
-  });
-
-  // ============================================================
-  // 🔁 Edge cases
-  // ============================================================
-
-  it('should not cleanup if phase is not done or error', () => {
-    gateway.emitProgress('job-1', {
-      phase: 'loading',
-      percentage: 50,
-      processed: 5,
-      message: 'loading',
-    });
-
-    jest.advanceTimersByTime(10 * 60 * 1000);
-
-    expect((gateway as any).jobCache.has('job-1')).toBe(true);
-  });
+    return {
+      getType: () => 'http',
+      switchToHttp: () => ({
+        getRequest: () => request,
+      }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+  }
 });

@@ -8,7 +8,7 @@ describe('GetWorksDetailsRepository', () => {
 
   const mockPrisma = {
     obras: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
   };
 
@@ -221,7 +221,7 @@ describe('GetWorksDetailsRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Get', () => {

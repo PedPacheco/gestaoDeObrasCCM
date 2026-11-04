@@ -1,7 +1,7 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
-import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/IInsertWorksRepository';
-import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/IUpdateNoteRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
+import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IInsertWorksRepository';
+import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateNoteRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -12,15 +12,15 @@ describe('UpdateNoteService', () => {
   let updateNoteService: UpdateNoteService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingNotes: jest.fn(),
+    findExistingNotes: vi.fn(),
   };
 
   const mockInsertWorksRepository = {
-    getGroup: jest.fn(),
+    getGroup: vi.fn(),
   };
 
   const mockExistingNotes = [
@@ -81,7 +81,7 @@ describe('UpdateNoteService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {

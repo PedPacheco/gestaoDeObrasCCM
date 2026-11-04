@@ -77,13 +77,6 @@ export class FiltersDto {
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
-  ovnotaExec?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
   empreendimento?: boolean;
 
   @IsOptional()
@@ -118,4 +111,11 @@ export class FiltersDto {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   equipes?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  notaD5?: boolean;
 }

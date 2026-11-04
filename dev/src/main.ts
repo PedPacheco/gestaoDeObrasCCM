@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import { join } from 'path';
 
@@ -6,6 +5,9 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
+
+import { SocketIoAdapter } from './core/adapters/socketIo.adapter';
+import { getAllowedOrigins } from './core/config/cors.config';
 import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
 async function bootstrap() {
@@ -15,8 +17,8 @@ async function bootstrap() {
 
   app.use(helmet());
 
-  app.use(bodyParser.json({ limit: '5mb' }));
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+  app.useBodyParser('json', { limit: '5mb' });
+  app.useBodyParser('urlencoded', { limit: '5mb', extended: true });
 
   app.useStaticAssets(join(process.env.UPLOAD_DEST!), {
     prefix: '/uploads/viabilidade',
@@ -29,15 +31,12 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  const corsOrigins =
-    process.env.CORS_ORIGINS?.split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean) ?? [];
-
+  // Mesma lista de origens para HTTP e WebSocket (CORS_ORIGINS).
   app.enableCors({
-    origin: corsOrigins,
+    origin: getAllowedOrigins(),
     credentials: true,
   });
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
   await app.listen(process.env.PORT, '0.0.0.0');
 }
 bootstrap();

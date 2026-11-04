@@ -1,6 +1,6 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
-import { UPDATE_OV_REPOSITORY } from 'src/domain/contracts/works/IUpdateOvRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { UpdateOvService } from 'src/application/usecases/works/management/updateOv.service';
+import { UPDATE_OV_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateOvRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -11,11 +11,11 @@ describe('UpdateOvService', () => {
   let updateOvService: UpdateOvService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingWorks: jest.fn(),
+    findExistingWorks: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -33,7 +33,7 @@ describe('UpdateOvService', () => {
     updateOvService = module.get<UpdateOvService>(UpdateOvService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {

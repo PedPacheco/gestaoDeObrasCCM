@@ -2,14 +2,18 @@ import { IUserRepository } from 'src/domain/contracts/IUserRepository';
 
 import { Injectable } from '@nestjs/common';
 
+import { User } from 'src/domain/entities/user.entity';
+import { userResponse } from '../../domain/types/index';
 import { PrismaService } from '../prisma/prisma.service';
-import { userReponse } from '../../domain/types/index';
+// import { userInterface } from 'src/interface/types/userInterface';
+
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findUser(username: string): Promise<userReponse | null> {
+  async findUser(username: string): Promise<userResponse | null> {
     return await this.prisma.novo_tabela_usuarios.findFirst({
       where: { username },
     });
@@ -18,12 +22,76 @@ export class UserRepository implements IUserRepository {
   async updatePassword(
     numberId: number,
     newPassword: string,
-  ): Promise<userReponse> {
+  ): Promise<userResponse> {
     const user = await this.prisma.novo_tabela_usuarios.update({
       where: { id: numberId },
       data: { senha: newPassword },
     });
 
     return user;
+  }
+
+  async findAll(): Promise<any[]> {
+    return await this.prisma.novo_tabela_usuarios.findMany({
+      select: {
+        id: true,
+        id_regional: true,
+        id_turma: true,
+        id_area: true,
+        email: true,
+        nome: true,
+        permissao_edicao: true,
+        tipo_usuario: true,
+        username: true,
+        ativo: true,
+        is_admin: true,
+        regionais: { select: { regional: true } },
+        turmas: { select: { turma: true } },
+        areas: { select: { nome: true } },
+      },
+    });
+  }
+
+  async findByIdRaw(id: number): Promise<novo_tabela_usuarios | null> {
+    return await this.prisma.novo_tabela_usuarios.findUnique({
+      where: { id },
+    });
+  }
+
+  async create(data: User): Promise<novo_tabela_usuarios> {
+    const {
+      email,
+      id_regional,
+      id_turma,
+      id_area,
+      is_admin,
+      nome,
+      permissao_edicao,
+      senha,
+      tipo_usuario,
+      username,
+    } = data;
+
+    return await this.prisma.novo_tabela_usuarios.create({
+      data: {
+        username,
+        senha,
+        permissao_edicao,
+        id_area,
+        is_admin,
+        id_regional,
+        id_turma,
+        email,
+        nome,
+        tipo_usuario,
+      },
+    });
+  }
+
+  async softDelete(id: number): Promise<novo_tabela_usuarios> {
+    return await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: { ativo: false },
+    });
   }
 }

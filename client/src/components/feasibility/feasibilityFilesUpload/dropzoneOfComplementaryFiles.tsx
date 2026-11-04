@@ -1,5 +1,6 @@
 import { ButtonComponent } from "@/components/common/Button";
 import { DisplayFile } from "@/types/feasibility";
+import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
 import {
   DocumentArrowUpIcon,
   DocumentCheckIcon,
@@ -14,6 +15,7 @@ interface DropzoneOfComplementaryFilesProps {
   dragActive: boolean;
   canEditComplementaryFiles: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  workflowStatus: FeasibilityWorkflowStatus;
   onFilesSelected: (files: FileList | null) => void;
   onDrag: (e: DragEvent) => void;
   onDrop: (e: DragEvent) => void;
@@ -40,6 +42,7 @@ export function DropzoneOfComplementaryFiles({
   setSelectedIndex,
   uploading,
   setSelectedFileType,
+  workflowStatus,
 }: DropzoneOfComplementaryFilesProps) {
   return (
     <>
@@ -173,7 +176,7 @@ export function DropzoneOfComplementaryFiles({
           Nenhum arquivo enviado.
         </p>
       ) : null}
-      {canEditComplementaryFiles && (
+      {canEditComplementaryFiles && workflowStatus === "aprovado" && (
         <div className="mt-6 flex justify-end">
           <ButtonComponent
             type="button"

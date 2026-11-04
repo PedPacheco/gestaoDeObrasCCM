@@ -1,45 +1,43 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
-import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
-import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
-import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
+import { ContractUpdateService } from 'src/application/usecases/works/management/contractUpdate.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { GetAllWorksService } from 'src/application/usecases/works/management/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/management/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
+import { InsertWorksService } from 'src/application/usecases/works/management/insertWorks.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
+import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/management/updateOv.service';
+import { UpdateWorkService } from 'src/application/usecases/works/management/updateWork.service';
+
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/contracts/works/IContractUpdateRepository';
-import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/contracts/works/IFindExistingWorksRepository';
-import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/contracts/works/IGetAllWorksRepository';
-import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/contracts/works/IGetCompletedWorksRepository';
-import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
-import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/contracts/works/IGetWorksInPortfolioRepository';
-import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/IInsertWorksRepository';
-import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/contracts/works/ISuspensionWorkRepository';
-import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/contracts/works/IUpdateCapexRepository';
-import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/IUpdateNoteRepository';
-import { UPDATE_OV_REPOSITORY } from 'src/domain/contracts/works/IUpdateOvRepository';
-import { UPDATE_WORK_REPOSITORY } from 'src/domain/contracts/works/IUpdateWorkRepository';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/contracts/works/management/IContractUpdateRepository';
+import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IFindExistingWorksRepository';
+import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IGetAllWorksRepository';
+import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IGetCompletedWorksRepository';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
+import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksInPortfolioRepository';
+import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IInsertWorksRepository';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/contracts/works/management/ISuspensionWorkRepository';
+import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateNoteRepository';
+import { UPDATE_OV_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateOvRepository';
+import { UPDATE_WORK_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateWorkRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { ContractUpdateRepository } from 'src/infra/repositories/works/contractUpdateRepository';
-import { FindExistingWorksRepository } from 'src/infra/repositories/works/findExistingWorksRepository';
-import { GetAllWorksRepository } from 'src/infra/repositories/works/getAllWorksRepository';
-import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
-import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorksDetailsRepository';
-import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/getWorksInPortfolioRepository';
-import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
-import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
-import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
-import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
-import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
+import { ContractUpdateRepository } from 'src/infra/repositories/works/management/contractUpdateRepository';
+import { FindExistingWorksRepository } from 'src/infra/repositories/works/management/findExistingWorksRepository';
+import { GetAllWorksRepository } from 'src/infra/repositories/works/management/getAllWorksRepository';
+import { GetCompletedWorksRepository } from 'src/infra/repositories/works/management/getCompletedWorksRepository';
+import { GetWorksDetailsRepository } from 'src/infra/repositories/works/management/getWorksDetailsRepository';
+import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/management/getWorksInPortfolioRepository';
+import { InsertWorksRepository } from 'src/infra/repositories/works/management/InsertWorksRepository';
+import { SuspensionWorkRepository } from 'src/infra/repositories/works/management/suspensionWorkRepository';
+import { UpdateNoteRepository } from 'src/infra/repositories/works/management/updateNoteRepository';
+import { UpdateOvRepository } from 'src/infra/repositories/works/management/updateOvRepository';
+import { UpdateWorkRepository } from 'src/infra/repositories/works/management/updateWorkRepository';
 import { WorksController } from '../controllers/works/works.controller';
 import { WorksInsertController } from '../controllers/works/worksInsert.controller';
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
@@ -67,13 +65,11 @@ import { WorksServicesModule } from './worksServices.module';
     ContractUpdateService,
     UpdateOvService,
     UpdateNoteService,
-    UpdateCapexService,
     SuspensionWorkService,
     DeadlineStatusService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
     { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },
-    { provide: UPDATE_CAPEX_REPOSITORY, useClass: UpdateCapexRepository },
     { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {
@@ -102,7 +98,6 @@ import { WorksServicesModule } from './worksServices.module';
     GetCompletedWorksService,
     FindExistingWorksService,
     GetWorkDetailsService,
-    UpdateCapexService, // Exportado para uso pelo CapexFullPipelineService via AuxiliaryBaseModule
   ],
 })
 export class WorksModule {}

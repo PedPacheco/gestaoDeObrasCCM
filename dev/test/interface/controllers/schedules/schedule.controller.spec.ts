@@ -1,23 +1,23 @@
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
-import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
-import { UsersService } from 'src/application/usecases/users.service';
-import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { DailySummaryEntry } from 'src/application/types/usecases/works/schedule/monthlySummary.types';
 import {
   DailyForecastSummaryTotals,
   DailySummaryEntryForecast,
   GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
-} from 'src/application/types/usecases/schedule/monthlySummaryForecast.types';
-import { DailySummaryEntry } from 'src/application/types/usecases/schedule/monthlySummary.types';
+} from 'src/application/types/usecases/works/schedule/monthlySummaryForecast.types';
+import { UsersService } from 'src/application/usecases/users.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/works/schedule/rejectionOfSchedules.service';
+import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
+import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
+import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -48,7 +48,6 @@ describe('ScheduleController', () => {
         exec: null,
         mo_prog: 3262.21,
         mo_exec: 3262.21,
-        mat_prog: 2345.23,
         num_dp: '15563352',
         hora_ini: '1970-01-01T14:30:00.000Z',
         hora_ter: '1970-01-01T17:30:00.000Z',
@@ -80,7 +79,13 @@ describe('ScheduleController', () => {
       total_obras: 1,
       total_mo_planejada: 3262.21,
       total_mo_exec: 3262.21,
+      total_ponto_a_ponto_executado: 0,
+      total_ponto_a_ponto_programado: 0,
       total_qtde_planejada: 1,
+      total_equipe_linha_morta: 0,
+      total_equipe_linha_viva: 0,
+      total_equipe_regularizacao: 0,
+      total_exec: 0,
     },
   };
 
@@ -96,38 +101,38 @@ describe('ScheduleController', () => {
         {
           provide: GetTotalValuesScheduleService,
           useValue: {
-            getTotalValues: jest.fn(),
+            getTotalValues: vi.fn(),
           },
         },
         {
           provide: GetScheduleValuesService,
           useValue: {
-            getValues: jest.fn(),
+            getValues: vi.fn(),
           },
         },
         {
           provide: MonthlySummaryService,
           useValue: {
-            getSummary: jest.fn(),
-            getSecondSummary: jest.fn(),
+            getSummary: vi.fn(),
+            getSecondSummary: vi.fn(),
           },
         },
         {
           provide: GetMonthlySummaryForecastService,
           useValue: {
-            getSummary: jest.fn(),
-            getSecondSummary: jest.fn(),
+            getSummary: vi.fn(),
+            getSecondSummary: vi.fn(),
           },
         },
         {
           provide: RejectionsOfSchedulesService,
-          useValue: { get: jest.fn() },
+          useValue: { get: vi.fn() },
         },
         {
           provide: ExecMonitoringService,
-          useValue: { getData: jest.fn() },
+          useValue: { getData: vi.fn() },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -165,6 +170,7 @@ describe('ScheduleController', () => {
       idGrupo: [1],
       idTipo: [1],
       idCircuito: [1],
+      idTecnico: [1],
       ano: 2024,
     };
 
@@ -226,9 +232,9 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest
-      .spyOn(getTotalValuesScheduleService, 'getTotalValues')
-      .mockResolvedValue(mockTotalValues);
+    vi.spyOn(getTotalValuesScheduleService, 'getTotalValues').mockResolvedValue(
+      mockTotalValues,
+    );
 
     const result = await scheduleController.getTotalValues(filters);
 
@@ -253,6 +259,7 @@ describe('ScheduleController', () => {
       idParceira: [1],
       idStatus: [1],
       idStatusProgramacao: [1],
+      idTecnico: [1],
       executado: false,
       pendente: false,
       page: 0,
@@ -260,9 +267,9 @@ describe('ScheduleController', () => {
     };
 
     it('Should call getScheduleValues method and return correct data', async () => {
-      jest
-        .spyOn(getScheduleValuesService, 'getValues')
-        .mockResolvedValue(mockScheduleData);
+      vi.spyOn(getScheduleValuesService, 'getValues').mockResolvedValue(
+        mockScheduleData,
+      );
 
       const result = await scheduleController.getScheduleValues(
         filters,
@@ -278,9 +285,9 @@ describe('ScheduleController', () => {
     });
 
     it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
-      jest
-        .spyOn(getScheduleValuesService, 'getValues')
-        .mockResolvedValue(mockScheduleData);
+      vi.spyOn(getScheduleValuesService, 'getValues').mockResolvedValue(
+        mockScheduleData,
+      );
 
       const result = await scheduleController.getScheduleValues(filters, {
         ...mockReq,
@@ -359,13 +366,13 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
+    vi.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
       summary: dailySummaryMock,
       totals: {} as any,
       contractValueByMonth: { monthlyValue: 0 },
     });
 
-    jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
+    vi.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
       summary: getSecondMonthlySummaryResponse,
       totals: {} as any,
     });
@@ -526,19 +533,18 @@ describe('ScheduleController', () => {
       totalDiff: 3000,
     };
 
-    jest
-      .spyOn(getMonthlySummaryForecastService, 'getSummary')
-      .mockResolvedValue({
-        summary: dailySummaryForecastMock,
-        totals: mockDailySummaryTotals,
-      });
+    vi.spyOn(getMonthlySummaryForecastService, 'getSummary').mockResolvedValue({
+      summary: dailySummaryForecastMock,
+      totals: mockDailySummaryTotals,
+    });
 
-    jest
-      .spyOn(getMonthlySummaryForecastService, 'getSecondSummary')
-      .mockResolvedValue({
-        summary: getSecondMonthlySummaryForecastResponse,
-        totals: mockGroupSummaryTotals,
-      });
+    vi.spyOn(
+      getMonthlySummaryForecastService,
+      'getSecondSummary',
+    ).mockResolvedValue({
+      summary: getSecondMonthlySummaryForecastResponse,
+      totals: mockGroupSummaryTotals,
+    });
 
     const result = await scheduleController.getMonthlySummaryForecast(filters, {
       idParceira: 1,
@@ -564,7 +570,7 @@ describe('ScheduleController', () => {
   });
 
   it('should call getRejectionsOfSchedules and return data of rejections', async () => {
-    jest.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
+    vi.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
       {
         motivo: 'CHI',
         data_prog: new Date('2025-05-17'),
@@ -619,7 +625,7 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest.spyOn(execMonitoringService, 'getData').mockResolvedValue(data);
+    vi.spyOn(execMonitoringService, 'getData').mockResolvedValue(data);
 
     const result = await scheduleController.getExecMonitoring(
       {

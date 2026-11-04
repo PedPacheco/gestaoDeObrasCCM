@@ -7,18 +7,18 @@ import {
 import { Inject, Injectable } from '@nestjs/common';
 
 import {
+  ForecastDailyTotalsResponse,
+  ForecastGroupTotalsResponse,
+  ForecastSnapshotDailyData,
+  ForecastSnapshotGroupData,
+} from 'src/domain/types';
+import {
   CreateForecastSnapshotInput,
   FormattedForecastSnapshotDaily,
   FormattedForecastSnapshotGroup,
   GetAllForecastSnapshotsOutput,
   GetForecastSnapshotOutput,
 } from '../types';
-import {
-  ForecastDailyTotalsResponse,
-  ForecastGroupTotalsResponse,
-  ForecastSnapshotDailyData,
-  ForecastSnapshotGroupData,
-} from 'src/domain/types';
 
 const emptyDailyTotals: ForecastDailyTotalsResponse = {
   totalDiff: 0,

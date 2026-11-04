@@ -9,7 +9,7 @@ describe('AuthRepository', () => {
 
   const prismaMock = {
     novo_tabela_usuarios: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
   };
 
@@ -26,7 +26,7 @@ describe('AuthRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Register', () => {

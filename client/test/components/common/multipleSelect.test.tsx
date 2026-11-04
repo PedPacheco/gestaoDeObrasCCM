@@ -1,4 +1,4 @@
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,7 +8,7 @@ describe("Multiple select component", () => {
   const mockSetSelectedItem = vi.fn();
 
   const renderComponent = (
-    props?: Partial<React.ComponentProps<typeof MultipleSelectComponent>>
+    props?: Partial<React.ComponentProps<typeof MultipleSelectComponent>>,
   ) => {
     render(
       <MultipleSelectComponent
@@ -17,7 +17,7 @@ describe("Multiple select component", () => {
         selectedItem={[]}
         setSelectedItem={mockSetSelectedItem}
         {...props}
-      />
+      />,
     );
   };
 
@@ -80,7 +80,7 @@ describe("Multiple select component", () => {
         menuItems={basicItems}
         selectedItem={undefined as any}
         setSelectedItem={mockSetSelectedItem}
-      />
+      />,
     );
 
     const select = screen.getByRole("combobox");

@@ -1,4 +1,3 @@
-import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import {
   EXECUTION_REPORT_REPOSITORY,
   IExecutionReportRepository,
@@ -6,7 +5,7 @@ import {
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 
 import {
   BadRequestException,
@@ -14,17 +13,27 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { FileService } from './file.service';
+
 import { AppLogger } from 'src/core/logger/logger.service';
+import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 import {
   CreateExecutionReportInput,
   UpdateExecutionReportInput,
 } from '../types';
+import { FileService } from './file.service';
+import { ProgressRecalculationService } from './services/progressRecalculation.service';
 
 @Injectable()
 export class ExecutionReportService {
   constructor(
+    private readonly prisma: PrismaService, // ALTERADO
+    private readonly progress: ProgressRecalculationService, // ALTERADO
     @Inject(EXECUTION_REPORT_REPOSITORY)
     private readonly executionReportRepository: IExecutionReportRepository,
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
@@ -182,6 +191,11 @@ export class ExecutionReportService {
     }
   }
 
+  /**
+   * Apaga o relatório de execução e repõe TODA a execução da programação:
+   * real = null em todas as linhas, exec = null, programação e obra voltam
+   * a CONFIRMADA e a data de conclusão é limpa.
+   */
   async delete(id: number): Promise<void> {
     if (!id) {
       throw new BadRequestException('Relátorio não enviado para exclusão');
@@ -194,12 +208,72 @@ export class ExecutionReportService {
     }
 
     const files = report.caminho_arquivo.split(';');
-
     for (const file of files) {
       this.fileService.deleteFile(`${process.env.UPLOAD_AS_BUILD}/${file}`);
     }
 
-    await this.executionReportRepository.delete(id, report.id_programacao);
+    // ALTERADO: antes era executionReportRepository.delete(id, report.id_programacao)
+    await this.prisma.$transaction((tx) =>
+      this.resetExecutionAndDeleteReport(id, report.id_programacao, tx),
+    );
+  }
+
+  // ─── Privados ───────────────────────────────────────────────────────
+
+  // ALTERADO: orquestração que saiu do repositório
+  private async resetExecutionAndDeleteReport(
+    id: number,
+    idSchedule: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const schedule = await this.executionReportRepository.findScheduleWorkMode(
+      idSchedule,
+      tx,
+    );
+
+    if (!schedule) {
+      throw new NotFoundException(
+        `Programação com ID ${idSchedule} não encontrada`,
+      );
+    }
+
+    const serviceIds =
+      await this.executionReportRepository.findScheduledServiceIds(
+        idSchedule,
+        tx,
+      );
+
+    await this.executionReportRepository.resetScheduleExecution(
+      idSchedule,
+      ScheduleStatus.CONFIRMADA,
+      tx,
+    );
+
+    if (schedule.obras?.programacao_ponto_a_ponto) {
+      // Ponto a ponto: o executado da obra e os totalizadores dos itens vêm
+      // SEMPRE da fonte única (qtde_real = Σ real das demais programações,
+      // qtde_prog = Σ real ?? prog), nunca de soma de percentuais.
+      await this.progress.recomputeAll(serviceIds, schedule.id_obra, tx);
+      await this.executionReportRepository.updateWorkStatusAfterReset(
+        schedule.id_obra,
+        { status: WorkStatus.CONFIRMADA },
+        tx,
+      );
+    } else {
+      await this.executionReportRepository.clearServicesReal(serviceIds, tx);
+      const executed =
+        await this.executionReportRepository.sumWorkSchedulesExec(
+          schedule.id_obra,
+          tx,
+        );
+      await this.executionReportRepository.updateWorkStatusAfterReset(
+        schedule.id_obra,
+        { status: WorkStatus.CONFIRMADA, executed },
+        tx,
+      );
+    }
+
+    await this.executionReportRepository.deleteReport(id, tx);
   }
 
   private cleanupFiles(files?: Express.Multer.File[]): void {

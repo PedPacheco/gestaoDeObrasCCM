@@ -1,0 +1,331 @@
+"use client";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useState } from "react";
+
+import { useUser } from "@/contexts/userContext";
+import { formatPercentage } from "@/utils/formatValue";
+import { isValidDateString } from "@/utils/validDate";
+import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
+import {
+  Box,
+  Checkbox,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@mui/material";
+
+dayjs.extend(utc);
+
+const columnConfig = [
+  { key: "criado_em", label: "Data de criação", type: "text" },
+  { key: "criado_por", label: "Criado Por", type: "text" },
+  { key: "editado_por", label: "Editado Por", type: "text" },
+  { key: "reprovada", label: "Reprovar", type: "checkbox" },
+  { key: "validada", label: "Validar", type: "checkbox" },
+  { key: "confirmada", label: "Confirmar", type: "checkbox" },
+  { key: "status_programacao", label: "Status da Programação", type: "text" },
+  { key: "data_prog", label: "Data programada", type: "text" },
+  { key: "hora_ini", label: "Horário de início", type: "text" },
+  { key: "hora_ter", label: "Horário de término", type: "text" },
+  { key: "tipo_servico", label: "Tipo de Serviço", type: "text" },
+  { key: "prog", label: "% Prog", type: "text" },
+  { key: "exec", label: "% Exec", type: "text" },
+  {
+    key: "observacao_programacao",
+    label: "Observação da Programação",
+    type: "text",
+    wide: true,
+  },
+  {
+    key: "equip_desligado",
+    label: "Equipamento a ser desligado",
+    type: "text",
+    wide: true,
+  },
+  { key: "chi", label: "CHI", type: "text" },
+  { key: "num_dp", label: "Número DP/BRA", type: "text" },
+  { key: "chave_provisoria", label: "Chave provisória", type: "text" },
+  { key: "equipe_linha_morta", label: "Equipe LM", type: "text" },
+  { key: "equipe_linha_viva", label: "Equipe LV", type: "text" },
+  { key: "equipe_regularizacao", label: "Equipe Reg", type: "text" },
+  { key: "tecnico", label: "Técnico responsável", type: "text" },
+  { key: "restricao", label: "Motivo da restrição", type: "text" },
+  { key: "nome_responsavel_execucao", label: "Responsabilidade", type: "text" },
+];
+
+interface SchedulePanelItemProps {
+  data: any[];
+  onEdit?: (data: any) => void;
+  onDelete: (confirm: number) => void;
+  statusWork: number;
+  setValidatedSchedule: React.Dispatch<
+    React.SetStateAction<{ id: number; validate: boolean }[]>
+  >;
+  setConfirmedSchedule: React.Dispatch<
+    React.SetStateAction<{ id: number; confirm: boolean }[]>
+  >;
+  setRejectedSchedule: React.Dispatch<
+    React.SetStateAction<
+      {
+        id: number;
+        reject: boolean;
+      }[]
+    >
+  >;
+  setData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+function formatCellValue(value: any, key: string) {
+  if (["prog", "exec"].includes(key)) {
+    value = formatPercentage(value);
+  }
+
+  if (
+    typeof value === "string" &&
+    isValidDateString(value) &&
+    dayjs(value).isValid()
+  ) {
+    const date = dayjs(value);
+    value =
+      date.year() === 1970
+        ? date.utc().format("HH:mm")
+        : date.utc().format("DD/MM/YYYY");
+  }
+
+  return value;
+}
+
+export default function SchedulePanelItem({
+  data,
+  onEdit,
+  onDelete,
+  statusWork,
+  setConfirmedSchedule,
+  setValidatedSchedule,
+  setRejectedSchedule,
+  setData,
+}: SchedulePanelItemProps) {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
+  const statusToDisable = [42, 37, 3, 4, 2];
+  const { permissions } = useUser();
+
+  const handleEdit = (item: any) => {
+    if (onEdit) {
+      onEdit(item);
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    if (onDelete) {
+      onDelete(id);
+    }
+  };
+
+  const handleCheckboxChange = (key: string, value: boolean, id: number) => {
+    if (key === "validada") {
+      setValidatedSchedule((prev) => {
+        const exists = prev.some((item) => item.id === id);
+
+        if (exists) {
+          return prev.map((item) =>
+            item.id === id ? { ...item, validate: value } : item,
+          );
+        }
+
+        return [...prev, { id, validate: value }];
+      });
+    } else if (key === "confirmada") {
+      setConfirmedSchedule((prev: any[]) => {
+        const exists = prev.some((item) => item.id === id);
+
+        if (exists) {
+          return prev.map((item) =>
+            item.id === id && (item.exec === null || item.exec === undefined)
+              ? { ...item, confirm: value }
+              : item,
+          );
+        }
+
+        return [...prev, { id, confirm: value }];
+      });
+    } else if (key === "reprovada") {
+      setRejectedSchedule((prev: { id: number; reject: boolean }[]) => {
+        const exists = prev.some((item) => item.id === id);
+        if (exists) {
+          if (!value) {
+            return prev.filter((item) => item.id !== id);
+          }
+          return prev.map((item) =>
+            item.id === id ? { ...item, reject: value } : item,
+          );
+        }
+        if (value) {
+          return [...prev, { id, reject: value }];
+        }
+        return prev;
+      });
+    }
+
+    setData((prev: any) => ({
+      ...prev,
+      programacoes: prev.programacoes.map((item: any) => {
+        return item.id === id ? { ...item, [key]: value } : item;
+      }),
+    }));
+  };
+
+  const disabledCheckBox = (key: string, status_prog: string): boolean => {
+    return (
+      (key === "validada" && status_prog !== "Em validação") ||
+      (key === "confirmada" && status_prog === "Programado") ||
+      (key === "reprovada" &&
+        ["Parcial", "Concluído", "Cancelado"].includes(status_prog)) ||
+      permissions?.tipo_usuario === "PARCEIRA"
+    );
+  };
+
+  const canAccessScheduleActions = (
+    permissions: any,
+    exec?: number | null,
+  ): boolean => {
+    const isAdmin = permissions?.is_admin === true;
+
+    const isArea8WithEditPermission =
+      permissions?.id_area === 8 && permissions?.permissao_edicao === true;
+
+    const isParceiraAllowedStatus =
+      permissions?.tipo_usuario === "PARCEIRA" &&
+      !statusToDisable.includes(statusWork) &&
+      exec === null;
+
+    return isAdmin || isArea8WithEditPermission || isParceiraAllowedStatus;
+  };
+
+  return (
+    <>
+      <TableContainer className="h-full">
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20" />
+              {columnConfig.map((col) => (
+                <TableCell
+                  key={col.key}
+                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 sticky left-0 z-10 ${
+                    col.wide ? "min-w-[520px]" : "min-w-28"
+                  }`}
+                >
+                  {col.label}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((item, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                onMouseEnter={() => setHoveredRow(rowIndex)}
+                onMouseLeave={() => setHoveredRow(null)}
+              >
+                <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+                  {canAccessScheduleActions(permissions, item.exec) && (
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      gap={0.5}
+                      sx={{
+                        opacity: hoveredRow === rowIndex ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
+                      }}
+                    >
+                      <Tooltip title="Editar programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleEdit(item)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(25, 118, 210, 0.08)",
+                            },
+                          }}
+                        >
+                          <PencilIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Excluir programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(item.id)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </TableCell>
+                {columnConfig.map((col) => (
+                  <TableCell
+                    key={col.key}
+                    className={`py-1 px-2 text-center border-r font-medium text-lg border-zinc-700 border-solid ${
+                      col.key === "equip_desligado" ||
+                      col.key === "observacao_programacao"
+                        ? "text-wrap"
+                        : "text-nowrap"
+                    }`}
+                  >
+                    {col.type === "checkbox" ? (
+                      <Checkbox
+                        checked={
+                          col.key === "validada"
+                            ? item.validada
+                            : col.key === "confirmada"
+                              ? item.confirmada
+                              : item.reprovada
+                        }
+                        onChange={(e) =>
+                          handleCheckboxChange(
+                            col.key === "validada"
+                              ? "validada"
+                              : col.key === "confirmada"
+                                ? "confirmada"
+                                : "reprovada",
+                            e.target.checked,
+                            item.id,
+                          )
+                        }
+                        disabled={
+                          disabledCheckBox(col.key, item.status_programacao) ||
+                          item.exec !== null ||
+                          !canAccessScheduleActions(permissions)
+                        }
+                      />
+                    ) : (
+                      formatCellValue(item[col.key], col.key)
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+}

@@ -6,7 +6,7 @@ describe('FindExistingWorksRepository', () => {
   let repository: FindExistingWorksRepository;
 
   const mockPrisma = {
-    obras: { findMany: jest.fn() },
+    obras: { findMany: vi.fn() },
   };
 
   const mockResponse = [
@@ -66,7 +66,7 @@ describe('FindExistingWorksRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('findExistingMarketWorks', () => {
     it('Should return formatted data of existing market works', async () => {
@@ -95,7 +95,7 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(repository.findExistingWorks(['4343'])).rejects.toThrow(
         error,
@@ -154,7 +154,7 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(
         repository.findExistingWorksOnSuspension([
@@ -201,7 +201,7 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(repository.findExistingNotes(['4343'])).rejects.toThrow(
         error,
@@ -281,7 +281,7 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+      const loggerSpy = vi.spyOn(repository['logger'], 'error');
 
       await expect(
         repository.findExistingOrders([

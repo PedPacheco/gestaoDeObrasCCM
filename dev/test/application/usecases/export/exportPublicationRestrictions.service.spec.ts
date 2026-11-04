@@ -3,19 +3,19 @@ import { GetPulicationRestricitionOutput } from 'src/application/types';
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { mockGetPublicationRestrictionResponse } from '../../../mocks/mockRestrictions';
 
-// mocks compartilhados (fora do jest.mock)
-const addRowsMock = jest.fn();
-const addWorksheetMock = jest.fn();
-const writeMock = jest.fn();
+// mocks compartilhados (fora do vi.mock)
+const addRowsMock = vi.fn();
+const addWorksheetMock = vi.fn();
+const writeMock = vi.fn();
 
-jest.mock('exceljs', () => {
+vi.mock('exceljs', () => {
   return {
-    Workbook: jest.fn().mockImplementation(() => ({
+    Workbook: vi.fn().mockImplementation(function () { return ({
       addWorksheet: addWorksheetMock,
       xlsx: {
         write: writeMock,
       },
-    })),
+    }); }),
   };
 });
 

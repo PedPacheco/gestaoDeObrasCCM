@@ -10,6 +10,7 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { countBusinessDays } from 'src/utils/parseTimeToDate';
@@ -20,7 +21,6 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
 import { FileService } from '../file.service';
 

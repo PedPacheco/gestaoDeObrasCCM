@@ -6,7 +6,7 @@ import {
 import {
   MONTH_INDEX_TO_KEY,
   WORKING_DAYS_PER_MONTH,
-} from 'src/application/types/usecases/schedule/monthlySummary.types';
+} from 'src/application/types/usecases/works/schedule/monthlySummary.types';
 
 import { Injectable } from '@nestjs/common';
 import {

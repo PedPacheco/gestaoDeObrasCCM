@@ -28,10 +28,17 @@ export type ExecutionReportDataInput = {
   userId: number;
 };
 
+export type PerformExecutionsData = {
+  id: number;
+  idSchedule: number;
+  qtdeRealizada?: number;
+};
+
 export type FinalizeServicesInput = {
   idSchedule: number;
   idExecutionRestriction?: number;
   responsibility?: string;
+  executions: PerformExecutionsData[];
   executionObservation?: string;
   userId: number;
   executionReportData?: ExecutionReportDataInput;

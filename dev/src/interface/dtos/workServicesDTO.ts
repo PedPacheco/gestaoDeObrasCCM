@@ -1,3 +1,4 @@
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsDateString,
@@ -9,9 +10,8 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { ExecutionReportDataDTO } from './executionReportDTO';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
+import { ExecutionReportDataDTO } from './executionReportDTO';
 
 enum ServiceType {
   SERVICE = 'S',
@@ -120,6 +120,11 @@ class DataScheduleInFinalizeServiceDTO {
   @IsNumber()
   @Type(() => Number)
   idExecutionRestriction?: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PerformServicesDTO)
+  executions: PerformServicesDTO[];
 
   @IsOptional()
   @IsString()

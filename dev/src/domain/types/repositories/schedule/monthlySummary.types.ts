@@ -1,6 +1,5 @@
+import { Decimal } from 'src/infra/generated/prisma/internal/prismaNamespace';
 import { Partners, Types } from 'src/interface/types/common/commonInterface';
-
-import { Decimal } from '@prisma/client/runtime/library';
 
 export type GetPortfolioSummaryResponse = {
   ovnota: string;
@@ -35,7 +34,9 @@ export type GetMonthlySummaryResponse = {
     id_turma?: number;
     turmas: Partners;
     tipos: Types;
+    programacao_ponto_a_ponto: boolean;
   };
+  id: number;
   prog: number;
   exec: number;
   data_prog: Date;

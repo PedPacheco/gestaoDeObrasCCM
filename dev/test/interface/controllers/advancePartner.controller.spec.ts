@@ -18,14 +18,14 @@ describe('AdvancePartnerController', () => {
         {
           provide: AdvancePartnerService,
           useValue: {
-            getRestrictionsAdvancePartner: jest.fn(),
-            getGripPartner: jest.fn(),
-            getReaschedulingReasons: jest.fn(),
-            getSparklinesByPartner: jest.fn(),
-            getWeeksByPartner: jest.fn(),
+            getRestrictionsAdvancePartner: vi.fn(),
+            getGripPartner: vi.fn(),
+            getReaschedulingReasons: vi.fn(),
+            getSparklinesByPartner: vi.fn(),
+            getWeeksByPartner: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -34,7 +34,7 @@ describe('AdvancePartnerController', () => {
   });
 
   it('Should call getRestrictionsAdvancePartner service method with the data and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getRestrictionsAdvancePartner').mockResolvedValue([]);
+    vi.spyOn(service, 'getRestrictionsAdvancePartner').mockResolvedValue([]);
 
     const result = await controller.getRestrictionsAdvancePartner(
       {
@@ -57,7 +57,7 @@ describe('AdvancePartnerController', () => {
   });
 
   it('Should call getGripPartner service method with the data and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getGripPartner').mockResolvedValue([]);
+    vi.spyOn(service, 'getGripPartner').mockResolvedValue([]);
 
     const result = await controller.getGripPartner(
       {
@@ -80,7 +80,7 @@ describe('AdvancePartnerController', () => {
   });
 
   it('Should call getReaschedulingReasons service method with the data and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getReaschedulingReasons').mockResolvedValue([]);
+    vi.spyOn(service, 'getReaschedulingReasons').mockResolvedValue([]);
 
     const result = await controller.getReaschedulingReasons(
       {
@@ -104,7 +104,7 @@ describe('AdvancePartnerController', () => {
   });
 
   it('Should call getSparklinesByPartner service method with the data and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getSparklinesByPartner').mockResolvedValue([]);
+    vi.spyOn(service, 'getSparklinesByPartner').mockResolvedValue([]);
 
     const result = await controller.getSparklinesByPartner(
       {
@@ -127,7 +127,7 @@ describe('AdvancePartnerController', () => {
   });
 
   it('Should call getWeeksByPartner service method with the data and return a successful response with the expected structure', async () => {
-    jest.spyOn(service, 'getWeeksByPartner').mockResolvedValue([]);
+    vi.spyOn(service, 'getWeeksByPartner').mockResolvedValue([]);
 
     const result = await controller.getWeeksByPartner(
       {

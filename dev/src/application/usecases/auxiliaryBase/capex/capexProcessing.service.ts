@@ -1,45 +1,90 @@
-import * as ExcelJS from 'exceljs';
-import { promises as fs } from 'fs';
+import { createReadStream, promises as fs } from 'fs';
 import pLimit from 'p-limit';
+import { createInterface } from 'readline';
 import {
   CapexInsertItem,
-  CapexItem,
   CapexProgressPayload,
   ProgressEmitter,
 } from 'src/application/types';
-import { AppLogger } from 'src/core/logger/logger.service';
+import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
+import {
+  CAPEX_FILE_PARSER,
+  ICapexFileParser,
+} from 'src/domain/contracts/ICapexFileParser';
+import { CapexRow } from 'src/domain/entities/capex.entity';
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 export type ImportProgressState = CapexProgressPayload;
 
+/** Contadores das linhas que não puderam ser vinculadas a uma obra. */
+class SkippedRows {
+  ignored = 0;
+  ambiguous = 0;
+
+  private readonly ignoredSample = new Set<string>();
+  private readonly ambiguousSample = new Set<string>();
+
+  addIgnored(diagrama: string | null): void {
+    this.ignored++;
+    this.collect(this.ignoredSample, diagrama);
+  }
+
+  addAmbiguous(diagrama: string): void {
+    this.ambiguous++;
+    this.collect(this.ambiguousSample, diagrama);
+  }
+
+  get ignoredExamples(): string[] {
+    return [...this.ignoredSample];
+  }
+
+  get ambiguousExamples(): string[] {
+    return [...this.ambiguousSample];
+  }
+
+  private collect(sample: Set<string>, diagrama: string | null): void {
+    if (diagrama && sample.size < 20) sample.add(diagrama);
+  }
+}
+
+/**
+ * Importação da planilha CN52N para a tabela cn52n.
+ *
+ * Duas fases, para que uma planilha inválida NUNCA apague dados:
+ *  1. reading     → o parser (worker thread) lê e valida o arquivo inteiro
+ *                   e grava as linhas normalizadas em um NDJSON temporário.
+ *                   Nenhuma escrita no banco.
+ *  2. processing  → só então faz o TRUNCATE e carrega o NDJSON em batches,
+ *                   vinculando cada linha à obra pelo diagrama.
+ *
+ * O serviço não guarda estado entre execuções (cache e contadores são locais
+ * a cada process()).
+ */
 @Injectable()
 export class CapexProcessingService {
-  private readonly obraCache = new Map<string, number>();
-  private readonly progressMap = new Map<string, ImportProgressState>();
-
-  // 🆕 ignorados por job
-  private readonly ignoredMap = new Map<string, CapexItem[]>();
+  private readonly logger = new Logger(CapexProcessingService.name);
 
   private readonly BATCH_SIZE = 1000;
   private readonly MAX_CACHE = 50_000;
   private readonly CONCURRENCY = 5;
-  private readonly READ_EMIT_INTERVAL = 1000;
   private readonly DRAIN_EVERY = 20;
 
-  // 🆕 proteção de memória
-  private readonly MAX_IGNORED = 10_000;
-
-  private readonly limit = pLimit(this.CONCURRENCY);
+  /**
+   * Na validação o total de linhas ainda não é conhecido, então o percentual
+   * é uma estimativa (curva que satura perto de 99%).
+   */
+  private readonly ESTIMATED_ROWS_SCALE = 60_000;
 
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly repository: IAuxiliaryBaseRepository,
-    private readonly logger: AppLogger,
+    @Inject(CAPEX_FILE_PARSER)
+    private readonly parser: ICapexFileParser,
   ) {}
 
   async process(
@@ -47,177 +92,203 @@ export class CapexProcessingService {
     jobId: string,
     onProgress?: ProgressEmitter,
   ): Promise<void> {
-    this.initProgress(jobId);
+    const emit = (payload: CapexProgressPayload) => onProgress?.(payload);
 
-    const emit = (payload: CapexProgressPayload) => {
-      this.progressMap.set(jobId, payload);
-      onProgress?.(payload);
-    };
-
-    let tasks: Promise<void>[] = [];
-    let batchesDispatched = 0;
+    let ndjsonPath: string | undefined;
 
     try {
-      await this.repository.truncateCN52N();
-
-      const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
-        entries: 'emit',
-        sharedStrings: 'cache',
-        hyperlinks: 'emit',
-        worksheets: 'emit',
+      // ─── Fase 1: leitura + validação (nada é gravado no banco) ─────
+      emit({
+        phase: 'reading',
+        processed: 0,
+        percentage: 0,
+        message: 'Validando planilha...',
       });
 
-      let batch: CapexItem[] = [];
-      let processed = 0;
-      let total = 0;
+      const parsed = await this.parser.parse(filePath, (rowsRead) =>
+        emit({
+          phase: 'reading',
+          processed: rowsRead,
+          percentage: this.estimateReadingPercentage(rowsRead),
+          message: `Validando linha ${rowsRead}...`,
+        }),
+      );
 
-      for await (const worksheet of workbook) {
-        for await (const row of worksheet) {
-          if (row.number <= 2) continue;
+      ndjsonPath = parsed.ndjsonPath;
 
-          total++;
+      emit({
+        phase: 'reading',
+        processed: parsed.totalRows,
+        percentage: 100,
+        message: `Planilha validada: ${parsed.totalRows} linhas`,
+      });
 
-          const values = row.values;
+      // ─── Fase 2: carga (a partir daqui o banco é alterado) ─────────
+      await this.repository.truncateCN52N();
 
-          batch.push({
-            diagrama_rede: values[2] ? String(values[2]) : null,
-            def_proj: values[3],
-            material: values[4] ? String(values[4]) : null,
-            texto_breve: values[5],
-            centro: values[6],
-            dep: values[7],
-            cti: values[8],
-            elemento_pep: values[9],
-            und: values[10],
-            preco: values[11],
-            qtd_necessaria: values[12],
-            qtd_retirada: values[13],
-            qtd_recebida: values[14],
-            qtd_falta: values[15],
-            reserva: values[17],
-          });
+      const skipped = await this.load(ndjsonPath, parsed.totalRows, emit);
 
-          if (total % this.READ_EMIT_INTERVAL === 0) {
-            emit({
-              phase: 'reading',
-              processed: total,
-              percentage: this.calcReadingPct(total),
-              message: `Lendo linha ${total}...`,
-            });
-          }
-
-          if (batch.length >= this.BATCH_SIZE) {
-            const chunk = batch;
-            batch = [];
-
-            tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
-
-            processed += chunk.length;
-            batchesDispatched++;
-
-            emit({
-              phase: 'processing',
-              processed,
-              percentage: this.calcProcessingPct(processed),
-              message: this.buildProgressMessage(jobId, processed),
-            });
-
-            if (batchesDispatched % this.DRAIN_EVERY === 0) {
-              await Promise.all(tasks);
-              tasks = [];
-            }
-          }
-        }
-      }
-
-      if (batch.length > 0) {
-        const chunk = batch;
-
-        tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
-
-        processed += chunk.length;
-      }
-
-      await Promise.all(tasks);
+      this.logSkipped(jobId, skipped);
 
       emit({
         phase: 'completed',
-        processed,
+        processed: parsed.totalRows,
         percentage: 100,
-        message: this.buildProgressMessage(jobId, processed, true),
+        message: this.buildProgressMessage(parsed.totalRows, skipped, true),
       });
+    } catch (error: any) {
+      this.logger.error(`Erro no processamento do job ${jobId}`, error?.stack);
 
-      this.scheduleCleanup(jobId);
-    } catch (error: unknown) {
-      const err =
-        error instanceof Error ? error : new Error('Erro durante a importação');
-
-      const errPayload: CapexProgressPayload = {
+      emit({
         phase: 'error',
         processed: 0,
         percentage: 0,
-        message: err.message ?? 'Erro durante a importação',
-      };
+        message: toSafeCapexErrorMessage(
+          error,
+          'Erro inesperado durante a importação do CAPEX.',
+        ),
+      });
 
-      this.progressMap.set(jobId, errPayload);
-      onProgress?.(errPayload);
-
-      this.logger.error(`Erro no processamento do job ${jobId}`, err.stack);
-      throw err;
+      throw error;
     } finally {
-      await fs
-        .unlink(filePath)
-        .catch(() =>
-          this.logger.warn(`Não foi possível remover o arquivo ${filePath}`),
-        );
+      await this.removeFile(filePath);
+      if (ndjsonPath) await this.removeFile(ndjsonPath);
     }
   }
 
-  private async processBatch(batch: CapexItem[], jobId: string): Promise<void> {
-    const uniqueDiagramas = [...new Set(batch.map((i) => i.diagrama_rede))];
+  // ─── Carga do NDJSON ───────────────────────────────────────────────
 
-    const missing = uniqueDiagramas.filter((d) => d && !this.obraCache.has(d));
+  private async load(
+    ndjsonPath: string,
+    totalRows: number,
+    emit: (payload: CapexProgressPayload) => void,
+  ): Promise<SkippedRows> {
+    // Limite de concorrência e cache por execução (não compartilhados entre jobs).
+    const limit = pLimit(this.CONCURRENCY);
+    const obraCache = new Map<string, number[]>();
+    const skipped = new SkippedRows();
+
+    let tasks: Promise<void>[] = [];
+    let failed = false;
+    let failure: unknown;
+
+    // As promises em `tasks` nunca rejeitam: o primeiro erro é registrado e os
+    // batches seguintes viram no-op. Assim não há unhandled rejection e nada
+    // é inserido depois da falha.
+    const dispatch = (chunk: CapexRow[]) => {
+      tasks.push(
+        limit(async () => {
+          if (failed) return;
+          await this.processBatch(chunk, obraCache, skipped);
+        }).catch((err) => {
+          if (!failed) {
+            failed = true;
+            failure = err;
+          }
+        }),
+      );
+    };
+
+    const throwIfFailed = () => {
+      if (failed) throw failure;
+    };
+
+    const lines = createInterface({
+      input: createReadStream(ndjsonPath, { encoding: 'utf8' }),
+      crlfDelay: Infinity,
+    });
+
+    try {
+      let batch: CapexRow[] = [];
+      let processed = 0;
+      let batchesDispatched = 0;
+
+      for await (const line of lines) {
+        if (!line) continue;
+
+        batch.push(JSON.parse(line) as CapexRow);
+
+        if (batch.length >= this.BATCH_SIZE) {
+          processed += batch.length;
+          dispatch(batch);
+          batch = [];
+          batchesDispatched++;
+
+          throwIfFailed(); // falha cedo
+
+          // Aqui o total é conhecido: percentual exato.
+          emit({
+            phase: 'processing',
+            processed,
+            percentage: Math.min(99, Math.floor((processed / totalRows) * 100)),
+            message: this.buildProgressMessage(processed, skipped),
+          });
+
+          if (batchesDispatched % this.DRAIN_EVERY === 0) {
+            await Promise.all(tasks);
+            tasks = [];
+            throwIfFailed();
+          }
+        }
+      }
+
+      if (batch.length > 0) dispatch(batch);
+
+      await Promise.all(tasks);
+      throwIfFailed();
+
+      return skipped;
+    } catch (error) {
+      failed = true; // batches ainda na fila viram no-op
+      await Promise.all(tasks); // espera só os que já estavam em execução
+      throw error;
+    } finally {
+      lines.close();
+    }
+  }
+
+  private async processBatch(
+    batch: CapexRow[],
+    obraCache: Map<string, number[]>,
+    skipped: SkippedRows,
+  ): Promise<void> {
+    const missing = [
+      ...new Set(
+        batch
+          .map((item) => item.diagrama_rede)
+          .filter((d): d is string => !!d && !obraCache.has(d)),
+      ),
+    ];
 
     if (missing.length > 0) {
-      const obraIdsMap = await this.repository.getObraIdsByDiagramas(missing);
+      const found = await this.repository.getObraIdsByDiagramas(missing);
 
-      obraIdsMap.forEach((value, key) => {
-        this.obraCache.set(key, value);
+      for (const diagrama of missing) {
+        // Guarda também os diagramas sem obra: evita consultá-los de novo.
+        obraCache.set(diagrama, found.get(diagrama) ?? []);
 
-        if (this.obraCache.size > this.MAX_CACHE) {
-          const firstKey = this.obraCache.keys().next().value;
-          this.obraCache.delete(firstKey);
+        if (obraCache.size > this.MAX_CACHE) {
+          const firstKey = obraCache.keys().next().value;
+          obraCache.delete(firstKey);
         }
-      });
+      }
     }
 
     const validItems: CapexInsertItem[] = [];
-    const ignoredItems: CapexItem[] = [];
 
     for (const item of batch) {
-      const id_obra = item.diagrama_rede
-        ? (this.obraCache.get(item.diagrama_rede) ?? null)
-        : null;
+      const ids = item.diagrama_rede
+        ? (obraCache.get(item.diagrama_rede) ?? [])
+        : [];
 
-      if (!id_obra) {
-        ignoredItems.push(item);
-        continue;
-      }
-
-      validItems.push({
-        ...item,
-        id_obra,
-      });
-    }
-
-    // 🔴 armazenar ignorados com limite
-    if (ignoredItems.length > 0) {
-      const current = this.ignoredMap.get(jobId) ?? [];
-
-      if (current.length < this.MAX_IGNORED) {
-        const remainingSpace = this.MAX_IGNORED - current.length;
-        current.push(...ignoredItems.slice(0, remainingSpace));
-        this.ignoredMap.set(jobId, current);
+      if (ids.length === 1) {
+        validItems.push({ ...item, id_obra: ids[0] });
+      } else if (ids.length === 0) {
+        skipped.addIgnored(item.diagrama_rede);
+      } else {
+        // O mesmo diagrama em mais de uma obra: não dá para escolher uma sem
+        // arriscar atribuir o CAPEX à obra errada.
+        skipped.addAmbiguous(item.diagrama_rede as string);
       }
     }
 
@@ -226,48 +297,49 @@ export class CapexProcessingService {
     }
   }
 
+  // ─── Helpers ───────────────────────────────────────────────────────
+
   private buildProgressMessage(
-    jobId: string,
     processed: number,
+    skipped: SkippedRows,
     completed = false,
   ): string {
-    const ignored = this.ignoredMap.get(jobId)?.length ?? 0;
+    const details =
+      skipped.ambiguous > 0
+        ? `${skipped.ignored} ignorados, ${skipped.ambiguous} ambíguos`
+        : `${skipped.ignored} ignorados`;
 
-    if (completed) {
-      return `Importação concluída: ${processed} registros (${ignored} ignorados)`;
+    return completed
+      ? `Importação concluída: ${processed} registros (${details})`
+      : `${processed} registros processados (${details})`;
+  }
+
+  private logSkipped(jobId: string, skipped: SkippedRows): void {
+    if (skipped.ignored > 0) {
+      this.logger.warn(
+        `Job ${jobId}: ${skipped.ignored} linhas ignoradas (diagrama sem obra). ` +
+          `Exemplos: ${skipped.ignoredExamples.join(', ')}`,
+      );
     }
 
-    return `${processed} registros processados (${ignored} ignorados)`;
+    if (skipped.ambiguous > 0) {
+      this.logger.warn(
+        `Job ${jobId}: ${skipped.ambiguous} linhas ambíguas (diagrama em mais de uma obra). ` +
+          `Exemplos: ${skipped.ambiguousExamples.join(', ')}`,
+      );
+    }
   }
 
-  getIgnored(jobId: string): CapexItem[] {
-    return this.ignoredMap.get(jobId) ?? [];
+  private estimateReadingPercentage(rowsRead: number): number {
+    const ratio = 1 - Math.exp(-rowsRead / this.ESTIMATED_ROWS_SCALE);
+    return Math.min(99, Math.floor(ratio * 100));
   }
 
-  private calcReadingPct(linesRead: number): number {
-    const approx = Math.min(linesRead / 100_000, 1);
-    return Math.floor(approx * 100);
-  }
-
-  private calcProcessingPct(processed: number): number {
-    return Math.min(Math.floor(processed / 1000), 100);
-  }
-
-  private initProgress(jobId: string): void {
-    this.progressMap.set(jobId, {
-      phase: 'reading',
-      processed: 0,
-      percentage: 0,
-      message: 'Importação iniciada',
-    });
-
-    this.ignoredMap.set(jobId, []);
-  }
-
-  private scheduleCleanup(jobId: string, ttlMs = 5 * 60 * 1000): void {
-    setTimeout(() => {
-      this.progressMap.delete(jobId);
-      this.ignoredMap.delete(jobId); // 🧹 limpeza completa
-    }, ttlMs);
+  private async removeFile(path: string): Promise<void> {
+    await fs
+      .unlink(path)
+      .catch(() =>
+        this.logger.warn(`Não foi possível remover o arquivo ${path}`),
+      );
   }
 }

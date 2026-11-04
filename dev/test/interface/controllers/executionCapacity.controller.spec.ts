@@ -16,13 +16,13 @@ describe('ExecutionReportController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExecutionCapacityController],
       providers: [
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
         {
           provide: ExecutionCapacityService,
           useValue: {
-            get: jest.fn(),
-            getFinancialValue: jest.fn(),
-            update: jest.fn(),
+            get: vi.fn(),
+            getFinancialValue: vi.fn(),
+            update: vi.fn(),
           },
         },
       ],
@@ -56,8 +56,8 @@ describe('ExecutionReportController', () => {
         },
       ];
 
-      jest.spyOn(service, 'get').mockResolvedValue([]);
-      jest
+      vi.spyOn(service, 'get').mockResolvedValue([]);
+      vi
         .spyOn(service, 'getFinancialValue')
         .mockResolvedValue(mockFinancialValues);
 
@@ -106,8 +106,8 @@ describe('ExecutionReportController', () => {
         },
       ];
 
-      jest.spyOn(service, 'get').mockResolvedValue([]);
-      jest
+      vi.spyOn(service, 'get').mockResolvedValue([]);
+      vi
         .spyOn(service, 'getFinancialValue')
         .mockResolvedValue(mockFinancialValues);
 
@@ -140,7 +140,7 @@ describe('ExecutionReportController', () => {
 
   describe('updateExecutionCapacity', () => {
     it('Should call updateExecutionCapacity service method and return a successful response with the expected structure', async () => {
-      jest.spyOn(service, 'update').mockResolvedValue(undefined);
+      vi.spyOn(service, 'update').mockResolvedValue(undefined);
 
       const result = await controller.updateExecutionCapacity([
         { id: 1, jan: 3 },

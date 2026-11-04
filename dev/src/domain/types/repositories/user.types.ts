@@ -1,4 +1,4 @@
-export type userReponse = {
+export type userResponse = {
   id: number;
   id_regional: number;
   id_turma: number;

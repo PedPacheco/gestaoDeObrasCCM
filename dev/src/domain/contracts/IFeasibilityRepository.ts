@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
 import { StatusFeasibility } from 'src/application/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { ExistsResponse, GetRejectionsResponse } from '../types';

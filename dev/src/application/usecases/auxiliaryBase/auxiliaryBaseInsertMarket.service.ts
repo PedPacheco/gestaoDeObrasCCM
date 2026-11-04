@@ -9,7 +9,7 @@ import {
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { FindExistingWorksService } from '../works/findExistingWorks.service';
+import { FindExistingWorksService } from '../works/management/findExistingWorks.service';
 
 @Injectable()
 export class AuxiliaryMarketInsertService {

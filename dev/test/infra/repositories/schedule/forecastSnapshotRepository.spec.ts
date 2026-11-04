@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ForecastSnapshotRepository } from 'src/infra/repositories/schedule/forecastSnapshotRepository';
+import { ForecastSnapshotRepository } from 'src/infra/repositories/works/schedule/forecastSnapshotRepository';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -10,10 +10,10 @@ describe('SaveForecastSnapshotRepository', () => {
 
   const prismaMock = {
     forecast_snapshot: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      delete: jest.fn(),
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
     },
   };
 
@@ -133,7 +133,7 @@ describe('SaveForecastSnapshotRepository', () => {
     repository = module.get(ForecastSnapshotRepository);
     prismaService = module.get(PrismaService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

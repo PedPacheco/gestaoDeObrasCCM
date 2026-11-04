@@ -6,7 +6,6 @@ import { IEntryRepository } from 'src/domain/contracts/IEntryRepository';
 import { EntryDayResponse, ValuesFromEntryResponse } from 'src/domain/types';
 
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()

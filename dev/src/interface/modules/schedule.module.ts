@@ -2,34 +2,33 @@ import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySum
 import { MonthlySummaryMapper } from 'src/application/mappers/monthlySummaryMapper';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
-import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
-import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
-import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
-import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/works/schedule/rejectionOfSchedules.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/contracts/IExecutionCapacityRepository';
 import { FORECAST_SNAPSHOT } from 'src/domain/contracts/IForecastSnapshotRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IAddSchedulesRepository';
-import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IDeleteSchedulesRepository';
-import { EXEC_MONITORING_REPOSITORY } from 'src/domain/contracts/schedule/IExecMonitoringRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
-import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/contracts/schedule/IGetMonthlySummaryRepository';
-import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
-import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
-import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
-import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IAddSchedulesRepository';
+import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IDeleteSchedulesRepository';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/contracts/works/schedule/IExecMonitoringRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetMonthlySummaryForecastRepository';
+import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetMonthlySummaryRepository';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetScheduleValuesRepository';
+import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetTotalValuesScheduleRepository';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IRejectionsOfSchedules';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
+import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IValidateSchedulesRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import {
   MONTHLY_SUMMARY_CALCULATOR,
@@ -41,33 +40,33 @@ import {
 } from 'src/domain/services/monthlySummaryForecastCalculator.service';
 import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
-import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
-import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
-import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
-import { ForecastSnapshotRepository } from 'src/infra/repositories/schedule/forecastSnapshotRepository';
-import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/schedule/getMonthlySummaryForecastRepository';
-import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
-import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
-import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
-import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
-import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { AddSchedulesRepository } from 'src/infra/repositories/works/schedule/addSchedulesRepository';
+import { DeleteSchedulesRepository } from 'src/infra/repositories/works/schedule/deleteSchedulesRepository';
+import { ExecMonitoringRepository } from 'src/infra/repositories/works/schedule/execMonitoringRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
+import { ForecastSnapshotRepository } from 'src/infra/repositories/works/schedule/forecastSnapshotRepository';
+import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryForecastRepository';
+import { GetMonthlySummaryRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryRepository';
+import { GetScheduleValuesRepository } from 'src/infra/repositories/works/schedule/getScheduleValuesRepository';
+import { GetTotalValueScheduleRepository } from 'src/infra/repositories/works/schedule/getTotalValuesScheduleRepository';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/works/schedule/rejectionsOfSchedulesRepository';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/works/schedule/updateSchedulesRepository';
+import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/works/schedule/validateAndConfirmSchedulesRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
-import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 import { ScheduleController } from '../controllers/schedules/schedule.controller';
 import { SchedulesActionsController } from '../controllers/schedules/schedulesActions.controller';
 import { ExecutionReportModule } from './executionReport.module';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { WorksServicesModule } from './worksServices.module';
 
 @Module({
@@ -76,6 +75,7 @@ import { WorksServicesModule } from './worksServices.module';
     forwardRef(() => WorksModule),
     forwardRef(() => WorksServicesModule),
     forwardRef(() => ExecutionReportModule),
+    ProgressRecalculationModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -129,12 +129,8 @@ import { WorksServicesModule } from './worksServices.module';
     MonthlySummaryForecastMapper,
     MonthlySummaryMapper,
     MonthlySummaryService,
-    ScheduleProgressCalculatorService,
+    PointByPointCostService,
     // UpdateRestrictionsService,
-    {
-      provide: WORK_SERVICES_REPOSITORY,
-      useClass: WorkServicesRepository,
-    },
     {
       provide: WORK_SERVICES_QUERY_REPOSITORY,
       useClass: WorkServicesQueryRepository,

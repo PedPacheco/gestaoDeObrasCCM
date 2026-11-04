@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD, APP_PIPE, Reflector } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
@@ -11,6 +11,9 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
+import { CapexModule } from './interface/modules/capex.module';
+
+import { D5NotesModule } from './interface/modules/d5Notes.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -48,6 +51,7 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     WorksServicesModule,
     ExecutionReportModule,
     AuxiliaryBaseModule,
+    CapexModule,
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,
@@ -55,6 +59,7 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     ForecastModule,
     AdvancePartnerModule,
     LoggerModule,
+    D5NotesModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -82,13 +87,11 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     },
     {
       provide: APP_PIPE,
-      useFactory: (reflector: Reflector) =>
-        new CustomValidationPipe(reflector, {
-          transform: true,
-          whitelist: true,
-          forbidNonWhitelisted: true,
-        }),
-      inject: [Reflector],
+      useValue: new CustomValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
     },
   ],
 })

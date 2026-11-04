@@ -18,11 +18,14 @@ export default async function ServicosPage({
   const cookieStore = await cookies();
 
   const rawCookie = cookieStore.get("form-data")?.value;
+  const rawOrdemDcim = cookieStore.get("ordemDcim")?.value;
   const idStatusWorkCookie = cookieStore.get("idStatusWork")?.value;
   const statusSchedule = cookieStore.get("statusSchedule")?.value;
-  const ordemDcim = cookieStore.get("ordemDcim")?.value;
 
   const formData = rawCookie ? JSON.parse(rawCookie) : null;
+
+  const ordemDcim =
+    rawOrdemDcim && rawOrdemDcim !== "null" ? rawOrdemDcim : null;
 
   const hasOrdemDcim = !!ordemDcim && ordemDcim.trim() !== "";
 

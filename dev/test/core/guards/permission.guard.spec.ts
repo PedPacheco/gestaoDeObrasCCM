@@ -5,8 +5,8 @@ import {
 } from 'src/core/guards/newPermission.guard';
 
 // Mock do utilitário
-jest.mock('src/utils/convertParameterValue', () => ({
-  convertParameterValue: jest.fn((value: string) => Number(value)),
+vi.mock('src/utils/convertParameterValue', () => ({
+  convertParameterValue: vi.fn((value: string) => Number(value)),
 }));
 
 const createMockExecutionContext = (user: any): ExecutionContext => {

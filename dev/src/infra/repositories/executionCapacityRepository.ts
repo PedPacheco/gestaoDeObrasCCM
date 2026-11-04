@@ -1,13 +1,12 @@
+import { Injectable } from '@nestjs/common';
+import { IExecutionCapacityRepository } from 'src/domain/contracts/IExecutionCapacityRepository';
+import { PrismaService } from '../prisma/prisma.service';
+
 import {
   ExecutionCapacityInput,
   UpdateExecutionCapacityInput,
 } from 'src/application/types';
-import { IExecutionCapacityRepository } from 'src/domain/contracts/IExecutionCapacityRepository';
 import { GetFinancialValuesResponse, GetResponse } from 'src/domain/types';
-
-import { Injectable } from '@nestjs/common';
-
-import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ExecutionCapacityRepository implements IExecutionCapacityRepository {

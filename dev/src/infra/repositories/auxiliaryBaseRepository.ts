@@ -1,7 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import {
   CapexInsertItem,
   InsertAuxiliaryMarketInput,
-  NoteInsertInput,
 } from 'src/application/types';
 import { AppLogger } from 'src/core/logger/logger.service';
 import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
@@ -10,10 +10,11 @@ import {
   GetAuxiliaryBaseMaterialsResponse,
   GetAuxiliaryBaseNotesResponse,
 } from 'src/domain/types';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -166,11 +167,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   }
 
   async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsResponse[]> {
-    const result = await this.prisma.$queryRawUnsafe<
-      GetAuxiliaryBaseMaterialsResponse[]
-    >(`
-      SELECT 
-        id_obra,
+    return this.prisma.$queryRaw<GetAuxiliaryBaseMaterialsResponse[]>`
+      SELECT
+        cn52n.id_obra,
         obras.ovnota,
         cn52n.diagrama_rede,
         cn52n.elemento_pep,
@@ -184,143 +183,132 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.qtd_falta,
         cn52n.reserva AS reserva
       FROM cn52n
-      INNER JOIN construcao_sp.obras ON obras.id = cn52n.id_obra
-    `);
-
-    return result;
+      INNER JOIN obras ON obras.id = cn52n.id_obra
+    `;
   }
 
+  /**
+   * Fator de conversão por par (material, pep_ref).
+   *
+   * O join é feito por par no banco. O filtro anterior (IN de materiais ×
+   * IN de pep_refs) trazia o produto cartesiano e refiltrava em JS.
+   */
   async getFator(
     materialDefs: { material: string; pep_ref: string }[],
   ): Promise<Map<string, number>> {
-    if (materialDefs.length === 0) {
+    const pairs = new Map<string, { material: string; pep_ref: string }>();
+
+    for (const def of materialDefs) {
+      if (def.material == null || def.pep_ref == null) continue;
+      pairs.set(`${def.material}|${def.pep_ref}`, def);
+    }
+
+    if (pairs.size === 0) {
       return new Map();
     }
 
-    const materials = [...new Set(materialDefs.map((m) => m.material))];
-    const pepRefs = [...new Set(materialDefs.map((m) => m.pep_ref))];
+    const materials = [...pairs.values()].map((p) => p.material);
+    const pepRefs = [...pairs.values()].map((p) => p.pep_ref);
 
-    const fatores = await this.prisma.conversao.findMany({
-      where: {
-        material: { in: materials },
-        pep_ref: { in: pepRefs },
-      },
-      select: {
-        material: true,
-        pep_ref: true,
-        fator: true,
-      },
-    });
-
-    const requestedSet = new Set(
-      materialDefs.map((m) => `${m.material}|${m.pep_ref}`),
-    );
+    const fatores = await this.prisma.$queryRaw<
+      { material: string; pep_ref: string; fator: number | null }[]
+    >`
+      SELECT c.material, c.pep_ref, c.fator
+      FROM conversao c
+      JOIN unnest(${materials}::text[], ${pepRefs}::text[]) AS p(material, pep_ref)
+        ON c.material = p.material
+       AND c.pep_ref = p.pep_ref
+    `;
 
     const fatorMap = new Map<string, number>();
     for (const f of fatores) {
-      const key = `${f.material}|${f.pep_ref}`;
-      if (requestedSet.has(key)) {
-        fatorMap.set(key, f.fator);
-      }
+      if (f.fator == null) continue;
+      fatorMap.set(`${f.material}|${f.pep_ref}`, Number(f.fator));
     }
 
     return fatorMap;
   }
 
-  async getObraIdsByDiagramas(
-    diagramas: string[],
-  ): Promise<Map<string, number>> {
-    if (diagramas.length === 0) return new Map();
-
-    const obras = await this.prisma.$queryRaw<
-      { diagrama_ref: string; id: number }[]
-    >`
-    SELECT DISTINCT
-      dl.diagrama AS diagrama_ref,
-      o.id
-    FROM unnest(${diagramas}::text[]) AS dl(diagrama)
-    JOIN obras o
-      ON  o.ordem_dci  = dl.diagrama
-      OR o.ordem_dcd  = dl.diagrama
-      OR o.ordem_dca  = dl.diagrama
-      OR o.ordem_dcim = dl.diagrama
-      OR o.diagrama::text = dl.diagrama
-  `;
-
-    const map = new Map<string, number>();
-    obras.forEach((obra) => {
-      map.set(obra.diagrama_ref, obra.id);
-    });
-
-    return map;
-  }
-
-  async delete(tableToDelete: string, id?: number): Promise<void> {
-    if (tableToDelete === 'baseOv') {
-      if (id) {
-        await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+  async delete(tableToDelete: string, id?: number): Promise<any> {
+    try {
+      if (tableToDelete === 'baseOv') {
+        if (id) {
+          return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        }
+        return await this.prisma.base_auxiliar_ov.deleteMany();
       }
-      await this.prisma.base_auxiliar_ov.deleteMany();
-    }
 
-    if (id) {
-      await this.prisma.base_auxiliar.delete({ where: { id } });
-    } else {
-      await this.prisma.base_auxiliar.deleteMany();
+      if (id) {
+        return await this.prisma.base_auxiliar.delete({ where: { id } });
+      } else {
+        return await this.prisma.base_auxiliar.deleteMany();
+      }
+    } catch (error: any) {
+      this.logger.error('Erro ao excluir obra: ', error.stack);
+      throw error;
     }
   }
 
   async insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void> {
-    const [municipios, tipos, circuitos] = await Promise.all([
-      this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
-      this.prisma.tipos.findMany({
-        select: { id: true, descricao_sap: true },
-      }),
-      this.prisma.circuitos.findMany({
-        select: { id: true, circuito: true },
-      }),
-    ]);
+    try {
+      const [municipios, tipos, circuitos] = await Promise.all([
+        this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
+        this.prisma.tipos.findMany({
+          select: { id: true, descricao_sap: true },
+        }),
+        this.prisma.circuitos.findMany({
+          select: { id: true, circuito: true },
+        }),
+      ]);
 
-    const municipioMap = new Map(municipios.map((m) => [m.mun, m.id]));
-    const tipoMap = new Map(tipos.map((t) => [t.descricao_sap, t.id]));
-    const circuitoMap = new Map(circuitos.map((c) => [c.circuito, c.id]));
+      const municipioMap = new Map(municipios.map((m) => [m.mun, m.id]));
+      const tipoMap = new Map(tipos.map((t) => [t.descricao_sap, t.id]));
+      const circuitoMap = new Map(circuitos.map((c) => [c.circuito, c.id]));
 
-    const marketWorks = data.map((item) => {
-      const aux_municipio = municipioMap.get(item.gpm) ?? 1;
-      const aux_tipo_obra = tipoMap.get(item.tipo) ?? 1;
-      const aux_circuito = circuitoMap.get(item.circuito) ?? 1;
+      const marketWorks = data.map((item) => {
+        const aux_municipio = municipioMap.get(item.gpm) ?? 1;
+        const aux_tipo_obra = tipoMap.get(item.tipo) ?? 1;
+        const aux_circuito = circuitoMap.get(item.circuito) ?? 1;
 
-      return {
-        obra: item.obra,
-        pep: item.pep,
-        diagrama: item.diagrama,
-        gpm: item.gpm,
-        tipo: item.tipo,
-        circuito: item.circuito,
-        prazo_texto: item.prazoTexto,
-        status_ov: Number(item.statusOv),
-        status_diagrama: item.statusDiagrama,
-        status_pep: item.statusPep,
-        equip_num_pedido: item.equipeNumPedido,
-        mo_cliente: item.moCliente,
-        mo_empresa: item.moEmpresa,
-        entrada: new Date(item.entrada),
-        aux_municipio,
-        aux_tipo_obra,
-        aux_circuito,
-        aux_turma: 1,
-      };
-    });
+        return {
+          obra: item.obra,
+          pep: item.pep,
+          diagrama: item.diagrama,
+          gpm: item.gpm,
+          tipo: item.tipo,
+          circuito: item.circuito,
+          prazo_texto: item.prazoTexto,
+          status_ov: Number(item.statusOv),
+          status_diagrama: item.statusDiagrama,
+          status_pep: item.statusPep,
+          equip_num_pedido: item.equipeNumPedido,
+          mo_cliente: item.moCliente,
+          mo_empresa: item.moEmpresa,
+          entrada: new Date(item.entrada),
+          aux_municipio,
+          aux_tipo_obra,
+          aux_circuito,
+          aux_turma: 1,
+        };
+      });
 
-    await this.prisma.base_auxiliar_ov.createMany({
-      data: marketWorks,
-      skipDuplicates: true,
-    });
+      await this.prisma.base_auxiliar_ov.createMany({
+        data: marketWorks,
+        skipDuplicates: true,
+      });
+    } catch (error: any) {
+      this.logger.error(
+        'Erro ao inserir dados da base auxiliar OV:',
+        error.stack,
+      );
+      throw new Error('Falha ao inserir dados da base auxiliar OV');
+    }
   }
 
-  async insertNotes(data: NoteInsertInput[]): Promise<void> {
-    const rows = data.map(
-      (item) => Prisma.sql`
+  async insertNotes(data: InsertNotesInterface[]): Promise<any> {
+    try {
+      const rows = data.map(
+        (item) => Prisma.sql`
         ROW(
         ${item.campo_ordenacao},
         ${item.pep},
@@ -335,11 +323,16 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         ${item.ehRda}
         )::construcao_sp.base_auxiliar_input
         `,
-    );
+      );
 
-    const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
+      const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
 
-    await this.prisma.$executeRaw(query);
+      await this.prisma.$executeRaw(query);
+
+      return { message: 'Dados inseridos com sucesso' };
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
@@ -358,13 +351,65 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
       const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
 
-      await this.withRetry(() =>
-        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
-      );
+      // Sem skipDuplicates: cn52n só tem o PK autoincrement, então ele nunca
+      // conflitaria e a opção só enganava quem lê o código.
+      await this.withRetry(() => this.prisma.cn52n.createMany({ data: batch }));
     }
   }
 
   async truncateCN52N(): Promise<void> {
-    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
+    await this.prisma.$executeRaw`TRUNCATE TABLE cn52n`;
+  }
+
+  /**
+   * Obras de cada diagrama (ordem_dci, ordem_dcd, ordem_dca, ordem_dcim ou
+   * diagrama). Um diagrama pode pertencer a mais de uma obra: todas são
+   * devolvidas e o chamador decide o que fazer com a ambiguidade.
+   *
+   * Cada coluna é consultada em um SELECT próprio (UNION ALL), o que permite
+   * usar o índice de cada uma, ao contrário de um JOIN com OR.
+   */
+  async getObraIdsByDiagramas(
+    diagramas: string[],
+  ): Promise<Map<string, number[]>> {
+    if (diagramas.length === 0) return new Map();
+
+    const rows = await this.prisma.$queryRaw<
+      { diagrama_ref: string; ids: number[] }[]
+    >`
+      SELECT m.diagrama_ref, array_agg(DISTINCT m.id) AS ids
+      FROM (
+        SELECT dl.diagrama AS diagrama_ref, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dci = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcd = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dca = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcim = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.diagrama::text = dl.diagrama
+      ) m
+      GROUP BY m.diagrama_ref
+    `;
+
+    const map = new Map<string, number[]>();
+    for (const row of rows) {
+      map.set(
+        row.diagrama_ref,
+        row.ids.map((id) => Number(id)),
+      );
+    }
+
+    return map;
   }
 }

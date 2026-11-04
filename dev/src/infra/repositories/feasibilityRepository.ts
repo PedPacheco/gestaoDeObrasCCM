@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-
 import moment from 'moment';
+import { StatusFeasibility } from 'src/application/types';
 import { IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
 import { ExistsResponse, GetRejectionsResponse } from 'src/domain/types';
-import { StatusFeasibility } from 'src/application/types';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+
+import { Injectable } from '@nestjs/common';
+
+import { Prisma } from '../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {

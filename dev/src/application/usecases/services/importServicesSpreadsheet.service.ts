@@ -5,19 +5,22 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
-import { QueriesServicesService } from './queriesServices.service';
 import {
+  ImportServiceItem,
   IWorkServicesRepository,
+  ParsedSpreadsheetItem,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import {
   CatalogMapsOutput,
   ImportResult,
   ValidateAndResolveItemsResult,
 } from 'src/application/types';
-import { ImportServiceItem, ParsedSpreadsheetItem } from 'src/domain/types';
+import { GetServicesContractsResponse } from 'src/domain/types';
+import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
+import { QueriesServicesService } from './queriesServices.service';
 
 @Injectable()
 export class ImportServicesSpreadsheetService {
@@ -95,7 +98,7 @@ export class ImportServicesSpreadsheetService {
   }
 
   private buildCatalogMaps(
-    services: { id: number; material: string | null }[],
+    services: GetServicesContractsResponse[],
     materials: { id: number; codigo: string | null }[],
   ): CatalogMapsOutput {
     const serviceCatalog = new Map<string, number>();
@@ -104,6 +107,13 @@ export class ImportServicesSpreadsheetService {
     services.forEach((service) => {
       if (service.material) {
         serviceCatalog.set(service.material, service.id);
+      }
+
+      if (
+        service.material_antigo &&
+        !serviceCatalog.has(service.material_antigo)
+      ) {
+        serviceCatalog.set(service.material_antigo, service.id);
       }
     });
 
@@ -143,6 +153,7 @@ export class ImportServicesSpreadsheetService {
 
       const catalog =
         item.type === 'service' ? serviceCatalog : materialCatalog;
+
       const resolvedId = catalog.get(item.materialCode);
 
       if (!resolvedId) {

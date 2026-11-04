@@ -2,55 +2,56 @@ import moment from 'moment';
 import { FileService } from 'src/application/usecases/file.service';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-
-import { BadGatewayException, BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/contracts/IStatusFlowRepository';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/contracts/IFeasibilityRepository';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import type { Mocked } from 'vitest';
+
+import { BadGatewayException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('HandleFeasibilityService', () => {
   let service: HandleFeasibilityService;
-  let feasibilityRepository: jest.Mocked<IFeasibilityRepository>;
-  let statusFlowRepository: jest.Mocked<IStatusFlowRepository>;
+  let feasibilityRepository: Mocked<IFeasibilityRepository>;
+  let statusFlowRepository: Mocked<IStatusFlowRepository>;
 
-  let mockFeasibilityRepository: jest.Mocked<Partial<IFeasibilityRepository>>;
+  let mockFeasibilityRepository: Mocked<Partial<IFeasibilityRepository>>;
 
-  let mockStatusFlowRepository: jest.Mocked<Partial<IStatusFlowRepository>>;
+  let mockStatusFlowRepository: Mocked<Partial<IStatusFlowRepository>>;
 
-  const mockFileServiceService = { deleteFile: jest.fn() };
+  const mockFileServiceService = { deleteFile: vi.fn() };
 
   const mockPrisma = {
-    $transaction: jest.fn((callback: (tx: any) => Promise<void>) => {
+    $transaction: vi.fn((callback: (tx: any) => Promise<void>) => {
       const fakeTx = {};
       return callback(fakeTx);
     }),
   };
 
   beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-06-20'));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-20'));
 
     mockFeasibilityRepository = {
-      saveFiles: jest.fn(),
-      makeItemsFeasible: jest.fn(),
-      getProjectDate: jest.fn(),
-      reject: jest.fn(),
-      updateFiles: jest.fn(),
-      approve: jest.fn(),
-      findFiles: jest.fn(),
+      saveFiles: vi.fn(),
+      makeItemsFeasible: vi.fn(),
+      getProjectDate: vi.fn(),
+      reject: vi.fn(),
+      updateFiles: vi.fn(),
+      approve: vi.fn(),
+      findFiles: vi.fn(),
     };
 
     mockStatusFlowRepository = {
-      updateStatusWorks: jest.fn(),
+      updateStatusWorks: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -79,7 +80,7 @@ describe('HandleFeasibilityService', () => {
     feasibilityRepository = module.get(FEASIBILITY_REPOSITORY);
     statusFlowRepository = module.get(STATUS_FLOW_REPOSITORY);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // ─── Helpers ──────────────────────────────────────────────

@@ -1,8 +1,8 @@
-import { User } from 'src/domain/entities/user.entity';
 import { IAuthRepository } from 'src/domain/contracts/IAuthRepository';
+import { User } from 'src/domain/entities/user.entity';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthRepository implements IAuthRepository {

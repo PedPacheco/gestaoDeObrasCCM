@@ -1,8 +1,8 @@
-import { EntryDayResponse, ValuesFromEntryResponse } from '../types';
 import {
   GetEntryOfWorksByDayInput,
   GetEntryOfWorksInput,
 } from 'src/application/types';
+import { EntryDayResponse, ValuesFromEntryResponse } from '../types';
 
 export interface IEntryRepository {
   getEntryOfWorksByDay(

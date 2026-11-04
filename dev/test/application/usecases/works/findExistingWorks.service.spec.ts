@@ -1,5 +1,5 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/contracts/works/IFindExistingWorksRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IFindExistingWorksRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -7,10 +7,10 @@ describe('FindExistingWorksService', () => {
   let findExistingWorksService: FindExistingWorksService;
 
   const mockRepository = {
-    findExistingWorks: jest.fn(),
-    findExistingNotes: jest.fn(),
-    findExistingOrders: jest.fn(),
-    findExistingWorksOnSuspension: jest.fn(),
+    findExistingWorks: vi.fn(),
+    findExistingNotes: vi.fn(),
+    findExistingOrders: vi.fn(),
+    findExistingWorksOnSuspension: vi.fn(),
   };
 
   const mockExistingNotes = [
@@ -71,9 +71,6 @@ describe('FindExistingWorksService', () => {
       const result = await findExistingWorksService.findExistingNotes([
         {
           ovnota: '12355366',
-          ordem_dci: '170000023493',
-          ordem_dcd: '190000025090',
-          ordem_dca: '150000003441',
         },
       ]);
 

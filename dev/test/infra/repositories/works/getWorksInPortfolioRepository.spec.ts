@@ -11,7 +11,7 @@ describe('GetWorksInPortfolioRepository', () => {
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const mockWorks = [{ id: 1 }];
@@ -31,7 +31,7 @@ describe('GetWorksInPortfolioRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getWorksInPortfolio', () => {

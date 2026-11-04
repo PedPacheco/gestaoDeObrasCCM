@@ -5,7 +5,10 @@ import {
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ExistsResponse } from 'src/domain/types';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 import { FeasibilityRejectionOutput } from '../types';
+
+export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
 
 @Injectable()
 export class FeasibilityService {
@@ -51,12 +54,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           data_envio: obra.relatorio_viabilidade.data_envio,
           operacao: service.operacao,
           ponto: service.ponto,
@@ -97,12 +95,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           operacao: service.operacao,
           ponto: service.ponto,
           numeroOperacao: service.numero_operacao,

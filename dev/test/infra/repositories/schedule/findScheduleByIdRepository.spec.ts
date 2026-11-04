@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
 
 describe('FindScheduleByIdRepository', () => {
   let repository: FindScheduleByIdRepository;
 
   const mockPrisma = {
     programacoes: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
   };
 
@@ -27,7 +27,7 @@ describe('FindScheduleByIdRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('findById', () => {
     it('should find schedule by id and return data', async () => {

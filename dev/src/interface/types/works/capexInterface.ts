@@ -1,3 +1,8 @@
+import type { GetAuxiliaryBaseMaterialsInterface } from 'src/domain/entities/capex.entity';
+
+// Mantido por compatibilidade: o tipo agora vive em domain/entities/capex.entity.
+export type { GetAuxiliaryBaseMaterialsInterface };
+
 export interface materialsInterface {
   diagrama_rede: string;
   def_proj: string;

@@ -11,6 +11,8 @@ import {
   GetEquipmentOutput,
 } from '../types';
 
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+
 @Injectable()
 export class EquipmentService {
   constructor(
@@ -80,12 +82,7 @@ export class EquipmentService {
         return {
           id: work.id,
           ovnota: work.ovnota,
-          ordemDiagrama:
-            work.diagrama ??
-            work.ordem_dci ??
-            work.ordem_dca ??
-            work.ordem_dcd ??
-            work.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(work),
           referencia: work.referencia,
           tipo_obra: work.tipos?.tipo_obra,
           status: work.status?.status,

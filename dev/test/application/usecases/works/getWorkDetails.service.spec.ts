@@ -1,23 +1,23 @@
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
-import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
 
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import {
   mockGetWorkDetailsRepositoryQueryResponse,
   mockGetWorkDetailsRepositoryResponse,
 } from '../../../mocks/works/mockGetWorkDetails';
-import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 
 describe('GetWorkDetailsService', () => {
   let getWorkDetailsService: GetWorkDetailsService;
 
   const mockRepository = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   const mockQueriesServicesService = {
-    getAllItems: jest.fn(),
+    getAllItems: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -39,6 +39,8 @@ describe('GetWorkDetailsService', () => {
       GetWorkDetailsService,
     );
   });
+
+  afterEach(() => vi.clearAllMocks());
 
   it('should be defined', () => {
     expect(getWorkDetailsService).toBeDefined();
@@ -63,6 +65,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 
@@ -75,6 +85,22 @@ describe('GetWorkDetailsService', () => {
     expect(result).toEqual(mockGetWorkDetailsRepositoryResponse);
   });
 
+  it('should throw ForbiddenException when the partner user is different from the partner of the work', async () => {
+    const id = 244;
+
+    mockRepository.get.mockResolvedValue({
+      ...mockGetWorkDetailsRepositoryQueryResponse,
+      id_turma: 3,
+    });
+
+    await expect(getWorkDetailsService.get(id, 2)).rejects.toThrow(
+      ForbiddenException,
+    );
+
+    expect(mockRepository.get).toHaveBeenCalledWith(id);
+    expect(mockQueriesServicesService.getAllItems).not.toHaveBeenCalled();
+  });
+
   it('should be return the work details with format correct without feasibility info', async () => {
     const id = 244;
     mockQueriesServicesService.getAllItems.mockResolvedValue([
@@ -83,6 +109,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 

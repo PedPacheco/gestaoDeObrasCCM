@@ -6,14 +6,14 @@ describe('UpdateNoteRepository', () => {
   let repository: UpdateNoteRepository;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
     obras: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   };
 
   const mockLogger = {
-    error: jest.fn(),
+    error: vi.fn(),
   };
 
   const mockData = [
@@ -53,7 +53,7 @@ describe('UpdateNoteRepository', () => {
     // Substituir o logger padrão pela versão mockada
     (repository as any).logger = mockLogger;
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

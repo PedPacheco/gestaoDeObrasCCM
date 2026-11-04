@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
+import { Response } from 'express';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,

@@ -5,34 +5,34 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { scheduleServices } from "@/actions/services";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { schedulesSchema } from "@/validations/validationSchedules";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@mui/material";
 
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
-import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
+import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 
+import {
+  AddServiceAccordion,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
+import { ButtonComponent } from "../common/Button";
 import { ScheduledServices } from "./servicesSection/scheduledServices/scheduledServices";
 import {
   ScheduledServicesHistoryData,
   ScheduleHistory,
 } from "./servicesSection/scheduleHistory";
-import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import {
-  AddServiceAccordion,
-  ServiceContract,
-} from "../addServiceAccordion/addServiceAccordion";
 
+import { useUser } from "@/contexts/userContext";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 

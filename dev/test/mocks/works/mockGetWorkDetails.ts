@@ -1,4 +1,4 @@
-import { obras } from '@prisma/client';
+import { obras } from 'src/infra/generated/prisma/client';
 
 export const mockGetWorkDetailsRepositoryQueryResponse = {
   ovnota: '12791122',
@@ -212,6 +212,14 @@ export const mockGetWorkDetailsRepositoryResponse = {
       viabilizado: 4,
       qtdeRealizada: null,
       valorUnit: 2,
+      tipo: 'S',
+    },
+    {
+      qtdeAdicional: null,
+      viabilizado: 4,
+      qtdeRealizada: null,
+      valorUnit: 2,
+      tipo: 'M',
     },
   ],
   programacoes: [

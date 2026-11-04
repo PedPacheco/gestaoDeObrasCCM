@@ -14,9 +14,9 @@ describe('ExecutionCapacityService', () => {
   let service: ExecutionCapacityService;
 
   const mockRepository = {
-    get: jest.fn(),
-    getFinancialValue: jest.fn(),
-    update: jest.fn(),
+    get: vi.fn(),
+    getFinancialValue: vi.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -30,7 +30,7 @@ describe('ExecutionCapacityService', () => {
     service = module.get<ExecutionCapacityService>(ExecutionCapacityService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('get', () => {
     it('should call method get with all filters and return formatted data', async () => {
