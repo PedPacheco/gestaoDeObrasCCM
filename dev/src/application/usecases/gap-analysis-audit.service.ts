@@ -1,11 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { gap_analysis } from '@prisma/client';
+
 import {
   CreateGapAnalysisAuditData,
   GAP_ANALYSIS_AUDIT_REPOSITORY,
   IGapAnalysisAuditRepository,
   UpdateGapAnalysisAuditData,
 } from 'src/domain/contracts/IGapAnalysisAuditRepository';
+import { gap_analysis } from 'src/infra/generated/prisma/client';
 
 export interface AuditWithComputed extends gap_analysis {
   data_gap: string;

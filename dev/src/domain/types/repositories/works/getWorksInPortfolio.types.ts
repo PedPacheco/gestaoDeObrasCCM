@@ -41,6 +41,7 @@ export type WorkTotals = {
   total_obras: number;
   total_mo_planejada: number;
   total_mo_exec: number;
+  total_mo_pend: number;
   total_qtde_planejada: number;
   total_qtde_pend: number;
 };

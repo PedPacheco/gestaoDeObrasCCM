@@ -20,8 +20,8 @@ import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
 import { assertXlsxUpload } from 'src/application/types/usecases/auxiliaryBase/capex-upload.util';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
 import { CapexGateway, getUserId } from '../gateway/capex/capex.gateway';
-import { CONSTRUCTION_AREA_ID } from '../shared/costants';
 
 // A rota continua sob /base-auxiliar para não quebrar o front.
 @Controller('base-auxiliar')

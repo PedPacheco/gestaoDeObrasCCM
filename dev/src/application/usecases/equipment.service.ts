@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   EQUIPMENT_REPOSITORY,
   IEquipmentRepository,
@@ -11,6 +10,7 @@ import {
   GetEquipmentOutput,
 } from '../types';
 
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()

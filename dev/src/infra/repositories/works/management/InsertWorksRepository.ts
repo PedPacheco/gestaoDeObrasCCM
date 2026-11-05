@@ -78,8 +78,13 @@ export class InsertWorksRepository implements IInsertWorksRepository {
   }
 
   async getGroup(): Promise<Groups[]> {
-    return await this.prisma.tipos.findMany({
-      select: { id: true, id_grupo: true },
-    });
+    try {
+      return await this.prisma.tipos.findMany({
+        select: { id: true, id_grupo: true },
+      });
+    } catch (error) {
+      console.error('Erro ao procurar grupos:', error);
+      throw error;
+    }
   }
 }

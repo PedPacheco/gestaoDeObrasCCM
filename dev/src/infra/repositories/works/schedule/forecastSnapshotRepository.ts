@@ -2,7 +2,7 @@ import { IForecastSnapshotRepository } from 'src/domain/contracts/IForecastSnaps
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import {
   ForecastSnapshotDailyData,
@@ -28,15 +28,24 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.prisma.forecast_snapshot.delete({
-      where: { id },
-    });
+    try {
+      await this.prisma.forecast_snapshot.delete({ where: { id } });
+    } catch (error: any) {
+      if (error?.code === 'P2025') {
+        throw new NotFoundException(`Snapshot com ID ${id} não encontrado`);
+      }
+      throw error;
+    }
   }
 
   async get(id: number): Promise<ForecastSnapshotGetResponse> {
     const snapshot = await this.prisma.forecast_snapshot.findUnique({
       where: { id },
     });
+
+    if (!snapshot) {
+      throw new NotFoundException(`Snapshot com ID ${id} não encontrado`);
+    }
 
     return {
       ...snapshot,

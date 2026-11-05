@@ -10,6 +10,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { AppLogger } from 'src/core/logger/logger.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   ScheduleStatus,
@@ -88,6 +89,14 @@ describe('ExecutionReportService', () => {
     ),
   };
 
+  const mockLogger = {
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    errorWithMetadata: vi.fn(),
+    setContext: vi.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -103,6 +112,7 @@ describe('ExecutionReportService', () => {
           useValue: mockProgressCalculationService,
         },
         { provide: FileService, useValue: mockFileService },
+        { provide: AppLogger, useValue: mockLogger },
       ],
     }).compile();
 

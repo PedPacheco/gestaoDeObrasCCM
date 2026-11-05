@@ -1,6 +1,6 @@
 import type { CalculatedValue } from 'src/domain/entities/capex.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/management/updateCapexRepository';
 
 const makeItem = (id: number): CalculatedValue => ({
   id,

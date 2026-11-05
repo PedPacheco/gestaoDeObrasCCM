@@ -47,6 +47,9 @@ export class FiltersService {
   ): Promise<GetFiltersOutput> {
     const result = {};
 
+    condition =
+      condition == null || condition === 'undefined' ? undefined : condition;
+
     if (regional) {
       result['regional'] = await this.getCachedData('regionais', () =>
         this.filtersRepository.getData('regionais', ['id', 'regional'], {

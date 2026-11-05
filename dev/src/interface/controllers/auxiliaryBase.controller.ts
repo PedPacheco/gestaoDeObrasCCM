@@ -16,12 +16,11 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
 import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
-
-import { CONSTRUCTION_AREA_ID } from '../shared/costants';
 
 // O fluxo de CAPEX (POST capex/pipeline) vive no CapexController.
 const AREA_EDIT = AreaEditGuard({

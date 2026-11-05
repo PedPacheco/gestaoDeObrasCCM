@@ -1,4 +1,4 @@
-export type FilterCondition = string | number | number[];
+export type FilterCondition = string;
 
 export type GetFiltersInput = {
   regional?: boolean;
@@ -27,6 +27,11 @@ export type SelectOption = {
 export type RegionalFilterOutput = {
   id: number;
   regional: string;
+};
+
+export type TypesOfWorkFilterOutput = {
+  id: number;
+  tipo_obra: string;
 };
 
 export type PartnerFilterOutput = {
@@ -105,6 +110,7 @@ export type NotasD5FilterOutput = {
 
 export type GetFiltersOutput = {
   regional?: RegionalFilterOutput[];
+  tiposObra?: TypesOfWorkFilterOutput[];
   parceira?: PartnerFilterOutput[];
   municipio?: CityFilterOutput[];
   status?: StatusFilterOutput[];

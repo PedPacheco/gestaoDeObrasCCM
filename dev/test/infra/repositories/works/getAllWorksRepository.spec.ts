@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetAllWorksRepository } from 'src/infra/repositories/works/getAllWorksRepository';
+import { GetAllWorksRepository } from 'src/infra/repositories/works/management/getAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 describe('GetAllWorksRepository', () => {

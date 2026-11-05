@@ -1,7 +1,7 @@
 import { IUpdateSchedulesRepository } from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import {
   ScheduleExecutionData,
@@ -19,26 +19,41 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
   ): Promise<void> {
     const { id, ...updateData } = data;
 
-    await tx.programacoes.update({
-      where: { id },
-      data: updateData,
-    });
+    try {
+      await tx.programacoes.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
+      }
+
+      throw error;
+    }
   }
 
   async findExecutionOfSchedules(
     id: number,
     idWork: number,
   ): Promise<ScheduleExecutionData[]> {
-    const executed = await this.prisma.programacoes.findMany({
-      where: {
-        id_obra: idWork,
-        id: {
-          not: id,
+    try {
+      const executed = await this.prisma.programacoes.findMany({
+        where: {
+          id_obra: idWork,
+          id: {
+            not: id,
+          },
         },
-      },
-      select: { exec: true, prog: true },
-    });
+        select: { exec: true, prog: true },
+      });
 
-    return executed.map((p) => ({ exec: p.exec, prog: p.prog }));
+      return executed.map((p) => ({ exec: p.exec, prog: p.prog }));
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
+      }
+      throw error;
+    }
   }
 }

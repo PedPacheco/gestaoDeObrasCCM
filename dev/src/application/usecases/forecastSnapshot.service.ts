@@ -20,7 +20,7 @@ import {
   GetForecastSnapshotOutput,
 } from '../types';
 
-const emptyDailyTotals: ForecastDailyTotalsResponse = {
+export const emptyDailyTotals: ForecastDailyTotalsResponse = {
   totalDiff: 0,
   totalExec: 0,
   totalTeams: 0,
@@ -40,7 +40,7 @@ const emptyDailyTotals: ForecastDailyTotalsResponse = {
   totalMaterialMoForecast: 0,
 };
 
-const emptyGroupTotals: ForecastGroupTotalsResponse = {
+export const emptyGroupTotals: ForecastGroupTotalsResponse = {
   totalDiff: 0,
   totalWorks: 0,
   totalServiceMoExecByGrouping: 0,

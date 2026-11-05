@@ -175,8 +175,7 @@ describe('ExportForecastService', () => {
     const addedRows = mockAddRows.mock.calls[0][0];
 
     expect(addedRows[0]).toMatchObject({
-      id: 1,
-      nome: 'Obra 1',
+      ovnota: '5176447',
       status_prazo: 'NO PRAZO',
     });
 

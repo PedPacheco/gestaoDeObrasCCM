@@ -101,10 +101,6 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
       this.logger.error('Erro ao atualizar capex nas obras', error?.stack);
       throw error;
     }
-
-    // Limpa a tabela auxiliar após todos os batches com sucesso.
-    // Feito fora das transações de update para não misturar responsabilidades.
-    await this.prisma.cn52n.deleteMany();
   }
 
   /** Percentual dentro da fase 'updating'; o orquestrador converte para a escala global. */

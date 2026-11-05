@@ -36,7 +36,7 @@ describe('AddSchedulesRepository', () => {
     });
 
     it('Should call method addSchedules and throw error', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.programacoes.create.mockRejectedValueOnce(
         new Error('DB error'),
       );

@@ -183,7 +183,7 @@ export const mockFindByWorkIdResponse = [
     chave_provisoria_retirada: false,
     motivo: 'Instalação programada',
     usuario: {
-      nome_usuario: 'Carlos Oliveira',
+      nome: 'Carlos Oliveira',
     },
     obras: {
       ovnota: '16004316',
