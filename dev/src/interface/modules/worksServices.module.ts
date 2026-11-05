@@ -1,4 +1,3 @@
-import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
@@ -19,7 +18,9 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
+import { DOCUMENT_AND_SPREADSHEET_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
 import { ServicesController } from '../controllers/services/worksServices.controller';
@@ -39,37 +40,11 @@ import { WorksModule } from './works.module';
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const multerCfg = createMulterConfig({
-          destination: config.get<string>('UPLOAD_AS_BUILD'),
-          allowedMimeTypes: [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/tiff',
-            'image/png',
-            'image/heic',
-            'image/heif',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel',
-          ],
-          allowedExtensions: [
-            '.pdf',
-            '.jpg',
-            '.jpeg',
-            '.png',
-            '.tiff',
-            '.heic',
-            '.heif',
-            '.xlsx',
-            '.xls',
-          ],
-          maxSize: 5 * 1024 * 1024,
-          maxFiles: 3,
-        });
-
-        return multerCfg; // ← AGORA SIM está no formato esperado
-      },
+      useFactory: (config: ConfigService) =>
+        createMulterConfig({
+          destination: config.getOrThrow<string>('UPLOAD_AS_BUILD'),
+          ...DOCUMENT_AND_SPREADSHEET_UPLOAD_PRESET, // ← AGORA SIM está no formato esperado
+        }),
     }),
   ],
   controllers: [

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Controller,
   HttpCode,
@@ -19,7 +20,8 @@ import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
-import { assertXlsxUpload } from 'src/application/types/usecases/auxiliaryBase/capex-upload.util';
+
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
 import { CapexGateway, getUserId } from '../gateway/capex/capex.gateway';
 
@@ -40,11 +42,12 @@ export class CapexController {
   )
   @UseInterceptors(FileInterceptor('file'))
   async importAndUpdateCapex(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(UploadSignaturePipe) file: Express.Multer.File,
     @Req() req: Request & { user: any },
   ) {
-    // Extensão + assinatura do zip (remove o arquivo se for rejeitado).
-    await assertXlsxUpload(file);
+    if (!file) {
+      throw new BadRequestException('Envie a planilha de CAPEX (.xlsx).');
+    }
 
     // Já existe um pipeline rodando: o service não chegará a ser chamado,
     // então quem remove o arquivo enviado é este controller.

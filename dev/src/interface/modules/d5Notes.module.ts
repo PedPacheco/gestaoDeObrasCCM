@@ -14,6 +14,7 @@ import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.servic
 import { D5NotesRepository } from 'src/infra/repositories/d5Notes/d5NotesRepository';
 import { D5NotesSchedulesRepository } from 'src/infra/repositories/d5Notes/d5NotesSchedulesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { D5NotesController } from '../controllers/d5Notes.controller';
 import { UsersModule } from './users.module';
 
@@ -23,33 +24,11 @@ import { UsersModule } from './users.module';
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const multerCfg = createMulterConfig({
-          destination: config.get<string>('UPLOAD_AS_BUILD'),
-          allowedMimeTypes: [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/tiff',
-            'image/png',
-            'image/heic',
-            'image/heif',
-          ],
-          allowedExtensions: [
-            '.pdf',
-            '.jpg',
-            '.jpeg',
-            '.png',
-            '.tiff',
-            '.heic',
-            '.heif',
-          ],
-          maxSize: 5 * 1024 * 1024,
-          maxFiles: 3,
-        });
-
-        return multerCfg; // ← AGORA SIM está no formato esperado
-      },
+      useFactory: (config: ConfigService) =>
+        createMulterConfig({
+          destination: config.getOrThrow<string>('UPLOAD_AS_BUILD'),
+          ...DOCUMENT_UPLOAD_PRESET,
+        }),
     }),
   ],
   controllers: [D5NotesController],
