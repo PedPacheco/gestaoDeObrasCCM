@@ -24,6 +24,8 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
@@ -155,10 +157,10 @@ export class D5NotesController {
 
   @Put('/programacoes/:id')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  @UseInterceptors(FilesInterceptor('files', 5))
+  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
   async updateD5NotesSchedule(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[],
     @Body() data: UpdateScheduleD5Dto,
     @Req() req: any,
   ) {
