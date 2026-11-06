@@ -1,5 +1,5 @@
 import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
-import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
 
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';

@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
 import moment from 'moment';
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import { StatusFeasibility } from 'src/application/types';
 import { IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
+import { ExistsResponse, GetRejectionsResponse } from 'src/domain/types';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+
+import { Injectable } from '@nestjs/common';
+
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async exists(idWork: number): Promise<any> {
+  async exists(idWork: number): Promise<ExistsResponse> {
     const value = idWork.toString();
 
     return await this.prisma.relatorio_viabilidade.findFirst({
@@ -38,7 +41,7 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     });
   }
 
-  async getRejections(workId: number): Promise<any[]> {
+  async getRejections(workId: number): Promise<GetRejectionsResponse[]> {
     return await this.prisma.reprovacoes_viabilidade.findMany({
       where: { relatorio_viabilidade: { id_obra: workId } },
       select: {

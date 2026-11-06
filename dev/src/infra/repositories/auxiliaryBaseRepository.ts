@@ -1,21 +1,23 @@
-import { MarketWork } from 'src/domain/entities/works.entity';
-
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
-
-import { Injectable, Logger } from '@nestjs/common';
-import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
+import { Injectable } from '@nestjs/common';
 import {
   CapexInsertItem,
-  GetAuxiliaryBaseMaterialsInterface,
-} from 'src/domain/entities/capex.entity';
-import { Prisma } from 'src/infra/generated/prisma/client';
+  InsertAuxiliaryMarketInput,
+} from 'src/application/types';
+import { AppLogger } from 'src/core/logger/logger.service';
+import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
+import { MarketWork } from 'src/domain/entities/works.entity';
+import {
+  GetAuxiliaryBaseMaterialsResponse,
+  GetAuxiliaryBaseNotesResponse,
+} from 'src/domain/types';
+
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
-  private readonly logger = new Logger(AuxiliaryBaseRepository.name);
-
   // Máximo de registros por chamada de createMany.
   // 200 é conservador porque o createMany gera um único INSERT com todos
   // os valores inline — muito mais pesado em bytes do que um UPDATE.
@@ -24,7 +26,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   // Tentativas em caso de queda de conexão transitória.
   private readonly MAX_RETRIES = 3;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: AppLogger,
+  ) {}
 
   // ─── Retry helper ─────────────────────────────────────────────────────────
 
@@ -50,20 +55,27 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        const msg: string = (error?.message ?? '').toLowerCase();
-        const code: string = error?.code ?? '';
+      } catch (error: unknown) {
+        const err = error as {
+          message?: string;
+          code?: string;
+        };
+
+        const msg = (err.message ?? '').toLowerCase();
+        const code = err.code ?? '';
 
         const isConnectionError =
           CONNECTION_ERROR_CODES.has(code) ||
           CONNECTION_ERROR_MESSAGES.some((m) => msg.includes(m));
 
         if (isConnectionError && attempt < this.MAX_RETRIES) {
-          const delayMs = 300 * 2 ** (attempt - 1); // 300ms, 600ms, 1200ms…
+          const delayMs = 300 * 2 ** (attempt - 1);
+
           this.logger.warn(
-            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${error.message}). ` +
+            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${err.message}). ` +
               `Aguardando ${delayMs}ms antes de tentar novamente.`,
           );
+
           await new Promise((res) => setTimeout(res, delayMs));
           continue;
         }
@@ -75,7 +87,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   // ─── Métodos existentes (inalterados) ─────────────────────────────────────
 
-  async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
+  async getAuxiliaryBaseNotes(
+    idRegional?: number,
+  ): Promise<GetAuxiliaryBaseNotesResponse[]> {
     return await this.prisma.base_auxiliar.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
@@ -152,9 +166,8 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     );
   }
 
-  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
-    // O schema vem da DATABASE_URL (search_path), como nas demais queries.
-    return this.prisma.$queryRaw<GetAuxiliaryBaseMaterialsInterface[]>`
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsResponse[]> {
+    return this.prisma.$queryRaw<GetAuxiliaryBaseMaterialsResponse[]>`
       SELECT
         cn52n.id_obra,
         obras.ovnota,
@@ -236,7 +249,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
-  async insertMarket(data: InsertBaseAuxiliaryMarketDTO[]): Promise<void> {
+  async insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void> {
     try {
       const [municipios, tipos, circuitos] = await Promise.all([
         this.prisma.municipios.findMany({ select: { id: true, mun: true } }),

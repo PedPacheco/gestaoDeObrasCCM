@@ -1,1073 +1,583 @@
-import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
-
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import {
-  GetSelectedServicesParamsInterface,
-  GetServicesByWorkIdResponse,
-  GetServiceScheduleHistoryResponse,
-  GetServicesSelectedByWorkIdResponse,
-} from 'src/interface/types/servicesInterface';
-
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
 
-import {
-  GET_WORKS_DETAILS_REPOSITORY,
-  IGetWorksDetailsRepository,
-} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
+vi.mock('src/utils/pointByPoint/serviceType.utils', () => ({
+  serviceTypeLabel: vi.fn(),
+}));
 
-const mockHistory: GetServiceScheduleHistoryResponse[] = [
-  {
-    id: 1,
-    id_programacao: 1,
-    id_servico: 1,
-    id_equipe: 2,
-    programacoes: { data_prog: new Date('2024-01-01') },
-    adicional: 1,
-    equipes: { equipe: 'LM01', perfil: 'B1' },
-    prog: 1,
-    real: 1,
-    status: 'EXECUTADO',
-    servicos: {
-      operacao: 'INSTALAÇÃO',
-      descricao_operacao: 'POSTE',
-      numero_operacao: '1000',
-      ponto: 'P1',
-      servicos_contratos: { texto_breve: 'POSTE', material: '2345' },
-      qtde_plan: 1,
-      viabilizado: 2,
-      materiais: undefined,
-    },
-  },
-  {
-    id: 2,
-    id_programacao: 1,
-    id_servico: 1,
-    id_equipe: 2,
-    programacoes: { data_prog: new Date('2024-01-01') },
-    adicional: 1,
-    equipes: { equipe: 'LM01', perfil: 'B4' },
-    prog: 1,
-    real: 1,
-    status: 'EXECUTADO',
-    servicos: {
-      operacao: 'INSTALAÇÃO',
-      ponto: 'P1',
-      materiais: { descricao: 'POSTE - ODI', codigo: '12344' },
-      qtde_plan: 1,
-      viabilizado: 2,
-      descricao_operacao: 'POSTE',
-      numero_operacao: '2300',
-    },
-  },
-];
+// ---------- Factories ----------
+
+const contract = {
+  preco: 100,
+  material: 'SRV-001',
+  texto_breve: 'Serviço de instalação',
+};
+
+const material = {
+  preco: 20,
+  codigo: 'MAT-001',
+  descricao: 'Cabo',
+};
+
+const makeService = (overrides: Record<string, unknown> = {}) => ({
+  id_obra: 1,
+  operacao: '0010',
+  ponto: 'P1',
+  numero_operacao: 10,
+  descricao_operacao: 'Instalação de poste',
+  qtde_plan: 10,
+  qtde_adicional: 2,
+  viabilizado: 10,
+  qtde_prog: 5,
+  qtde_real: 3,
+  servicos_contratos: contract,
+  materiais: null,
+  ...overrides,
+});
+
+const materialOnly = { servicos_contratos: null, materiais: material };
+const noPrice = { servicos_contratos: null, materiais: null };
+
+const DATA_PROG = new Date('2026-10-15T00:00:00Z');
+
+const makeScheduledItem = (overrides: Record<string, unknown> = {}) => ({
+  id: 100,
+  id_programacao: 50,
+  id_servico: 7,
+  prog: 4,
+  real: 2,
+  adicional: 1,
+  servicos: makeService(),
+  programacoes: { data_prog: DATA_PROG },
+  equipes: { equipe: 'EQ-01', encarregado: 'Carlos', perfil: 'LM' },
+  ...overrides,
+});
+
+const emptyRelations = {
+  programacoes: null,
+  equipes: null,
+};
+
+// ---------- Suíte ----------
 
 describe('QueriesServicesService', () => {
   let service: QueriesServicesService;
-  let repository: IWorkServicesQueryRepository;
-  let getWorkDetailsService: IGetWorksDetailsRepository;
 
-  const mockWorksServicesRepository = {
+  const mockQueryRepository = {
     getAllServicesOfWork: vi.fn(),
     getNotScheduledServices: vi.fn(),
     getSelectedServices: vi.fn(),
     getServiceScheduleHistory: vi.fn(),
     getServiceScheduleHistoryByIdSchedule: vi.fn(),
-    getServicesFilters: vi.fn(),
     getServicesContracts: vi.fn(),
-    getTeamsServices: vi.fn(),
     getMaterialsContract: vi.fn(),
+    getTeamsServices: vi.fn(),
     getServiceOptions: vi.fn(),
   };
 
-  const mockGetWorksDetailsRepository = {
+  const mockWorksDetailsRepository = {
     get: vi.fn(),
   };
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+    vi.mocked(serviceTypeLabel).mockReturnValue('S');
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         QueriesServicesService,
         {
           provide: WORK_SERVICES_QUERY_REPOSITORY,
-          useValue: mockWorksServicesRepository,
+          useValue: mockQueryRepository,
         },
         {
           provide: GET_WORKS_DETAILS_REPOSITORY,
-          useValue: mockGetWorksDetailsRepository,
+          useValue: mockWorksDetailsRepository,
         },
       ],
     }).compile();
 
-    service = module.get<QueriesServicesService>(QueriesServicesService);
-    repository = module.get<IWorkServicesQueryRepository>(
-      WORK_SERVICES_QUERY_REPOSITORY,
-    );
-    getWorkDetailsService = module.get<IGetWorksDetailsRepository>(
-      GET_WORKS_DETAILS_REPOSITORY,
-    );
-
-    vi.clearAllMocks();
+    service = module.get(QueriesServicesService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
+  // ======================================================
   describe('getAllItems', () => {
-    const mockRepositoryResponse: GetServicesByWorkIdResponse[] = [
-      {
-        id: 1,
-        id_obra: 100,
-        id_contrato_servico: 2,
-        id_material: null,
-        operacao: 'Operação 1',
-        descricao_operacao: 'POSTE',
-        numero_operacao: '2000',
-        ponto: 'Ponto A',
-        qtde_plan: 10,
-        qtde_prog: 8,
-        qtde_real: 5,
-        qtde_adicional: null,
-        servicos_contratos: undefined,
-        viabilizado: 0,
-        materiais: {
-          codigo: '12345',
-          descricao: 'POSTE',
-          preco: new Prisma.Decimal(1.5),
-        },
-      },
-      {
-        id: 2,
-        id_obra: 100,
-        id_contrato_servico: null,
-        id_material: 2,
-        operacao: 'Operação 2',
-        descricao_operacao: 'POSTE - ODI',
-        numero_operacao: '2000',
-        ponto: 'Ponto B',
-        qtde_plan: 2,
-        qtde_prog: 3,
-        qtde_real: null,
-        qtde_adicional: 1,
-        servicos_contratos: {
-          material: 'Material 2',
-          texto_breve: 'Serviço 2',
-          preco: 200,
-        },
-        viabilizado: 0,
-        materiais: undefined,
-      },
-    ];
+    it('should throw NotFoundException when the repository returns null', async () => {
+      mockQueryRepository.getAllServicesOfWork.mockResolvedValue(null);
 
-    it('should return formatted services successfully', async () => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
-        mockRepositoryResponse,
-      );
+      await expect(service.getAllItems(1)).rejects.toThrow(NotFoundException);
+      expect(mockQueryRepository.getAllServicesOfWork).toHaveBeenCalledWith(1);
+    });
 
-      const result = await service.getAllItems(1);
+    it('should return an empty array when the work has no services', async () => {
+      mockQueryRepository.getAllServicesOfWork.mockResolvedValue([]);
 
-      expect(result).toEqual([
-        {
-          id: 1,
-          idObra: 100,
-          operacao: 'Operação 1',
-          descricaoOperacao: 'POSTE',
-          numeroOperacao: '2000',
-          ponto: 'Ponto A',
-          material: '12345',
-          textoBreve: 'POSTE',
-          qtdePlanejada: 10,
-          qtdeProgramada: 8,
-          viabilizado: 0,
-          qtdeRealizada: 5,
-          qtdeAdicional: null,
-          tipo: 'S',
-          valorUnit: 1.5,
-          valorTotal: 15,
-          valorReal: 7.5,
-        },
-        {
-          id: 2,
-          idObra: 100,
-          operacao: 'Operação 2',
-          descricaoOperacao: 'POSTE - ODI',
-          numeroOperacao: '2000',
-          ponto: 'Ponto B',
-          material: 'Material 2',
-          textoBreve: 'Serviço 2',
-          qtdePlanejada: 2,
-          qtdeProgramada: 3,
-          viabilizado: 0,
-          qtdeRealizada: null,
-          qtdeAdicional: 1,
-          tipo: 'M',
-          valorUnit: 200,
-          valorTotal: 600,
-          valorReal: 0,
-        },
+      await expect(service.getAllItems(1)).resolves.toEqual([]);
+    });
+
+    it('should map a service priced by contract', async () => {
+      const raw = makeService();
+      mockQueryRepository.getAllServicesOfWork.mockResolvedValue([raw]);
+
+      const [result] = await service.getAllItems(1);
+
+      expect(result).toEqual({
+        idObra: 1,
+        operacao: '0010',
+        ponto: 'P1',
+        numeroOperacao: 10,
+        descricaoOperacao: 'Instalação de poste',
+        material: 'SRV-001',
+        textoBreve: 'Serviço de instalação',
+        qtdePlanejada: 10,
+        qtdeAdicional: 2,
+        viabilizado: 10,
+        qtdeProgramada: 5,
+        qtdeRealizada: 3,
+        tipo: 'S',
+        valorUnit: 100,
+        valorTotal: 1200, // 100 * (10 + 2)
+        valorReal: 300, // 100 * 3
+      });
+      expect(serviceTypeLabel).toHaveBeenCalledWith(raw);
+    });
+
+    it('should fall back to material data when there is no contract', async () => {
+      mockQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        makeService(materialOnly),
       ]);
-      expect(repository.getAllServicesOfWork).toHaveBeenCalledWith(1);
-      expect(repository.getAllServicesOfWork).toHaveBeenCalledTimes(1);
+
+      const [result] = await service.getAllItems(1);
+
+      expect(result).toMatchObject({
+        material: 'MAT-001',
+        textoBreve: 'Cabo',
+        valorUnit: 20,
+        valorTotal: 240,
+        valorReal: 60,
+      });
     });
 
-    it('should throw NotFoundException when services is null', async () => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(null);
+    it('should return undefined descriptors and NaN values when there is no price source', async () => {
+      mockQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        makeService(noPrice),
+      ]);
 
-      await expect(service.getAllItems(1)).rejects.toThrow(NotFoundException);
-      await expect(service.getAllItems(1)).rejects.toThrow(
-        'Obra não encontrada',
-      );
-    });
+      const [result] = await service.getAllItems(1);
 
-    it('should throw NotFoundException when services is undefined', async () => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
-        undefined,
-      );
-
-      await expect(service.getAllItems(1)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should return empty array when no services found', async () => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([]);
-
-      const result = await service.getAllItems(1);
-
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-    });
-
-    it('should calculate valorUnit and valorReal correctly', async () => {
-      const serviceWithCustomValues = [
-        {
-          ...mockRepositoryResponse[0],
-          qtde_plan: 2,
-          qtde_real: 2,
-          qtde_adicional: null,
-          servicos_contratos: {
-            ...mockRepositoryResponse[0].servicos_contratos,
-            preco: 5,
-          },
-        },
-      ];
-
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
-        serviceWithCustomValues,
-      );
-
-      const result = await service.getAllItems(1);
-
-      expect(result[0].valorUnit).toBe(5); // 50 * 25.5
-      expect(result[0].valorTotal).toBe(10); // 50 * 25.5
-      expect(result[0].valorReal).toBe(10); // 30 * 25.5
+      expect(result.material).toBeUndefined();
+      expect(result.textoBreve).toBeUndefined();
+      expect(result.valorUnit).toBeNaN();
+      expect(result.valorTotal).toBeNaN();
     });
   });
 
+  // ======================================================
   describe('getNotScheduledServices', () => {
-    const mockRepositoryResponse: GetServicesByWorkIdResponse[] = [
-      {
-        id: 1,
-        id_obra: 100,
-        id_contrato_servico: 10,
-        id_material: null,
-        operacao: 'OP001',
-        ponto: 'P16',
-        qtde_plan: 10,
-        qtde_prog: 8,
-        qtde_real: 4,
-        qtde_adicional: 2,
-        viabilizado: 7,
-        descricao_operacao: 'Instalação de poste',
-        numero_operacao: '2000',
-        materiais: null,
-        servicos_contratos: {
-          material: 'SER001',
-          texto_breve: 'Serviço de Instalação',
-          preco: 350.5,
-        },
-      },
-      {
-        id: 2,
-        id_obra: 100,
-        id_contrato_servico: null,
-        id_material: 20,
-        operacao: 'OP002',
-        ponto: 'V02',
-        qtde_plan: 20,
-        qtde_prog: 15,
-        qtde_real: 12,
-        qtde_adicional: 0,
-        viabilizado: 18,
-        descricao_operacao: 'Substituição de cabo',
-        numero_operacao: '2001',
-        materiais: {
-          codigo: 'MAT002',
-          descricao: 'Cabo de Alumínio',
-          preco: new Prisma.Decimal(45.9),
-        },
-        servicos_contratos: null,
-      },
-    ];
-
-    const TOTAL_SERVICE_1 = 9;
-
-    it('should return formatted services successfully', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        mockRepositoryResponse,
-      );
-
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result).toEqual([
-        {
-          id: 1,
-          idObra: 100,
-          operacao: 'OP001',
-          descricaoOperacao: 'Instalação de poste',
-          numeroOperacao: '2000',
-          ponto: 'P16',
-          material: 'SER001',
-          textoBreve: 'Serviço de Instalação',
-          qtdePlanejada: 10,
-          viabilizado: 7,
-          qtdeRealizada: 4,
-          qtdeProgramada: 8,
-          qtdeAdicional: 2,
-          tipo: 'S' as const,
-          saldoDisponivel: 1,
-          valorUnit: 350.5,
-          valorTotal: 3154.5,
-          valorReal: 1402,
-        },
-        {
-          id: 2,
-          idObra: 100,
-          operacao: 'OP002',
-          descricaoOperacao: 'Substituição de cabo',
-          numeroOperacao: '2001',
-          ponto: 'V02',
-          material: 'MAT002',
-          textoBreve: 'Cabo de Alumínio',
-          qtdePlanejada: 20,
-          viabilizado: 18,
-          qtdeRealizada: 12,
-          qtdeProgramada: 15,
-          qtdeAdicional: 0,
-          tipo: 'M' as const,
-          saldoDisponivel: 3,
-          valorUnit: 45.9,
-          valorTotal: 826.1999999999999,
-          valorReal: 550.8,
-        },
-      ]);
-      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
-      expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw NotFoundException when services is null', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        null,
-      );
+    it('should throw NotFoundException when the repository returns null', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue(null);
 
       await expect(service.getNotScheduledServices(1)).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.getNotScheduledServices(1)).rejects.toThrow(
-        'Obra não encontrada',
+      expect(mockQueryRepository.getNotScheduledServices).toHaveBeenCalledWith(
+        1,
       );
     });
 
-    it('should throw NotFoundException when services is undefined', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        undefined,
-      );
-
-      await expect(service.getNotScheduledServices(1)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should calculate valorUnit and valorReal correctly', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        mockRepositoryResponse,
-      );
-
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result[0].valorUnit).toBe(350.5);
-      expect(result[0].valorTotal).toBe(3154.5);
-      expect(result[0].valorReal).toBe(1402);
-    });
-
-    it('should calculate when quantities are null', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        mockRepositoryResponse.map((item) => ({
-          ...item,
-          qtde_prog: null,
-          qtde_real: null,
-          qtde_adicional: null,
+    it('should skip services whose realized quantity equals the total (null quantities count as 0)', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([
+        makeService({
           viabilizado: null,
-        })),
-      );
+          qtde_adicional: null,
+          qtde_real: 0,
+          qtde_prog: 0,
+        }),
+      ]);
 
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result).toHaveLength(mockRepositoryResponse.length);
-      result.forEach((item) => {
-        expect(item).toEqual(
-          expect.objectContaining({
-            qtdeProgramada: null,
-            qtdeRealizada: null,
-            qtdeAdicional: null,
-            viabilizado: null,
-            saldoDisponivel: 0,
-            valorReal: 0,
-            valorTotal: 0,
-          }),
-        );
-      });
-      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
-      expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
+      await expect(service.getNotScheduledServices(1)).resolves.toEqual([]);
     });
 
-    it.each([
-      ['qtde_real equals total', { qtde_real: TOTAL_SERVICE_1 }],
-      ['qtde_prog equals total', { qtde_prog: TOTAL_SERVICE_1 }],
-      [
-        'both qtde_real and qtde_prog equal total',
-        { qtde_real: TOTAL_SERVICE_1, qtde_prog: TOTAL_SERVICE_1 },
-      ],
-    ])('should skip the service when %s', async (_, overrides) => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
-        { ...mockRepositoryResponse[0], ...overrides },
-        mockRepositoryResponse[1],
+    it('should skip services whose scheduled quantity equals the total', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([
+        makeService({ qtde_real: 3, qtde_prog: 12 }),
+      ]);
+
+      await expect(service.getNotScheduledServices(1)).resolves.toEqual([]);
+    });
+
+    it('should return a contract service with the balance based on the scheduled quantity', async () => {
+      const raw = makeService(); // total 12, real 3, prog 5
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([raw]);
+
+      const [result] = await service.getNotScheduledServices(1);
+
+      expect(result).toEqual({
+        idObra: 1,
+        operacao: '0010',
+        ponto: 'P1',
+        numeroOperacao: 10,
+        descricaoOperacao: 'Instalação de poste',
+        material: 'SRV-001',
+        textoBreve: 'Serviço de instalação',
+        qtdePlanejada: 10,
+        qtdeAdicional: 2,
+        viabilizado: 10,
+        saldoDisponivel: 7, // 12 - max(3, 5)
+        qtdeRealizada: 3,
+        qtdeProgramada: 5,
+        tipo: 'S',
+        valorUnit: 100,
+        valorTotal: 1200,
+        valorReal: 300,
+      });
+      expect(serviceTypeLabel).toHaveBeenCalledWith(raw);
+    });
+
+    it('should return a material service with the balance based on the realized quantity', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([
+        makeService({ ...materialOnly, qtde_real: 8, qtde_prog: 4 }),
+      ]);
+
+      const [result] = await service.getNotScheduledServices(1);
+
+      expect(result).toMatchObject({
+        material: 'MAT-001',
+        textoBreve: 'Cabo',
+        saldoDisponivel: 4, // 12 - max(8, 4)
+        valorUnit: 20,
+        valorTotal: 240,
+        valorReal: 160,
+      });
+    });
+
+    it('should return NaN values when there is no price source', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([
+        makeService(noPrice),
+      ]);
+
+      const [result] = await service.getNotScheduledServices(1);
+
+      expect(result.material).toBeUndefined();
+      expect(result.textoBreve).toBeUndefined();
+      expect(result.valorUnit).toBeNaN();
+    });
+
+    it('should keep only the pending services in a mixed list', async () => {
+      mockQueryRepository.getNotScheduledServices.mockResolvedValue([
+        makeService({ qtde_real: 12 }), // concluído → descartado
+        makeService({ operacao: '0020' }), // pendente
       ]);
 
       const result = await service.getNotScheduledServices(1);
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe(2);
-      expect(result.find((item) => item.id === 1)).toBeUndefined();
-    });
-
-    it('should return an empty array when all services are fully scheduled or executed', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
-        { ...mockRepositoryResponse[0], qtde_real: 9 }, // 7 + 2
-        { ...mockRepositoryResponse[1], qtde_prog: 18 }, // 18 + 0
-      ]);
-
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result).toEqual([]);
+      expect(result[0].operacao).toBe('0020');
     });
   });
 
+  // ======================================================
   describe('getSelectedServices', () => {
-    const mockParams: GetSelectedServicesParamsInterface = {
-      id: 1,
-      idProgramacao: 10,
-    };
+    const params = { idWork: 1, ids: [7] } as any;
 
-    const mockRepositoryResponse: GetServicesSelectedByWorkIdResponse[] = [
-      {
-        id_programacao: 1,
-        prog: 8,
-        real: 5,
-        adicional: null,
-        equipes: {
-          equipe: 'LM 01',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-        },
-        programacoes: {
-          data_prog: new Date('2024-01-01'),
-        },
-        servicos: {
-          id: 1,
-          id_obra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          qtde_plan: 10,
-          viabilizado: 5,
-          descricao_operacao: 'Poste',
-          numero_operacao: '2000',
-          servicos_contratos: {
-            material: 'Material 1',
-            texto_breve: 'Serviço 1',
-            preco: 100,
-          },
-          materiais: null,
-        },
-      },
-      {
-        id_programacao: 2,
-        prog: 8,
-        real: 5,
-        adicional: null,
-        equipes: {
-          equipe: 'LM 01',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-        },
-        programacoes: {
-          data_prog: new Date('2024-01-01'),
-        },
-        servicos: {
-          id: 2,
-          id_obra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          qtde_plan: 10,
-          viabilizado: 5,
-          descricao_operacao: 'Poste',
-          numero_operacao: '2000',
-          servicos_contratos: null,
-          materiais: {
-            codigo: '1234',
-            descricao: 'Poste',
-            preco: new Prisma.Decimal(5),
-          },
-        },
-      },
-    ];
+    it('should throw NotFoundException when the repository returns null', async () => {
+      mockQueryRepository.getSelectedServices.mockResolvedValue(null);
 
-    it('should return formatted selected services successfully', async () => {
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(
-        mockRepositoryResponse,
+      await expect(service.getSelectedServices(params)).rejects.toThrow(
+        NotFoundException,
       );
-
-      const result = await service.getSelectedServices(mockParams);
-
-      expect(result).toEqual([
-        {
-          id: 1,
-          idObra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          material: 'Material 1',
-          textoBreve: 'Serviço 1',
-          dataProgramada: new Date('2024-01-01'),
-          descricaoOperacao: 'Poste',
-          numeroOperacao: '2000',
-          qtdePlanejada: 10,
-          qtdeProgramada: 8,
-          qtdeRealizada: 5,
-          qtdeAdicional: null,
-          viabilizado: 5,
-          equipe: 'LM 01',
-          tipo: 'S',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-          valorUnit: 100,
-          valorReal: 500,
-          valorProg: 800,
-        },
-        {
-          id: 2,
-          idObra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          material: '1234',
-          textoBreve: 'Poste',
-          descricaoOperacao: 'Poste',
-          numeroOperacao: '2000',
-          dataProgramada: new Date('2024-01-01'),
-          qtdePlanejada: 10,
-          qtdeProgramada: 8,
-          qtdeRealizada: 5,
-          qtdeAdicional: null,
-          viabilizado: 5,
-          equipe: 'LM 01',
-          tipo: 'M',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-          valorUnit: 5,
-          valorProg: 40,
-          valorReal: 25,
-        },
-      ]);
-      expect(repository.getSelectedServices).toHaveBeenCalledWith(mockParams);
-      expect(repository.getSelectedServices).toHaveBeenCalledTimes(1);
+      expect(mockQueryRepository.getSelectedServices).toHaveBeenCalledWith(
+        params,
+      );
     });
 
-    it('should return formatted selected services successfully', async () => {
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(
-        mockRepositoryResponse.map((item) => ({
-          ...item,
+    it('should map a fully populated item priced by contract', async () => {
+      const item = makeScheduledItem();
+      mockQueryRepository.getSelectedServices.mockResolvedValue([item]);
+
+      const [result] = await service.getSelectedServices(params);
+
+      expect(result).toEqual({
+        idObra: 1,
+        operacao: '0010',
+        ponto: 'P1',
+        numeroOperacao: 10,
+        descricaoOperacao: 'Instalação de poste',
+        material: 'SRV-001',
+        textoBreve: 'Serviço de instalação',
+        dataProgramada: DATA_PROG,
+        qtdePlanejada: 10,
+        qtdeProgramada: 4,
+        qtdeRealizada: 2,
+        qtdeAdicional: 1,
+        viabilizado: 10,
+        tipo: 'S',
+        valorUnit: 100,
+        valorProg: 400,
+        valorReal: 200,
+        equipe: 'EQ-01',
+        encarregado: 'Carlos',
+        perfil: 'LM',
+      });
+      expect(serviceTypeLabel).toHaveBeenCalledWith(item.servicos);
+    });
+
+    it('should handle material pricing, missing relations and null quantities', async () => {
+      mockQueryRepository.getSelectedServices.mockResolvedValue([
+        makeScheduledItem({
+          ...emptyRelations,
+          servicos: makeService(materialOnly),
           prog: null,
           real: null,
-        })),
-      );
-
-      const result = await service.getSelectedServices(mockParams);
-
-      expect(result).toEqual([
-        {
-          id: 1,
-          idObra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          material: 'Material 1',
-          textoBreve: 'Serviço 1',
-          dataProgramada: new Date('2024-01-01'),
-          descricaoOperacao: 'Poste',
-          numeroOperacao: '2000',
-          qtdePlanejada: 10,
-          qtdeProgramada: null,
-          qtdeRealizada: null,
-          qtdeAdicional: null,
-          viabilizado: 5,
-          equipe: 'LM 01',
-          tipo: 'S',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-          valorUnit: 100,
-          valorReal: 0,
-          valorProg: 0,
-        },
-        {
-          id: 2,
-          idObra: 100,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          material: '1234',
-          textoBreve: 'Poste',
-          descricaoOperacao: 'Poste',
-          numeroOperacao: '2000',
-          dataProgramada: new Date('2024-01-01'),
-          qtdePlanejada: 10,
-          qtdeProgramada: null,
-          qtdeRealizada: null,
-          qtdeAdicional: null,
-          viabilizado: 5,
-          equipe: 'LM 01',
-          tipo: 'M',
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-          valorUnit: 5,
-          valorProg: 0,
-          valorReal: 0,
-        },
+        }),
       ]);
+
+      const [result] = await service.getSelectedServices(params);
+
+      expect(result).toMatchObject({
+        material: 'MAT-001',
+        textoBreve: 'Cabo',
+        dataProgramada: undefined,
+        valorUnit: 20,
+        valorProg: 0,
+        valorReal: 0,
+        equipe: undefined,
+        encarregado: undefined,
+        perfil: undefined,
+      });
     });
 
-    it('should return multiple selected services', async () => {
-      const multipleServices = [
-        mockRepositoryResponse[0],
-        {
-          ...mockRepositoryResponse[0],
-          id: 2,
-          equipes: {
-            encarregado: 'Maria Santos',
-            perfil: 'Eletricista',
-          },
-        },
-      ];
+    it('should return NaN values when there is no price source', async () => {
+      mockQueryRepository.getSelectedServices.mockResolvedValue([
+        makeScheduledItem({ servicos: makeService(noPrice) }),
+      ]);
 
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(
-        multipleServices,
-      );
+      const [result] = await service.getSelectedServices(params);
 
-      const result = await service.getSelectedServices(mockParams);
+      expect(result.material).toBeUndefined();
+      expect(result.textoBreve).toBeUndefined();
+      expect(result.valorUnit).toBeNaN();
+    });
+  });
 
-      expect(result).toHaveLength(2);
-      expect(result[1].encarregado).toBe('Maria Santos');
-      expect(result[1].perfil).toBe('Eletricista');
+  // ======================================================
+  describe('getServiceScheduleHistory', () => {
+    it('should map a fully populated history item priced by contract', async () => {
+      const item = makeScheduledItem();
+      mockQueryRepository.getServiceScheduleHistory.mockResolvedValue([item]);
+
+      const [result] = await service.getServiceScheduleHistory(1);
+
+      expect(
+        mockQueryRepository.getServiceScheduleHistory,
+      ).toHaveBeenCalledWith(1);
+      expect(result).toEqual({
+        id: 100,
+        idProg: 50,
+        idServico: 7,
+        operacao: '0010',
+        numeroOperacao: 10,
+        descricaoOperacao: 'Instalação de poste',
+        ponto: 'P1',
+        codigo: 'SRV-001',
+        textoBreve: 'Serviço de instalação',
+        tipo: 'S',
+        dataProgramada: DATA_PROG,
+        qtdeProgramada: 4,
+        qtdePlanejada: 10,
+        qtdeViabilizado: 10,
+        qtdeAdicional: 1,
+        qtdeRealizada: 2,
+        equipe: 'EQ-01',
+        perfil: 'LM',
+      });
+      expect(serviceTypeLabel).toHaveBeenCalledWith(item.servicos);
     });
 
-    it('should throw NotFoundException when selected services is null', async () => {
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(null);
+    it('should fall back to material data and handle missing relations', async () => {
+      mockQueryRepository.getServiceScheduleHistory.mockResolvedValue([
+        makeScheduledItem({
+          ...emptyRelations,
+          servicos: makeService(materialOnly),
+        }),
+      ]);
 
-      await expect(service.getSelectedServices(mockParams)).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(service.getSelectedServices(mockParams)).rejects.toThrow(
-        'Obra não encontrada',
-      );
+      const [result] = await service.getServiceScheduleHistory(1);
+
+      expect(result).toMatchObject({
+        codigo: 'MAT-001',
+        textoBreve: 'Cabo',
+        dataProgramada: undefined,
+        equipe: undefined,
+        perfil: undefined,
+      });
     });
 
-    it('should throw NotFoundException when selected services is undefined', async () => {
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(
+    it('should return undefined descriptors when there is no contract nor material', async () => {
+      mockQueryRepository.getServiceScheduleHistory.mockResolvedValue([
+        makeScheduledItem({ servicos: makeService(noPrice) }),
+      ]);
+
+      const [result] = await service.getServiceScheduleHistory(1);
+
+      expect(result.codigo).toBeUndefined();
+      expect(result.textoBreve).toBeUndefined();
+    });
+
+    it('should return an empty array when there is no history', async () => {
+      mockQueryRepository.getServiceScheduleHistory.mockResolvedValue([]);
+
+      await expect(service.getServiceScheduleHistory(1)).resolves.toEqual([]);
+    });
+  });
+
+  // ======================================================
+  describe('getServiceScheduleHistoryByIdSchedule', () => {
+    const ids = [50, 51];
+
+    it('should map a history item including the contract price', async () => {
+      mockQueryRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        [makeScheduledItem()],
+      );
+
+      const [result] = await service.getServiceScheduleHistoryByIdSchedule(ids);
+
+      expect(
+        mockQueryRepository.getServiceScheduleHistoryByIdSchedule,
+      ).toHaveBeenCalledWith(ids);
+      expect(result).toEqual({
+        id: 100,
+        idProg: 50,
+        idServico: 7,
+        operacao: '0010',
+        numeroOperacao: 10,
+        descricaoOperacao: 'Instalação de poste',
+        ponto: 'P1',
+        codigo: 'SRV-001',
+        textoBreve: 'Serviço de instalação',
+        tipo: 'S',
+        dataProgramada: DATA_PROG,
+        qtdeProgramada: 4,
+        qtdePlanejada: 10,
+        qtdeViabilizado: 10,
+        qtdeAdicional: 1,
+        qtdeRealizada: 2,
+        equipe: 'EQ-01',
+        perfil: 'LM',
+        preco: 100,
+      });
+    });
+
+    it('should use the material price and handle missing relations', async () => {
+      mockQueryRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        [
+          makeScheduledItem({
+            ...emptyRelations,
+            servicos: makeService(materialOnly),
+          }),
+        ],
+      );
+
+      const [result] = await service.getServiceScheduleHistoryByIdSchedule(ids);
+
+      expect(result).toMatchObject({
+        codigo: 'MAT-001',
+        textoBreve: 'Cabo',
+        preco: 20,
+        dataProgramada: undefined,
+        equipe: undefined,
+        perfil: undefined,
+      });
+    });
+
+    it('should default the price to 0 when there is no price source', async () => {
+      mockQueryRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        [makeScheduledItem({ servicos: makeService(noPrice) })],
+      );
+
+      const [result] = await service.getServiceScheduleHistoryByIdSchedule(ids);
+
+      expect(result.preco).toBe(0);
+      expect(result.codigo).toBeUndefined();
+      expect(result.textoBreve).toBeUndefined();
+    });
+  });
+
+  // ======================================================
+  describe('getServiceContracts', () => {
+    it('should fetch contracts using the partner of the work', async () => {
+      const contracts = [{ id: 1, material: 'SRV-001' }];
+      mockWorksDetailsRepository.get.mockResolvedValue({ id_turma: 7 });
+      mockQueryRepository.getServicesContracts.mockResolvedValue(contracts);
+
+      const result = await service.getServiceContracts(1);
+
+      expect(mockWorksDetailsRepository.get).toHaveBeenCalledWith(1);
+      expect(mockQueryRepository.getServicesContracts).toHaveBeenCalledWith(7);
+      expect(result).toBe(contracts);
+    });
+
+    it('should call the repository with undefined when the work is not found', async () => {
+      mockWorksDetailsRepository.get.mockResolvedValue(null);
+      mockQueryRepository.getServicesContracts.mockResolvedValue([]);
+
+      await service.getServiceContracts(999);
+
+      expect(mockQueryRepository.getServicesContracts).toHaveBeenCalledWith(
         undefined,
       );
-
-      await expect(service.getSelectedServices(mockParams)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should return empty array when no selected services found', async () => {
-      mockWorksServicesRepository.getSelectedServices.mockResolvedValue([]);
-
-      const result = await service.getSelectedServices(mockParams);
-
-      expect(result).toEqual([]);
     });
   });
 
-  describe('getServiceScheduleHistory', () => {
-    it('should return schedule history successfully', async () => {
-      const mockId = 1;
-
-      mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
-        mockHistory,
-      );
-
-      const result = await service.getServiceScheduleHistory(mockId);
-
-      expect(result).toEqual([
-        {
-          id: 1,
-          idProg: 1,
-          idServico: 1,
-          dataProgramada: new Date('2024-01-01'),
-          textoBreve: 'POSTE',
-          tipo: 'S',
-          descricaoOperacao: 'POSTE',
-          numeroOperacao: '1000',
-          perfil: 'B1',
-          codigo: '2345',
-          qtdeAdicional: 1,
-          qtdePlanejada: 1,
-          qtdeProgramada: 1,
-          qtdeRealizada: 1,
-          qtdeViabilizado: 2,
-          operacao: 'INSTALAÇÃO',
-          ponto: 'P1',
-          equipe: 'LM01',
-        },
-        {
-          id: 2,
-          idProg: 1,
-          idServico: 1,
-          dataProgramada: new Date('2024-01-01'),
-          textoBreve: 'POSTE - ODI',
-          tipo: 'M',
-          descricaoOperacao: 'POSTE',
-          numeroOperacao: '2300',
-          perfil: 'B4',
-          codigo: '12344',
-          equipe: 'LM01',
-          qtdeAdicional: 1,
-          qtdePlanejada: 1,
-          qtdeProgramada: 1,
-          qtdeRealizada: 1,
-          qtdeViabilizado: 2,
-          operacao: 'INSTALAÇÃO',
-          ponto: 'P1',
-        },
-      ]);
-      expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(mockId);
-      expect(repository.getServiceScheduleHistory).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array when no history found', async () => {
-      const mockId = 999;
-      mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
-        [],
-      );
-
-      const result = await service.getServiceScheduleHistory(mockId);
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle different id values', async () => {
-      const mockId = 42;
-
-      mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
-        mockHistory,
-      );
-
-      await service.getServiceScheduleHistory(mockId);
-
-      expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(42);
-    });
-  });
-
-  describe('getServiceScheduleHistoryByIdSchedule', () => {
-    it('should return schedule history successfully', async () => {
-      const mockId = 1;
-
-      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
-        mockHistory.map((item) => ({ ...item, preco: 0 })),
-      );
-
-      const result = await service.getServiceScheduleHistoryByIdSchedule([
-        mockId,
-      ]);
-
-      expect(result).toEqual([
-        {
-          id: 1,
-          idProg: 1,
-          idServico: 1,
-          dataProgramada: new Date('2024-01-01'),
-          textoBreve: 'POSTE',
-          tipo: 'S',
-          descricaoOperacao: 'POSTE',
-          numeroOperacao: '1000',
-          perfil: 'B1',
-          codigo: '2345',
-          qtdeAdicional: 1,
-          qtdePlanejada: 1,
-          qtdeProgramada: 1,
-          qtdeRealizada: 1,
-          qtdeViabilizado: 2,
-          operacao: 'INSTALAÇÃO',
-          ponto: 'P1',
-          equipe: 'LM01',
-          preco: 0,
-        },
-        {
-          id: 2,
-          idProg: 1,
-          idServico: 1,
-          dataProgramada: new Date('2024-01-01'),
-          textoBreve: 'POSTE - ODI',
-          tipo: 'M',
-          descricaoOperacao: 'POSTE',
-          numeroOperacao: '2300',
-          perfil: 'B4',
-          codigo: '12344',
-          equipe: 'LM01',
-          qtdeAdicional: 1,
-          qtdePlanejada: 1,
-          qtdeProgramada: 1,
-          qtdeRealizada: 1,
-          qtdeViabilizado: 2,
-          operacao: 'INSTALAÇÃO',
-          ponto: 'P1',
-          preco: 0,
-        },
-      ]);
-      expect(
-        repository.getServiceScheduleHistoryByIdSchedule,
-      ).toHaveBeenCalledWith([mockId]);
-      expect(
-        repository.getServiceScheduleHistoryByIdSchedule,
-      ).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array when no history found', async () => {
-      const mockId = 999;
-      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
-        [],
-      );
-
-      const result = await service.getServiceScheduleHistoryByIdSchedule([
-        mockId,
-      ]);
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle different id values', async () => {
-      const mockId = 42;
-
-      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
-        mockHistory,
-      );
-
-      await service.getServiceScheduleHistoryByIdSchedule([mockId]);
-
-      expect(
-        repository.getServiceScheduleHistoryByIdSchedule,
-      ).toHaveBeenCalledWith([42]);
-    });
-  });
-
-  describe('getServiceContracts', () => {
-    it('should return service contracts successfully', async () => {
-      const mockIdWork = 1;
-      const mockIdParceira = 100;
-      const mockWork = {
-        id: 1,
-        id_turma: mockIdParceira,
-      };
-      const mockContracts = [
-        {
-          id: 1,
-          contrato: 'CONT-001',
-          valor: 10000,
-        },
-        {
-          id: 2,
-          contrato: 'CONT-002',
-          valor: 20000,
-        },
-      ];
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getServicesContracts.mockResolvedValue(
-        mockContracts,
-      );
-
-      const result = await service.getServiceContracts(mockIdWork);
-
-      expect(result).toEqual(mockContracts);
-      expect(getWorkDetailsService.get).toHaveBeenCalledWith(mockIdWork);
-      expect(repository.getServicesContracts).toHaveBeenCalledWith(
-        mockIdParceira,
-      );
-      expect(getWorkDetailsService.get).toHaveBeenCalledTimes(1);
-      expect(repository.getServicesContracts).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle work without id_turma', async () => {
-      const mockIdWork = 1;
-      const mockWork = {
-        id: 1,
-        id_turma: null,
-      };
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
-
-      const result = await service.getServiceContracts(mockIdWork);
-
-      expect(repository.getServicesContracts).toHaveBeenCalledWith(null);
-      expect(result).toEqual([]);
-    });
-
-    it('should handle work not found', async () => {
-      const mockIdWork = 999;
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
-      mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
-
-      const result = await service.getServiceContracts(mockIdWork);
-
-      expect(repository.getServicesContracts).toHaveBeenCalledWith(undefined);
-      expect(result).toEqual([]);
-    });
-
-    it('should return empty array when no contracts found', async () => {
-      const mockIdWork = 1;
-      const mockIdParceira = 100;
-      const mockWork = {
-        id: 1,
-        id_turma: mockIdParceira,
-      };
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
-
-      const result = await service.getServiceContracts(mockIdWork);
-
-      expect(result).toEqual([]);
-    });
-  });
-
+  // ======================================================
   describe('getTeamsServices', () => {
-    it('should return teams services successfully', async () => {
-      const mockIdWork = 1;
-      const mockIdParceira = 100;
-      const mockWork = {
-        id: 1,
-        id_turma: mockIdParceira,
-      };
-      const mockTeams = [
-        {
-          id: 1,
-          encarregado: 'João Silva',
-          perfil: 'Pedreiro',
-        },
-        {
-          id: 2,
-          encarregado: 'Maria Santos',
-          perfil: 'Eletricista',
-        },
-      ];
+    it('should fetch teams using the partner of the work', async () => {
+      const teams = [{ id: 1, equipe: 'EQ-01' }];
+      mockWorksDetailsRepository.get.mockResolvedValue({ id_turma: 7 });
+      mockQueryRepository.getTeamsServices.mockResolvedValue(teams);
 
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getTeamsServices.mockResolvedValue(mockTeams);
+      const result = await service.getTeamsServices(1);
 
-      const result = await service.getTeamsServices(mockIdWork);
-
-      expect(result).toEqual(mockTeams);
-      expect(getWorkDetailsService.get).toHaveBeenCalledWith(mockIdWork);
-      expect(repository.getTeamsServices).toHaveBeenCalledWith(mockIdParceira);
-      expect(getWorkDetailsService.get).toHaveBeenCalledTimes(1);
-      expect(repository.getTeamsServices).toHaveBeenCalledTimes(1);
+      expect(mockWorksDetailsRepository.get).toHaveBeenCalledWith(1);
+      expect(mockQueryRepository.getTeamsServices).toHaveBeenCalledWith(7);
+      expect(result).toBe(teams);
     });
 
-    it('should handle work without id_turma', async () => {
-      const mockIdWork = 1;
-      const mockWork = {
-        id: 1,
-        id_turma: null,
-      };
+    it('should call the repository with undefined when the work is not found', async () => {
+      mockWorksDetailsRepository.get.mockResolvedValue(null);
+      mockQueryRepository.getTeamsServices.mockResolvedValue([]);
 
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
+      await service.getTeamsServices(999);
 
-      const result = await service.getTeamsServices(mockIdWork);
-
-      expect(repository.getTeamsServices).toHaveBeenCalledWith(null);
-      expect(result).toEqual([]);
-    });
-
-    it('should handle work not found', async () => {
-      const mockIdWork = 999;
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
-      mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
-
-      const result = await service.getTeamsServices(mockIdWork);
-
-      expect(repository.getTeamsServices).toHaveBeenCalledWith(undefined);
-      expect(result).toEqual([]);
-    });
-
-    it('should return empty array when no teams found', async () => {
-      const mockIdWork = 1;
-      const mockIdParceira = 100;
-      const mockWork = {
-        id: 1,
-        id_turma: mockIdParceira,
-      };
-
-      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
-
-      const result = await service.getTeamsServices(mockIdWork);
-
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe('getMaterials', () => {
-    it('should call getMaterialsContract method', async () => {
-      mockWorksServicesRepository.getMaterialsContract.mockResolvedValue([]);
-
-      const response = await service.getMaterials();
-
-      expect(response).toEqual([]);
-    });
-  });
-
-  describe('get', () => {
-    it('should return service points successfully', async () => {
-      const mockIdWork = 1;
-      const mockPoints = {
-        operation_description: ['Poste'],
-        operation_number: ['2000'],
-        points: ['P1'],
-      };
-
-      mockWorksServicesRepository.getServiceOptions.mockResolvedValue(
-        mockPoints,
+      expect(mockQueryRepository.getTeamsServices).toHaveBeenCalledWith(
+        undefined,
       );
+    });
+  });
 
-      const result = await service.getServiceOptions(mockIdWork);
+  // ======================================================
+  describe('getMaterials', () => {
+    it('should return the materials from the repository', async () => {
+      const materials = [material];
+      mockQueryRepository.getMaterialsContract.mockResolvedValue(materials);
 
-      expect(result).toEqual(mockPoints);
-      expect(repository.getServiceOptions).toHaveBeenCalledTimes(1);
+      await expect(service.getMaterials()).resolves.toBe(materials);
+      expect(mockQueryRepository.getMaterialsContract).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ======================================================
+  describe('getServiceOptions', () => {
+    it('should return the service options for the given id', async () => {
+      const options = [{ id: 1, label: 'Opção' }];
+      mockQueryRepository.getServiceOptions.mockResolvedValue(options);
+
+      await expect(service.getServiceOptions(1)).resolves.toBe(options);
+      expect(mockQueryRepository.getServiceOptions).toHaveBeenCalledWith(1);
     });
   });
 });

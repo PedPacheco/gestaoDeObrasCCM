@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+
 import { CustomExceptionFilter } from './core/error/customExpection.filter';
 import { AuthGuard } from './core/guards/auth.guard';
 import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
@@ -14,7 +14,6 @@ import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
 import { CapexModule } from './interface/modules/capex.module';
 
 import { D5NotesModule } from './interface/modules/d5Notes.module';
-import { DashboardModule } from './interface/modules/dashboard.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -25,6 +24,7 @@ import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { FiltersModule } from './interface/modules/filters.module';
 import { ForecastModule } from './interface/modules/forecast.module';
 import { GoalsModule } from './interface/modules/goals.module';
+import { LoggerModule } from './interface/modules/logger.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
@@ -55,10 +55,10 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,
-    DashboardModule,
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,
+    LoggerModule,
     D5NotesModule,
     JwtModule.registerAsync({
       global: true,

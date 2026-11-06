@@ -4,7 +4,7 @@ import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import {
   ADD_SCHEDULES_REPOSITORY,
   IAddSchedulesRepository,
-} from 'src/domain/contracts/schedule/IAddSchedulesRepository';
+} from 'src/domain/contracts/works/schedule/IAddSchedulesRepository';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';

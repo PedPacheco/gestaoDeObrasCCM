@@ -1,15 +1,11 @@
+import { AddServiceInput, ApplyAdditionalInput } from 'src/application/types';
 import {
   ScheduleItem,
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
-
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 export interface ScheduleTotalsById {
   prog: number;
@@ -82,11 +78,11 @@ export interface IWorkServicesRepository {
 
   // ─── Itens da obra ──────────────────────────────────────────────────
   applyAdditional(
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
     tx: Prisma.TransactionClient,
   ): Promise<void>;

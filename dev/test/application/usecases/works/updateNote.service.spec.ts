@@ -1,7 +1,7 @@
 import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
 import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
-import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/IInsertWorksRepository';
-import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/IUpdateNoteRepository';
+import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IInsertWorksRepository';
+import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateNoteRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

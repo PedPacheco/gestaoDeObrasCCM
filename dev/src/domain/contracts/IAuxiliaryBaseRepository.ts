@@ -1,11 +1,9 @@
-import {
-  CapexInsertItem,
-  GetAuxiliaryBaseMaterialsInterface,
-} from 'src/domain/entities/capex.entity';
-import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import { CapexInsertItem, NoteInsertInput } from 'src/application/types';
+
+import { GetAuxiliaryBaseMaterialsInterface } from '../entities/capex.entity';
 
 export interface IAuxiliaryBaseRepository {
-  insertNotes(data: NotesDTO[]): Promise<any>;
+  insertNotes(data: NoteInsertInput[]): Promise<void>;
   insertMarket(data: any[]): Promise<any>;
   insertCapex(data: CapexInsertItem[]): Promise<void>;
   getFator(

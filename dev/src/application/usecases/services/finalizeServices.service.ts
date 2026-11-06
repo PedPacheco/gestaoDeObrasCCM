@@ -1,11 +1,17 @@
 import {
+  FinalizeServicesData,
+  FinalizeServicesInput,
+  PerformExecutionsData,
+  PerformServicesInput,
+} from 'src/application/types';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
@@ -26,10 +32,10 @@ import {
   WorkExecutionTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { GetServicesByWorkIdResponse } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 import {
   FINALIZED_SCHEDULE_STATUSES,
   isMaterial,
@@ -71,7 +77,7 @@ export class FinalizeServicesService {
     private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
+  async performServices(data: PerformServicesInput[]): Promise<void> {
     if (data.length === 0) return;
 
     this.validatePerformPayload(data);
@@ -159,7 +165,7 @@ export class FinalizeServicesService {
    */
   async finalizeServices(
     workId: number,
-    data: any,
+    data: FinalizeServicesInput,
     files?: Express.Multer.File[],
   ): Promise<void> {
     const { executionReportData, executions, userId, ...updateData } = data;
@@ -276,7 +282,7 @@ export class FinalizeServicesService {
    * totalizadores dos serviços pela fonte única.
    */
   private async registerExecutions(
-    data: PerformServicesDTO[],
+    data: PerformExecutionsData[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     for (let i = 0; i < data.length; i += EXECUTION_BATCH_SIZE) {
@@ -376,7 +382,7 @@ export class FinalizeServicesService {
     responsibility: string,
     executionObservation: string,
     userId: number,
-  ): FinalizationData {
+  ): FinalizeServicesData {
     return {
       id: scheduleId,
       idWork: workId,

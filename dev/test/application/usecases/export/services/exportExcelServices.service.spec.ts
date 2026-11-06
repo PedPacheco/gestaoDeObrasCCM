@@ -1,12 +1,11 @@
 import * as ExcelJS from 'exceljs';
 import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
+import { ExportServicesExcelOutput } from 'src/domain/types';
 
 // mocks compartilhados (fora do vi.mock)
 const addRowsMock = vi.fn();
 const addWorksheetMock = vi.fn();
 const writeMock = vi.fn();
-
-import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
 
 export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
   {

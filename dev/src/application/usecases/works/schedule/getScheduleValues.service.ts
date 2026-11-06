@@ -1,12 +1,22 @@
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  GetScheduleValuesFormattedTotals,
+  GetScheduleValuesInput,
+  GetScheduleValuesOutput,
+  ScheduleForecastInput,
+  ScheduleForecastOutput,
+  ScheduleRestrictionData,
+} from 'src/application/types';
 import {
   GET_SCHEDULE_VALUES_REPOSITORY,
   IGetScheduleValuesRepository,
-} from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-
-import { Inject, Injectable } from '@nestjs/common';
+} from 'src/domain/contracts/works/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import {
+  GetScheduleValuesResponseItem,
+  GetScheduleValuesTotals,
+} from 'src/domain/types';
+
 import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 import { QueriesServicesService } from '../../services/queriesServices.service';
 
@@ -21,8 +31,8 @@ export class GetScheduleValuesService {
   ) {}
 
   async getValues(
-    filters: GetScheduleValuesDTO,
-  ): Promise<GetScheduleValuesResponse> {
+    filters: GetScheduleValuesInput,
+  ): Promise<GetScheduleValuesOutput> {
     const { works, resultTotals } =
       await this.getScheduleValuesRepository.getValues(filters);
 
@@ -64,7 +74,7 @@ export class GetScheduleValuesService {
       worksWithRestrictionVerification,
     );
 
-    const response: GetScheduleValuesResponse = {
+    const response: GetScheduleValuesOutput = {
       works: worksWithRestrictionVerification,
       totals: {
         ...totals,
@@ -77,7 +87,9 @@ export class GetScheduleValuesService {
     return response;
   }
 
-  private calculateForecast(work: any) {
+  private calculateForecast(
+    work: ScheduleForecastInput,
+  ): ScheduleForecastOutput {
     const { prog, exec, executado, capex_mat_pend, capex_mo_pend } = work;
 
     const progRate = prog / 100;
@@ -101,7 +113,9 @@ export class GetScheduleValuesService {
     };
   }
 
-  private buildTotals(rawTotals: any) {
+  private buildTotals(
+    rawTotals: GetScheduleValuesTotals,
+  ): GetScheduleValuesFormattedTotals {
     if (!rawTotals) {
       return {
         total_obras: 0,
@@ -146,11 +160,11 @@ export class GetScheduleValuesService {
     };
   }
 
-  private calculateTotalExec(works: any[]) {
+  private calculateTotalExec(works: GetScheduleValuesResponseItem[]): number {
     return works.reduce((acc, work) => acc + work.exec, 0);
   }
 
-  private hasOpenRestriction(work: any): boolean {
+  private hasOpenRestriction(work: ScheduleRestrictionData): boolean {
     const {
       id_restricao_prog1,
       id_restricao_prog2,

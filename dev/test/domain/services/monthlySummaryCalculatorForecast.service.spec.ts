@@ -1,8 +1,8 @@
-import { MonthlySummaryForecastCalculator } from 'src/domain/services/monthlySummaryForecastCalculator.service';
 import {
   DailySummaryEntryForecast,
   GroupTeamSummaryEntryForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
+} from 'src/application/types/usecases/works/schedule/monthlySummaryForecast.types';
+import { MonthlySummaryForecastCalculator } from 'src/domain/services/monthlySummaryForecastCalculator.service';
 
 describe('MonthlySummaryForecastCalculator', () => {
   let calculator: MonthlySummaryForecastCalculator;

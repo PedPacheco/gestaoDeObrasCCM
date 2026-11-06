@@ -2,13 +2,13 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import {
   IValidateConfirmAndRejectSchedulesRepository,
   VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
-} from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+} from 'src/domain/contracts/works/schedule/IValidateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
 import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,

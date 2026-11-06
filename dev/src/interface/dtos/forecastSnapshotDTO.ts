@@ -171,10 +171,10 @@ export class GroupTeamSummaryEntryForecastDTO {
   totalMaterialMoExec: number;
 
   @IsNumber()
-  forecastTotal: number;
+  totalForecast: number;
 
   @IsNumber()
-  execTotal: number;
+  totalExec: number;
 
   @IsNumber()
   diff: number;

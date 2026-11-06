@@ -16,11 +16,13 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
-import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
+import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
@@ -39,19 +41,19 @@ export class ExecutionReportController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async update(
     @Req() req: any,
     @Param('id', ParseIntPipe) idExecutionReport: number,
     @Body() data: UpdateExecutionReportDTO,
-    @UploadedFiles() files?: Express.Multer.File[],
+    @UploadedFiles(UploadSignaturePipe) files?: Express.Multer.File[],
   ): Promise<any> {
-    const { id: idUser } = req.user;
+    const { id: userId } = req.user;
 
     await this.executionReportService.update(
       idExecutionReport,
-      { ...data.executionReportData, idUser },
+      { ...data.executionReportData, userId },
       files,
     );
 

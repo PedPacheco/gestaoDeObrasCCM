@@ -1,5 +1,5 @@
 import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
-import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
+import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetTotalValuesScheduleRepository';
 
 import { Test } from '@nestjs/testing';
 

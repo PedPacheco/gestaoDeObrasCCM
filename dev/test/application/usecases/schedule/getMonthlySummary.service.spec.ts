@@ -1,12 +1,12 @@
-import type { Mock } from 'vitest';
-import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
-import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
-import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 import {
   FINANCIAL_OVERHEAD_FACTOR,
   MONTH_INDEX_TO_KEY,
   WORKING_DAYS_PER_MONTH,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
+import type { Mock } from 'vitest';
 
 // Mapper mockado: o foco aqui é a regra do use case (padrão x ponto a ponto),
 // não o formato interno dos totais do mapper.
@@ -932,10 +932,7 @@ describe('MonthlySummaryService', () => {
       });
 
       it('usa os métodos de ponto a ponto do calculador', async () => {
-        const metricsSpy = vi.spyOn(
-          calculator,
-          'calculatePointByPointMetrics',
-        );
+        const metricsSpy = vi.spyOn(calculator, 'calculatePointByPointMetrics');
         const prevSpy = vi.spyOn(calculator, 'calculatePointByPointMoPrev');
         const standardPrevSpy = vi.spyOn(calculator, 'calculateMoPrev');
         arrange([p2pRecord({ exec: 10 })], { services });

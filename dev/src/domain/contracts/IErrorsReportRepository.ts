@@ -6,7 +6,7 @@ import {
   UndefinedItemsResponse,
   WorksWithoutYearPlanResponse,
   ZeroCapexResponse,
-} from 'src/interface/types/errorsReportInterface';
+} from '../types';
 
 export interface IErrorsReportRepository {
   findUndefinedItems(idRegional?: number): Promise<UndefinedItemsResponse[]>;

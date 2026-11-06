@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ImportServiceItem,
-  IWorkServicesRepository,
-  SchedulesProgressUpdate,
-} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { AddServiceInput, ApplyAdditionalInput } from 'src/application/types';
+import { IWorkServicesRepository } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
   DEMOTED_WORK_STATUS,
   ScheduleItem,
@@ -11,12 +8,9 @@ import {
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { ImportServiceItem, SchedulesProgressUpdate } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 const SCHEDULE_ITEM_SELECT = {
   id_programacao: true,
@@ -123,7 +117,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   // ─── Itens da obra (sem alterações) ─────────────────────────────────
 
   async applyAdditional(
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     await Promise.all(
@@ -137,7 +131,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   }
 
   async addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
     tx: Prisma.TransactionClient,
   ): Promise<void> {

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { afterEach } from 'node:test';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorksDetailsRepository';
+import { GetWorksDetailsRepository } from 'src/infra/repositories/works/management/getWorksDetailsRepository';
 
 describe('GetWorksDetailsRepository', () => {
   let repository: GetWorksDetailsRepository;

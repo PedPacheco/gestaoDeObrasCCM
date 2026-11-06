@@ -1,10 +1,10 @@
-import type { Mock } from 'vitest';
 import * as moment from 'moment';
+import type { Mock } from 'vitest';
 
 import { Test } from '@nestjs/testing';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
+import { ExecMonitoringRepository } from 'src/infra/repositories/works/schedule/execMonitoringRepository';
 
 describe('ExecMonitoringRepository', () => {
   let repository: ExecMonitoringRepository;

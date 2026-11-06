@@ -67,10 +67,10 @@ describe('AuthController', () => {
 
       const result = await authController.login(loginDto, res);
 
-      expect(authService.login).toHaveBeenCalledWith(
-        loginDto.user,
-        loginDto.password,
-      );
+      expect(authService.login).toHaveBeenCalledWith({
+        username: loginDto.user,
+        password: loginDto.password,
+      });
       expect(res.cookie).toHaveBeenCalledWith(
         'token',
         mockResponse.access_token,
@@ -109,9 +109,9 @@ describe('AuthController', () => {
         cookie: vi.fn(),
       } as unknown as Response;
 
-      vi
-        .spyOn(authService, 'login')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
+      vi.spyOn(authService, 'login').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
 
       await expect(authController.login(loginDto, res)).rejects.toThrow(
         'Erro ao processar a solicitação',
@@ -175,9 +175,9 @@ describe('AuthController', () => {
         email: 'teste@gmail.com',
       };
 
-      vi
-        .spyOn(authService, 'register')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
+      vi.spyOn(authService, 'register').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
 
       await expect(authController.register(registerUserDTO)).rejects.toThrow(
         'Erro ao processar a solicitação',

@@ -1,9 +1,9 @@
 export interface IFiltersRepository {
-  getData(
+  getData<T>(
     table: string,
     selectFields: string[],
-    conditions?: Record<string, any>,
-  ): Promise<any[]>;
+    conditions?: Record<string, unknown>,
+  ): Promise<T[]>;
 }
 
 export const FILTERS_REPOSITORY = Symbol('FiltersRepository');

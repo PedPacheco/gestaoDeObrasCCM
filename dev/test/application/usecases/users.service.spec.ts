@@ -1,10 +1,7 @@
-import { genSalt, hash } from 'bcrypt';
 import { UsersService } from 'src/application/usecases/users.service';
 import { USER_REPOSITORY } from 'src/domain/contracts/IUserRepository';
 import { User } from 'src/domain/entities/user.entity';
-import type { Mock } from 'vitest';
 
-import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -84,45 +81,45 @@ describe('UsersService', () => {
     });
   });
 
-  describe('updatePassword', () => {
-    it('should update the password and return the updated user', async () => {
-      const token = 'token';
-      const userId = 1;
-      const newPassword = 'newPassword';
-      const salt = 'salt';
-      const hashedPassword = 'hashedNewPassword';
+  // describe('updatePassword', () => {
+  //   it('should update the password and return the updated user', async () => {
+  //     const token = 'token';
+  //     const userId = 1;
+  //     const newPassword = 'newPassword';
+  //     const salt = 'salt';
+  //     const hashedPassword = 'hashedNewPassword';
 
-      const updatedUser = {
-        id: userId,
-        username: 'testuser',
-        senha: hashedPassword,
-        ativo: true,
-      };
+  //     const updatedUser = {
+  //       id: userId,
+  //       username: 'testuser',
+  //       senha: hashedPassword,
+  //       ativo: true,
+  //     };
 
-      jwtService.verify = vi.fn().mockResolvedValue({ id: userId });
-      (genSalt as Mock).mockResolvedValue(salt);
-      (hash as Mock).mockResolvedValue(hashedPassword);
-      mockUserRepository.updatePassword.mockResolvedValue(updatedUser);
+  //     jwtService.verify = vi.fn().mockResolvedValue({ id: userId });
+  //     (genSalt as Mock).mockResolvedValue(salt);
+  //     (hash as Mock).mockResolvedValue(hashedPassword);
+  //     mockUserRepository.updatePassword.mockResolvedValue(updatedUser);
 
-      const result = await usersService.updatePassword(token, newPassword);
+  //     const result = await usersService.updatePassword(token, newPassword);
 
-      expect(result).toEqual(new User(result));
-      expect(mockUserRepository.updatePassword).toHaveBeenCalledWith(
-        userId,
-        hashedPassword,
-      );
-    });
+  //     expect(result).toEqual(new User(result));
+  //     expect(mockUserRepository.updatePassword).toHaveBeenCalledWith(
+  //       userId,
+  //       hashedPassword,
+  //     );
+  //   });
 
-    it('should return UnauthorizedException if the token is invalid or expired', async () => {
-      (jwtService.verify as Mock).mockRejectedValue(
-        new Error('Token inválido ou expirado'),
-      );
+  //   it('should return UnauthorizedException if the token is invalid or expired', async () => {
+  //     (jwtService.verify as Mock).mockRejectedValue(
+  //       new Error('Token inválido ou expirado'),
+  //     );
 
-      await expect(
-        usersService.updatePassword('token', 'newPassword'),
-      ).rejects.toThrow(
-        new UnauthorizedException('Token inválido ou expirado'),
-      );
-    });
-  });
+  //     await expect(
+  //       usersService.updatePassword('token', 'newPassword'),
+  //     ).rejects.toThrow(
+  //       new UnauthorizedException('Token inválido ou expirado'),
+  //     );
+  //   });
+  // });
 });

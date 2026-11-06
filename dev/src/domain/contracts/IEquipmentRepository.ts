@@ -1,3 +1,9 @@
+import {
+  FindEquipmentByCodeResponse,
+  FindWithoutLocationRawResponse,
+  FindWorksReposnse,
+} from '../types';
+
 export interface EquipmentFilter {
   idRegional?: number;
   idMunicipio?: number | number[];
@@ -18,10 +24,14 @@ export interface EquipmentFilter {
 }
 
 export interface IEquipmentRepository {
-  findWorks(where: any): Promise<any[]>;
+  findWorks(where: any): Promise<FindWorksReposnse[]>;
   countWorks(where: any): Promise<number>;
-  findEquipmentByCode(codigos: string[]): Promise<any[]>;
-  findWithoutLocationRaw(ovnotas: any): Promise<any[]>;
+  findEquipmentByCode(
+    codigos: string[],
+  ): Promise<FindEquipmentByCodeResponse[]>;
+  findWithoutLocationRaw(
+    ovnotas: any,
+  ): Promise<FindWithoutLocationRawResponse[]>;
 }
 
 export const EQUIPMENT_REPOSITORY = Symbol('EquipmentRepository');

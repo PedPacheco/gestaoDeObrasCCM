@@ -1,4 +1,8 @@
 import {
+  RejectFeasibilityInput,
+  StatusFeasibility,
+} from 'src/application/types';
+import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/contracts/IFeasibilityRepository';
@@ -8,7 +12,6 @@ import {
 } from 'src/domain/contracts/IStatusFlowRepository';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { countBusinessDays } from 'src/utils/parseTimeToDate';
 
@@ -19,7 +22,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import { StatusFeasibility } from '../feasibility.service';
 import { FileService } from '../file.service';
 
 @Injectable()
@@ -114,7 +116,7 @@ export class HandleFeasibilityService {
     await this.deletePhysicalFiles(filesToRemove);
   }
 
-  async reject(data: RejectFeasibilityDTO) {
+  async reject(data: RejectFeasibilityInput) {
     await this.prisma.$transaction(async (tx) => {
       await this.feasibilityRepository.reject(data, tx);
 

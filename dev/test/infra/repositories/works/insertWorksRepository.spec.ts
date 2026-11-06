@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
-import {
-  mockGetAuxiliaryBaseMarket,
-  mockGetAuxiliaryBaseMarket2,
-} from '../../../mocks/mockAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { InsertWorksRepository } from 'src/infra/repositories/works/management/InsertWorksRepository';
 import {
   mockInsertNotesRepository,
   mockInsertNotesWithDefaultIdRepository,
 } from '../../../../test/mocks/mockInsertWorksRepository';
+import {
+  mockGetAuxiliaryBaseMarket,
+  mockGetAuxiliaryBaseMarket2,
+} from '../../../mocks/mockAuxiliaryBaseRepository';
 
 describe('InserWorksRepository', () => {
   let repository: InsertWorksRepository;
@@ -127,7 +127,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertMarketWorks([])).rejects.toThrow(
@@ -203,7 +203,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertNotes([])).rejects.toThrow('DB error');
@@ -229,16 +229,15 @@ describe('InserWorksRepository', () => {
       });
     });
 
-    it('should log error if findMany fails', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation();
-      mockPrisma.tipos.findMany.mockRejectedValueOnce(new Error('DB error'));
+    it('should log and rethrow if findMany fails', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = new Error('DB error');
+      mockPrisma.tipos.findMany.mockRejectedValueOnce(error);
 
-      await repository.getGroup();
+      await expect(repository.getGroup()).rejects.toThrow('DB error'); // ✅ espera a rejeição
 
-      expect(spy).toHaveBeenCalledWith(
-        'Erro ao procurar grupos:',
-        expect.any(Error),
-      );
+      expect(spy).toHaveBeenCalledWith('Erro ao procurar grupos:', error);
+      spy.mockRestore();
     });
   });
 });

@@ -5,15 +5,7 @@ import {
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-// import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
-import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
-import {
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
+} from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 
 import {
   BadRequestException,
@@ -22,7 +14,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { AppLogger } from 'src/core/logger/logger.service';
+import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
+import {
+  CreateExecutionReportInput,
+  UpdateExecutionReportInput,
+} from '../types';
 import { FileService } from './file.service';
 import { ProgressRecalculationService } from './services/progressRecalculation.service';
 
@@ -36,6 +39,7 @@ export class ExecutionReportService {
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
     private readonly fileService: FileService,
+    private readonly logger: AppLogger,
   ) {}
 
   async findByWorkId(idWork: number) {
@@ -46,7 +50,7 @@ export class ExecutionReportService {
     const result = await this.executionReportRepository.findByWorkId(idWork);
 
     const formatted = result.map((item) => ({
-      nome_usuario: item.usuario?.nome_usuario,
+      nome_usuario: item.usuario?.nome,
       ovnota: item.obras?.ovnota,
       ordem_dci: item.obras?.ordem_dci,
       tipo_obra: item.obras?.tipos?.tipo_obra,
@@ -70,7 +74,7 @@ export class ExecutionReportService {
   }
 
   async create(
-    data: ExecutionReportServiceInterface,
+    data: CreateExecutionReportInput,
     scheduledFinishTime: Date,
     files: Express.Multer.File[],
     tx: Prisma.TransactionClient,
@@ -101,20 +105,24 @@ export class ExecutionReportService {
         tx,
       );
     } catch (error) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
+      this.cleanupFiles(files);
+
+      this.logger.errorWithMetadata(
+        'Falha ao persistir relatório de execução',
+        {
+          method: 'create',
+          idSchedule: data.idSchedule,
+          error,
+        },
+      );
+
       throw error;
     }
   }
 
   async update(
     idExecutionReport: number,
-    data: any,
+    data: UpdateExecutionReportInput,
     files?: Express.Multer.File[],
   ) {
     if (!data) {
@@ -156,17 +164,17 @@ export class ExecutionReportService {
         updatedData,
         scheduledFinishTime.hora_ter,
       );
-    } catch (error: any) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
-      throw new BadRequestException(
-        `Erro ao criar relatório: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      const err = error as { message: string };
+      this.cleanupFiles(files);
+
+      this.logger.error('Falha ao instanciar ExecutionReport para update', {
+        method: 'update',
+        idExecutionReport,
+        error,
+      });
+
+      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
 
     await this.executionReportRepository.update(
@@ -266,5 +274,15 @@ export class ExecutionReportService {
     }
 
     await this.executionReportRepository.deleteReport(id, tx);
+  }
+
+  private cleanupFiles(files?: Express.Multer.File[]): void {
+    if (!files?.length) return;
+
+    for (const file of files) {
+      this.fileService.deleteFile(
+        `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
+      );
+    }
   }
 }

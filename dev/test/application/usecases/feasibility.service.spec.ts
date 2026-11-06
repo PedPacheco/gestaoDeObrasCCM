@@ -8,6 +8,23 @@ import type { Mocked } from 'vitest';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { FeasibilityRejectionOutput } from 'src/application/types';
+import { ExistsResponse } from 'src/domain/types';
+
+export const mockExistsResponse = (
+  overrides: Partial<ExistsResponse> = {},
+): ExistsResponse => ({
+  id: 10,
+  id_obra: 2,
+  id_usuario: 46,
+  caminhos_arquivos: ['viabilidade-10.pdf'],
+  aprovada: false,
+  data_envio: new Date('2026-10-01T10:00:00Z'),
+  data_aprovacao: new Date('2026-10-05T14:30:00Z'),
+  id_usuario_aprovador: 1,
+  prazo_viabilidade: '2026-10-31',
+  ...overrides,
+});
 
 const exportFeasibilityRepositoryResponse = [
   {
@@ -115,37 +132,49 @@ describe('FeasibilityService', () => {
   });
 
   it('deve retornar o resultado da verificação de existência', async () => {
-    mockRepository.exists.mockResolvedValue([{ id: 10 }]);
+    const existing = mockExistsResponse();
+
+    mockRepository.exists.mockResolvedValue(existing);
 
     const result = await service.feasibilityExists(10);
 
     expect(mockRepository.exists).toHaveBeenCalledWith(10);
-    expect(result).toEqual([{ id: 10 }]);
+    expect(result).toEqual(existing);
   });
 
   describe('getRejections', () => {
-    it('should return a list of rejections mapped with description, reason, user name, and creation date', async () => {
-      const data = [
-        {
-          descricao: 'Poste em falta',
-          motivo: 'Material em falta',
-          novo_tabela_usuarios: { nome: 'Pedro' },
-          criado_em: '2026-07-11',
-        },
-      ];
+    const mockRejection = (overrides: Record<string, unknown> = {}) => ({
+      descricao: 'Poste em falta',
+      motivo: 'Material em falta',
+      criado_em: new Date('2026-07-11T10:00:00Z'),
+      novo_tabela_usuarios: { nome: 'Pedro' },
+      ...overrides,
+    });
 
-      mockRepository.getRejections.mockResolvedValue(data);
+    it('should return rejections mapped with description, reason, user name and creation date', async () => {
+      const rejection = mockRejection();
+
+      mockRepository.getRejections.mockResolvedValue([rejection]);
 
       const response = await service.getRejections(1);
 
-      expect(response).toEqual([
+      expect(mockRepository.getRejections).toHaveBeenCalledWith(1);
+      expect(response).toEqual<FeasibilityRejectionOutput[]>([
         {
           descricao: 'Poste em falta',
           motivo: 'Material em falta',
-          criado_em: '2026-07-11',
           usuario: 'Pedro',
+          criado_em: rejection.criado_em,
         },
       ]);
+    });
+
+    it('should return an empty array when there are no rejections', async () => {
+      mockRepository.getRejections.mockResolvedValue([]);
+
+      const response = await service.getRejections(1);
+
+      expect(response).toEqual([]);
     });
   });
 

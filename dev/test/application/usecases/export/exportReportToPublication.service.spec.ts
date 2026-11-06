@@ -1,8 +1,8 @@
-import type { Mock } from 'vitest';
 import * as ExcelJS from 'exceljs';
 import moment from 'moment';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
 import { buildEquipamentosFormatados } from 'src/utils/buildFormattedEquipments';
+import type { Mock } from 'vitest';
 
 vi.mock('src/utils/buildFormattedEquipments', () => ({
   buildEquipamentosFormatados: vi.fn(),
@@ -18,12 +18,14 @@ vi.mock('exceljs', () => {
   const writeMock = vi.fn();
 
   return {
-    Workbook: vi.fn().mockImplementation(function () { return ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    }); }),
+    Workbook: vi.fn().mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    }),
   };
 });
 
@@ -51,12 +53,14 @@ describe('ExportReportToPubliationService', () => {
       addRows: addRowsMock,
     });
 
-    (ExcelJS.Workbook as Mock).mockImplementation(function () { return ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    }); });
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    });
 
     (buildEquipamentosFormatados as Mock).mockReturnValue('EQUIP_FORMAT');
 
@@ -72,7 +76,7 @@ describe('ExportReportToPubliationService', () => {
       {
         id: 1,
         criado_em: '2026-04-17T12:00:00Z',
-        usuario: { nome_usuario: 'Pedro' },
+        usuario: { nome: 'Pedro' },
         obras: {
           ovnota: '123',
           diagrama: 'D1',

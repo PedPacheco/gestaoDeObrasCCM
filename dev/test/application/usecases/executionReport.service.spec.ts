@@ -1,7 +1,7 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FileService } from 'src/application/usecases/file.service';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/contracts/IExecutionReportRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
 import { Readable } from 'stream';
 
@@ -10,6 +10,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { AppLogger } from 'src/core/logger/logger.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   ScheduleStatus,
@@ -25,6 +26,7 @@ import {
   mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
+  mockUpdateExecutionReportInput,
 } from '../../mocks/mocksExecutionReport';
 
 describe('ExecutionReportService', () => {
@@ -87,6 +89,14 @@ describe('ExecutionReportService', () => {
     ),
   };
 
+  const mockLogger = {
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    errorWithMetadata: vi.fn(),
+    setContext: vi.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -102,6 +112,7 @@ describe('ExecutionReportService', () => {
           useValue: mockProgressCalculationService,
         },
         { provide: FileService, useValue: mockFileService },
+        { provide: AppLogger, useValue: mockLogger },
       ],
     }).compile();
 
@@ -269,7 +280,7 @@ describe('ExecutionReportService', () => {
       mockRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.update(1, mockUpdateExecutionReportDTO),
+        service.update(1, mockUpdateExecutionReportInput()),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -278,7 +289,7 @@ describe('ExecutionReportService', () => {
       mockFindScheduleRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.update(1, mockUpdateExecutionReportDTO),
+        service.update(1, mockUpdateExecutionReportInput()),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -297,7 +308,7 @@ describe('ExecutionReportService', () => {
 
       const result = service.update(
         1,
-        mockUpdateExecutionReportDTO,
+        mockUpdateExecutionReportInput(),
         mockExistsFiles,
       );
 
@@ -321,7 +332,7 @@ describe('ExecutionReportService', () => {
         throw new Error('Erro forçado no create');
       });
 
-      const result = service.update(1, mockUpdateExecutionReportDTO);
+      const result = service.update(1, mockUpdateExecutionReportInput());
 
       await expect(result).rejects.toThrow(BadRequestException);
       await expect(result).rejects.toThrow(
@@ -342,7 +353,7 @@ describe('ExecutionReportService', () => {
 
       const result = service.update(
         1,
-        { ...mockUpdateExecutionReportDTO, endContact: null },
+        mockUpdateExecutionReportInput({ endContact: null }),
         mockExistsFiles,
       );
 

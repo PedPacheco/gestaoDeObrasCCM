@@ -92,7 +92,9 @@ describe('AuthService', () => {
     it('should throw NotFoundExpection if user is not found', async () => {
       vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
-      await expect(authService.login('7081545', 'pedro132')).rejects.toThrow(
+      await expect(
+        authService.login({ username: '7081545', password: 'pedro132' }),
+      ).rejects.toThrow(
         new UnauthorizedException('Usuário ou senha inválidos'),
       );
     });
@@ -102,7 +104,7 @@ describe('AuthService', () => {
       (compare as Mock).mockResolvedValue(false);
 
       await expect(
-        authService.login('username', 'wrong_password'),
+        authService.login({ username: 'username', password: 'wrong_password' }),
       ).rejects.toThrow(
         new UnauthorizedException('Usuário ou senha inválidos'),
       );
@@ -114,7 +116,9 @@ describe('AuthService', () => {
         ativo: false,
       } as User);
 
-      await expect(authService.login('username', 'teste123')).rejects.toThrow(
+      await expect(
+        authService.login({ username: 'username', password: 'teste123' }),
+      ).rejects.toThrow(
         new BadRequestException('Usuário está inativo no sistema'),
       );
     });
@@ -126,7 +130,10 @@ describe('AuthService', () => {
       (compare as Mock).mockResolvedValue(true);
       vi.spyOn(jwtService, 'signAsync').mockResolvedValue(access_token);
 
-      const result = await authService.login('username', 'teste123');
+      const result = await authService.login({
+        username: 'username',
+        password: 'teste123',
+      });
 
       expect(result).toEqual({
         id: loginUser.id,
