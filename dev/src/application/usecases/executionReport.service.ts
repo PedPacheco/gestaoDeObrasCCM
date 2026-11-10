@@ -15,9 +15,19 @@ import {
 } from '@nestjs/common';
 
 import { AppLogger } from 'src/core/logger/logger.service';
+import {
+  FILE_STORAGE,
+  IFileStorage,
+  StorageKind,
+} from 'src/domain/contracts/storage/IFileStorage';
 import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  parseStoredNames,
+  storedFilesOf,
+  uploadedPaths,
+} from 'src/shared/upload/storedFileName';
 import {
   ScheduleStatus,
   WorkStatus,
@@ -26,7 +36,6 @@ import {
   CreateExecutionReportInput,
   UpdateExecutionReportInput,
 } from '../types';
-import { FileService } from './file.service';
 import { ProgressRecalculationService } from './services/progressRecalculation.service';
 
 @Injectable()
@@ -38,7 +47,8 @@ export class ExecutionReportService {
     private readonly executionReportRepository: IExecutionReportRepository,
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
-    private readonly fileService: FileService,
+    @Inject(FILE_STORAGE)
+    private readonly storage: IFileStorage,
     private readonly logger: AppLogger,
   ) {}
 
@@ -79,24 +89,23 @@ export class ExecutionReportService {
     files: Express.Multer.File[],
     tx: Prisma.TransactionClient,
   ) {
-    const existing = await this.executionReportRepository.findByScheduleId(
-      data.idSchedule,
-      tx,
-    );
-
-    if (existing) {
-      return;
-    }
-
     try {
+      const existing = await this.executionReportRepository.findByScheduleId(
+        data.idSchedule,
+        tx,
+      );
+
+      if (existing) {
+        await this.cleanupFiles(files);
+        return;
+      }
+
       if (!files) {
         throw new BadRequestException('Arquivos não foram enviados');
       }
 
-      const filePath = files.map((file) => file.filename).join(';');
-
       const executionReport = ExecutionReport.create(
-        { ...data, files: filePath },
+        { ...data, files: files.map((file) => file.filename) },
         scheduledFinishTime,
       );
 
@@ -105,8 +114,7 @@ export class ExecutionReportService {
         tx,
       );
     } catch (error) {
-      this.cleanupFiles(files);
-
+      await this.cleanupFiles(files);
       this.logger.errorWithMetadata(
         'Falha ao persistir relatório de execução',
         {
@@ -115,7 +123,6 @@ export class ExecutionReportService {
           error,
         },
       );
-
       throw error;
     }
   }
@@ -125,70 +132,70 @@ export class ExecutionReportService {
     data: UpdateExecutionReportInput,
     files?: Express.Multer.File[],
   ) {
-    if (!data) {
-      throw new BadRequestException('Nenhum relatório fornecida para edição.');
-    }
-
-    const existing =
-      await this.executionReportRepository.findById(idExecutionReport);
-
-    if (!existing) {
-      throw new NotFoundException('Relatório de execução não encontrado.');
-    }
-
-    const scheduledFinishTime = await this.findScheduleByIdRepository.findById(
-      existing.id_programacao,
-    );
-
-    if (!scheduledFinishTime) {
-      throw new NotFoundException('Programação não encontrada.');
-    }
-
-    const newFilesPath = files?.length
-      ? files.map((f) => f.filename).join(';')
-      : undefined;
-
-    const finalFilesPath = newFilesPath ?? existing.caminho_arquivo;
-
-    const updatedData = {
-      idWork: existing.id_obra,
-      idSchedule: existing.id_programacao,
-      files: finalFilesPath,
-      ...data,
-    };
-
-    let executionReport: ExecutionReport;
-
-    try {
-      executionReport = ExecutionReport.create(
-        updatedData,
-        scheduledFinishTime.hora_ter,
-      );
-    } catch (error: unknown) {
-      const err = error as { message: string };
-      this.cleanupFiles(files);
-
-      this.logger.error('Falha ao instanciar ExecutionReport para update', {
-        method: 'update',
-        idExecutionReport,
-        error,
-      });
-
-      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
-    }
-
-    await this.executionReportRepository.update(
-      idExecutionReport,
-      executionReport.toPersistenceObject(),
-    );
-
-    if (newFilesPath && existing.caminho_arquivo) {
-      for (const oldFile of existing.caminho_arquivo.split(';')) {
-        this.fileService.deleteFile(
-          `${process.env.UPLOAD_AS_BUILD}/${oldFile}`,
+    const replacedFiles = await this.withUploadCleanup(files, async () => {
+      if (!data) {
+        throw new BadRequestException(
+          'Nenhum relatório fornecida para edição.',
         );
       }
-    }
+
+      const existing =
+        await this.executionReportRepository.findById(idExecutionReport);
+
+      if (!existing) {
+        throw new NotFoundException('Relatório de execução não encontrado.');
+      }
+
+      const scheduledFinishTime =
+        await this.findScheduleByIdRepository.findById(existing.id_programacao);
+
+      if (!scheduledFinishTime) {
+        throw new NotFoundException('Programação não encontrada.');
+      }
+
+      const currentFiles = storedFilesOf(existing);
+      const newFiles = files?.length ? files.map((f) => f.filename) : undefined;
+
+      const updatedData = {
+        idWork: existing.id_obra,
+        idSchedule: existing.id_programacao,
+        ...data,
+        files: newFiles ?? currentFiles, // ← depois do spread, para não ser sobreposto
+      };
+
+      let executionReport: ExecutionReport;
+
+      try {
+        executionReport = ExecutionReport.create(
+          updatedData,
+          scheduledFinishTime.hora_ter,
+        );
+      } catch (error: unknown) {
+        const err = error as { message: string };
+        this.cleanupFiles(files);
+
+        this.logger.error('Falha ao instanciar ExecutionReport para update', {
+          method: 'update',
+          idExecutionReport,
+          error,
+        });
+
+        throw new BadRequestException(
+          `Erro ao criar relatório: ${err.message}`,
+        );
+      }
+
+      await this.executionReportRepository.update(
+        idExecutionReport,
+        executionReport.toPersistenceObject(),
+      );
+
+      // Só são substituídos os ficheiros antigos se vieram ficheiros novos
+      return newFiles ? currentFiles : [];
+    });
+
+    // Base de dados atualizada: agora sim, apaga os ficheiros ANTIGOS
+    await this.storage.deleteStored(StorageKind.AS_BUILD, replacedFiles);
   }
 
   /**
@@ -207,15 +214,14 @@ export class ExecutionReportService {
       throw new NotFoundException('Relatório de execução não encontrado.');
     }
 
-    const files = report.caminho_arquivo.split(';');
-    for (const file of files) {
-      this.fileService.deleteFile(`${process.env.UPLOAD_AS_BUILD}/${file}`);
-    }
+    const storedFiles = parseStoredNames(report.caminho_arquivo);
 
     // ALTERADO: antes era executionReportRepository.delete(id, report.id_programacao)
     await this.prisma.$transaction((tx) =>
       this.resetExecutionAndDeleteReport(id, report.id_programacao, tx),
     );
+
+    await this.storage.deleteStored(StorageKind.AS_BUILD, storedFiles);
   }
 
   // ─── Privados ───────────────────────────────────────────────────────
@@ -276,13 +282,22 @@ export class ExecutionReportService {
     await this.executionReportRepository.deleteReport(id, tx);
   }
 
-  private cleanupFiles(files?: Express.Multer.File[]): void {
-    if (!files?.length) return;
+  private async withUploadCleanup<T>(
+    files: Express.Multer.File[] | undefined,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      await this.cleanupFiles(files);
+      throw error;
+    }
+  }
 
-    for (const file of files) {
-      this.fileService.deleteFile(
-        `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-      );
+  private async cleanupFiles(files?: Express.Multer.File[]): Promise<void> {
+    const paths = uploadedPaths(files);
+    if (paths.length) {
+      await this.storage.deleteUploaded(StorageKind.AS_BUILD, paths);
     }
   }
 }

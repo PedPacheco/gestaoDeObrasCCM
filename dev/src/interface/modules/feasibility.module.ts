@@ -1,5 +1,4 @@
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { FEASIBILITY_REPOSITORY } from 'src/domain/contracts/IFeasibilityRepository';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
@@ -13,9 +12,11 @@ import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowReposito
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { FeasibilityController } from '../controllers/feasibility.controller';
+import { FileModule } from './file.module';
 
 @Module({
   imports: [
+    FileModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -28,7 +29,6 @@ import { FeasibilityController } from '../controllers/feasibility.controller';
   ],
   controllers: [FeasibilityController],
   providers: [
-    FileService,
     HandleFeasibilityService,
     FeasibilityService,
     {

@@ -1,5 +1,4 @@
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
-import { FileService } from 'src/application/usecases/file.service';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
@@ -9,6 +8,7 @@ import type { Mocked } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { FeasibilityRejectionOutput } from 'src/application/types';
+import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
 import { ExistsResponse } from 'src/domain/types';
 
 export const mockExistsResponse = (
@@ -90,8 +90,10 @@ describe('FeasibilityService', () => {
     exportFeasibility: vi.fn(),
   };
 
-  const mockFileService = {
-    deleteFile: vi.fn(),
+  const storageMock = {
+    resolve: vi.fn(),
+    deleteStored: vi.fn().mockResolvedValue(undefined),
+    deleteUploaded: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -106,8 +108,8 @@ describe('FeasibilityService', () => {
           useValue: mockRepository,
         },
         {
-          provide: FileService,
-          useValue: mockFileService,
+          provide: FILE_STORAGE,
+          useValue: storageMock,
         },
       ],
     }).compile();

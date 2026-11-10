@@ -1,5 +1,4 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/contracts/IExecutionReportRepository';
 import { ExecutionReportRepository } from 'src/infra/repositories/executionReportRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
@@ -10,6 +9,7 @@ import { MulterModule } from '@nestjs/platform-express';
 
 import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { ExecutionReportController } from '../controllers/executionReport.controller';
+import { FileModule } from './file.module';
 import { ProgressRecalculationModule } from './progressRecalculation.module';
 import { ScheduleModule } from './schedule.module';
 
@@ -17,6 +17,7 @@ import { ScheduleModule } from './schedule.module';
   imports: [
     forwardRef(() => ScheduleModule),
     ProgressRecalculationModule,
+    FileModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -30,7 +31,6 @@ import { ScheduleModule } from './schedule.module';
   controllers: [ExecutionReportController],
   providers: [
     ExecutionReportService,
-    FileService,
     {
       provide: EXECUTION_REPORT_REPOSITORY,
       useClass: ExecutionReportRepository,

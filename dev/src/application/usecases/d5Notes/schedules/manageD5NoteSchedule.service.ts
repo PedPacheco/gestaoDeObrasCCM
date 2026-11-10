@@ -4,13 +4,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { join } from 'path';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { AppLogger } from 'src/core/logger/logger.service';
 import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
 } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
+import {
+  FILE_STORAGE,
+  IFileStorage,
+  StorageKind,
+} from 'src/domain/contracts/storage/IFileStorage';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
 import {
@@ -18,7 +22,7 @@ import {
   RejectD5ScheduleDTO,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
-import { FileService } from '../../file.service';
+import { uploadedPaths } from 'src/shared/upload/storedFileName';
 
 @Injectable()
 export class ManageD5NoteScheduleService {
@@ -27,7 +31,8 @@ export class ManageD5NoteScheduleService {
   constructor(
     @Inject(D5_NOTES_SCHEDULES_REPOSITORY)
     private d5NotesScheduleRepository: ID5NotesSchedulesRepository,
-    private fileService: FileService,
+    @Inject(FILE_STORAGE)
+    private readonly storage: IFileStorage,
   ) {}
 
   async create(data: CreateProgramacaoD5Dto) {
@@ -100,18 +105,11 @@ export class ManageD5NoteScheduleService {
       committed = true;
 
       // ponto de não retorno — só aqui os antigos saem do disco
-      await this.fileService.deleteMany(
-        toRemove.map((path) => join(process.env.UPLOAD_AS_BUILD, path)),
-        process.env.UPLOAD_AS_BUILD,
-      );
+      await this.storage.deleteStored(StorageKind.AS_BUILD, toRemove);
     } catch (error) {
       if (!committed) {
-        // rollback best-effort: file.path do Multer já é absoluto
-        await this.fileService
-          .deleteMany(
-            uploaded.map((file) => file.path),
-            process.env.UPLOAD_AS_BUILD,
-          )
+        await this.storage
+          .deleteUploaded(StorageKind.AS_BUILD, uploadedPaths(uploaded))
           .catch((cleanupError) => {
             this.logger.error(
               `Falha ao remover uploads órfãos da programação ${id}`,
@@ -135,16 +133,13 @@ export class ManageD5NoteScheduleService {
       throw new NotFoundException('Programação não encontrada.');
     }
 
-    const filePaths = existing.caminhos_arquivos ?? [];
+    const storedFiles = existing.caminhos_arquivos ?? [];
 
     // 1) remove o registo primeiro — ponto de não retorno
     await this.d5NotesScheduleRepository.delete(id);
 
     // 2) só depois limpa o disco
-    await this.fileService.deleteMany(
-      filePaths.map((path) => join(process.env.UPLOAD_AS_BUILD, path)),
-      process.env.UPLOAD_AS_BUILD,
-    );
+    await this.storage.deleteStored(StorageKind.AS_BUILD, storedFiles);
   }
 
   async reject(
