@@ -98,6 +98,7 @@ export const mockExecutionReportPersistenceObject = {
   chave_provisoria_retirada: false,
   motivo: 'Instalação programada',
   caminho_arquivo: 'teste.pdf',
+  caminhos_arquivos: ['teste.pdf'],
   chave_provisoria_instalada: true,
   referencia_chave_provisoria_retirada: null,
 };
@@ -156,6 +157,7 @@ export const mockExecutionReportRepository = {
   patrimonio_equipamento_retirado: '',
   instalacao_equipamento_retirado: '',
   caminho_arquivo: 'teste.pdf',
+  caminhos_arquivos: ['teste.pdf'],
 };
 
 export const mockFindByWorkIdResponse = [

@@ -672,6 +672,7 @@ model relatorio_execucao {
   instalacao_equipamento_retirado      String?
   referencia_chave_provisoria_retirada String?               @db.VarChar(25)
   caminho_arquivo                      String?               @db.VarChar(420)
+  caminhos_arquivos                    String[]
   criado_em                            DateTime?             @default(now()) @db.Timestamp(6)
   modificado_por                       Int?
   modificado_em                        DateTime?             @default(now()) @db.Timestamptz(6)

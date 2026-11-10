@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionReportDataInput } from 'src/application/types';
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
@@ -66,7 +67,7 @@ const FINALIZED_STATUS = FINALIZED_SCHEDULE_STATUSES[0];
 
 const MSG = {
   INVALID_REAL:
-    'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior ou igual a zero.',
+    'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior.',
   NOT_SCHEDULED: (id: number, schedule: number) =>
     `O item ${id} não está programado na programação ${schedule}.`,
   CONCURRENT_CHANGE:
@@ -256,11 +257,6 @@ describe('FinalizeServicesService', () => {
         ],
         ['item is null', [null], 'Serviço e programação devem ser informados.'],
         [
-          'qtdeRealizada = -1',
-          [{ id: 1, idSchedule: 3, qtdeRealizada: -1 }],
-          MSG.INVALID_REAL,
-        ],
-        [
           'qtdeRealizada = NaN',
           [{ id: 1, idSchedule: 3, qtdeRealizada: NaN }],
           MSG.INVALID_REAL,
@@ -303,6 +299,7 @@ describe('FinalizeServicesService', () => {
       it.each([
         ['0 → NAO_EXECUTADO (discarded)', 0],
         ['null → REPROGRAMADO (to be rescheduled)', null],
+        ['-1 → retirada (removal of material/service)', -1],
       ])('should accept qtdeRealizada = %s', async (_, qtdeRealizada) => {
         await service.performServices([item(1, 3, qtdeRealizada)]);
 
@@ -678,7 +675,10 @@ describe('FinalizeServicesService', () => {
     const TOTAL_PLANNED = 23;
     const SCHEDULE_TOTALS = { prog: 40, exec: 25 };
     const WORK_TOTALS = { executed: 60, coverage: 90 };
-    const REPORT_DATA = { observacao: 'Execução concluída', km: 1.2 };
+    const REPORT_DATA = {
+      observacao: 'Execução concluída',
+      km: 1.2,
+    } as unknown as ExecutionReportDataInput;
 
     const buildPayload = (overrides: Record<string, unknown> = {}) => ({
       idSchedule: SCHEDULE_ID,
@@ -758,20 +758,6 @@ describe('FinalizeServicesService', () => {
         ).not.toHaveBeenCalled();
       },
     );
-
-    it('should validate the embedded executions payload', async () => {
-      await expectError(
-        run({
-          executions: [{ id: 1, idSchedule: SCHEDULE_ID, qtdeRealizada: -1 }],
-        }),
-        BadRequestException,
-        MSG.INVALID_REAL,
-      );
-      expect(
-        mockExecutionRepository.findExecutionTargets,
-      ).not.toHaveBeenCalled();
-      expect(mockExecutionRepository.finalizeServices).not.toHaveBeenCalled();
-    });
 
     it('should abort finalization if an execution cannot be registered', async () => {
       mockExecutionRepository.findExecutionTargets.mockResolvedValueOnce([]);

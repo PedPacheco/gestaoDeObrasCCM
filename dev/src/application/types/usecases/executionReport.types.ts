@@ -27,7 +27,7 @@ export type CreateExecutionReportInput = {
   provisionalKeyReference: string;
   provisionalKeyReferenceWithdrawn?: string;
   provisionalKeyWithdrawn?: boolean;
-  files?: string;
+  files?: string[];
 };
 
 export type UpdateExecutionReportInput = {

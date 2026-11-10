@@ -468,10 +468,10 @@ export class FinalizeServicesService {
 
       if (
         real !== null &&
-        (typeof real !== 'number' || !Number.isFinite(real) || real < 0)
+        (typeof real !== 'number' || !Number.isFinite(real))
       ) {
         throw new BadRequestException(
-          'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior ou igual a zero.',
+          'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior.',
         );
       }
 

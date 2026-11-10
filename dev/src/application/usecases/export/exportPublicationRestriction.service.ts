@@ -74,7 +74,7 @@ export class ExportPublicationRestrictionService {
       },
       {
         header: 'Criado por',
-        key: 'nome_usuario',
+        key: 'nome',
         width: 20,
       },
     ];

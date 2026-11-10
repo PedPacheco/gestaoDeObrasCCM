@@ -86,6 +86,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         referencia_chave_provisoria_retirada: true,
         motivo: true,
         caminho_arquivo: true,
+        caminhos_arquivos: true,
         usuario: { select: { nome: true } },
         obras: {
           select: {
@@ -117,6 +118,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         id_obra: true,
         id_programacao: true,
         caminho_arquivo: true,
+        caminhos_arquivos: true,
       },
       where: { id: idExecutionReport },
     });

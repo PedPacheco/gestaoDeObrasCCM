@@ -145,6 +145,7 @@ describe('ExecutionReportRepository', () => {
           referencia_chave_provisoria_retirada: true,
           motivo: true,
           caminho_arquivo: true,
+          caminhos_arquivos: true,
           usuario: { select: { nome: true } },
           obras: {
             select: {
@@ -221,6 +222,7 @@ describe('ExecutionReportRepository', () => {
           referencia_chave_provisoria_retirada: true,
           motivo: true,
           caminho_arquivo: true,
+          caminhos_arquivos: true,
           usuario: { select: { nome: true } },
           obras: {
             select: {
@@ -263,6 +265,7 @@ describe('ExecutionReportRepository', () => {
           id_programacao: true,
           id_obra: true,
           caminho_arquivo: true,
+          caminhos_arquivos: true,
         },
         where: { id: 1 },
       });

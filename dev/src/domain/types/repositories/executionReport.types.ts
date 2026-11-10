@@ -29,6 +29,7 @@ export type FindByScheduleResponse = {
   instalacao_equipamento_retirado: string | null;
   referencia_chave_provisoria_retirada: string | null;
   caminho_arquivo: string | null;
+  caminhos_arquivos: string[];
   criado_em: Date | null;
   modificado_por: number | null;
   modificado_em: Date | null;
@@ -91,4 +92,5 @@ export type FindByIdResponse = {
   id_obra: number;
   id_programacao: number;
   caminho_arquivo: string;
+  caminhos_arquivos: string[];
 };

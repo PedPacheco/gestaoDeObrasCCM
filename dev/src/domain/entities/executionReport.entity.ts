@@ -27,7 +27,7 @@ export class ExecutionReport {
     private readonly provisionalKeyInstalled: boolean,
     private readonly provisionalKeyReference: string,
     private readonly provisionalKeyReferenceWithdrawn: string,
-    private readonly files?: string,
+    private readonly files: string[],
     private readonly provisionalKeyWithdrawn?: boolean,
   ) {}
 
@@ -56,7 +56,7 @@ export class ExecutionReport {
       data.provisionalKeyInstalled,
       data.provisionalKeyReference,
       data.provisionalKeyReferenceWithdrawn,
-      data.files,
+      ExecutionReport.normalizeFiles(data.files),
       data.provisionalKeyWithdrawn,
     );
 
@@ -73,6 +73,10 @@ export class ExecutionReport {
       this.endContact,
       this.supervisor,
     ].every((v) => !!v);
+  }
+
+  private static normalizeFiles(files?: string[] | null): string[] {
+    return (files ?? []).map((name) => name.trim()).filter(Boolean);
   }
 
   private validate() {
@@ -103,7 +107,7 @@ export class ExecutionReport {
       );
     }
 
-    if (!this.isComplete() && this.files) {
+    if (!this.isComplete() && this.files.length > 0) {
       throw new BadRequestException(
         'Arquivos só podem ser enviados quando o relatório de execução estiver completo',
       );
@@ -158,7 +162,8 @@ export class ExecutionReport {
       chave_provisoria_instalada: this.provisionalKeyInstalled,
       referencia_chave_provisoria_retirada:
         this.provisionalKeyReferenceWithdrawn,
-      caminho_arquivo: this.files,
+      caminhos_arquivos: this.files,
+      caminho_arquivo: this.files.length ? this.files.join(';') : null,
     };
   }
 }
