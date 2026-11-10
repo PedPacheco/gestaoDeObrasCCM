@@ -21,6 +21,7 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
 import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibilityItems.pipe';
 import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
@@ -59,7 +60,10 @@ export class FeasibilityController {
   }
 
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async upload(
     @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[] = [],
@@ -93,7 +97,10 @@ export class FeasibilityController {
   }
 
   @Patch('upload')
-  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async uploadComplementaryFiles(
     @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[] = [],

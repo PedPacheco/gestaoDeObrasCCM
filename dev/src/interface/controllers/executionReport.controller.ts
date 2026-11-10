@@ -20,6 +20,7 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
 import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
@@ -41,7 +42,10 @@ export class ExecutionReportController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async update(
     @Req() req: any,
