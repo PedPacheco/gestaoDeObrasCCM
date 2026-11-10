@@ -45,7 +45,7 @@ async function bootstrap() {
   // 📂 As Build
   app.useStaticAssets(
     join(process.env.UPLOAD_AS_BUILD!),
-    staticOptions('uploads/as_build'),
+    staticOptions('/uploads/as_build'),
   );
 
   app.useGlobalInterceptors(new LoggingInterceptor());
