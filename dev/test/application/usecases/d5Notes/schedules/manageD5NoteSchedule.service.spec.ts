@@ -12,10 +12,8 @@ import type { MockInstance, Mocked, MockedFunction } from 'vitest';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  FILE_STORAGE,
-  StorageKind,
-} from 'src/domain/contracts/storage/IFileStorage';
+import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
+import { StorageKind } from 'src/domain/types';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores

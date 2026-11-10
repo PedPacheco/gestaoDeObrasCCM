@@ -70,7 +70,4 @@ export class ValidateAndConfirmSchedulesRepository implements IValidateConfirmAn
       },
     });
   }
-  catch(error) {
-    throw error;
-  }
 }

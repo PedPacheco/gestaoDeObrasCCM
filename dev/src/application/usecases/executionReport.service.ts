@@ -18,9 +18,9 @@ import { AppLogger } from 'src/core/logger/logger.service';
 import {
   FILE_STORAGE,
   IFileStorage,
-  StorageKind,
 } from 'src/domain/contracts/storage/IFileStorage';
 import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
+import { StorageKind } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {

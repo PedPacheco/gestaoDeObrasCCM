@@ -1,5 +1,5 @@
 import { GetTotalValuesSchedulesInput } from 'src/application/types';
-import { GetTotalValuesScheduleResponse } from 'src/domain/types/repositories/schedule/getTotalValuesSchedule.types';
+import { GetTotalValuesScheduleResponse } from 'src/domain/types/contracts/schedule/getTotalValuesSchedule.types';
 
 export interface IGetTotalScheduleValuesRepository {
   getTotalValues(

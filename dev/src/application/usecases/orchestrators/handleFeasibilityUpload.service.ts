@@ -25,8 +25,8 @@ import {
 import {
   FILE_STORAGE,
   IFileStorage,
-  StorageKind,
 } from 'src/domain/contracts/storage/IFileStorage';
+import { StorageKind } from 'src/domain/types';
 import { uploadedPaths } from 'src/shared/upload/storedFileName';
 
 @Injectable()

@@ -1,4 +1,7 @@
 import { ButtonComponent } from "@/components/common/Button";
+import { LOCAL_INLINE_TYPES } from "@/components/common/protectedLinks";
+import { useFeedback } from "@/hooks/useFeedback";
+import { FileRequestError, openProtectedFile } from "@/lib/protectedFiles";
 import { DisplayFile } from "@/types/feasibility";
 import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
 import {
@@ -7,7 +10,7 @@ import {
   PhotoIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
-import { DragEvent } from "react";
+import { DragEvent, useState } from "react";
 
 interface DropzoneOfComplementaryFilesProps {
   files: DisplayFile[];
@@ -44,6 +47,40 @@ export function DropzoneOfComplementaryFiles({
   setSelectedFileType,
   workflowStatus,
 }: DropzoneOfComplementaryFilesProps) {
+  const { showError } = useFeedback();
+
+  const [openingIndex, setOpeningIndex] = useState<number | null>(null);
+
+  const handleOpenFile = async (
+    file: (typeof files)[number],
+    index: number,
+  ) => {
+    if (file.raw instanceof File) {
+      if (!LOCAL_INLINE_TYPES.has(file.raw.type)) return;
+
+      const url = URL.createObjectURL(file.raw);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return;
+    }
+
+    setOpeningIndex(index);
+    try {
+      await openProtectedFile("viabilidade", file.name);
+    } catch (err) {
+      if (err instanceof FileRequestError && err.status === 401) {
+        return;
+      }
+      showError(
+        err instanceof FileRequestError && err.status === 404
+          ? "Arquivo não encontrado."
+          : "Não foi possível abrir o arquivo.",
+      ); // troque pelo toast do projeto
+    } finally {
+      setOpeningIndex(null);
+    }
+  };
+
   return (
     <>
       {canEditComplementaryFiles && (
@@ -105,69 +142,56 @@ export function DropzoneOfComplementaryFiles({
           {files.map((file, index) => {
             const isExisting = file.raw !== undefined;
 
-            const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.name}`;
-
             return (
-              <a
-                key={index}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-2xl hover:scale-110 transition-transform "
+              <div
+                key={`${file.name}-${index}`}
+                className={`flex items-center justify-between rounded-lg border px-4 py-2.5 shadow-sm
+                ${isExisting ? "border-[#A4D65E]/30 bg-[#A4D65E]/5" : "border-zinc-200 bg-white"}`}
               >
-                <div
-                  key={`new-${index}`}
-                  className={`
-                  flex items-center justify-between rounded-lg border px-4 py-2.5 shadow-sm
-                  ${
-                    isExisting
-                      ? "border-[#A4D65E]/30 bg-[#A4D65E]/5"
-                      : "border-zinc-200 bg-white"
-                  }
-                `}
+                <button
+                  type="button"
+                  onClick={() => handleOpenFile(file, index)}
+                  disabled={openingIndex === index}
+                  aria-label={`Abrir arquivo ${file.name}`}
+                  className="flex min-w-0 items-center gap-2 text-left hover:underline disabled:cursor-wait disabled:opacity-60"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {isExisting ? (
-                      <DocumentCheckIcon className="w-5 h-5 text-[#A4D65E] shrink-0" />
-                    ) : (
-                      <DocumentArrowUpIcon className="w-5 h-5 text-[#53FF75] shrink-0" />
-                    )}
-
-                    <span className="text-sm text-zinc-700 truncate">
-                      {file.name}
+                  {isExisting ? (
+                    <DocumentCheckIcon className="w-5 h-5 text-[#A4D65E] shrink-0" />
+                  ) : (
+                    <DocumentArrowUpIcon className="w-5 h-5 text-[#53FF75] shrink-0" />
+                  )}
+                  <span className="text-sm text-zinc-700 truncate">
+                    {file.name}
+                  </span>
+                  {file.size !== null && (
+                    <span className="text-xs text-zinc-400 whitespace-nowrap">
+                      ({(file.size / 1024 / 1024).toFixed(2)} MB)
                     </span>
+                  )}
+                  {isExisting && (
+                    <span className="ml-1 rounded-full bg-[#A4D65E]/15 px-2 py-0.5 text-[10px] font-medium text-[#3f7a17]">
+                      Enviado
+                    </span>
+                  )}
+                </button>
 
-                    {file.size !== null && (
-                      <span className="text-xs text-zinc-400 whitespace-nowrap">
-                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    )}
-
-                    {isExisting && (
-                      <span className="ml-1 rounded-full bg-[#A4D65E]/15 px-2 py-0.5 text-[10px] font-medium text-[#3f7a17]">
-                        Enviado
-                      </span>
-                    )}
-                  </div>
-
+                {canEditComplementaryFiles && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-
+                    type="button"
+                    onClick={() => {
                       setSelectedFile(file);
                       setSelectedIndex(index);
-                      setSelectedFileType("complementary");
-
+                      setSelectedFileType("technical");
                       setOpenConfirmModal(true);
                     }}
                     disabled={uploading}
+                    aria-label={`Remover arquivo ${file.name}`}
                     className="ml-3 rounded-full p-1 text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-40"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
-              </a>
+                )}
+              </div>
             );
           })}
         </div>

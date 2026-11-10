@@ -10,10 +10,8 @@ import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
 import { AppLogger } from 'src/core/logger/logger.service';
-import {
-  FILE_STORAGE,
-  StorageKind,
-} from 'src/domain/contracts/storage/IFileStorage';
+import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
+import { StorageKind } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   ScheduleStatus,

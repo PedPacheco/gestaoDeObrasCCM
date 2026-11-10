@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GetTotalValuesSchedulesInput } from 'src/application/types';
 import { IGetTotalScheduleValuesRepository } from 'src/domain/contracts/works/schedule/IGetTotalValuesScheduleRepository';
-import { GetTotalValuesScheduleResponse } from 'src/domain/types/repositories/schedule/getTotalValuesSchedule.types';
+import { GetTotalValuesScheduleResponse } from 'src/domain/types/contracts/schedule/getTotalValuesSchedule.types';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 

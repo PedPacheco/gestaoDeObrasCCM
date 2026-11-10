@@ -37,3 +37,34 @@ export const CAPEX_UPLOAD_PRESET = {
   maxSize: 150 * MB,
   maxFiles: 1,
 } as const;
+
+// ───────────── Entrega de ficheiros (download / static) ─────────────
+
+/** Todas as extensões aceites em algum preset. */
+export type AllowedExtension =
+  (typeof DOCUMENT_AND_SPREADSHEET_UPLOAD_PRESET.allowedExtensions)[number];
+
+/** Extensões que o navegador pode renderizar inline com segurança. */
+export const INLINE_EXTENSIONS: ReadonlySet<string> = new Set<AllowedExtension>(
+  ['.pdf', '.jpg', '.jpeg', '.png'],
+);
+
+/** Content-Type a usar na entrega. Se faltar uma extensão aceite, o build falha. */
+export const MIME_BY_EXTENSION = {
+  '.pdf': 'application/pdf',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.xlsx': XLSX_MIME,
+  '.xls': XLS_MIME,
+} as const satisfies Record<AllowedExtension, string>;
+
+export function mimeTypeFor(ext: string): string {
+  return Object.hasOwn(MIME_BY_EXTENSION, ext)
+    ? MIME_BY_EXTENSION[ext as AllowedExtension]
+    : 'application/octet-stream';
+}
+
+export function isInlineExtension(ext: string): boolean {
+  return INLINE_EXTENSIONS.has(ext);
+}

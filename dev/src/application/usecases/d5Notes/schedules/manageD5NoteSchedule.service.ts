@@ -13,10 +13,10 @@ import {
 import {
   FILE_STORAGE,
   IFileStorage,
-  StorageKind,
 } from 'src/domain/contracts/storage/IFileStorage';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
+import { StorageKind } from 'src/domain/types';
 import {
   CreateProgramacaoD5Dto,
   RejectD5ScheduleDTO,

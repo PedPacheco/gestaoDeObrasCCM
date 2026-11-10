@@ -1,32 +1,60 @@
-import { access, mkdir, mkdtemp, rm, unlink, writeFile } from 'fs/promises';
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  open,
+  rm,
+  unlink,
+  writeFile,
+  type FileHandle,
+} from 'fs/promises';
+import { once } from 'node:events';
+import { text } from 'node:stream/consumers';
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 
-import { Logger } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { LocalFileStorage } from 'src/infra/storage/localFileStorage';
 import {
   afterEach,
   beforeEach,
   describe,
   expect,
   it,
+  Mock,
+  MockInstance,
   vi,
-  type Mock,
-  type MockInstance,
 } from 'vitest';
 
-import { StorageKind } from 'src/domain/contracts/storage/IFileStorage';
-import { LocalFileStorage } from 'src/infra/storage/localFileStorage';
+import { Logger } from '@nestjs/common';
 
+import type { ConfigService } from '@nestjs/config';
+import { StorageKind } from 'src/domain/types';
 // Wraps the real `unlink` in a vi.fn so specific failures can be simulated,
 // while keeping the real behaviour in all other tests.
 // The specifier must match the one used in the source ('fs/promises').
 vi.mock('fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('fs/promises')>();
-  return { ...actual, unlink: vi.fn(actual.unlink) };
+  return {
+    ...actual,
+    unlink: vi.fn(actual.unlink),
+    open: vi.fn(actual.open),
+  };
 });
 
 const unlinkMock = vi.mocked(unlink);
+const openMock = vi.mocked(open);
+
+const fakeHandle = (overrides: {
+  stat?: () => Promise<unknown>;
+  close?: () => Promise<void>;
+}) =>
+  ({
+    stat: vi.fn(
+      overrides.stat ??
+        (() => Promise.resolve({ isFile: () => true, size: 0 })),
+    ),
+    close: vi.fn(overrides.close ?? (() => Promise.resolve())),
+  }) as unknown as FileHandle & { stat: Mock; close: Mock };
 
 // ─── Helpers ────────────────────────────────────────────────────────
 const exists = (path: string) =>
@@ -92,30 +120,35 @@ describe('LocalFileStorage', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
     unlinkMock.mockClear();
+    openMock.mockClear();
     await rm(root, { recursive: true, force: true });
   });
 
   // ───────────────────────────────────────────────────────────────────
   describe('base directory configuration', () => {
     it.each([
-      [StorageKind.VIABILIDADE, 'UPLOAD_DEST'],
-      [StorageKind.AS_BUILD, 'UPLOAD_AS_BUILD'],
-    ])('reads the base dir of kind %s from %s', (kind, envKey) => {
-      const expectedBase =
-        kind === StorageKind.AS_BUILD ? asBuildDir : uploadsDir;
+      [StorageKind.VIABILIDADE, 'UPLOAD_DEST', 'from-uploads'],
+      [StorageKind.AS_BUILD, 'UPLOAD_AS_BUILD', 'from-as-build'],
+    ])(
+      'reads the base dir of kind %s from %s',
+      async (kind, envKey, expected) => {
+        // Same name in both folders, different content: proves which base was used
+        await writeFile(join(uploadsDir, 'a.pdf'), 'from-uploads');
+        await writeFile(join(asBuildDir, 'a.pdf'), 'from-as-build');
 
-      expect(storage.resolve(kind, 'a.pdf')).toBe(join(expectedBase, 'a.pdf'));
-      expect(config.getOrThrow).toHaveBeenCalledWith(envKey);
-    });
+        const file = await storage.open(kind, 'a.pdf');
 
-    it('throws synchronously when the env variable is missing', () => {
+        expect(file).not.toBeNull();
+        expect(await text(file!.stream)).toBe(expected);
+        expect(config.getOrThrow).toHaveBeenCalledWith(envKey);
+      },
+    );
+
+    it('throws synchronously on delete when the env variable is missing', () => {
       const bare = new LocalFileStorage(
         makeConfig({}) as unknown as ConfigService,
       );
 
-      expect(() => bare.resolve(StorageKind.VIABILIDADE, 'a.pdf')).toThrow(
-        'UPLOAD_DEST',
-      );
       expect(() => bare.deleteStored(StorageKind.AS_BUILD, ['a.pdf'])).toThrow(
         'UPLOAD_AS_BUILD',
       );
@@ -124,26 +157,16 @@ describe('LocalFileStorage', () => {
       );
       expect(unlinkMock).not.toHaveBeenCalled();
     });
-  });
 
-  // ───────────────────────────────────────────────────────────────────
-  describe('resolve', () => {
-    it('joins the name with the base dir', () => {
-      expect(storage.resolve(StorageKind.VIABILIDADE, 'a.pdf')).toBe(
-        join(uploadsDir, 'a.pdf'),
+    it('rejects open() when the env variable is missing', async () => {
+      const bare = new LocalFileStorage(
+        makeConfig({}) as unknown as ConfigService,
       );
-    });
 
-    it('supports nested names', () => {
-      expect(storage.resolve(StorageKind.AS_BUILD, 'sub/a.pdf')).toBe(
-        join(asBuildDir, 'sub', 'a.pdf'),
+      await expect(bare.open(StorageKind.VIABILIDADE, 'a.pdf')).rejects.toThrow(
+        'UPLOAD_DEST',
       );
-    });
-
-    it('does not guard against traversal (current behaviour)', () => {
-      expect(storage.resolve(StorageKind.VIABILIDADE, '../outside/a.pdf')).toBe(
-        join(outsideDir, 'a.pdf'),
-      );
+      expect(openMock).not.toHaveBeenCalled();
     });
   });
 
@@ -211,12 +234,26 @@ describe('LocalFileStorage', () => {
       expect(warnSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('refuses names starting with ".." even inside the base dir (current behaviour)', async () => {
+    it('deletes names starting with ".." when they stay inside the base dir', async () => {
       const file = await touch(join(uploadsDir, '..hidden.pdf'));
 
       await storage.deleteStored(StorageKind.VIABILIDADE, ['..hidden.pdf']);
 
-      expect(await exists(file)).toBe(true);
+      expect(await exists(file)).toBe(false);
+      expect(unlinkMock).toHaveBeenCalledTimes(1);
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['parent dir itself', '..'],
+      ['parent traversal', '../outside/secret.pdf'],
+      ['nested traversal', 'a/../../outside/secret.pdf'],
+    ])('refuses %s on delete', async (_label, name) => {
+      const secret = await touch(join(outsideDir, 'secret.pdf'));
+
+      await storage.deleteStored(StorageKind.VIABILIDADE, [name]);
+
+      expect(await exists(secret)).toBe(true);
       expect(unlinkMock).not.toHaveBeenCalled();
       expect(warnSpy).toHaveBeenCalledTimes(1);
     });
@@ -381,6 +418,170 @@ describe('LocalFileStorage', () => {
       expect(unlinkMock).toHaveBeenCalledTimes(3); // the outside path never reaches unlink
       expect(errorSpy).toHaveBeenCalledTimes(1);
       expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ───────────────────────────────────────────────────────────────────
+  describe('open', () => {
+    it('returns the stream and size of an existing file', async () => {
+      await writeFile(join(uploadsDir, 'doc.pdf'), '%PDF-1.4');
+
+      const file = await storage.open(StorageKind.VIABILIDADE, 'doc.pdf');
+
+      expect(file).not.toBeNull();
+      expect(file!.size).toBe(8);
+      expect(await text(file!.stream)).toBe('%PDF-1.4');
+    });
+
+    it('closes the file handle after the stream is consumed', async () => {
+      await writeFile(join(uploadsDir, 'doc.pdf'), 'content');
+
+      const file = await storage.open(StorageKind.VIABILIDADE, 'doc.pdf');
+      const closed = once(file!.stream, 'close'); // attach before consuming
+
+      await text(file!.stream);
+      await closed;
+
+      expect(file!.stream.destroyed).toBe(true);
+    });
+
+    it('opens files whose name starts with ".." but stay inside the base', async () => {
+      await writeFile(join(uploadsDir, '..backup.pdf'), 'ok');
+
+      const file = await storage.open(StorageKind.VIABILIDADE, '..backup.pdf');
+
+      expect(file).not.toBeNull();
+      expect(await text(file!.stream)).toBe('ok');
+    });
+
+    it('returns null for a missing file', async () => {
+      await expect(
+        storage.open(StorageKind.VIABILIDADE, 'missing.pdf'),
+      ).resolves.toBeNull();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it('returns null for a directory', async () => {
+      await mkdir(join(uploadsDir, 'folder.pdf'));
+
+      await expect(
+        storage.open(StorageKind.VIABILIDADE, 'folder.pdf'),
+      ).resolves.toBeNull();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it('returns null when a path segment is a file (ENOTDIR)', async () => {
+      await touch(join(uploadsDir, 'a.pdf'));
+
+      await expect(
+        storage.open(StorageKind.VIABILIDADE, 'a.pdf/b.pdf'),
+      ).resolves.toBeNull();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['parent traversal', () => '../outside/secret.pdf'],
+      ['nested traversal', () => 'a/../../outside/secret.pdf'],
+      ['absolute path', () => join(outsideDir, 'secret.pdf')],
+      ['the base itself', () => ''],
+    ])('refuses %s without touching the disk', async (_label, getName) => {
+      await touch(join(outsideDir, 'secret.pdf'));
+
+      await expect(
+        storage.open(StorageKind.VIABILIDADE, getName()),
+      ).resolves.toBeNull();
+
+      expect(openMock).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Leitura recusada'),
+      );
+    });
+
+    it('rethrows and logs unexpected errors (e.g. EACCES)', async () => {
+      await writeFile(join(uploadsDir, 'locked.pdf'), 'x');
+      openMock.mockRejectedValueOnce(errnoError('permission denied', 'EACCES'));
+
+      await expect(
+        storage.open(StorageKind.VIABILIDADE, 'locked.pdf'),
+      ).rejects.toThrow('permission denied');
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Falha ao abrir'),
+      );
+    });
+
+    describe('open – error handling after the file is opened', () => {
+      it('closes the handle and returns null when stat fails with a not-found code', async () => {
+        const handle = fakeHandle({
+          stat: () => Promise.reject(errnoError('gone', 'ENOENT')),
+        });
+        openMock.mockResolvedValueOnce(handle);
+
+        await expect(
+          storage.open(StorageKind.VIABILIDADE, 'doc.pdf'),
+        ).resolves.toBeNull();
+
+        expect(handle.close).toHaveBeenCalledTimes(1);
+        expect(errorSpy).not.toHaveBeenCalled();
+      });
+
+      it('swallows a close() failure and rethrows the original error', async () => {
+        const original = errnoError('io failure', 'EIO');
+        const handle = fakeHandle({
+          stat: () => Promise.reject(original),
+          close: () => Promise.reject(new Error('close failed')),
+        });
+        openMock.mockResolvedValueOnce(handle);
+
+        // The close() error must not replace the original one
+        await expect(
+          storage.open(StorageKind.VIABILIDADE, 'doc.pdf'),
+        ).rejects.toBe(original);
+
+        expect(handle.close).toHaveBeenCalledTimes(1);
+        expect(errorSpy).toHaveBeenCalledWith(
+          expect.stringContaining('io failure'),
+        );
+      });
+
+      it('swallows a close() failure and still returns null for not-found codes', async () => {
+        const handle = fakeHandle({
+          stat: () => Promise.reject(errnoError('gone', 'ENOENT')),
+          close: () => Promise.reject(new Error('close failed')),
+        });
+        openMock.mockResolvedValueOnce(handle);
+
+        await expect(
+          storage.open(StorageKind.VIABILIDADE, 'doc.pdf'),
+        ).resolves.toBeNull();
+        expect(handle.close).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('open – errors without code', () => {
+      it('rethrows and logs an error that has no code (?? "" branch)', async () => {
+        const error = errnoError('boom'); // no code → code ?? '' → not in NOT_FOUND_CODES
+        openMock.mockRejectedValueOnce(error);
+
+        await expect(
+          storage.open(StorageKind.VIABILIDADE, 'doc.pdf'),
+        ).rejects.toBe(error);
+
+        expect(errorSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Falha ao abrir'),
+        );
+        expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('boom'));
+      });
+
+      it('rethrows when the handle exists and stat fails without code', async () => {
+        const error = errnoError('stat exploded');
+        const handle = fakeHandle({ stat: () => Promise.reject(error) });
+        openMock.mockResolvedValueOnce(handle);
+
+        await expect(
+          storage.open(StorageKind.VIABILIDADE, 'doc.pdf'),
+        ).rejects.toBe(error);
+        expect(handle.close).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

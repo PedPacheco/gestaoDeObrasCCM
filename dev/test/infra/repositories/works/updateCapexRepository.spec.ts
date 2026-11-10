@@ -189,4 +189,34 @@ describe('UpdateCapexRepository', () => {
       );
     });
   });
+
+  describe('private helpers', () => {
+    type Helpers = {
+      calcPercentage(done: number, total: number): number;
+      num(value: number): number;
+    };
+    const helpers = () => repository as unknown as Helpers;
+
+    it.each([
+      [0, 0, 100], // total === 0
+      [5, 0, 100],
+      [0, 10, 0],
+      [1, 3, 33], // Math.floor
+      [10, 10, 100],
+      [15, 10, 100], // Math.min cap
+    ])('calcPercentage(%i, %i) should return %i', (done, total, expected) => {
+      expect(helpers().calcPercentage(done, total)).toBe(expected);
+    });
+
+    it.each([
+      [Number.NaN, 0],
+      [Number.POSITIVE_INFINITY, 0],
+      [Number.NEGATIVE_INFINITY, 0],
+      [42.5, 42.5],
+      [-3, -3],
+      [0, 0],
+    ])('num(%d) should return %d', (value, expected) => {
+      expect(helpers().num(value)).toBe(expected);
+    });
+  });
 });

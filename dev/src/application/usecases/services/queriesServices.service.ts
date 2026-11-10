@@ -42,6 +42,7 @@ export class QueriesServicesService {
       const qtdeTotal = service.qtde_plan + service.qtde_adicional;
 
       return {
+        id: service.id,
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
@@ -91,6 +92,7 @@ export class QueriesServicesService {
       const saldoDisponivel = total - Math.max(totalReal, totalProg);
 
       acc.push({
+        id: service.id,
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,

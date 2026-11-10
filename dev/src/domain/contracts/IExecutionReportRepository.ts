@@ -3,7 +3,7 @@ import {
   FindByIdResponse,
   FindByScheduleResponse,
   FindByWorkIdResponse,
-} from '../types/repositories/executionReport.types';
+} from '../types/contracts/executionReport.types';
 
 export interface IExecutionReportRepository {
   create(

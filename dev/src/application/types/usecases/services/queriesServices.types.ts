@@ -1,6 +1,7 @@
 export type ItemType = 'M' | 'S';
 
 export type WorkServiceItemOutput = {
+  id: number;
   idObra: number;
   operacao: string | null;
   ponto: string | null;
