@@ -18,12 +18,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
   ScheduleServicesDTO,
 } from '../../dtos/workServicesDTO';
-import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('servicos')
 export class ServicesController {
@@ -111,7 +112,7 @@ export class ServicesController {
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   async importServices(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(UploadSignaturePipe) file: Express.Multer.File,
   ) {
     const response = await this.importServicesService.importFromSpreadsheet(
       id,

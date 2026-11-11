@@ -23,11 +23,7 @@ import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import { StorageKind } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  parseStoredNames,
-  storedFilesOf,
-  uploadedPaths,
-} from 'src/shared/upload/storedFileName';
+import { storedFilesOf, uploadedPaths } from 'src/shared/upload/storedFileName';
 import {
   ScheduleStatus,
   WorkStatus,
@@ -172,7 +168,8 @@ export class ExecutionReportService {
         );
       } catch (error: unknown) {
         const err = error as { message: string };
-        this.cleanupFiles(files);
+
+        await this.cleanupFiles(files);
 
         this.logger.error('Falha ao instanciar ExecutionReport para update', {
           method: 'update',
@@ -214,7 +211,7 @@ export class ExecutionReportService {
       throw new NotFoundException('Relatório de execução não encontrado.');
     }
 
-    const storedFiles = parseStoredNames(report.caminho_arquivo);
+    const storedFiles = storedFilesOf(report);
 
     // ALTERADO: antes era executionReportRepository.delete(id, report.id_programacao)
     await this.prisma.$transaction((tx) =>

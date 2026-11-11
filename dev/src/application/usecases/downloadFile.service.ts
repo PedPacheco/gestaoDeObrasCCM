@@ -1,9 +1,8 @@
 import {
   FILE_STORAGE,
   IFileStorage,
-  StorageKind,
 } from 'src/domain/contracts/storage/IFileStorage';
-import { StoredFile } from 'src/domain/types';
+import { StorageKind, StoredFile } from 'src/domain/types';
 
 // src/application/usecases/files/downloadFile.service.ts
 import { Inject, Injectable } from '@nestjs/common';

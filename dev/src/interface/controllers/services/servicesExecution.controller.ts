@@ -14,6 +14,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
 import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 
 import {
@@ -44,7 +45,10 @@ export class ServicesExecutionController {
 
   @Patch('finalizar/:id')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  @UseInterceptors(FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   async finalizeServices(
     @Param('id', ParseIntPipe) id: number,
     @Body() executionData: FinalizeServicesDTO,
