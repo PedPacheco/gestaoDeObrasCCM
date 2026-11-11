@@ -1,16 +1,21 @@
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-
+import {
+  GetAllItemsOutput,
+  GetNotScheduledServicesOutput,
+  GetSelectedServicesOutput,
+  GetServiceScheduleHistoryByIdScheduleOutput,
+} from 'src/application/types';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+} from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
+import { GetSelectedServicesParamsRequest } from 'src/domain/types';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
 
 @Injectable()
 export class QueriesServicesService {
@@ -21,7 +26,7 @@ export class QueriesServicesService {
     private readonly getWorksDetailsRepository: IGetWorksDetailsRepository,
   ) {}
 
-  async getAllItems(id: number) {
+  async getAllItems(id: number): Promise<GetAllItemsOutput[]> {
     const services =
       await this.workServicesQueryRepository.getAllServicesOfWork(id);
 
@@ -63,18 +68,20 @@ export class QueriesServicesService {
     return response;
   }
 
-  async getNotScheduledServices(id: number) {
+  async getNotScheduledServices(
+    id: number,
+  ): Promise<GetNotScheduledServicesOutput[]> {
     const services =
       await this.workServicesQueryRepository.getNotScheduledServices(id);
 
-    if (!services || services.length === 0) {
+    if (!services) {
       throw new NotFoundException('Obra não encontrada');
     }
 
     return services.reduce((acc, service) => {
       const total = (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0);
-      const totalReal = service.qtde_real ?? 0;
-      const totalProg = service.qtde_prog ?? 0;
+      const totalReal = service.qtde_real;
+      const totalProg = service.qtde_prog;
 
       if (totalReal === total || totalProg === total) return acc;
 
@@ -109,10 +116,12 @@ export class QueriesServicesService {
       });
 
       return acc;
-    }, [] as any[]);
+    }, [] as GetNotScheduledServicesOutput[]);
   }
 
-  async getSelectedServices(params: GetSelectedServicesParamsInterface) {
+  async getSelectedServices(
+    params: GetSelectedServicesParamsRequest,
+  ): Promise<GetSelectedServicesOutput[]> {
     const items =
       await this.workServicesQueryRepository.getSelectedServices(params);
 
@@ -128,7 +137,6 @@ export class QueriesServicesService {
       );
 
       return {
-        id: service.id,
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
@@ -192,7 +200,9 @@ export class QueriesServicesService {
     });
   }
 
-  async getServiceScheduleHistoryByIdSchedule(ids: number[]) {
+  async getServiceScheduleHistoryByIdSchedule(
+    ids: number[],
+  ): Promise<GetServiceScheduleHistoryByIdScheduleOutput[]> {
     const services =
       await this.workServicesQueryRepository.getServiceScheduleHistoryByIdSchedule(
         ids,

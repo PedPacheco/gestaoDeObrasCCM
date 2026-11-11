@@ -1,12 +1,20 @@
 import { Cache } from 'cache-manager';
+
 import {
-  FILTERS_REPOSITORY,
-  IFiltersRepository,
-} from 'src/domain/repositories/IFiltersRepository';
-import { FiltersDto } from 'src/interface/dtos/filtersDto';
+  FilterCondition,
+  GetFiltersInput,
+  GetFiltersOutput,
+  OvnotaFilterRow,
+} from '../types';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
+import {
+  FILTERS_REPOSITORY,
+  IFiltersRepository,
+} from 'src/domain/contracts/IFiltersRepository';
+
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
 export class FiltersService {
@@ -27,17 +35,20 @@ export class FiltersService {
       conjunto,
       ovnota,
       empreendimento,
-      ovnotaExec,
       restricao,
       tecnico,
       statusProgramacao,
       tipoRestricao,
       statusSap,
       equipes,
-    }: FiltersDto,
-    condition?: any,
-  ) {
+      notaD5,
+    }: GetFiltersInput,
+    condition?: FilterCondition,
+  ): Promise<GetFiltersOutput> {
     const result = {};
+
+    condition =
+      condition == null || condition === 'undefined' ? undefined : condition;
 
     if (regional) {
       result['regional'] = await this.getCachedData('regionais', () =>
@@ -122,18 +133,34 @@ export class FiltersService {
     }
 
     if (ovnota) {
-      result['ovnota'] = await this.getCachedData('ovnota', () =>
-        this.filtersRepository.getData('obras', ['id', 'ovnota'], {
-          data_conclusao: null,
-          municipios: { id_regional: condition },
-        }),
-      );
+      result['ovnota'] = await this.getCachedData('ovnota', async () => {
+        const works = await this.filtersRepository.getData<OvnotaFilterRow>(
+          'obras',
+          [
+            'id',
+            'ovnota',
+            'data_conclusao',
+            'diagrama',
+            'ordem_dci',
+            'ordem_dca',
+            'ordem_dcd',
+            'ordem_dcim',
+          ],
+          { municipios: { id_regional: condition } },
+        );
+
+        return works.map((work) => ({
+          id: work.id,
+          ovnota: work.ovnota,
+          concluida: work.data_conclusao !== null,
+          ordemDiagrama: resolveOrdemDiagrama(work),
+        }));
+      });
     }
 
-    if (ovnotaExec) {
-      result['ovnotaExec'] = await this.getCachedData('ovnotaExec', () =>
-        this.filtersRepository.getData('obras', ['id', 'ovnota'], {
-          data_conclusao: { not: null },
+    if (notaD5) {
+      result['notaD5'] = await this.getCachedData('notaD5', () =>
+        this.filtersRepository.getData('notas_d5', ['id', 'nota_d5'], {
           municipios: { id_regional: condition },
         }),
       );

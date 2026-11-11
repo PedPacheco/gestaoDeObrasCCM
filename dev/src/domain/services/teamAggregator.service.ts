@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
 import moment from 'moment';
-import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
-import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
+
+import { Injectable } from '@nestjs/common';
+import {
+  GetMonthlySummaryForecastResponse,
+  GetMonthlySummaryResponse,
+} from '../types';
 
 const MONTH_FIELDS = [
   'jan',
@@ -21,7 +24,7 @@ const MONTH_FIELDS = [
 @Injectable()
 export class TeamAggregationService {
   buildTotalTeamsMap(
-    data: GetMonthlySummaryForecastInterface[] | GetMonthlySummaryInterface[],
+    data: GetMonthlySummaryForecastResponse[] | GetMonthlySummaryResponse[],
   ): Map<string, number> {
     return data.reduce((map, item) => {
       const dateKey = moment.utc(item.data_prog).format('DD/MM/YYYY');

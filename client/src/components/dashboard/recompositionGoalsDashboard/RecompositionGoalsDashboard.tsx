@@ -24,22 +24,19 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useDashboardMetrics } from "@/hooks/dashboard/recompositionGoalsDashboard/useRecompositionGoalsMetrics";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import {
-  FiltersData,
-  Goal,
-  MonthKey,
-} from "@/types/dashboard/recompositionGoals/goals";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { Goal, MonthKey } from "@/types/dashboard/recompositionGoals/goals";
 import { Transform } from "@/utils/transform";
 
+import { FiltersInterface } from "@/types/genericFilterSchema";
+import { ChartsSection } from "./ChartSection";
 import { GoalsFilters } from "./GoalsFilters";
 import { GoalsTable } from "./GoalsTable";
 import { KpiSection } from "./KpiSection";
-import { ChartsSection } from "./ChartSection";
 
 interface Props {
   initialGoals: Goal[];
-  filtersData: FiltersData;
+  filtersData: FiltersInterface;
   token: string;
   filtersTop: number;
 }
@@ -120,7 +117,7 @@ export default function RecompositionGoalsDashboard({
   const currentMonth = dayjs().month();
   const now = dayjs();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "recompositionGoalsDashboardFilters",
     data: filtersData,
   });
@@ -129,9 +126,11 @@ export default function RecompositionGoalsDashboard({
 
   const [year, setYear] = useState<Dayjs>(dayjs());
   const [anoPlan, setAnoPlan] = useState<Dayjs>(dayjs());
+
   const [selectedStartMonth, setSelectedStartMonth] = useState<number>(0);
   const [selectedEndMonth, setSelectedEndMonth] =
     useState<number>(currentMonth);
+
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
   );
@@ -141,6 +140,7 @@ export default function RecompositionGoalsDashboard({
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>(
     () => filters?.tipo ?? [],
   );
+
   const [isPending, startTransition] = useTransition();
 
   const metrics = useDashboardMetrics(

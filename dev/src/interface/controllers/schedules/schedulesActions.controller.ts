@@ -1,7 +1,7 @@
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 import {
   ConfirmSchedulesDTO,
@@ -28,6 +28,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 
 @Controller('programacao')
 export class SchedulesActionsController {
@@ -150,10 +153,13 @@ export class SchedulesActionsController {
 
   @Patch(':id')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   async oldUpdateSchedules(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[],
     @Body() schedulesData: UpdateSchedulesDataDTO,
     @Req() req: any,
   ) {

@@ -1,20 +1,20 @@
 import moment from 'moment';
 import { EntryService } from 'src/application/usecases/entry.service';
-import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
+import { ENTRY_REPOSITORY } from 'src/domain/contracts/IEntryRepository';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('EntryService', () => {
   let entryService: EntryService;
 
   const mockRepository = {
-    getValuesFromEntry: jest.fn(),
-    getEntryOfWorksByDay: jest.fn(),
+    getValuesFromEntry: vi.fn(),
+    getEntryOfWorksByDay: vi.fn(),
   };
 
   const mockObras = (mo_pend: number | null, mo_planejada: number) => [
@@ -195,6 +195,10 @@ describe('EntryService', () => {
 
       const response = {
         ...mockObrasByMonth[0],
+        municipios: 'SJC',
+        tipos: 'BTZERO',
+        turmas: 'ENGELMIG',
+        observ_obra: undefined,
         prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
       };
 

@@ -15,8 +15,8 @@ describe('CustomExceptionFilter', () => {
   beforeEach(() => {
     // Mock do response
     mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
     };
 
     // Mock do request
@@ -26,9 +26,9 @@ describe('CustomExceptionFilter', () => {
 
     // Mock do ArgumentsHost
     mockArgumentsHost = {
-      switchToHttp: jest.fn().mockReturnValue({
-        getResponse: jest.fn().mockReturnValue(mockResponse),
-        getRequest: jest.fn().mockReturnValue(mockRequest),
+      switchToHttp: vi.fn().mockReturnValue({
+        getResponse: vi.fn().mockReturnValue(mockResponse),
+        getRequest: vi.fn().mockReturnValue(mockRequest),
       }),
     } as any;
 
@@ -36,7 +36,7 @@ describe('CustomExceptionFilter', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('HttpException handling', () => {

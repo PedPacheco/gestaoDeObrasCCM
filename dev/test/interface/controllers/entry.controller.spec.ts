@@ -22,11 +22,11 @@ describe('EntryController', () => {
         {
           provide: EntryService,
           useValue: {
-            getValuesFromEntry: jest.fn(),
-            getEntryOfWorksByDay: jest.fn(),
+            getValuesFromEntry: vi.fn(),
+            getEntryOfWorksByDay: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -118,7 +118,7 @@ describe('EntryController', () => {
         idCircuito: [0],
       };
 
-      jest
+      vi
         .spyOn(entryService, 'getValuesFromEntry')
         .mockResolvedValue(Object.values(mockGetValuesFromEntryResponse));
 
@@ -147,7 +147,7 @@ describe('EntryController', () => {
         idParceira: [0],
       };
 
-      jest
+      vi
         .spyOn(entryService, 'getEntryOfWorksByDay')
         .mockResolvedValue(mockGetEntryByDayResponse);
 

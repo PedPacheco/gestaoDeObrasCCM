@@ -8,7 +8,7 @@ describe('GoalsRepository', () => {
   let goalsRepository: GoalsRepository;
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('GoalsRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getGoals', () => {

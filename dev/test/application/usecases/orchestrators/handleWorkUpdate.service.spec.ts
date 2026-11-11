@@ -1,36 +1,38 @@
 import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import moment from 'moment';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
+import { UpdateWorkService } from 'src/application/usecases/works/management/updateWork.service';
 
 describe('HandleWorkUpdateService', () => {
   let service: HandleWorkUpdateService;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   const mockUpdateWorkService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateStatusWorks: jest.fn(),
-    updateScheduleStatus: jest.fn(),
+    updateStatusWorks: vi.fn(),
+    updateScheduleStatus: vi.fn(),
   };
 
   const mockSuspensionWorkService = {
-    createSuspension: jest.fn(),
+    createSuspension: vi.fn(),
   };
 
   const mockGetDetailsService = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -52,9 +54,14 @@ describe('HandleWorkUpdateService', () => {
     }).compile();
 
     service = module.get<HandleWorkUpdateService>(HandleWorkUpdateService);
+
+    vi.useFakeTimers().setSystemTime(new Date('2026-09-16T12:00:00.000Z'));
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.useRealTimers();
+  });
 
   describe('update', () => {
     it('should add schedule and update work status within a transaction', async () => {
@@ -75,6 +82,41 @@ describe('HandleWorkUpdateService', () => {
         1,
         expect.any(Object),
       );
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        45,
+        1,
+        expect.any(Object),
+      );
+    });
+
+    it('should set data_empreitamento with current UTC date when not provided and status is 42', async () => {
+      const data: UpdateWorkDTO = {
+        id_status: 45,
+        id_turma: 4,
+      };
+
+      mockGetDetailsService.get.mockResolvedValue({
+        id_status: 42,
+        id: 1,
+        data_empreitamento: null,
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      const expectedDate = moment.utc().startOf('day').toDate();
+
+      await service.update(data, 1, false);
+
+      expect(data.data_empreitamento).toEqual(expectedDate);
+
+      expect(mockUpdateWorkService.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data_empreitamento: expectedDate,
+        }),
+        1,
+        expect.any(Object),
+      );
+
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         45,
         1,

@@ -1,78 +1,274 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// ─── Module mocks ───────────────────────────────────────────────────────────
+// Prisma.sql / Prisma.join are replaced by tiny fakes so we can inspect the
+// SQL fragments and values the repository builds. Everything else
+// (PrismaClient, error classes, enums…) comes from the real generated client.
+vi.mock('src/infra/generated/prisma/client', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('src/infra/generated/prisma/client')>();
+  return {
+    ...actual,
+    Prisma: {
+      ...actual.Prisma,
+      sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
+        strings,
+        values,
+      }),
+      join: (items: unknown[]) => ({ joined: items }),
+    },
+  };
+});
+
+vi.mock('src/domain/entities/works.entity', () => ({
+  MarketWork: {
+    create: vi.fn((props: Record<string, unknown>) => ({
+      ...props,
+      __isMarketWork: true,
+    })),
+  },
+}));
+
+import { MarketWork } from 'src/domain/entities/works.entity';
 import { AuxiliaryBaseRepository } from 'src/infra/repositories/auxiliaryBaseRepository';
-import {
-  mockGetAuxiliaryBaseMarket,
-  mockGetNotes,
-  mockInsertNotesRequest,
-} from '../../../test/mocks/mockAuxiliaryBaseRepository';
-import {
-  mockInsertAuxiliaryBaseMarket,
-  mockInsertAuxiliaryBaseMarketWithDefaultId,
-} from '../../../test/mocks/mocksAuxiliaryBaseController';
-import {
-  mockCalculatedValues,
-  mockReturnAuxiliaryBaseCN52N,
-} from '../../mocks/mocksMaterialCapex';
+
+// ─── Test helpers ───────────────────────────────────────────────────────────
+
+const createPrismaMock = () => ({
+  base_auxiliar: {
+    findMany: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+  },
+  base_auxiliar_ov: {
+    findMany: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+  municipios: { findMany: vi.fn() },
+  tipos: { findMany: vi.fn() },
+  circuitos: { findMany: vi.fn() },
+  cn52n: { createMany: vi.fn() },
+  $queryRaw: vi.fn(),
+  $executeRaw: vi.fn(),
+});
+
+const createLoggerMock = () => ({
+  warn: vi.fn(),
+  error: vi.fn(),
+});
+
+/**
+ * Awaits a promise while draining any pending fake timers, and returns the
+ * outcome without letting a rejection escape as an unhandled rejection.
+ */
+const settle = async <T>(promise: Promise<T>) => {
+  const outcome = promise.then(
+    (value) => ({ ok: true as const, value }),
+    (error) => ({ ok: false as const, error }),
+  );
+  await vi.runAllTimersAsync();
+  return outcome;
+};
 
 describe('AuxiliaryBaseRepository', () => {
+  let prisma: ReturnType<typeof createPrismaMock>;
+  let logger: ReturnType<typeof createLoggerMock>;
   let repository: AuxiliaryBaseRepository;
 
-  const mockPrisma = {
-    base_auxiliar: {
-      findMany: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    base_auxiliar_ov: {
-      findMany: jest.fn(),
-      delete: jest.fn(),
-      createMany: jest.fn(),
-      deleteMany: jest.fn(),
-    },
-    cn52n: { createMany: jest.fn() },
-    conversao: { findMany: jest.fn() },
-    municipios: { findMany: jest.fn() },
-    tipos: { findMany: jest.fn() },
-    circuitos: { findMany: jest.fn() },
-    $executeRaw: jest.fn(),
-    $executeRawUnsafe: jest.fn(),
-    $queryRawUnsafe: jest.fn(),
-    $queryRaw: jest.fn(),
-  };
+  const withRetry = <T>(operation: () => Promise<T>): Promise<T> =>
+    (repository as any).withRetry(operation);
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuxiliaryBaseRepository,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
-    }).compile();
-
-    repository = module.get<AuxiliaryBaseRepository>(AuxiliaryBaseRepository);
+  beforeEach(() => {
+    prisma = createPrismaMock();
+    logger = createLoggerMock();
+    repository = new AuxiliaryBaseRepository(prisma as never, logger as never);
+    vi.mocked(MarketWork.create).mockClear();
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  // ─── withRetry ────────────────────────────────────────────────────────────
+
+  describe('withRetry (private helper)', () => {
+    it('returns the result immediately when the operation succeeds', async () => {
+      const operation = vi.fn().mockResolvedValue('ok');
+
+      await expect(withRetry(operation)).resolves.toBe('ok');
+
+      expect(operation).toHaveBeenCalledTimes(1);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it.each(['P1001', 'P1002', 'P1008', 'P1017'])(
+      'retries when the Prisma connection error code is %s',
+      async (code) => {
+        vi.useFakeTimers();
+        const operation = vi
+          .fn()
+          .mockRejectedValueOnce({ code, message: 'boom' })
+          .mockResolvedValue('recovered');
+
+        const result = await settle(withRetry(operation));
+
+        expect(result).toEqual({ ok: true, value: 'recovered' });
+        expect(operation).toHaveBeenCalledTimes(2);
+        expect(logger.warn).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it.each([
+      'Server has closed the connection',
+      'Connection refused',
+      'connection timed out',
+      'ECONNRESET',
+      'socket hang up',
+    ])(
+      'retries (case-insensitively) when the message contains "%s"',
+      async (message) => {
+        vi.useFakeTimers();
+        const operation = vi
+          .fn()
+          .mockRejectedValueOnce({ message })
+          .mockResolvedValue('recovered');
+
+        const result = await settle(withRetry(operation));
+
+        expect(result).toEqual({ ok: true, value: 'recovered' });
+        expect(operation).toHaveBeenCalledTimes(2);
+      },
+    );
+
+    it('uses exponential backoff (300ms, then 600ms) between attempts', async () => {
+      vi.useFakeTimers();
+      const operation = vi
+        .fn()
+        .mockRejectedValueOnce({ code: 'P1001', message: 'first' })
+        .mockRejectedValueOnce({ code: 'P1001', message: 'second' })
+        .mockResolvedValue('ok');
+
+      const promise = withRetry(operation);
+
+      await vi.advanceTimersByTimeAsync(299);
+      expect(operation).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(operation).toHaveBeenCalledTimes(2);
+
+      await vi.advanceTimersByTimeAsync(599);
+      expect(operation).toHaveBeenCalledTimes(2);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toBe('ok');
+      expect(operation).toHaveBeenCalledTimes(3);
+
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('Tentativa 1/3'),
+      );
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('300ms'),
+      );
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('Tentativa 2/3'),
+      );
+      expect(logger.warn).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('600ms'),
+      );
+    });
+
+    it('rethrows the last error once every attempt has failed', async () => {
+      vi.useFakeTimers();
+      const error = { code: 'P1017', message: 'server has closed' };
+      const operation = vi.fn().mockRejectedValue(error);
+
+      const result = await settle(withRetry(operation));
+
+      expect(result).toEqual({ ok: false, error });
+      expect(operation).toHaveBeenCalledTimes(3);
+      expect(logger.warn).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry on errors that are not connection related', async () => {
+      const error = { code: 'P2002', message: 'Unique constraint failed' };
+      const operation = vi.fn().mockRejectedValue(error);
+
+      await expect(withRetry(operation)).rejects.toBe(error);
+
+      expect(operation).toHaveBeenCalledTimes(1);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it('treats an error without message and code as non-retryable', async () => {
+      const error = {};
+      const operation = vi.fn().mockRejectedValue(error);
+
+      await expect(withRetry(operation)).rejects.toBe(error);
+
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats an error with only a code (no message) as retryable when the code matches', async () => {
+      vi.useFakeTimers();
+      const operation = vi
+        .fn()
+        .mockRejectedValueOnce({ code: 'P1002' })
+        .mockResolvedValue('ok');
+
+      const result = await settle(withRetry(operation));
+
+      expect(result).toEqual({ ok: true, value: 'ok' });
+    });
+  });
+
+  // ─── getAuxiliaryBaseNotes ────────────────────────────────────────────────
 
   describe('getAuxiliaryBaseNotes', () => {
-    it('should call method getAuxiliaryBaseNotes and return formatted data with regional filter', async () => {
-      mockPrisma.base_auxiliar.findMany.mockResolvedValue(mockGetNotes);
+    it('filters by regional id when it is provided', async () => {
+      const rows = [{ id: 1, obra: 'A' }];
+      prisma.base_auxiliar.findMany.mockResolvedValue(rows);
 
-      await repository.getAuxiliaryBaseNotes(1);
+      const result = await repository.getAuxiliaryBaseNotes(5);
 
-      expect(mockPrisma.base_auxiliar.findMany).toHaveBeenCalledWith(
+      expect(result).toBe(rows);
+      expect(prisma.base_auxiliar.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { municipios: { id_regional: 1 } },
+          where: { municipios: { id_regional: 5 } },
+          select: expect.objectContaining({
+            id: true,
+            obra: true,
+            pep: true,
+            eh_rda: true,
+          }),
         }),
       );
     });
 
-    it('should call method getAuxiliaryBaseNotes and return formatted data without regional filter', async () => {
-      mockPrisma.base_auxiliar.findMany.mockResolvedValue(mockGetNotes);
+    it('does not filter by regional when the id is undefined', async () => {
+      prisma.base_auxiliar.findMany.mockResolvedValue([]);
 
       await repository.getAuxiliaryBaseNotes();
 
-      expect(mockPrisma.base_auxiliar.findMany).toHaveBeenCalledWith(
+      expect(prisma.base_auxiliar.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { municipios: { id_regional: undefined } },
+        }),
+      );
+    });
+
+    it('treats a regional id of 0 as "no filter"', async () => {
+      prisma.base_auxiliar.findMany.mockResolvedValue([]);
+
+      await repository.getAuxiliaryBaseNotes(0);
+
+      expect(prisma.base_auxiliar.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { municipios: { id_regional: undefined } },
         }),
@@ -80,358 +276,258 @@ describe('AuxiliaryBaseRepository', () => {
     });
   });
 
+  // ─── getAuxiliaryBaseMarket ───────────────────────────────────────────────
+
   describe('getAuxiliaryBaseMarket', () => {
-    it('should call method getAuxiliaryBaseMarket and return formatted data with regional filter', async () => {
-      mockPrisma.base_auxiliar_ov.findMany.mockResolvedValue([
-        {
-          id: 56,
-          obra: 'Obra 1',
-          pep: 'PEP001',
-          diagrama: 'DGM001',
-          prazo_texto: 'Execução em 120 dias',
-          entrada: new Date('2024-05-01'),
-          status_ov: 1,
-          status_diagrama: 'Ativo',
-          status_pep: 'Completo',
-          mo_cliente: 1483,
-          mo_empresa: 0,
-          aux_circuito: 5,
-          aux_municipio: 10,
-          aux_turma: 1,
-          aux_tipo_obra: 2,
-          equip_num_pedido: '175ET005244969DSRB02',
-          observacao: 'Obra em andamento',
-        },
-      ]);
+    const dbRow = {
+      id: BigInt(10),
+      obra: 'OBRA-1',
+      pep: 'PEP-1',
+      diagrama: 'D-1',
+      prazo_texto: '30 days',
+      entrada: new Date('2026-01-01T00:00:00Z'),
+      status_ov: 1,
+      status_diagrama: 'OK',
+      status_pep: 'OK',
+      mo_cliente: 100,
+      mo_empresa: 200,
+      aux_circuito: 3,
+      aux_municipio: 4,
+      aux_turma: 5,
+      aux_tipo_obra: 6,
+      equip_num_pedido: 'PED-1',
+      observacao: 'note',
+    };
 
-      const result = await repository.getAuxiliaryBaseMarket(1);
+    it('maps database rows into MarketWork entities (filtering by regional)', async () => {
+      prisma.base_auxiliar_ov.findMany.mockResolvedValue([dbRow]);
 
-      expect(mockPrisma.base_auxiliar_ov.findMany).toHaveBeenCalledWith(
+      const result = await repository.getAuxiliaryBaseMarket(2);
+
+      expect(prisma.base_auxiliar_ov.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { municipios: { id_regional: 1 } },
+          where: { municipios: { id_regional: 2 } },
         }),
       );
-      expect(result).toEqual([mockGetAuxiliaryBaseMarket]);
+      expect(MarketWork.create).toHaveBeenCalledTimes(1);
+      expect(MarketWork.create).toHaveBeenCalledWith({
+        obra: 'OBRA-1',
+        pep: 'PEP-1',
+        entrada: dbRow.entrada,
+        prazoTexto: '30 days',
+        equipeNumPedido: 'PED-1',
+        idMunicipio: 4,
+        idTipo: 6,
+        idParceira: 5,
+        idCircuito: 3,
+        diagrama: 'D-1',
+        observacao: 'note',
+        statusOv: 1,
+        statusDiagrama: 'OK',
+        statusPep: 'OK',
+        moCliente: 100,
+        moEmpresa: 200,
+        id: 10,
+      });
+      expect(result).toEqual([
+        expect.objectContaining({ __isMarketWork: true, id: 10 }),
+      ]);
     });
 
-    it('should call method getAuxiliaryBaseMarket and return formatted data without regional filter', async () => {
-      mockPrisma.base_auxiliar_ov.findMany.mockResolvedValue([
-        {
-          id: 56,
-          obra: 'Obra 1',
-          pep: 'PEP001',
-          diagrama: 'DGM001',
-          prazo_texto: 'Execução em 120 dias',
-          entrada: new Date('2024-05-01'),
-          status_ov: 1,
-          status_diagrama: 'Ativo',
-          status_pep: 'Completo',
-          mo_cliente: 1483,
-          mo_empresa: 0,
-          aux_circuito: 5,
-          aux_municipio: 10,
-          aux_turma: 1,
-          aux_tipo_obra: 2,
-          equip_num_pedido: '175ET005244969DSRB02',
-          observacao: 'Obra em andamento',
-        },
-      ]);
+    it('queries without a regional filter when no id is given', async () => {
+      prisma.base_auxiliar_ov.findMany.mockResolvedValue([]);
 
       const result = await repository.getAuxiliaryBaseMarket();
 
-      expect(mockPrisma.base_auxiliar_ov.findMany).toHaveBeenCalledWith(
+      expect(result).toEqual([]);
+      expect(prisma.base_auxiliar_ov.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { municipios: { id_regional: undefined } },
         }),
       );
-      expect(result).toEqual([mockGetAuxiliaryBaseMarket]);
+      expect(MarketWork.create).not.toHaveBeenCalled();
     });
   });
 
+  // ─── getAuxiliaryBaseCN52N ────────────────────────────────────────────────
+
   describe('getAuxiliaryBaseCN52N', () => {
-    it('should call method getAuxiliaryBaseCN52N and return formatted data', async () => {
-      mockPrisma.$queryRawUnsafe.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
+    it('returns the rows produced by the raw query', async () => {
+      const rows = [{ id_obra: 1, ovnota: 'N1' }];
+      prisma.$queryRaw.mockResolvedValue(rows);
 
       const result = await repository.getAuxiliaryBaseCN52N();
 
-      expect(result).toEqual(mockReturnAuxiliaryBaseCN52N);
-      expect(mockPrisma.$queryRawUnsafe).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw an error when prisma throws', async () => {
-      const mockError = new Error('Database error');
-
-      mockPrisma.$queryRawUnsafe.mockRejectedValueOnce(mockError);
-
-      await expect(repository.getAuxiliaryBaseCN52N()).rejects.toThrow(
-        'Database error',
-      );
-
-      expect(mockPrisma.$queryRawUnsafe).toHaveBeenCalledTimes(1);
+      expect(result).toBe(rows);
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+      const [strings] = prisma.$queryRaw.mock.calls[0];
+      expect(strings.join('')).toContain('FROM cn52n');
+      expect(strings.join('')).toContain('INNER JOIN obras');
     });
   });
 
-  describe('getFator', () => {
-    it('should call method getFator and return formatted data of fator', async () => {
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('material1|12345', 1);
+  // ─── getFator ─────────────────────────────────────────────────────────────
 
-      mockPrisma.conversao.findMany.mockResolvedValue([
-        { material: 'material1', pep_ref: '12345', fator: 1 },
-        { material: 'material1', pep_ref: '123442', fator: 1 },
+  describe('getFator', () => {
+    it('returns an empty map without querying when the input is empty', async () => {
+      const result = await repository.getFator([]);
+
+      expect(result.size).toBe(0);
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    it('ignores definitions with a null/undefined material or pep_ref', async () => {
+      const result = await repository.getFator([
+        { material: null as any, pep_ref: 'P1' },
+        { material: 'M1', pep_ref: undefined as any },
+        { material: undefined as any, pep_ref: null as any },
+      ]);
+
+      expect(result.size).toBe(0);
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    it('queries by (material, pep_ref) pairs, de-duplicating them', async () => {
+      prisma.$queryRaw.mockResolvedValue([
+        { material: 'M1', pep_ref: 'P1', fator: 2 },
+        { material: 'M2', pep_ref: 'P2', fator: '1.5' },
+        { material: 'M3', pep_ref: 'P3', fator: null },
       ]);
 
       const result = await repository.getFator([
-        { material: 'material1', pep_ref: '12345' },
+        { material: 'M1', pep_ref: 'P1' },
+        { material: 'M1', pep_ref: 'P1' }, // duplicate
+        { material: 'M2', pep_ref: 'P2' },
+        { material: 'M3', pep_ref: 'P3' },
       ]);
 
-      expect(mockPrisma.conversao.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            material: { in: ['material1'] },
-            pep_ref: { in: ['12345'] },
-          },
-          select: {
-            material: true,
-            pep_ref: true,
-            fator: true,
-          },
-        }),
-      );
-      expect(result).toEqual(fatorMap);
-    });
+      const [, materials, pepRefs] = prisma.$queryRaw.mock.calls[0];
+      expect(materials).toEqual(['M1', 'M2', 'M3']);
+      expect(pepRefs).toEqual(['P1', 'P2', 'P3']);
 
-    it('should call method getFator and return empty map', async () => {
-      mockPrisma.$queryRawUnsafe.mockResolvedValue([]);
-
-      const result = await repository.getFator([]);
-
-      expect(result).toEqual(new Map());
-      expect(mockPrisma.conversao.findMany).not.toHaveBeenCalled();
+      expect(result.get('M1|P1')).toBe(2);
+      expect(result.get('M2|P2')).toBe(1.5); // coerced with Number()
+      expect(result.has('M3|P3')).toBe(false); // null factor is skipped
+      expect(result.size).toBe(2);
     });
   });
+
+  // ─── delete ───────────────────────────────────────────────────────────────
 
   describe('delete', () => {
-    it('Should delete data of base_auxiliar_ov', async () => {
-      await repository.delete('baseOv', 56);
+    it('deletes a single baseOv record when an id is provided', async () => {
+      prisma.base_auxiliar_ov.delete.mockResolvedValue({ id: 7 });
 
-      expect(mockPrisma.base_auxiliar_ov.delete).toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.delete).not.toHaveBeenCalled();
-    });
+      const result = await repository.delete('baseOv', 7);
 
-    it('Should delete data of base_auxiliar_ov without id', async () => {
-      await repository.delete('baseOv', undefined);
-
-      expect(mockPrisma.base_auxiliar_ov.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.deleteMany).not.toHaveBeenCalled();
-    });
-
-    it('Should delete data of base_auxiliar', async () => {
-      await repository.delete('baseNote', 56);
-
-      expect(mockPrisma.base_auxiliar_ov.delete).not.toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.delete).toHaveBeenCalled();
-    });
-
-    it('Should delete data of base_auxiliar without id', async () => {
-      await repository.delete('baseNote', undefined);
-
-      expect(mockPrisma.base_auxiliar_ov.deleteMany).not.toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.deleteMany).toHaveBeenCalled();
-    });
-
-    it('should log error if createMany fails', async () => {
-      const error = new Error('Erro ao deletar obra');
-
-      mockPrisma.base_auxiliar_ov.delete.mockRejectedValue(error);
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
-      await expect(repository.delete('baseOv', 56)).rejects.toThrow(
-        'Erro ao deletar obra',
-      );
-
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Erro ao excluir obra: ',
-        error.stack,
-      );
-    });
-  });
-
-  describe('withRetry (private)', () => {
-    const callWithRetry = <T>(fn: () => Promise<T>) =>
-      (repository as any).withRetry(fn, 'teste');
-
-    beforeEach(() => {
-      jest.spyOn(global, 'setTimeout').mockImplementation((fn: any) => {
-        fn();
-        return {} as any;
+      expect(result).toEqual({ id: 7 });
+      expect(prisma.base_auxiliar_ov.delete).toHaveBeenCalledWith({
+        where: { id: 7 },
       });
+      expect(prisma.base_auxiliar_ov.deleteMany).not.toHaveBeenCalled();
     });
 
-    afterEach(() => {
-      jest.restoreAllMocks();
+    it('deletes every baseOv record when no id is provided', async () => {
+      prisma.base_auxiliar_ov.deleteMany.mockResolvedValue({ count: 3 });
+
+      const result = await repository.delete('baseOv');
+
+      expect(result).toEqual({ count: 3 });
+      expect(prisma.base_auxiliar_ov.deleteMany).toHaveBeenCalledWith();
+      expect(prisma.base_auxiliar_ov.delete).not.toHaveBeenCalled();
     });
 
-    it('should resolve on first attempt', async () => {
-      const operation = jest.fn().mockResolvedValue('success');
+    it('deletes a single base_auxiliar record for any other table when an id is provided', async () => {
+      prisma.base_auxiliar.delete.mockResolvedValue({ id: 9 });
 
-      const result = await callWithRetry(operation);
+      const result = await repository.delete('baseNotes', 9);
 
-      expect(result).toBe('success');
-      expect(operation).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ id: 9 });
+      expect(prisma.base_auxiliar.delete).toHaveBeenCalledWith({
+        where: { id: 9 },
+      });
+      expect(prisma.base_auxiliar.deleteMany).not.toHaveBeenCalled();
     });
 
-    it('should retry on connection error and succeed', async () => {
-      const error = new Error('connection refused');
-      const operation = jest
-        .fn()
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce('success');
+    it('deletes every base_auxiliar record for any other table when no id is provided', async () => {
+      prisma.base_auxiliar.deleteMany.mockResolvedValue({ count: 12 });
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'warn');
+      const result = await repository.delete('baseNotes');
 
-      const result = await callWithRetry(operation);
+      expect(result).toEqual({ count: 12 });
+      expect(prisma.base_auxiliar.deleteMany).toHaveBeenCalledWith();
+      expect(prisma.base_auxiliar.delete).not.toHaveBeenCalled();
+    });
 
-      expect(result).toBe('success');
-      expect(operation).toHaveBeenCalledTimes(2);
+    it('logs the error stack and rethrows when the deletion fails', async () => {
+      const error = Object.assign(new Error('delete failed'), {
+        stack: 'fake-stack',
+      });
+      prisma.base_auxiliar.deleteMany.mockRejectedValue(error);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Tentativa 1'),
+      await expect(repository.delete('baseNotes')).rejects.toBe(error);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        'Erro ao excluir obra: ',
+        'fake-stack',
       );
-    });
-
-    it('should retry based on prisma error code', async () => {
-      const error = { message: 'random', code: 'P1001' };
-
-      const operation = jest
-        .fn()
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce('ok');
-
-      const result = await callWithRetry(operation);
-
-      expect(result).toBe('ok');
-      expect(operation).toHaveBeenCalledTimes(2);
-    });
-
-    it('should NOT retry on non-connection error', async () => {
-      const error = new Error('validation failed');
-
-      const operation = jest.fn().mockRejectedValue(error);
-
-      await expect(callWithRetry(operation)).rejects.toThrow(
-        'validation failed',
-      );
-
-      expect(operation).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw after max retries', async () => {
-      const error = new Error('connection refused');
-
-      const operation = jest.fn().mockRejectedValue(error);
-
-      await expect(callWithRetry(operation)).rejects.toThrow(
-        'connection refused',
-      );
-
-      // depende do seu MAX_RETRIES (assumindo 3)
-      expect(operation).toHaveBeenCalledTimes(repository['MAX_RETRIES']);
-    });
-
-    it('should apply exponential backoff delays', async () => {
-      const error = new Error('connection refused');
-
-      const operation = jest
-        .fn()
-        .mockRejectedValueOnce(error)
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce('ok');
-
-      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-
-      await callWithRetry(operation);
-
-      expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
-
-      expect(setTimeoutSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.any(Function),
-        300,
-      );
-
-      expect(setTimeoutSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.any(Function),
-        600,
-      );
-    });
-
-    it('should throw original error after max retries', async () => {
-      const error = new Error('connection refused');
-
-      const operation = jest.fn().mockRejectedValue(error);
-
-      const call = () =>
-        (repository as any).withRetry(operation, 'teste-final');
-
-      await expect(call()).rejects.toThrow('connection refused');
-
-      expect(operation).toHaveBeenCalledTimes((repository as any).MAX_RETRIES);
-    });
-
-    it('should handle error without message safely', async () => {
-      const error = { code: 'P1001' }; // sem message
-
-      const operation = jest
-        .fn()
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce('ok');
-
-      const result = await (repository as any).withRetry(
-        operation,
-        'teste-sem-message',
-      );
-
-      expect(result).toBe('ok');
-      expect(operation).toHaveBeenCalledTimes(2);
     });
   });
+
+  // ─── insertMarket ─────────────────────────────────────────────────────────
 
   describe('insertMarket', () => {
-    it('should call the method insertMarket and insert data in the auxiliary base ov', async () => {
-      mockPrisma.municipios.findMany.mockResolvedValue([{ id: 2, mun: 'SJC' }]);
-      mockPrisma.tipos.findMany.mockResolvedValue([
-        { id: 15, descricao_sap: 'Poste' },
-      ]);
-      mockPrisma.circuitos.findMany.mockResolvedValue([
-        { id: 53, circuito: 'APA-1324' },
-      ]);
+    const baseItem = {
+      obra: 'OBRA-1',
+      pep: 'PEP-1',
+      diagrama: 'D-1',
+      gpm: 'Campinas',
+      tipo: 'Expansion',
+      circuito: 'CIR-1',
+      prazoTexto: '30 days',
+      statusOv: '2',
+      statusDiagrama: 'OK',
+      statusPep: 'OK',
+      equipeNumPedido: 'PED-1',
+      moCliente: 10,
+      moEmpresa: 20,
+      entrada: '2026-03-15T00:00:00.000Z',
+    };
 
-      await repository.insertMarket(mockInsertAuxiliaryBaseMarket);
+    it('resolves foreign keys from lookup tables and inserts the rows', async () => {
+      prisma.municipios.findMany.mockResolvedValue([
+        { id: 11, mun: 'Campinas' },
+      ]);
+      prisma.tipos.findMany.mockResolvedValue([
+        { id: 22, descricao_sap: 'Expansion' },
+      ]);
+      prisma.circuitos.findMany.mockResolvedValue([
+        { id: 33, circuito: 'CIR-1' },
+      ]);
+      prisma.base_auxiliar_ov.createMany = vi.fn().mockResolvedValue({});
 
-      expect(mockPrisma.base_auxiliar_ov.createMany).toHaveBeenCalledWith({
+      await repository.insertMarket([baseItem as any]);
+
+      expect(prisma.base_auxiliar_ov.createMany).toHaveBeenCalledWith({
         data: [
           {
-            obra: '14245355',
-            pep: 'PEP-AUX001',
-            diagrama: 'DGM-AUX001',
-            gpm: 'SJC',
-            tipo: 'Poste',
-            circuito: 'APA-1324',
-            prazo_texto: '20 dias úteis',
-            status_ov: 1,
-            status_diagrama: 'Completo',
-            status_pep: 'Ativo',
-            equip_num_pedido: 'EQ-AUX001',
-            mo_cliente: 5000,
-            mo_empresa: 7000,
-            entrada: new Date('2024-05-10'),
-            aux_municipio: 2,
-            aux_tipo_obra: 15,
-            aux_circuito: 53,
+            obra: 'OBRA-1',
+            pep: 'PEP-1',
+            diagrama: 'D-1',
+            gpm: 'Campinas',
+            tipo: 'Expansion',
+            circuito: 'CIR-1',
+            prazo_texto: '30 days',
+            status_ov: 2,
+            status_diagrama: 'OK',
+            status_pep: 'OK',
+            equip_num_pedido: 'PED-1',
+            mo_cliente: 10,
+            mo_empresa: 20,
+            entrada: new Date('2026-03-15T00:00:00.000Z'),
+            aux_municipio: 11,
+            aux_tipo_obra: 22,
+            aux_circuito: 33,
             aux_turma: 1,
           },
         ],
@@ -439,193 +535,210 @@ describe('AuxiliaryBaseRepository', () => {
       });
     });
 
-    it('should call the method insertMarket and insert data in the auxiliary base ov with default id', async () => {
-      mockPrisma.municipios.findMany.mockResolvedValue([{ id: 2, mun: 'SJC' }]);
-      mockPrisma.tipos.findMany.mockResolvedValue([
-        { id: 15, descricao_sap: 'Poste' },
-      ]);
-      mockPrisma.circuitos.findMany.mockResolvedValue([
-        { id: 53, circuito: 'APA-1324' },
-      ]);
+    it('falls back to id 1 when municipality, type or circuit are not found', async () => {
+      prisma.municipios.findMany.mockResolvedValue([]);
+      prisma.tipos.findMany.mockResolvedValue([]);
+      prisma.circuitos.findMany.mockResolvedValue([]);
+      prisma.base_auxiliar_ov.createMany = vi.fn().mockResolvedValue({});
 
-      await repository.insertMarket(mockInsertAuxiliaryBaseMarketWithDefaultId);
+      await repository.insertMarket([baseItem as any]);
 
-      expect(mockPrisma.base_auxiliar_ov.createMany).toHaveBeenCalledWith({
-        data: [
-          {
-            obra: '14245355',
-            pep: 'PEP-AUX001',
-            diagrama: 'DGM-AUX001',
-            gpm: 'São',
-            tipo: 'Atravessia',
-            circuito: 'APA-1326',
-            prazo_texto: '20 dias úteis',
-            status_ov: 1,
-            status_diagrama: 'Completo',
-            status_pep: 'Ativo',
-            equip_num_pedido: 'EQ-AUX001',
-            mo_cliente: 5000,
-            mo_empresa: 7000,
-            entrada: new Date('2024-05-10'),
-            aux_municipio: 1,
-            aux_tipo_obra: 1,
-            aux_circuito: 1,
-            aux_turma: 1,
-          },
-        ],
-        skipDuplicates: true,
+      const [{ data }] = (prisma.base_auxiliar_ov.createMany as any).mock
+        .calls[0];
+      expect(data[0]).toMatchObject({
+        aux_municipio: 1,
+        aux_tipo_obra: 1,
+        aux_circuito: 1,
+        aux_turma: 1,
       });
     });
 
-    it('should log error if createMany fails', async () => {
-      const error = new Error('Erro ao inserir dados da base auxiliar OV:');
+    it('logs and throws a friendly error when something fails', async () => {
+      const error = Object.assign(new Error('db down'), { stack: 'stk' });
+      prisma.municipios.findMany.mockRejectedValue(error);
+      prisma.tipos.findMany.mockResolvedValue([]);
+      prisma.circuitos.findMany.mockResolvedValue([]);
 
-      mockPrisma.base_auxiliar_ov.createMany.mockRejectedValue(error);
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
-      await expect(repository.insertMarket([])).rejects.toThrow(
+      await expect(repository.insertMarket([baseItem as any])).rejects.toThrow(
         'Falha ao inserir dados da base auxiliar OV',
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'Erro ao inserir dados da base auxiliar OV:',
-        error.stack,
+        'stk',
       );
     });
   });
 
-  describe('insertNote', () => {
-    it('should call insertNotes and insert data in the auxiliary base', async () => {
-      const result = await repository.insertNotes(mockInsertNotesRequest);
+  // ─── insertNotes ──────────────────────────────────────────────────────────
 
-      expect(mockPrisma.$executeRaw).toHaveBeenCalledTimes(1);
+  describe('insertNotes', () => {
+    const makeNote = (n: number) => ({
+      campo_ordenacao: `ORD-${n}`,
+      pep: `PEP-${n}`,
+      ordem_dci: `DCI-${n}`,
+      ordem_dcd: `DCD-${n}`,
+      ordem_dca: `DCA-${n}`,
+      ordem_dcim: `DCIM-${n}`,
+      conjunto: `CONJ-${n}`,
+      grp_plnj_pm: `GRP-${n}`,
+      texto_breve: `TXT-${n}`,
+      denominacao: `DEN-${n}`,
+      ehRda: n % 2 === 0,
+    });
 
-      const sqlArg = mockPrisma.$executeRaw.mock.calls[0][0];
+    it('builds one ROW per note and runs the bulk-insert function', async () => {
+      prisma.$executeRaw.mockResolvedValue(2);
 
-      // Assert the parameterized values are correct
-      expect(sqlArg.values).toEqual([
-        '16005338',
-        'B/000215-3',
-        null,
-        '190000025090',
-        null,
-        null,
-        '0',
-        'CAR',
-        'RIO DO OURO - ETAPA 2 - DCD',
-        '195ET005120739',
-        true,
-        '16004316',
-        'B/000215-7',
-        '170000023493',
-        '190000025094',
-        '150000003441',
-        null,
-        '69',
-        'CAR',
-        'RIO DO OURO - ETAPA 2 - DCI',
-        '195ET005120739',
-        false,
-      ]);
-
-      // Assert the SQL template structure contains the expected fragments
-      const fullTemplate = sqlArg.strings.join('');
-      expect(fullTemplate).toContain('construcao_sp.insert_base_auxiliar_bulk');
-      expect(fullTemplate).toContain('::construcao_sp.base_auxiliar_input[]');
+      const result = await repository.insertNotes([
+        makeNote(1),
+        makeNote(2),
+      ] as any);
 
       expect(result).toEqual({ message: 'Dados inseridos com sucesso' });
+      expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
+
+      const query = prisma.$executeRaw.mock.calls[0][0];
+      expect(query.strings.join('')).toContain('insert_base_auxiliar_bulk');
+
+      const joined = query.values[0].joined;
+      expect(joined).toHaveLength(2);
+      expect(joined[0].values).toEqual([
+        'ORD-1',
+        'PEP-1',
+        'DCI-1',
+        'DCD-1',
+        'DCA-1',
+        'DCIM-1',
+        'CONJ-1',
+        'GRP-1',
+        'TXT-1',
+        'DEN-1',
+        false,
+      ]);
+      expect(joined[1].values[10]).toBe(true);
     });
 
-    it('should log error if createMany fails', async () => {
-      mockPrisma.$executeRaw.mockRejectedValueOnce(new Error('DB error'));
-      await expect(repository.insertNotes([])).rejects.toThrow();
+    it('rethrows errors raised by the database', async () => {
+      const error = new Error('insert failed');
+      prisma.$executeRaw.mockRejectedValue(error);
+
+      await expect(repository.insertNotes([makeNote(1)] as any)).rejects.toBe(
+        error,
+      );
     });
   });
+
+  // ─── insertCapex ──────────────────────────────────────────────────────────
 
   describe('insertCapex', () => {
-    it('should call the method insertMarket and insert data in the auxiliary base ov', async () => {
-      await repository.insertCapex(mockCalculatedValues);
+    const makeItems = (count: number) =>
+      Array.from({ length: count }, (_, i) => ({ id_obra: i }));
 
-      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledWith({
-        data: mockCalculatedValues,
-        skipDuplicates: true,
-      });
-      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledTimes(1);
+    it('does nothing when there is no data', async () => {
+      await repository.insertCapex([]);
+
+      expect(prisma.cn52n.createMany).not.toHaveBeenCalled();
     });
 
-    it('should log error if createMany fails', async () => {
-      mockPrisma.cn52n.createMany.mockRejectedValueOnce(new Error('DB error'));
-      await expect(
-        repository.insertCapex(mockCalculatedValues),
-      ).rejects.toThrow();
+    it('inserts a small payload in a single batch', async () => {
+      prisma.cn52n.createMany.mockResolvedValue({ count: 3 });
+      const items = makeItems(3);
+
+      await repository.insertCapex(items as any);
+
+      expect(prisma.cn52n.createMany).toHaveBeenCalledTimes(1);
+      expect(prisma.cn52n.createMany).toHaveBeenCalledWith({ data: items });
+    });
+
+    it('splits the payload into batches of 200 records', async () => {
+      prisma.cn52n.createMany.mockResolvedValue({ count: 0 });
+
+      await repository.insertCapex(makeItems(450) as any);
+
+      const sizes = prisma.cn52n.createMany.mock.calls.map(
+        ([args]) => args.data.length,
+      );
+      expect(sizes).toEqual([200, 200, 50]);
+    });
+
+    it('retries a batch after a transient connection failure', async () => {
+      vi.useFakeTimers();
+      prisma.cn52n.createMany
+        .mockRejectedValueOnce({ code: 'P1001', message: 'connection refused' })
+        .mockResolvedValue({ count: 1 });
+
+      const result = await settle(repository.insertCapex(makeItems(5) as any));
+
+      expect(result.ok).toBe(true);
+      expect(prisma.cn52n.createMany).toHaveBeenCalledTimes(2);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates non-retryable errors and stops processing further batches', async () => {
+      const error = { code: 'P2002', message: 'Unique constraint failed' };
+      prisma.cn52n.createMany.mockRejectedValue(error);
+
+      await expect(repository.insertCapex(makeItems(450) as any)).rejects.toBe(
+        error,
+      );
+
+      expect(prisma.cn52n.createMany).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('getObraIdsByDiagramas', () => {
-    it('should return an empty map when diagramas array is empty', async () => {
-      const result = await repository.getObraIdsByDiagramas([]);
-
-      expect(result).toEqual(new Map());
-      expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
-    });
-
-    it('should call $queryRawUnsafe with the correct SQL and return a map of diagrama -> id', async () => {
-      mockPrisma.$queryRaw.mockResolvedValue([
-        { diagrama_ref: 'DGM001', id: 10 },
-        { diagrama_ref: 'DGM002', id: 20 },
-      ]);
-
-      const result = await repository.getObraIdsByDiagramas([
-        'DGM001',
-        'DGM002',
-      ]);
-
-      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(1);
-
-      // Verifica se passou o array corretamente como parâmetro na query
-      const sqlCall = mockPrisma.$queryRaw.mock.calls[0][0];
-      const mergedSql = sqlCall.join(' ');
-      expect(mergedSql).toContain('unnest(');
-      expect(mergedSql).toContain('::text[])');
-      const param = mockPrisma.$queryRaw.mock.calls[0][1];
-
-      expect(mergedSql.replace(/\s+/g, ' ')).toMatch(/from\s+unnest\s*\(/i);
-      expect(param).toEqual(['DGM001', 'DGM002']);
-
-      expect(result).toEqual(
-        new Map([
-          ['DGM001', 10],
-          ['DGM002', 20],
-        ]),
-      );
-    });
-
-    it('should return a map without duplicates when database returns repeated diagramas', async () => {
-      mockPrisma.$queryRaw.mockResolvedValue([
-        { diagrama_ref: 'DGM100', id: 50 },
-        { diagrama_ref: 'DGM100', id: 50 }, // repetido
-        { diagrama_ref: 'DGM200', id: 60 },
-      ]);
-
-      const result = await repository.getObraIdsByDiagramas([
-        'DGM100',
-        'DGM200',
-      ]);
-
-      expect(result).toEqual(
-        new Map([
-          ['DGM100', 50],
-          ['DGM200', 60],
-        ]),
-      );
-    });
-  });
+  // ─── truncateCN52N ────────────────────────────────────────────────────────
 
   describe('truncateCN52N', () => {
-    it('Should delete data of CN52N', async () => {
-      await repository.truncateCN52N();
+    it('truncates the cn52n table', async () => {
+      prisma.$executeRaw.mockResolvedValue(0);
 
-      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+      await expect(repository.truncateCN52N()).resolves.toBeUndefined();
+
+      expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
+      const [strings] = prisma.$executeRaw.mock.calls[0];
+      expect(strings.join('')).toContain('TRUNCATE TABLE cn52n');
+    });
+  });
+
+  // ─── getObraIdsByDiagramas ────────────────────────────────────────────────
+
+  describe('getObraIdsByDiagramas', () => {
+    it('returns an empty map without querying when no diagrams are given', async () => {
+      const result = await repository.getObraIdsByDiagramas([]);
+
+      expect(result.size).toBe(0);
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    });
+
+    it('groups work ids by diagram and converts them to numbers', async () => {
+      prisma.$queryRaw.mockResolvedValue([
+        { diagrama_ref: 'D1', ids: ['1', '2'] },
+        { diagrama_ref: 'D2', ids: [3] },
+      ]);
+
+      const result = await repository.getObraIdsByDiagramas(['D1', 'D2']);
+
+      expect(result).toEqual(
+        new Map([
+          ['D1', [1, 2]],
+          ['D2', [3]],
+        ]),
+      );
+
+      const [strings, ...values] = prisma.$queryRaw.mock.calls[0];
+      expect(strings.join('')).toContain('UNION ALL');
+      // The diagram list is bound once per UNION branch (5 branches).
+      expect(values).toHaveLength(5);
+      values.forEach((value: unknown) => expect(value).toEqual(['D1', 'D2']));
+    });
+
+    it('returns an empty map when no work matches the diagrams', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
+
+      const result = await repository.getObraIdsByDiagramas(['UNKNOWN']);
+
+      expect(result.size).toBe(0);
     });
   });
 });

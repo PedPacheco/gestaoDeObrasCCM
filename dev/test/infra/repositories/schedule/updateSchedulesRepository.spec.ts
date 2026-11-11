@@ -1,17 +1,19 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { UpdateScheduleRepositoryInput } from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/works/schedule/updateSchedulesRepository';
+import type { Mock } from 'vitest';
 
 describe('UpdateSchedulesRepository', () => {
   let repository: UpdateSchedulesRepository;
 
-  const updateMock = jest.fn();
+  const updateMock = vi.fn();
 
   const mockPrisma = {
     programacoes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -42,7 +44,7 @@ describe('UpdateSchedulesRepository', () => {
         id: 9999,
         startTime: '08:00',
         finishTime: '17:00',
-      };
+      } as unknown as UpdateScheduleRepositoryInput;
 
       await expect(repository.update(input, mockTx)).rejects.toThrow(
         new NotFoundException(`Agendamento com ID ${input.id} não encontrado`),
@@ -51,13 +53,13 @@ describe('UpdateSchedulesRepository', () => {
 
     it('should throw error if  error occurs', async () => {
       const error = new Error('DB connection failed');
-      (mockTx.programacoes.update as jest.Mock).mockRejectedValue(error);
+      (mockTx.programacoes.update as Mock).mockRejectedValue(error);
 
       const input = {
         id: 9999,
         startTime: '08:00',
         finishTime: '17:00',
-      };
+      } as unknown as UpdateScheduleRepositoryInput;
 
       await expect(repository.update(input, mockTx)).rejects.toThrow(
         'DB connection failed',
@@ -71,7 +73,7 @@ describe('UpdateSchedulesRepository', () => {
         id: 123,
         startTime: '09:00',
         finishTime: '18:00',
-      };
+      } as unknown as UpdateScheduleRepositoryInput;
 
       await repository.update(input, mockTx);
 
@@ -98,7 +100,7 @@ describe('UpdateSchedulesRepository', () => {
 
     it('should throw error if error occurs', async () => {
       const error = new Error('DB connection failed');
-      (mockPrisma.programacoes.findMany as jest.Mock).mockRejectedValue(error);
+      (mockPrisma.programacoes.findMany as Mock).mockRejectedValue(error);
 
       await expect(
         repository.findExecutionOfSchedules(23, 5424),

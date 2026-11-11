@@ -4,7 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { Transform } from "@/utils/transform";
 
 import { KpiSectionMonitoringExecution } from "./KpiSection";
@@ -12,6 +12,7 @@ import { MonitoredMonthlyTable } from "./monitoredMonthlyTable";
 import { MonitoringExecutionFilters } from "./monitoringExecutionFilters";
 import { MonitoredByRegional } from "./monitoredByRegional";
 import { MonitoredByPartner } from "./monitoredByPartner";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // Percentual mínimo de obras acompanhadas exigido por mês/regional
 export const META_PCT = 30;
@@ -29,7 +30,7 @@ export interface Row {
 
 interface Props {
   initialData: Row[]; // dados carregados no server (sem filtros — ano inteiro)
-  filtersData: any; // opções disponíveis para os dropdowns
+  filtersData: FiltersInterface; // opções disponíveis para os dropdowns
   token: string; // JWT para autenticação nas chamadas client-side
   filtersTop: number;
 }
@@ -79,7 +80,7 @@ export default function MonitoringExecutionDashboard({
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "monitoringExecutionFilters",
     data: filtersData,
   });

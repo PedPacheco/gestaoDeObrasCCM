@@ -16,14 +16,17 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibilityItems.pipe';
-import { ServiceMaterialItemDto } from '../dtos/workServicesDTO';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { RejectFeasibilityDTO } from '../dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from '../dtos/workServicesDTO';
 
 @Controller('viabilidade')
 export class FeasibilityController {
@@ -57,10 +60,13 @@ export class FeasibilityController {
   }
 
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async upload(
-    @UploadedFiles() files: Express.Multer.File[] = [],
+    @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[] = [],
     @Body('workId', ParseIntPipe) workId: number,
     @Body('pointByPoint', ParseBoolPipe) pointByPoint: boolean,
     @Body('existingFiles') existingFiles: string,
@@ -91,10 +97,13 @@ export class FeasibilityController {
   }
 
   @Patch('upload')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async uploadComplementaryFiles(
-    @UploadedFiles() files: Express.Multer.File[] = [],
+    @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[] = [],
     @Body('workId', ParseIntPipe) workId: number,
     @Body('existingFiles') existingFiles: string,
     @Req() req: any,

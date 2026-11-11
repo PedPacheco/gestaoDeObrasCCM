@@ -94,7 +94,7 @@ describe('SpreadsheetParserService', () => {
   let sut: SpreadsheetParserService;
 
   beforeEach(async () => {
-    jest.spyOn(console, 'log').mockImplementation();
+    vi.spyOn(console, 'log').mockImplementation();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [SpreadsheetParserService],
@@ -104,7 +104,7 @@ describe('SpreadsheetParserService', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('dataStartRow', () => {
@@ -862,7 +862,7 @@ describe('SpreadsheetParserService', () => {
   describe('getCellString private formula branches', () => {
     it('should return null when formula result is null', () => {
       const row = {
-        getCell: jest.fn().mockReturnValue({
+        getCell: vi.fn().mockReturnValue({
           value: {
             formula: '=A1',
             result: null,
@@ -877,7 +877,7 @@ describe('SpreadsheetParserService', () => {
 
     it('should return trimmed formula result', () => {
       const row = {
-        getCell: jest.fn().mockReturnValue({
+        getCell: vi.fn().mockReturnValue({
           value: {
             formula: '=A1',
             result: ' TEST ',
@@ -894,7 +894,7 @@ describe('SpreadsheetParserService', () => {
   describe('getCellNumber private formula branches', () => {
     it('should return formula result number', () => {
       const row = {
-        getCell: jest.fn().mockReturnValue({
+        getCell: vi.fn().mockReturnValue({
           value: {
             formula: '=SUM()',
             result: 15,
@@ -909,7 +909,7 @@ describe('SpreadsheetParserService', () => {
 
     it('should return 0 when formula result is null', () => {
       const row = {
-        getCell: jest.fn().mockReturnValue({
+        getCell: vi.fn().mockReturnValue({
           value: {
             formula: '=SUM()',
             result: null,

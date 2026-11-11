@@ -3,9 +3,10 @@ import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ExportModule } from 'src/interface/modules/export.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from 'src/interface/modules/logger.module';
 
-jest.mock('src/shared/multer/multer.config', () => ({
-  createMulterConfig: jest.fn().mockReturnValue({
+vi.mock('src/shared/multer/multer.config', () => ({
+  createMulterConfig: vi.fn().mockReturnValue({
     storage: { mock: true },
   }),
 }));
@@ -15,7 +16,7 @@ describe('ExportModule', () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [ExportModule, PrismaModule],
+      imports: [ExportModule, PrismaModule, LoggerModule],
     })
       .overrideProvider(UsersService)
       .useValue({})

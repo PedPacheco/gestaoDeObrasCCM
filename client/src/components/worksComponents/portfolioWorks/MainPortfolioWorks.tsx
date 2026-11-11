@@ -17,12 +17,12 @@ import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
@@ -166,7 +166,7 @@ export default function PortfolioWorks({
         data={filteredData?.works ?? []}
         totals={totals}
         columns={columns}
-        sliceEndIndex={6}
+        sliceEndIndex={7}
         handleChangePage={handleChangePage}
         page={page}
         getRowKey={(item) => item.id}

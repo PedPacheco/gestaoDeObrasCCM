@@ -1,268 +1,380 @@
-import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { UsersService } from 'src/application/usecases/users.service';
-import { AuxiliaryBaseController } from 'src/interface/controllers/auxiliaryBase.controller';
-
-import { HttpStatus } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-
+import { HttpStatus, ParseIntPipe, RequestMethod } from '@nestjs/common';
 import {
-  mockInsertAuxiliaryBaseMarket,
-  mockInsertAuxiliaryBaseNotes,
-  mockMappedMarketWorks,
-  mockMappedNotes,
-} from '../../mocks/mocksAuxiliaryBaseController';
-import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
+  GUARDS_METADATA,
+  HTTP_CODE_METADATA,
+  METHOD_METADATA,
+  PATH_METADATA,
+  ROUTE_ARGS_METADATA,
+} from '@nestjs/common/constants';
+import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
+import type { OperationType } from 'src/application/types';
+import { AuxiliaryBaseController } from 'src/interface/controllers/auxiliaryBase.controller';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
+
+// ─── Shared mock state (hoisted so the vi.mock factories can use it) ──
+const h = vi.hoisted(() => {
+  type GuardOptions = { allowedAreas: unknown[]; blockPartner?: boolean };
+
+  class EditGuardStub {
+    canActivate() {
+      return true;
+    }
+  }
+  class ViewGuardStub {
+    canActivate() {
+      return true;
+    }
+  }
+
+  return {
+    EditGuardStub,
+    ViewGuardStub,
+    areaEditGuard: vi.fn((_options: GuardOptions) => EditGuardStub),
+    areaViewGuard: vi.fn((_options: GuardOptions) => ViewGuardStub),
+  };
+});
+
+// The specifiers must match the source imports.
+vi.mock('src/core/guards/newPermission.guard', () => ({
+  AreaEditGuard: h.areaEditGuard,
+  AreaViewGuard: h.areaViewGuard,
+}));
+
+vi.mock('src/application/usecases/auxiliaryBase/auxiliaryBase.service', () => ({
+  AuxiliaryBaseService: class AuxiliaryBaseService {},
+}));
+
+// The guard factories run when the controller module is loaded (import time),
+// so their calls are captured before any test runs.
+const editGuardCalls = [...h.areaEditGuard.mock.calls];
+const viewGuardCalls = [...h.areaViewGuard.mock.calls];
+
+// ─── Helpers ────────────────────────────────────────────────────────
+type Handler = Exclude<keyof AuxiliaryBaseController, 'constructor'>;
+
+const GUARD_OPTIONS = {
+  allowedAreas: [CONSTRUCTION_AREA_ID],
+  blockPartner: true,
+};
+
+const OPERATION = 'insert' as unknown as OperationType;
+
+const handlerMeta = (key: string, name: Handler) =>
+  Reflect.getMetadata(key, AuxiliaryBaseController.prototype[name]);
+
+const routeArgs = (name: Handler) =>
+  Reflect.getMetadata(ROUTE_ARGS_METADATA, AuxiliaryBaseController, name) ?? {};
+
+const ROUTES = [
+  ['GetAuxiliaryBaseMarket', RequestMethod.GET, 'mercado', 'view'],
+  ['GetAuxiliaryBaseNotes', RequestMethod.GET, 'notas', 'view'],
+  ['InsertAuxiliaryBaseNotes', RequestMethod.POST, 'notas', 'edit'],
+  ['InsertAuxiliaryBaseMarket', RequestMethod.POST, 'mercado', 'edit'],
+  ['DeleteAuxiliaryBaseMarket', RequestMethod.DELETE, 'mercado/:id', 'edit'],
+  [
+    'DeleteAuxiliaryBaseMarketWithoutId',
+    RequestMethod.DELETE,
+    'mercado',
+    'edit',
+  ],
+  ['DeleteAuxiliaryBaseNotes', RequestMethod.DELETE, 'notas/:id', 'edit'],
+  ['DeleteAuxiliaryBaseNotesWithoutId', RequestMethod.DELETE, 'notas/', 'edit'],
+] as const;
+
+// ─── Suite ──────────────────────────────────────────────────────────
 describe('AuxiliaryBaseController', () => {
-  let auxiliaryBaseController: AuxiliaryBaseController;
-  let auxiliaryBaseService: AuxiliaryBaseService;
+  let service: {
+    getMarket: Mock;
+    getNotes: Mock;
+    insertAuxiliaryBaseNotes: Mock;
+    insertAuxiliaryBaseMarket: Mock;
+    delete: Mock;
+  };
+  let controller: AuxiliaryBaseController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuxiliaryBaseController],
-      providers: [
-        {
-          provide: AuxiliaryBaseService,
-          useValue: {
-            getNotes: jest.fn(),
-            getMarket: jest.fn(),
-            delete: jest.fn(),
-            insertAuxiliaryBaseNotes: jest.fn(),
-            insertAuxiliaryBaseMarket: jest.fn(),
-          },
-        },
-        { provide: CapexFullPipelineService, useValue: { run: jest.fn() } },
-        { provide: CapexGateway, useValue: { createEmitter: jest.fn() } },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
-      ],
-    }).compile();
+  beforeEach(() => {
+    service = {
+      getMarket: vi.fn().mockResolvedValue([]),
+      getNotes: vi.fn().mockResolvedValue([]),
+      insertAuxiliaryBaseNotes: vi.fn().mockResolvedValue(undefined),
+      insertAuxiliaryBaseMarket: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
+    };
+    controller = new AuxiliaryBaseController(service as never);
+  });
 
-    auxiliaryBaseController = module.get<AuxiliaryBaseController>(
-      AuxiliaryBaseController,
+  // ───────────────────────────────────────────────────────────────────
+  describe('route metadata', () => {
+    it('is mounted under /base-auxiliar', () => {
+      expect(Reflect.getMetadata(PATH_METADATA, AuxiliaryBaseController)).toBe(
+        'base-auxiliar',
+      );
+    });
+
+    it('creates each guard once, restricted to the construction area and blocking partners', () => {
+      expect(editGuardCalls).toEqual([[GUARD_OPTIONS]]);
+      expect(viewGuardCalls).toEqual([[GUARD_OPTIONS]]);
+    });
+
+    it.each(ROUTES)(
+      '%s is exposed as method %i on "%s"',
+      (name, method, path) => {
+        expect(handlerMeta(METHOD_METADATA, name)).toBe(method);
+        expect(handlerMeta(PATH_METADATA, name)).toBe(path);
+      },
     );
-    auxiliaryBaseService =
-      module.get<AuxiliaryBaseService>(AuxiliaryBaseService);
+
+    it.each(ROUTES)('%s uses the %4$s guard', (name, _m, _p, guard) => {
+      expect(handlerMeta(GUARDS_METADATA, name)).toEqual([
+        guard === 'edit' ? h.EditGuardStub : h.ViewGuardStub,
+      ]);
+    });
+
+    it.each(ROUTES)(
+      '%s keeps the default Nest status code (200 for GET/DELETE, 201 for POST)',
+      (name) => {
+        expect(handlerMeta(HTTP_CODE_METADATA, name)).toBeUndefined();
+      },
+    );
+
+    it('only the read routes use the view guard', () => {
+      const viewRoutes = ROUTES.filter(([, , , guard]) => guard === 'view').map(
+        ([name]) => name,
+      );
+
+      expect(viewRoutes).toEqual([
+        'GetAuxiliaryBaseMarket',
+        'GetAuxiliaryBaseNotes',
+      ]);
+    });
+
+    describe('parameters', () => {
+      it.each(['GetAuxiliaryBaseMarket', 'GetAuxiliaryBaseNotes'] as const)(
+        '%s reads idRegional from the query string without pipes',
+        (name) => {
+          expect(routeArgs(name)).toEqual({
+            [`${RouteParamtypes.QUERY}:0`]: expect.objectContaining({
+              index: 0,
+              data: 'idRegional',
+              pipes: [],
+            }),
+          });
+        },
+      );
+
+      it.each([
+        'InsertAuxiliaryBaseNotes',
+        'InsertAuxiliaryBaseMarket',
+      ] as const)('%s reads the whole body', (name) => {
+        expect(routeArgs(name)).toEqual({
+          [`${RouteParamtypes.BODY}:0`]: expect.objectContaining({
+            index: 0,
+            data: undefined,
+            pipes: [],
+          }),
+        });
+      });
+
+      it.each([
+        'DeleteAuxiliaryBaseMarket',
+        'DeleteAuxiliaryBaseNotes',
+      ] as const)('%s parses the id route param with ParseIntPipe', (name) => {
+        expect(routeArgs(name)).toEqual({
+          [`${RouteParamtypes.PARAM}:0`]: expect.objectContaining({
+            index: 0,
+            data: 'id',
+            pipes: [ParseIntPipe],
+          }),
+        });
+      });
+
+      it.each([
+        'DeleteAuxiliaryBaseMarketWithoutId',
+        'DeleteAuxiliaryBaseNotesWithoutId',
+      ] as const)('%s has no parameters', (name) => {
+        expect(routeArgs(name)).toEqual({});
+      });
+    });
   });
 
-  it('Should be defined', () => {
-    expect(auxiliaryBaseController).toBeDefined();
-  });
+  // ───────────────────────────────────────────────────────────────────
+  describe('GetAuxiliaryBaseMarket', () => {
+    it('returns the market values of the given region', async () => {
+      const market = [{ id: 1 }, { id: 2 }];
+      service.getMarket.mockResolvedValue(market);
 
-  describe('getAuxiliaryBaseMarket', () => {
-    it('should be call the method getAuxiliaryBaseMarket and return correctly data', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'getMarket')
-        .mockResolvedValue(mockMappedMarketWorks);
-
-      const result = await auxiliaryBaseController.GetAuxiliaryBaseMarket(1);
-      const expectedResponse = {
+      await expect(controller.GetAuxiliaryBaseMarket(3)).resolves.toEqual({
         statusCode: HttpStatus.OK,
         message: 'Valores retornados com sucesso',
-        data: mockMappedMarketWorks,
-      };
+        data: market,
+      });
+      expect(service.getMarket).toHaveBeenCalledTimes(1);
+      expect(service.getMarket).toHaveBeenCalledWith(3);
+    });
 
-      expect(auxiliaryBaseService.getMarket).toHaveBeenCalledWith(1);
-      expect(result).toEqual(expectedResponse);
+    it('passes undefined when no region is given', async () => {
+      await controller.GetAuxiliaryBaseMarket();
+
+      expect(service.getMarket).toHaveBeenCalledWith(undefined);
     });
   });
 
-  describe('getAuxiliaryBaseNotes', () => {
-    it('should be call the method getAuxiliaryBaseNotes and return correctly data', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockMappedNotes);
+  // ───────────────────────────────────────────────────────────────────
+  describe('GetAuxiliaryBaseNotes', () => {
+    it('returns the notes of the given region', async () => {
+      const notes = [{ nota: 'N1' }];
+      service.getNotes.mockResolvedValue(notes);
 
-      const result = await auxiliaryBaseController.GetAuxiliaryBaseNotes(1);
-      const expectedResponse = {
+      await expect(controller.GetAuxiliaryBaseNotes(5)).resolves.toEqual({
         statusCode: HttpStatus.OK,
         message: 'Valores das notas na base auxiliar retornadas com sucesso',
-        data: mockMappedNotes,
-      };
+        data: notes,
+      });
+      expect(service.getNotes).toHaveBeenCalledTimes(1);
+      expect(service.getNotes).toHaveBeenCalledWith(5);
+    });
 
-      expect(auxiliaryBaseService.getNotes).toHaveBeenCalledWith(1);
-      expect(result).toEqual(expectedResponse);
+    it('passes undefined when no region is given', async () => {
+      await controller.GetAuxiliaryBaseNotes();
+
+      expect(service.getNotes).toHaveBeenCalledWith(undefined);
     });
   });
 
+  // ───────────────────────────────────────────────────────────────────
   describe('InsertAuxiliaryBaseNotes', () => {
-    it('should be call the method InsertAuxiliaryBaseNotes and return correctly data', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseNotes')
-        .mockResolvedValue({
-          insertedCount: 1,
-          skippedNotes: ['2135534'],
-        });
+    it('inserts the notes and returns the service result as "res"', async () => {
+      const data = [{ nota: 'N1' }, { nota: 'N2' }] as never[];
+      const result = { inserted: 2 };
+      service.insertAuxiliaryBaseNotes.mockResolvedValue(result);
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseNotes({
-        data: mockInsertAuxiliaryBaseNotes,
-        operation: 'insert',
-      });
-      const expectedResponse = {
+      await expect(
+        controller.InsertAuxiliaryBaseNotes({ data, operation: OPERATION }),
+      ).resolves.toEqual({
         statusCode: HttpStatus.CREATED,
         message: 'Notas inseridas na base auxiliar com sucesso',
-        res: {
-          insertedCount: 1,
-          skippedNotes: ['2135534'],
-        },
-      };
+        res: result,
+      });
+      expect(service.insertAuxiliaryBaseNotes).toHaveBeenCalledTimes(1);
+      expect(service.insertAuxiliaryBaseNotes).toHaveBeenCalledWith(
+        data,
+        OPERATION,
+      );
+    });
 
-      expect(
-        auxiliaryBaseService.insertAuxiliaryBaseNotes,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseNotes, 'insert');
-      expect(result).toEqual(expectedResponse);
+    it('forwards whatever the body contains, without validation (current behaviour)', async () => {
+      await controller.InsertAuxiliaryBaseNotes({} as never);
+
+      expect(service.insertAuxiliaryBaseNotes).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+      );
     });
   });
 
-  describe('InsertAuxilaryBaseMarket', () => {
-    it('should be call the method insertAuxiliaryBaseMarket and return correctly data', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseMarket')
-        .mockResolvedValue();
+  // ───────────────────────────────────────────────────────────────────
+  describe('InsertAuxiliaryBaseMarket', () => {
+    it('inserts the market rows and does not expose the service result', async () => {
+      const data = [{ ov: 'OV1' }] as never[];
+      service.insertAuxiliaryBaseMarket.mockResolvedValue({ secret: true });
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseMarket({
-        data: mockInsertAuxiliaryBaseMarket,
-        operation: 'insert',
+      const response = await controller.InsertAuxiliaryBaseMarket({
+        data,
+        operation: OPERATION,
       });
-      const expectedResponse = {
+
+      expect(response).toEqual({
         statusCode: HttpStatus.CREATED,
         message: 'Obras de mercado inseridas na base auxiliar com sucesso',
-      };
-
-      expect(
-        auxiliaryBaseService.insertAuxiliaryBaseMarket,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseMarket, 'insert');
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('importAndUpdateCapex', () => {
-    it('should start pipeline and return jobId', async () => {
-      const mockRun = jest.fn().mockResolvedValue(undefined);
-      const mockEmitter = jest.fn();
-
-      const mockFile = {
-        path: '/uploads/test.xlsx',
-      } as Express.Multer.File;
-
-      const mockGateway = auxiliaryBaseController['capexGateway'];
-      const mockPipeline = auxiliaryBaseController['capexFullPipelineService'];
-
-      jest.spyOn(mockGateway, 'createEmitter').mockReturnValue(mockEmitter);
-      jest.spyOn(mockPipeline, 'run').mockImplementation(mockRun);
-
-      const result =
-        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
-
-      expect(mockGateway.createEmitter).toHaveBeenCalled();
-      expect(mockPipeline.run).toHaveBeenCalledWith(
-        mockFile.path,
-        expect.any(String),
-        mockEmitter,
-      );
-
-      expect(result).toEqual({
-        statusCode: HttpStatus.ACCEPTED,
-        message:
-          'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
-        jobId: expect.any(String),
       });
-    });
-
-    it('should not throw if pipeline fails (fire-and-forget)', async () => {
-      const error = new Error('pipeline error');
-
-      const mockFile = {
-        path: '/uploads/test.xlsx',
-      } as Express.Multer.File;
-
-      jest
-        .spyOn(auxiliaryBaseController['capexFullPipelineService'], 'run')
-        .mockRejectedValue(error);
-
-      jest.spyOn(console, 'error').mockImplementation(() => {});
-
-      const result =
-        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
-
-      expect(result.statusCode).toBe(HttpStatus.ACCEPTED);
-
-      // garante que erro foi logado
-      await Promise.resolve(); // flush microtask queue
-
-      expect(console.error).toHaveBeenCalledWith(
-        expect.stringContaining('[capex/pipeline]'),
-        error.stack,
+      expect(service.insertAuxiliaryBaseMarket).toHaveBeenCalledTimes(1);
+      expect(service.insertAuxiliaryBaseMarket).toHaveBeenCalledWith(
+        data,
+        OPERATION,
       );
     });
   });
 
-  describe('DeleteAuxiliaryBaseNotes', () => {
-    it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes(56);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Nota removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseNotes', 56);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseMarket', () => {
-    it('should be call the method DeleteAuxiliaryBaseMarket and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseMarket(56);
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obra removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv', 56);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseMarketWithoutId', () => {
-    it('should be call the method DeleteAuxiliaryBaseMarketWithoutId and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseMarketWithoutId();
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obra removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
+  // ───────────────────────────────────────────────────────────────────
+  describe('delete routes', () => {
+    it.each([
+      [
+        'DeleteAuxiliaryBaseMarket',
+        [12],
+        'baseOv',
+        12,
+        'Obra removida com sucesso',
+      ],
+      [
+        'DeleteAuxiliaryBaseMarketWithoutId',
+        [],
         'baseOv',
         undefined,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('DeleteAuxiliaryBaseNotesWithoutId', () => {
-    it('should be call the method DeleteAuxiliaryBaseNotesWithoutId and return correctly data', async () => {
-      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
-
-      const result =
-        await auxiliaryBaseController.DeleteAuxiliaryBaseNotesWithoutId();
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Nota removida com sucesso',
-      };
-
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
+        'Obra removida com sucesso',
+      ],
+      [
+        'DeleteAuxiliaryBaseNotes',
+        [34],
+        'baseNotes',
+        34,
+        'Nota removida com sucesso',
+      ],
+      [
+        'DeleteAuxiliaryBaseNotesWithoutId',
+        [],
         'baseNotes',
         undefined,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
+        'Nota removida com sucesso',
+      ],
+    ] as const)(
+      '%s deletes from %3$s with id %4$s',
+      async (name, args, table, id, message) => {
+        const handler = controller[name] as (
+          ...a: unknown[]
+        ) => Promise<unknown>;
+
+        await expect(handler.apply(controller, [...args])).resolves.toEqual({
+          statusCode: HttpStatus.OK,
+          message,
+        });
+        expect(service.delete).toHaveBeenCalledTimes(1);
+        expect(service.delete).toHaveBeenCalledWith(table, id);
+      },
+    );
+  });
+
+  // ───────────────────────────────────────────────────────────────────
+  describe('error propagation', () => {
+    it.each([
+      ['GetAuxiliaryBaseMarket', 'getMarket', [1]],
+      ['GetAuxiliaryBaseNotes', 'getNotes', [1]],
+      [
+        'InsertAuxiliaryBaseNotes',
+        'insertAuxiliaryBaseNotes',
+        [{ data: [], operation: OPERATION }],
+      ],
+      [
+        'InsertAuxiliaryBaseMarket',
+        'insertAuxiliaryBaseMarket',
+        [{ data: [], operation: OPERATION }],
+      ],
+      ['DeleteAuxiliaryBaseMarket', 'delete', [1]],
+      ['DeleteAuxiliaryBaseMarketWithoutId', 'delete', []],
+      ['DeleteAuxiliaryBaseNotes', 'delete', [1]],
+      ['DeleteAuxiliaryBaseNotesWithoutId', 'delete', []],
+    ] as const)(
+      '%s rethrows the error of service.%s unchanged',
+      async (name, method, args) => {
+        const error = new Error(`${method} failed`);
+        service[method].mockRejectedValueOnce(error);
+        const handler = controller[name] as (
+          ...a: unknown[]
+        ) => Promise<unknown>;
+
+        await expect(handler.apply(controller, [...args])).rejects.toBe(error);
+      },
+    );
   });
 });

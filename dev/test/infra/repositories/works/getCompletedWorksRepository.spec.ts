@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import moment from 'moment';
+import { CompletedWorkTotals } from 'src/domain/types';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { GetCompletedWorksRepository } from 'src/infra/repositories/works/management/getCompletedWorksRepository';
+import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -13,7 +13,7 @@ describe('GetCompletedWorksRepository', () => {
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const mockWorks = [
@@ -55,12 +55,11 @@ describe('GetCompletedWorksRepository', () => {
     },
   ];
 
-  const mockCountQuery: totalsWorksInPortfolio[] = [
+  const mockCountQuery: CompletedWorkTotals[] = [
     {
       total_obras: 1,
       total_mo_planejada: 91105.824,
       total_mo_exec: 91105.824,
-      total_mo_pend: 0,
       total_qtde_planejada: 0,
       total_qtde_pend: 0,
     },
@@ -93,7 +92,7 @@ describe('GetCompletedWorksRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetCompletedWorks', () => {

@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AdvancePartnerRepository } from 'src/infra/repositories/advancePartnerRepository';
@@ -11,10 +12,10 @@ const getSqlString = (query: any): string => {
 
 describe('AdvancePartnerRepository', () => {
   let repository: AdvancePartnerRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let prismaService: Mocked<PrismaService>;
 
   const mockPrismaService = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -33,8 +34,8 @@ describe('AdvancePartnerRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('getRestrictionsAdvancePartner', () => {

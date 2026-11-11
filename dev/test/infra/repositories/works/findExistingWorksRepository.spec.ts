@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AppLogger } from 'src/core/logger/logger.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FindExistingWorksRepository } from 'src/infra/repositories/works/findExistingWorksRepository';
+import { FindExistingWorksRepository } from 'src/infra/repositories/works/management/findExistingWorksRepository';
 
 describe('FindExistingWorksRepository', () => {
   let repository: FindExistingWorksRepository;
+
   const mockPrisma = {
-    obras: { findMany: jest.fn() },
+    obras: { findMany: vi.fn() },
   };
 
   const mockResponse = [
@@ -46,11 +48,22 @@ describe('FindExistingWorksRepository', () => {
     },
   ];
 
+  const mockLogger = {
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    errorWithMetadata: vi.fn(),
+    setContext: vi.fn(),
+  };
+
   beforeEach(async () => {
+    vi.resetAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FindExistingWorksRepository,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: AppLogger, useValue: mockLogger },
       ],
     }).compile();
 
@@ -59,7 +72,7 @@ describe('FindExistingWorksRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('findExistingMarketWorks', () => {
     it('Should return formatted data of existing market works', async () => {
@@ -88,13 +101,11 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
       await expect(repository.findExistingWorks(['4343'])).rejects.toThrow(
         error,
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
+      expect(mockLogger.error).toHaveBeenCalledWith(
         'Erro ao buscar obra de mercado:',
         error.stack,
       );
@@ -147,16 +158,14 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
       await expect(
         repository.findExistingWorksOnSuspension([
           { ovnota: '123253543', ordemDiagrama: '19000000' },
         ]),
       ).rejects.toThrow(error);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Erro ao buscar obra de mercado:',
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Erro ao buscar obra suspensas:',
         error.stack,
       );
     });
@@ -194,14 +203,12 @@ describe('FindExistingWorksRepository', () => {
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
 
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
       await expect(repository.findExistingNotes(['4343'])).rejects.toThrow(
         error,
       );
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Erro ao buscar obra de mercado:',
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Erro ao buscar notas:',
         error.stack,
       );
     });
@@ -273,17 +280,14 @@ describe('FindExistingWorksRepository', () => {
       const error = new Error('Prisma failure');
 
       mockPrisma.obras.findMany.mockRejectedValue(error);
-
-      const loggerSpy = jest.spyOn(repository['logger'], 'error');
-
       await expect(
         repository.findExistingOrders([
           { ordem_dca: '', ordem_dcd: '', ordem_dci: '', ordem_dcim: '321423' },
         ]),
       ).rejects.toThrow(error);
 
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Erro ao buscar ordens',
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Erro ao buscar ordens:',
         error.stack,
       );
     });

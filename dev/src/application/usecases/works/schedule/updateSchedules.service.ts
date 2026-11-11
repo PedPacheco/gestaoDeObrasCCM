@@ -1,0 +1,93 @@
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
+
+import { UpdateSchedulesInput } from 'src/application/types';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import {
+  IUpdateSchedulesRepository,
+  UPDATE_SCHEDULES_REPOSITORY,
+} from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
+import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
+
+@Injectable()
+export class UpdateSchedulesService {
+  constructor(
+    @Inject(UPDATE_SCHEDULES_REPOSITORY)
+    private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly findScheduleByIdRepository: FindScheduleByIdRepository,
+    @Inject(STATUS_FLOW_REPOSITORY)
+    private readonly statusFlowRepository: IStatusFlowRepository,
+    private readonly executionValidator: ScheduleExecutionValidatorService,
+  ) {}
+
+  async update(data: UpdateSchedulesInput, tx: Prisma.TransactionClient) {
+    if (!data) {
+      throw new BadRequestException(
+        'Nenhuma programação fornecida para inserção.',
+      );
+    }
+
+    if (data.exec || data.exec === 0) {
+      const executionValues =
+        await this.updateSchedulesRepository.findExecutionOfSchedules(
+          data.id,
+          data.idWork,
+        );
+
+      const executed = executionValues.reduce(
+        (total, item) => ({
+          exec: total.exec + (item.exec || 0),
+          prog: total.prog + (item.prog || 0),
+        }),
+        { exec: 0, prog: 0 },
+      );
+
+      await this.executionValidator.validateExecutionAndUpdateStatus(
+        data,
+        executed,
+        tx,
+      );
+    }
+
+    const { reprovada, id_status_programacao } =
+      await this.findScheduleByIdRepository.findById(data.id);
+
+    const schedule = WorkSchedule.create(
+      WorkScheduleMapper.fromUpdateInput(data, { rejected: reprovada }),
+    );
+
+    const formattedData = WorkScheduleMapper.toPersistenceUpdate(schedule);
+
+    if (reprovada === true) {
+      formattedData.reprovada = false;
+    }
+
+    try {
+      await this.updateSchedulesRepository.update(formattedData, tx);
+
+      if (id_status_programacao === 7) {
+        await this.statusFlowRepository.updateScheduleStatus(1, data.id, tx);
+        await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+      }
+
+      return {
+        success: true,
+        scheduleId: schedule.id,
+        scheduleFinishTime: schedule.finishTime,
+        idWork: schedule.idWork,
+      };
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
+      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
+    }
+  }
+}

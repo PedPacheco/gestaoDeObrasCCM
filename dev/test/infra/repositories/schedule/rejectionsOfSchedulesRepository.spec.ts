@@ -1,6 +1,6 @@
 import { afterEach } from 'node:test';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/works/schedule/rejectionsOfSchedulesRepository';
 
 import { Test } from '@nestjs/testing';
 
@@ -9,7 +9,7 @@ describe('RejectionsOfSchedulesRepository', () => {
 
   const mockPrisma = {
     programacoes_reprovacoes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -27,7 +27,7 @@ describe('RejectionsOfSchedulesRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Get', () => {

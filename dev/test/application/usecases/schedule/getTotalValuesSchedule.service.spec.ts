@@ -1,5 +1,5 @@
-import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
-import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
+import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetTotalValuesScheduleRepository';
 
 import { Test } from '@nestjs/testing';
 
@@ -98,7 +98,7 @@ describe('GetTotalValuesScheduleService', () => {
   ];
 
   const mockRepository = {
-    getTotalValues: jest.fn(),
+    getTotalValues: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -118,7 +118,7 @@ describe('GetTotalValuesScheduleService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {
@@ -129,6 +129,7 @@ describe('GetTotalValuesScheduleService', () => {
       idMunicipio: [1],
       idCircuito: [1],
       idGrupo: [1],
+      idTecnico: [1],
       ano: 2024,
     };
 

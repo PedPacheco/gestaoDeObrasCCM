@@ -2,7 +2,7 @@
 
 import { Cookies } from "react-cookie";
 import { useEffect, useState } from "react";
-import { FiltersInterface } from "@/types/filtersInterfaces";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 const cookies = new Cookies();
 
@@ -37,12 +37,23 @@ export function useSaveFilters({
     }
   }, [data, filters, applyFilters]);
 
-  function saveFilters(filtersValues: Record<string, any>) {
-    const currentFilters = cookies.get(pageKey) ? cookies.get(pageKey) : {};
+  function saveFilters(
+    filtersValues: Record<string, any>,
+    extraFilters: Record<string, any> = {},
+  ) {
+    const currentFilters = cookies.get(pageKey) ?? {};
 
-    const newFilters = { ...currentFilters, ...filtersValues };
+    const newFilters = {
+      ...currentFilters,
+      selectedItems: filtersValues,
+      extraFilters: {
+        ...(currentFilters.extraFilters ?? {}),
+        ...extraFilters,
+      },
+    };
 
     setFilters(newFilters);
+
     cookies.set(pageKey, JSON.stringify(newFilters), {
       path: "/",
       maxAge: 1200,
@@ -50,7 +61,7 @@ export function useSaveFilters({
   }
 
   function clearFilters() {
-    setFilters(undefined);
+    setFilters({ selectedItems: {}, extraFilters: {} });
     cookies.remove(pageKey, { path: "/" });
   }
 

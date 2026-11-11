@@ -16,7 +16,7 @@ describe('MetasController', () => {
   let metasService: GoalsService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GoalsController],
@@ -24,10 +24,10 @@ describe('MetasController', () => {
         {
           provide: GoalsService,
           useValue: {
-            getGoals: jest.fn(),
+            getGoals: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -79,7 +79,7 @@ describe('MetasController', () => {
         data: metasResponse,
       };
 
-      jest.spyOn(metasService, 'getGoals').mockResolvedValue(metasResponse);
+      vi.spyOn(metasService, 'getGoals').mockResolvedValue(metasResponse);
 
       const result = await metasController.getGoals(goalsFilter, {
         idRegional: 1,

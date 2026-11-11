@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { UpdateOvRepository } from 'src/infra/repositories/works/management/updateOvRepository';
 
 describe('UpdateOvRepository', () => {
   let repository: UpdateOvRepository;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
     obras: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   };
 
   const mockLogger = {
-    error: jest.fn(),
+    error: vi.fn(),
   };
 
   const mockData = [
@@ -60,7 +60,7 @@ describe('UpdateOvRepository', () => {
     // Substituir o logger padrão pela versão mockada
     (repository as any).logger = mockLogger;
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

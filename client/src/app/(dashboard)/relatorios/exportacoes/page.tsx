@@ -19,17 +19,20 @@ export default async function ExportPage() {
     {
       name: "dados obras em carteira",
       path: "obras-carteira-bi",
-      visible: true,
+      visible: false,
+      filterType: "none",
     },
     {
       name: "dados obras executadas",
       path: "obras-executadas-bi",
-      visible: true,
+      visible: false,
+      filterType: "none",
     },
     {
       name: "programações e restrições",
       path: "programacoes-bi",
-      visible: true,
+      visible: false,
+      filterType: "none",
     },
     {
       name: "programação ponto a ponto",
@@ -41,21 +44,24 @@ export default async function ExportPage() {
       name: "relatórios de execução",
       path: "relatorio-execucao",
       visible: false,
+      filterType: "none",
     },
     {
       name: "capacidade de execução",
       path: "capacidade-execucao",
-      visible: true,
+      visible: false,
+      filterType: "none",
     },
     {
       name: "dados suspensões",
       path: "suspensoes",
       visible: false,
+      filterType: "none",
     },
     {
       name: "viabilidades em aprovação",
       path: "viabilidade/aguardando-aprovacao",
-      visible: true,
+      visible: false,
       filterType: "partner",
     },
     {
@@ -64,21 +70,24 @@ export default async function ExportPage() {
       visible: true,
       filterType: "partner",
     },
-    { name: "Forecast", path: "forecast", visible: false },
+    { name: "Forecast", path: "forecast", visible: false, filterType: "none" },
     {
       name: "Programações Reprovadas",
       path: "reprovacoes",
       visible: false,
+      filterType: "none",
     },
     {
       name: "Exportar Ordens para atualização MO/Material",
       path: "ordens",
       visible: false,
+      filterType: "none",
     },
     {
       name: "Exportar Relatório para Publicações",
       path: "relatorio-publicacoes",
       visible: false,
+      filterType: "none",
     },
   ];
 

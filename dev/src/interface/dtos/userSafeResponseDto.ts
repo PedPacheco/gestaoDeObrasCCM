@@ -35,4 +35,13 @@ export class UserSafeResponseDTO {
 
   @Expose()
   ativo: boolean;
+
+  @Expose()
+  regional: number;
+
+  @Expose()
+  parceira: number;
+
+  @Expose()
+  area: number | null;
 }

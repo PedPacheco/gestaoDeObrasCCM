@@ -1,17 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+
+import {
+  IWorkServicesQueryRepository,
+  ServiceForScheduling,
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
-  GetSelectedServicesParamsInterface,
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
   GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryByIdScheduleResponse,
   GetServiceScheduleHistoryResponse,
+  GetServicesContractsResponse,
   GetServicesSelectedByWorkIdResponse,
+  GetTeamsServicesResponse,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
+} from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class WorkServicesQueryRepository implements IWorkServicesQueryRepository {
@@ -74,6 +82,26 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     );
   }
 
+  async findServicesForScheduling(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ServiceForScheduling[]> {
+    return tx.servicos.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        id_obra: true,
+        id_material: true,
+        viabilizado: true,
+        qtde_adicional: true,
+        qtde_real: true,
+        ponto: true,
+        operacao: true,
+        descricao_operacao: true,
+      },
+    });
+  }
+
   async getNotScheduledServices(
     id: number,
   ): Promise<GetServicesByWorkIdResponse[]> {
@@ -100,7 +128,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   async getSelectedServices({
     id,
     idProgramacao,
-  }: GetSelectedServicesParamsInterface): Promise<
+  }: GetSelectedServicesParamsRequest): Promise<
     GetServicesSelectedByWorkIdResponse[]
   > {
     return this.prisma.programacoes_servicos.findMany({
@@ -151,6 +179,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
       select: {
         id: true,
         id_servico: true,
+        id_equipe: true,
         servicos: {
           select: {
             materiais: {
@@ -173,12 +202,15 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         prog: true,
         real: true,
         adicional: true,
+        status: true,
       },
       where: { programacoes: { id_obra: id } },
     });
   }
 
-  async getServiceScheduleHistoryByIdSchedule(ids: number[]) {
+  async getServiceScheduleHistoryByIdSchedule(
+    ids: number[],
+  ): Promise<GetServiceScheduleHistoryByIdScheduleResponse[]> {
     return await this.prisma.programacoes_servicos.findMany({
       select: {
         id: true,
@@ -222,7 +254,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     };
 
     const programacoesServicosFilter: Prisma.programacoes_servicosWhereInput = {
-      programacoes: { data_prog: dateFilter, exec: null },
+      programacoes: { data_prog: dateFilter },
       ...(params.idEquipe.length > 0
         ? { id_equipe: { in: params.idEquipe } }
         : {}),
@@ -233,13 +265,13 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
         programacoes: {
-          some: { data_prog: dateFilter, exec: null },
+          some: { data_prog: dateFilter },
         },
         servicos: {
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -293,13 +325,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             equipe_linha_viva: true,
             equipe_regularizacao: true,
             tecnicos: { select: { tecnico: true } },
+            status_programacao: { select: { status_programacao: true } },
           },
         },
         servicos: {
           where: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -343,12 +376,15 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getServicesContracts(idParceira: number): Promise<any[]> {
+  async getServicesContracts(
+    idParceira: number,
+  ): Promise<GetServicesContractsResponse[]> {
     return await this.prisma.servicos_contratos.findMany({
       select: {
         id: true,
         texto_breve: true,
         material: true,
+        material_antigo: true,
         preco: true,
         contrato: true,
         medida: true,
@@ -360,11 +396,13 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getMaterialsContract(): Promise<any[]> {
+  async getMaterialsContract(): Promise<GetMaterialsContractsResponse[]> {
     return await this.prisma.materiais.findMany();
   }
 
-  async getTeamsServices(idParceira: number): Promise<any[]> {
+  async getTeamsServices(
+    idParceira: number,
+  ): Promise<GetTeamsServicesResponse[]> {
     return await this.prisma.equipes.findMany({
       select: {
         id: true,

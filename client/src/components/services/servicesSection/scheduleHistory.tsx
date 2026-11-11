@@ -1,6 +1,14 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
+import { LoadingComponent } from "@/components/common/Loading";
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useUser } from "@/contexts/userContext";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import {
   Button,
   FormControl,
@@ -14,15 +22,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { LoadingComponent } from "@/components/common/Loading";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 import { TableFilter } from "./servicesFilters";
-import { useServicesFilters } from "@/hooks/services/useServicesFilters";
-import {
-  MATERIAL_OR_SERVICE_OPTIONS,
-  SERVICE_OPERATIONS,
-} from "@/constants/services/services";
-import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -106,8 +106,9 @@ export function ScheduleHistory({
             setOpenConfirmationModal(true);
           }}
           disabled={
-            ["Programado", "Concluído", "Parcial"].includes(statusSchedule) ||
-            permissions?.tipo_usuario === "PARCEIRA"
+            ["Programado", "Concluído", "Parcial", "Cancelado"].includes(
+              statusSchedule,
+            ) || permissions?.tipo_usuario === "PARCEIRA"
           }
         >
           CANCELAR

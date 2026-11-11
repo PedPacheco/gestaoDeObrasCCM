@@ -2,6 +2,8 @@ import {
   createInitialTotals,
   createInitialTotalsByGrouping,
 } from 'src/application/mappers/monthlySummaryMapper';
+
+import { Injectable } from '@nestjs/common';
 import {
   DailySummaryEntry,
   DailySummaryTotals,
@@ -13,9 +15,9 @@ import {
   MonthlyCapacityMetrics,
   WORKING_DAYS_PER_MONTH,
   WorkOrderMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types';
 
-import { Injectable } from '@nestjs/common';
+import { PointByPointCost } from './pointByPointCost.service';
 
 export interface IMonthlySummaryCalculator {
   aggregateFinancialCapacityByMonth(
@@ -30,12 +32,23 @@ export interface IMonthlySummaryCalculator {
     exec: number,
   ): WorkOrderMetrics;
 
+  calculatePointByPointMetrics(
+    moPlan: number,
+    moPend: number,
+    cost: PointByPointCost,
+  ): WorkOrderMetrics;
+
   calculateGoalPercentage(value: number, goal: number): number;
 
   calculateMoPrev(
     baseMoPlan: number,
     exec: number | null,
     prog: number,
+  ): { moPrev: number };
+
+  calculatePointByPointMoPrev(
+    exec: number | null,
+    cost: PointByPointCost,
   ): { moPrev: number };
 
   calculateExecutionRate(moProg: number, moExec: number): number;
@@ -46,7 +59,10 @@ export interface IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
-    portofolioData: { portfolioSap: number; portfolioExec: number },
+    portofolioData: {
+      qtdeWorks: number;
+      portfolioExec: number;
+    },
     executionTeams: {
       rfpTeams: number | null;
       executionCapacityTeams: number | null;
@@ -115,6 +131,19 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     };
   }
 
+  calculatePointByPointMetrics(
+    moPlan: number,
+    moPend: number,
+    cost: PointByPointCost,
+  ): WorkOrderMetrics {
+    return {
+      moPlan,
+      moPend,
+      moProg: cost.planejado,
+      moExec: cost.executado,
+    };
+  }
+
   calculateGoalPercentage(value: number, goal: number): number {
     return goal > 0 ? (value / goal) * 100 : 0;
   }
@@ -128,6 +157,15 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
     return {
       moPrev: baseMoPlan * effectiveRate,
+    };
+  }
+
+  calculatePointByPointMoPrev(
+    exec: number | null,
+    cost: PointByPointCost,
+  ): { moPrev: number } {
+    return {
+      moPrev: exec != null ? cost.executado : cost.planejado,
     };
   }
 
@@ -145,7 +183,6 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     },
     portofolioData: {
       qtdeWorks: number;
-      portfolioSap: number;
       portfolioExec: number;
     },
     executionTeams: {

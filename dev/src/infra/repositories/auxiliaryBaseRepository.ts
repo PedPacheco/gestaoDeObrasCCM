@@ -1,17 +1,23 @@
+import { Injectable } from '@nestjs/common';
+import {
+  CapexInsertItem,
+  InsertAuxiliaryMarketInput,
+} from 'src/application/types';
+import { AppLogger } from 'src/core/logger/logger.service';
+import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  GetAuxiliaryBaseMaterialsResponse,
+  GetAuxiliaryBaseNotesResponse,
+} from 'src/domain/types';
 
-import { Injectable, Logger } from '@nestjs/common';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
-  private readonly logger = new Logger(AuxiliaryBaseRepository.name);
-
   // Máximo de registros por chamada de createMany.
   // 200 é conservador porque o createMany gera um único INSERT com todos
   // os valores inline — muito mais pesado em bytes do que um UPDATE.
@@ -20,7 +26,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   // Tentativas em caso de queda de conexão transitória.
   private readonly MAX_RETRIES = 3;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: AppLogger,
+  ) {}
 
   // ─── Retry helper ─────────────────────────────────────────────────────────
 
@@ -46,20 +55,27 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        const msg: string = (error?.message ?? '').toLowerCase();
-        const code: string = error?.code ?? '';
+      } catch (error: unknown) {
+        const err = error as {
+          message?: string;
+          code?: string;
+        };
+
+        const msg = (err.message ?? '').toLowerCase();
+        const code = err.code ?? '';
 
         const isConnectionError =
           CONNECTION_ERROR_CODES.has(code) ||
           CONNECTION_ERROR_MESSAGES.some((m) => msg.includes(m));
 
         if (isConnectionError && attempt < this.MAX_RETRIES) {
-          const delayMs = 300 * 2 ** (attempt - 1); // 300ms, 600ms, 1200ms…
+          const delayMs = 300 * 2 ** (attempt - 1);
+
           this.logger.warn(
-            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${error.message}). ` +
+            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${err.message}). ` +
               `Aguardando ${delayMs}ms antes de tentar novamente.`,
           );
+
           await new Promise((res) => setTimeout(res, delayMs));
           continue;
         }
@@ -71,7 +87,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   // ─── Métodos existentes (inalterados) ─────────────────────────────────────
 
-  async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
+  async getAuxiliaryBaseNotes(
+    idRegional?: number,
+  ): Promise<GetAuxiliaryBaseNotesResponse[]> {
     return await this.prisma.base_auxiliar.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
@@ -148,13 +166,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     );
   }
 
-  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
-    try {
-      const result = await this.prisma.$queryRawUnsafe<
-        GetAuxiliaryBaseMaterialsInterface[]
-      >(`
-      SELECT 
-        id_obra,
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsResponse[]> {
+    return this.prisma.$queryRaw<GetAuxiliaryBaseMaterialsResponse[]>`
+      SELECT
+        cn52n.id_obra,
         obras.ovnota,
         cn52n.diagrama_rede,
         cn52n.elemento_pep,
@@ -168,47 +183,47 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.qtd_falta,
         cn52n.reserva AS reserva
       FROM cn52n
-      INNER JOIN construcao_sp.obras ON obras.id = cn52n.id_obra
-    `);
-
-      return result;
-    } catch (error) {
-      throw error;
-    }
+      INNER JOIN obras ON obras.id = cn52n.id_obra
+    `;
   }
 
+  /**
+   * Fator de conversão por par (material, pep_ref).
+   *
+   * O join é feito por par no banco. O filtro anterior (IN de materiais ×
+   * IN de pep_refs) trazia o produto cartesiano e refiltrava em JS.
+   */
   async getFator(
     materialDefs: { material: string; pep_ref: string }[],
   ): Promise<Map<string, number>> {
-    if (materialDefs.length === 0) {
+    const pairs = new Map<string, { material: string; pep_ref: string }>();
+
+    for (const def of materialDefs) {
+      if (def.material == null || def.pep_ref == null) continue;
+      pairs.set(`${def.material}|${def.pep_ref}`, def);
+    }
+
+    if (pairs.size === 0) {
       return new Map();
     }
 
-    const materials = [...new Set(materialDefs.map((m) => m.material))];
-    const pepRefs = [...new Set(materialDefs.map((m) => m.pep_ref))];
+    const materials = [...pairs.values()].map((p) => p.material);
+    const pepRefs = [...pairs.values()].map((p) => p.pep_ref);
 
-    const fatores = await this.prisma.conversao.findMany({
-      where: {
-        material: { in: materials },
-        pep_ref: { in: pepRefs },
-      },
-      select: {
-        material: true,
-        pep_ref: true,
-        fator: true,
-      },
-    });
-
-    const requestedSet = new Set(
-      materialDefs.map((m) => `${m.material}|${m.pep_ref}`),
-    );
+    const fatores = await this.prisma.$queryRaw<
+      { material: string; pep_ref: string; fator: number | null }[]
+    >`
+      SELECT c.material, c.pep_ref, c.fator
+      FROM conversao c
+      JOIN unnest(${materials}::text[], ${pepRefs}::text[]) AS p(material, pep_ref)
+        ON c.material = p.material
+       AND c.pep_ref = p.pep_ref
+    `;
 
     const fatorMap = new Map<string, number>();
     for (const f of fatores) {
-      const key = `${f.material}|${f.pep_ref}`;
-      if (requestedSet.has(key)) {
-        fatorMap.set(key, f.fator);
-      }
+      if (f.fator == null) continue;
+      fatorMap.set(`${f.material}|${f.pep_ref}`, Number(f.fator));
     }
 
     return fatorMap;
@@ -234,7 +249,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
-  async insertMarket(data: InsertBaseAuxiliaryMarketDTO[]): Promise<void> {
+  async insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void> {
     try {
       const [municipios, tipos, circuitos] = await Promise.all([
         this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
@@ -332,44 +347,68 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
    * Cada mini-batch roda com retry + backoff exponencial para absorver
    * quedas de conexão transitórias sem derrubar o job inteiro.
    */
-  async insertCapex(data: any[]): Promise<void> {
+  async insertCapex(data: CapexInsertItem[]): Promise<void> {
     for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
       const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
 
-      await this.withRetry(() =>
-        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
-      );
+      // Sem skipDuplicates: cn52n só tem o PK autoincrement, então ele nunca
+      // conflitaria e a opção só enganava quem lê o código.
+      await this.withRetry(() => this.prisma.cn52n.createMany({ data: batch }));
     }
   }
 
   async truncateCN52N(): Promise<void> {
-    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
+    await this.prisma.$executeRaw`TRUNCATE TABLE cn52n`;
   }
 
+  /**
+   * Obras de cada diagrama (ordem_dci, ordem_dcd, ordem_dca, ordem_dcim ou
+   * diagrama). Um diagrama pode pertencer a mais de uma obra: todas são
+   * devolvidas e o chamador decide o que fazer com a ambiguidade.
+   *
+   * Cada coluna é consultada em um SELECT próprio (UNION ALL), o que permite
+   * usar o índice de cada uma, ao contrário de um JOIN com OR.
+   */
   async getObraIdsByDiagramas(
     diagramas: string[],
-  ): Promise<Map<string, number>> {
+  ): Promise<Map<string, number[]>> {
     if (diagramas.length === 0) return new Map();
 
-    const obras = await this.prisma.$queryRaw<
-      { diagrama_ref: string; id: number }[]
+    const rows = await this.prisma.$queryRaw<
+      { diagrama_ref: string; ids: number[] }[]
     >`
-    SELECT DISTINCT
-      dl.diagrama AS diagrama_ref,
-      o.id
-    FROM unnest(${diagramas}::text[]) AS dl(diagrama)
-    JOIN obras o
-      ON  o.ordem_dci  = dl.diagrama
-      OR o.ordem_dcd  = dl.diagrama
-      OR o.ordem_dca  = dl.diagrama
-      OR o.ordem_dcim = dl.diagrama
-      OR o.diagrama::text = dl.diagrama
-  `;
+      SELECT m.diagrama_ref, array_agg(DISTINCT m.id) AS ids
+      FROM (
+        SELECT dl.diagrama AS diagrama_ref, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dci = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcd = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dca = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.ordem_dcim = dl.diagrama
+        UNION ALL
+        SELECT dl.diagrama, o.id
+          FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+          JOIN obras o ON o.diagrama::text = dl.diagrama
+      ) m
+      GROUP BY m.diagrama_ref
+    `;
 
-    const map = new Map<string, number>();
-    obras.forEach((obra) => {
-      map.set(obra.diagrama_ref, obra.id);
-    });
+    const map = new Map<string, number[]>();
+    for (const row of rows) {
+      map.set(
+        row.diagrama_ref,
+        row.ids.map((id) => Number(id)),
+      );
+    }
 
     return map;
   }

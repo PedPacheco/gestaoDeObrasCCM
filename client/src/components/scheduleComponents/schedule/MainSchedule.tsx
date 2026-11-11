@@ -5,9 +5,9 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -16,24 +16,16 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import ScheduleTable from "./ScheduleTable";
 import { MainInterface } from "@/types/mainInterface";
-
-interface Filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string; id_regional: number }[];
-  grupo: { id: string; grupo: string }[];
-  circuito: { id: string; circuito: string }[];
-}
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 export default function MainSchedule({
   columns,
   data,
   filtersData,
   token,
-}: MainInterface<Filters>) {
+}: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "scheduleFilters",
     data: filtersData,
   });
@@ -116,6 +108,8 @@ export default function MainSchedule({
             </LocalizationProvider>
           </div>
           {Object.entries(filtersData).map(([key, value], index) => {
+            if (!value?.length) return;
+
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 

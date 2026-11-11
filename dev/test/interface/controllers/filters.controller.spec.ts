@@ -12,7 +12,7 @@ describe('FiltersController', () => {
   let filtersService: FiltersService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FiltersController],
@@ -20,10 +20,10 @@ describe('FiltersController', () => {
         {
           provide: FiltersService,
           useValue: {
-            getFilters: jest.fn(),
+            getFilters: vi.fn(),
           },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
       ],
     }).compile();
 
@@ -37,7 +37,7 @@ describe('FiltersController', () => {
 
   it('should return object with filters values', async () => {
     const response = {
-      regionais: [
+      regional: [
         {
           id: 1,
           regional: 'São José dos Campos',
@@ -65,7 +65,7 @@ describe('FiltersController', () => {
       tipo: true,
     };
 
-    jest.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
+    vi.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
 
     const req = {
       query: { idRegional: 1 },
@@ -80,7 +80,7 @@ describe('FiltersController', () => {
         parceira: false,
         tipo: true,
       },
-      req.query.idRegional,
+      '1',
     );
   });
 
@@ -188,7 +188,6 @@ describe('FiltersController', () => {
       expectedStatus,
       expectedConjunto,
       expectedOvnota,
-      expectedOvnotaExec,
       expectedEmpreendimento,
       expectedRestricao,
       expectedTecnico,
@@ -208,15 +207,11 @@ describe('FiltersController', () => {
       expect(filtersDTO.grupo).toBe(expectedGrupo);
       expect(filtersDTO.municipio).toBe(expectedMunicipio);
       expect(filtersDTO.ovnota).toBe(expectedOvnota);
-      expect(filtersDTO.ovnotaExec).toBe(expectedOvnotaExec);
       expect(filtersDTO.status).toBe(expectedStatus);
       expect(filtersDTO.restricao).toBe(expectedRestricao);
       expect(filtersDTO.tecnico).toBe(expectedTecnico);
 
-      expect(filtersService.getFilters).toHaveBeenCalledWith(
-        filtersDTO,
-        req.query.idRegional,
-      );
+      expect(filtersService.getFilters).toHaveBeenCalledWith(filtersDTO, '1');
     },
   );
 });

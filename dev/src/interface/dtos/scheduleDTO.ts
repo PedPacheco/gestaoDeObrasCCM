@@ -13,6 +13,7 @@ import {
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 import { ScheduleServicesDTO } from './workServicesDTO';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { DisableWhitelist } from 'src/shared/costants';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
@@ -44,6 +45,11 @@ export class GetTotalValuesScheduleDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idCircuito: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTecnico: number[];
 
   @IsNumber()
   @Type(() => Number)
@@ -98,6 +104,11 @@ export class GetScheduleValuesDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idStatusSap?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTecnico: number[];
 
   @IsOptional()
   @IsString()
@@ -503,6 +514,7 @@ export class CreateScheduleWithServicesDTO {
   services: ScheduleServicesDTO[];
 }
 
+@DisableWhitelist()
 export class UpdateSchedulesDataDTO {
   @Transform(({ value }) => {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;

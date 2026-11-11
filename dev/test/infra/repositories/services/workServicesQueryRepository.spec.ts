@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
 import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
@@ -9,31 +10,31 @@ describe('WorkServicesQueryRepository', () => {
 
   const mockPrismaService = {
     servicos: {
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      groupBy: jest.fn(),
-      create: jest.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      groupBy: vi.fn(),
+      create: vi.fn(),
     },
-    obras: { findMany: jest.fn() },
-    materiais: { findMany: jest.fn() },
+    obras: { findMany: vi.fn() },
+    materiais: { findMany: vi.fn() },
     programacoes_servicos: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      deleteMany: jest.fn(),
-      updateMany: jest.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      deleteMany: vi.fn(),
+      updateMany: vi.fn(),
     },
     servicos_contratos: {
-      groupBy: jest.fn(),
-      findMany: jest.fn(),
+      groupBy: vi.fn(),
+      findMany: vi.fn(),
     },
     equipes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -52,7 +53,7 @@ describe('WorkServicesQueryRepository', () => {
     );
     prisma = module.get<PrismaService>(PrismaService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getServices', () => {
@@ -253,6 +254,7 @@ describe('WorkServicesQueryRepository', () => {
     const mockHistoryResponse = [
       {
         id: 1,
+
         servicos: {
           servicos_contratos: { texto_breve: 'Serviço 1' },
           ponto: 'Ponto A',
@@ -295,6 +297,8 @@ describe('WorkServicesQueryRepository', () => {
       expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_servico: true,
+          id_equipe: true,
           servicos: {
             select: {
               materiais: { select: { descricao: true, codigo: true } },
@@ -312,10 +316,10 @@ describe('WorkServicesQueryRepository', () => {
           programacoes: { select: { data_prog: true } },
           equipes: { select: { equipe: true, perfil: true } },
           id_programacao: true,
-          id_servico: true,
           prog: true,
           real: true,
           adicional: true,
+          status: true,
         },
         where: { programacoes: { id_obra: 1 } },
       });
@@ -345,7 +349,7 @@ describe('WorkServicesQueryRepository', () => {
     it('should query within the provided transaction when tx is informed', async () => {
       const mockTx = {
         programacoes_servicos: {
-          findMany: jest.fn().mockResolvedValue([]),
+          findMany: vi.fn().mockResolvedValue([]),
         },
       };
 
@@ -481,6 +485,7 @@ describe('WorkServicesQueryRepository', () => {
           id: true,
           texto_breve: true,
           material: true,
+          material_antigo: true,
           preco: true,
           contrato: true,
           medida: true,
@@ -686,7 +691,7 @@ describe('WorkServicesQueryRepository', () => {
     it('should query within the provided transaction when tx is informed', async () => {
       const mockTx = {
         servicos: {
-          findMany: jest.fn().mockResolvedValue([]),
+          findMany: vi.fn().mockResolvedValue([]),
         },
       };
 
@@ -782,13 +787,10 @@ describe('WorkServicesQueryRepository', () => {
             programacao_ponto_a_ponto: true,
             servicos: {
               some: {
-                OR: [
-                  { viabilizado: { not: null, gt: 0 } },
-                  { qtde_adicional: { not: null, gt: 0 } },
-                ],
+                OR: [{ viabilizado: { not: null, gt: 0 } }],
                 programacoes_servicos: {
                   some: {
-                    programacoes: { data_prog: dateFilter, exec: null },
+                    programacoes: { data_prog: dateFilter },
                   },
                 },
               },
@@ -820,13 +822,10 @@ describe('WorkServicesQueryRepository', () => {
             id_turma: { in: [2] },
             servicos: {
               some: {
-                OR: [
-                  { viabilizado: { not: null, gt: 0 } },
-                  { qtde_adicional: { not: null, gt: 0 } },
-                ],
+                OR: [{ viabilizado: { not: null, gt: 0 } }],
                 programacoes_servicos: {
                   some: {
-                    programacoes: { data_prog: dateFilter, exec: null },
+                    programacoes: { data_prog: dateFilter },
                     id_equipe: { in: [2, 3, 4] },
                   },
                 },
@@ -857,7 +856,6 @@ describe('WorkServicesQueryRepository', () => {
                   gte: new Date('2026-01-01'),
                   lte: new Date('2026-01-31'),
                 },
-                exec: null,
               },
             },
           }),
@@ -880,7 +878,7 @@ describe('WorkServicesQueryRepository', () => {
         lte: new Date('2026-01-31'),
       };
       const expectedFilter = {
-        programacoes: { data_prog: dateFilter, exec: null },
+        programacoes: { data_prog: dateFilter },
         id_equipe: { in: [2, 3] },
       };
 
@@ -942,6 +940,114 @@ describe('WorkServicesQueryRepository', () => {
           idEquipe: [],
         }),
       ).rejects.toThrow('Database error');
+    });
+  });
+
+  describe('findServicesForScheduling', () => {
+    const buildTx = () => ({
+      servicos: { findMany: vi.fn() },
+    });
+
+    const asTx = (tx: ReturnType<typeof buildTx>) =>
+      tx as unknown as Prisma.TransactionClient;
+
+    const SERVICE_ROWS = [
+      {
+        id: 100,
+        id_obra: 10,
+        id_material: null,
+        viabilizado: 10,
+        qtde_adicional: 2,
+        qtde_real: null,
+        ponto: 'P1',
+        operacao: 'OP-1',
+        descricao_operacao: 'Instalação',
+      },
+      {
+        id: 101,
+        id_obra: 10,
+        id_material: 7,
+        viabilizado: null,
+        qtde_adicional: 0,
+        qtde_real: 0,
+        ponto: 'P2',
+        operacao: null,
+        descricao_operacao: 'Cabo',
+      },
+    ];
+
+    it('should query the services by ids with the scheduling select', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockResolvedValueOnce(SERVICE_ROWS);
+
+      await repository.findServicesForScheduling([100, 101], asTx(tx));
+
+      expect(tx.servicos.findMany).toHaveBeenCalledTimes(1);
+      expect(tx.servicos.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [100, 101] } },
+        select: {
+          id: true,
+          id_obra: true,
+          id_material: true,
+          viabilizado: true,
+          qtde_adicional: true,
+          qtde_real: true,
+          ponto: true,
+          operacao: true,
+          descricao_operacao: true,
+        },
+      });
+    });
+
+    it('should return the rows as returned by prisma (no mapping)', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockResolvedValueOnce(SERVICE_ROWS);
+
+      const result = await repository.findServicesForScheduling(
+        [100, 101],
+        asTx(tx),
+      );
+
+      expect(result).toEqual(SERVICE_ROWS);
+    });
+
+    it('should return an empty array when no service is found', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockResolvedValueOnce([]);
+
+      await expect(
+        repository.findServicesForScheduling([999], asTx(tx)),
+      ).resolves.toEqual([]);
+    });
+
+    it('should use the transaction client and not the injected prisma', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockResolvedValueOnce([]);
+
+      await repository.findServicesForScheduling([100], asTx(tx));
+
+      expect(tx.servicos.findMany).toHaveBeenCalled();
+      expect(mockPrismaService.servicos.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should still query with an empty id list (current behaviour)', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockResolvedValueOnce([]);
+
+      await repository.findServicesForScheduling([], asTx(tx));
+
+      expect(tx.servicos.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: { in: [] } } }),
+      );
+    });
+
+    it('should propagate prisma errors', async () => {
+      const tx = buildTx();
+      tx.servicos.findMany.mockRejectedValueOnce(new Error('db down'));
+
+      await expect(
+        repository.findServicesForScheduling([100], asTx(tx)),
+      ).rejects.toThrow('db down');
     });
   });
 });

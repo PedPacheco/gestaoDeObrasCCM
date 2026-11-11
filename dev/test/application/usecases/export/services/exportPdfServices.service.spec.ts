@@ -1,60 +1,68 @@
-import { ExportPdfServicesService } from 'src/application/usecases/export/services/exportPdfServices.service';
 import { existsSync, readFileSync } from 'fs';
-import PDFDocument from 'pdfkit';
+import { ExportPdfServicesService } from 'src/application/usecases/export/services/exportPdfServices.service';
+import type { Mock, MockedFunction } from 'vitest';
 
-const mockExistsSync = existsSync as jest.MockedFunction<typeof existsSync>;
-const mockReadFileSync = readFileSync as jest.MockedFunction<
-  typeof readFileSync
->;
+const mockExistsSync = existsSync as MockedFunction<typeof existsSync>;
+const mockReadFileSync = readFileSync as MockedFunction<typeof readFileSync>;
 
-const PDFDocumentMock = PDFDocument as unknown as jest.Mock;
-const pdfDocumentInstance = {
-  page: {
-    width: 842,
-    height: 595,
-  },
-  x: 0,
-  y: 0,
-  pipe: jest.fn(),
-  addPage: jest.fn(),
-  flushPages: jest.fn(),
-  end: jest.fn(),
-  rect: jest.fn(),
-  fill: jest.fn(),
-  image: jest.fn(),
-  fillColor: jest.fn(),
-  font: jest.fn(),
-  fontSize: jest.fn(),
-  text: jest.fn(),
-  moveTo: jest.fn(),
-  lineTo: jest.fn(),
-  lineWidth: jest.fn(),
-  stroke: jest.fn(),
-  strokeColor: jest.fn(),
-};
+const { pdfDocumentInstance, PDFDocumentMock } = vi.hoisted(() => {
+  const instance = {
+    page: {
+      width: 842,
+      height: 595,
+    },
+    x: 0,
+    y: 0,
+    pipe: vi.fn(),
+    addPage: vi.fn(),
+    flushPages: vi.fn(),
+    end: vi.fn(),
+    rect: vi.fn(),
+    fill: vi.fn(),
+    image: vi.fn(),
+    fillColor: vi.fn(),
+    font: vi.fn(),
+    fontSize: vi.fn(),
+    text: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    lineWidth: vi.fn(),
+    stroke: vi.fn(),
+    strokeColor: vi.fn(),
+  };
 
-Object.values(pdfDocumentInstance).forEach((value) => {
-  if (typeof value === 'function') {
-    (value as jest.Mock).mockReturnValue(pdfDocumentInstance);
-  }
+  // Make every method chainable (PDFKit returns the document instance)
+  Object.values(instance).forEach((value) => {
+    if (typeof value === 'function') {
+      (value as any).mockReturnValue(instance);
+    }
+  });
+
+  // Regular function (not arrow) so it can be called with `new`
+  const PDFDocumentMock = vi.fn(function () {
+    return instance;
+  });
+
+  return { pdfDocumentInstance: instance, PDFDocumentMock };
 });
 
-jest.mock('pdfkit', () => {
-  return jest.fn(() => pdfDocumentInstance);
-});
-
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  readFileSync: jest.fn(),
+// pdfkit is imported as a default export in the service
+vi.mock('pdfkit', () => ({
+  default: PDFDocumentMock,
 }));
 
-jest.mock('moment', () => {
-  const mockMoment: any = jest.fn(() => ({
-    format: jest.fn(() => '10/08/2026'),
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+}));
+
+vi.mock('moment', () => {
+  const mockMoment: any = vi.fn(() => ({
+    format: vi.fn(() => '10/08/2026'),
   }));
 
-  mockMoment.utc = jest.fn(() => ({
-    format: jest.fn(() => '10/08/2026'),
+  mockMoment.utc = vi.fn(() => ({
+    format: vi.fn(() => '10/08/2026'),
   }));
 
   return {
@@ -113,11 +121,11 @@ describe('ExportPdfServicesService', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     Object.values(pdfDocumentInstance).forEach((value) => {
       if (typeof value === 'function') {
-        (value as jest.Mock).mockReturnValue(pdfDocumentInstance);
+        (value as Mock).mockReturnValue(pdfDocumentInstance);
       }
     });
 

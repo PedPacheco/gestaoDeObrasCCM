@@ -1,6 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
+import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
 
 export class Work {
+  public readonly pontoAPonto: boolean;
+
   constructor(
     public readonly obra: string,
     public readonly pep: string,
@@ -10,7 +13,13 @@ export class Work {
     public readonly idParceira: number,
     public readonly idCircuito: number,
     public readonly id?: number,
-  ) {}
+  ) {
+    this.pontoAPonto = this.isPontoAPonto();
+  }
+
+  private isPontoAPonto(): boolean {
+    return this.idParceira === PONTO_A_PONTO_PARTNER_ID;
+  }
 }
 
 export class MarketWork extends Work {

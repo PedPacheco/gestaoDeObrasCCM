@@ -1,7 +1,7 @@
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
-import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { InsertWorksService } from 'src/application/usecases/works/management/insertWorks.service';
+import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IInsertWorksRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -16,9 +16,9 @@ describe('InsertWorksService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
 
   const mockRepository = {
-    insertMarketWorks: jest.fn(),
-    insertNotes: jest.fn(),
-    getGroup: jest.fn(),
+    insertMarketWorks: vi.fn(),
+    insertNotes: vi.fn(),
+    getGroup: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -29,11 +29,11 @@ describe('InsertWorksService', () => {
         {
           provide: FindExistingWorksService,
           useValue: {
-            findExistingWorks: jest.fn(),
-            findExistingOrders: jest.fn(),
+            findExistingWorks: vi.fn(),
+            findExistingOrders: vi.fn(),
           },
         },
-        { provide: AuxiliaryBaseService, useValue: { getNotes: jest.fn() } },
+        { provide: AuxiliaryBaseService, useValue: { getNotes: vi.fn() } },
       ],
     }).compile();
 
@@ -46,8 +46,8 @@ describe('InsertWorksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('insertMarketWorks', () => {
@@ -62,12 +62,12 @@ describe('InsertWorksService', () => {
     });
 
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
-      jest
-        .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue([
+      vi.spyOn(findExistingWorksService, 'findExistingWorks').mockResolvedValue(
+        [
           { id: 1, ovnota: '1424535' },
           { id: 2, ovnota: '1424537' },
-        ]);
+        ],
+      );
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
@@ -81,9 +81,9 @@ describe('InsertWorksService', () => {
     });
 
     it('should call method insertMarketWorks and return the default format of data', async () => {
-      jest
-        .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue([{ id: 1, ovnota: '14245356' }]);
+      vi.spyOn(findExistingWorksService, 'findExistingWorks').mockResolvedValue(
+        [{ id: 1, ovnota: '14245356' }],
+      );
 
       const result =
         await insertWorksService.insertMarketWorks(mockMarketWorks);
@@ -95,6 +95,7 @@ describe('InsertWorksService', () => {
           moPlanejada: 7500,
           prazo: index === 0 ? 30 : 0,
           observacao: undefined,
+          pontoAPonto: index === 0 ? false : true,
         })),
       );
       expect(result).toEqual({
@@ -105,6 +106,7 @@ describe('InsertWorksService', () => {
           moPlanejada: 7500,
           prazo: index === 0 ? 30 : 0,
           observacao: undefined,
+          pontoAPonto: index === 0 ? false : true,
         })),
         skipped: ['14245356'],
       });
@@ -127,13 +129,13 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockReturnNote,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 48, id_grupo: 2 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockWrongPep),
@@ -155,13 +157,13 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockReturnNote,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 1, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 1, id_grupo: 2 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockWithTypeWorkInvalid),
@@ -183,13 +185,13 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockReturnNote,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 48, id_grupo: 2 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockWihCircuitInvalid),
@@ -211,13 +213,13 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockReturnNote,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 48, id_grupo: 2 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockWithRdaInvalid),
@@ -225,13 +227,13 @@ describe('InsertWorksService', () => {
     });
 
     it('should throw BadRequestException when obra has invalid empreendimento for group 3 or 4', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockMappedNotes);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockMappedNotes,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 4 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 48, id_grupo: 4 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockInsertNotes),
@@ -249,13 +251,13 @@ describe('InsertWorksService', () => {
         },
       ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockMappedNotes);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockMappedNotes,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 5, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 5, id_grupo: 2 },
+      ]);
 
       await expect(
         insertWorksService.insertNotes(mockWithTypeWorkInvalid),
@@ -263,13 +265,13 @@ describe('InsertWorksService', () => {
     });
 
     it('should insert notes successfully when all data is valid', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockMappedNotes);
+      vi.spyOn(auxiliaryBaseService, 'getNotes').mockResolvedValue(
+        mockMappedNotes,
+      );
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+      vi.spyOn(mockRepository, 'getGroup').mockResolvedValue([
+        { id: 48, id_grupo: 2 },
+      ]);
 
       await insertWorksService.insertNotes(mockInsertNotes);
 

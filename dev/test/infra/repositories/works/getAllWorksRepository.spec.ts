@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetAllWorksRepository } from 'src/infra/repositories/works/getAllWorksRepository';
+import { GetAllWorksRepository } from 'src/infra/repositories/works/management/getAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 describe('GetAllWorksRepository', () => {
@@ -11,7 +11,7 @@ describe('GetAllWorksRepository', () => {
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
   const mockWorks = [
@@ -84,7 +84,7 @@ describe('GetAllWorksRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetAllWorks', () => {

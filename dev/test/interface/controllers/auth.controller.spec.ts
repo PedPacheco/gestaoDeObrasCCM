@@ -13,7 +13,7 @@ describe('AuthController', () => {
   let authService: AuthService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -21,9 +21,9 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: {
-            login: jest.fn(),
-            register: jest.fn(),
-            sendEmailResetPassword: jest.fn(),
+            login: vi.fn(),
+            register: vi.fn(),
+            sendEmailResetPassword: vi.fn(),
           },
         },
       ],
@@ -60,17 +60,17 @@ describe('AuthController', () => {
       };
 
       const res = {
-        cookie: jest.fn(),
+        cookie: vi.fn(),
       } as unknown as Response;
 
-      jest.spyOn(authService, 'login').mockResolvedValue(mockResponse);
+      vi.spyOn(authService, 'login').mockResolvedValue(mockResponse);
 
       const result = await authController.login(loginDto, res);
 
-      expect(authService.login).toHaveBeenCalledWith(
-        loginDto.user,
-        loginDto.password,
-      );
+      expect(authService.login).toHaveBeenCalledWith({
+        username: loginDto.user,
+        password: loginDto.password,
+      });
       expect(res.cookie).toHaveBeenCalledWith(
         'token',
         mockResponse.access_token,
@@ -106,12 +106,12 @@ describe('AuthController', () => {
       };
 
       const res = {
-        cookie: jest.fn(),
+        cookie: vi.fn(),
       } as unknown as Response;
 
-      jest
-        .spyOn(authService, 'login')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
+      vi.spyOn(authService, 'login').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
 
       await expect(authController.login(loginDto, res)).rejects.toThrow(
         'Erro ao processar a solicitação',
@@ -147,7 +147,7 @@ describe('AuthController', () => {
         email: 'teste@gmail.com',
       };
 
-      jest.spyOn(authService, 'register').mockResolvedValue(mockResponse);
+      vi.spyOn(authService, 'register').mockResolvedValue(mockResponse);
 
       const result = await authController.register(registerUserDTO);
 
@@ -175,9 +175,9 @@ describe('AuthController', () => {
         email: 'teste@gmail.com',
       };
 
-      jest
-        .spyOn(authService, 'register')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
+      vi.spyOn(authService, 'register').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
 
       await expect(authController.register(registerUserDTO)).rejects.toThrow(
         'Erro ao processar a solicitação',

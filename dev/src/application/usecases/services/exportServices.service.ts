@@ -1,15 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
+
+import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   ExportServicesExcelOutput,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
+} from 'src/domain/types';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
 export class ExportServicesService {
@@ -62,12 +65,7 @@ export class ExportServicesService {
           if (!document) {
             document = {
               ovnota: obra.ovnota,
-              ordemDiagrama:
-                obra.diagrama ??
-                obra.ordem_dci ??
-                obra.ordem_dca ??
-                obra.ordem_dcd ??
-                obra.ordem_dcim,
+              ordemDiagrama: resolveOrdemDiagrama(obra),
               referencia: obra.referencia,
               tipo_obra: obra.tipos?.tipo_obra,
               municipio: obra.municipios?.municipio,
@@ -168,10 +166,9 @@ export class ExportServicesService {
             servico.servicos_contratos?.preco ?? servico.materiais?.preco ?? 0,
           );
 
-          const total =
-            (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
+          const valorTotal = preco * ps.prog;
 
-          const valorTotal = preco * total;
+          const valorTotalExecutado = preco * ps.real;
 
           const tipo = serviceTypeLabel(servico);
 
@@ -180,12 +177,7 @@ export class ExportServicesService {
 
           excelData.push({
             ovnota: obra.ovnota,
-            ordemDiagrama:
-              obra.diagrama ??
-              obra.ordem_dci ??
-              obra.ordem_dca ??
-              obra.ordem_dcd ??
-              obra.ordem_dcim,
+            ordemDiagrama: resolveOrdemDiagrama(obra),
             referencia: obra.referencia,
             tipoObra: obra.tipos?.tipo_obra,
             municipio: obra.municipios?.municipio,
@@ -194,6 +186,8 @@ export class ExportServicesService {
             executado: obra.executado,
             parceira: obra.turmas?.turma,
             empreendimento: obra.empreendimento?.empreendimento,
+            statusProgramacao:
+              programacao?.status_programacao.status_programacao ?? null,
             dataProg: programacao?.data_prog ?? null,
             prog: programacao?.prog ?? null,
             observacaoProgramacao: programacao?.observacao_programacao ?? null,
@@ -213,7 +207,9 @@ export class ExportServicesService {
             codigo,
             descricao,
             valorTotal,
+            valorTotalExecutado,
             quantidadeProgramada: ps.prog ?? 0,
+            quantidadeExecutada: ps.real,
           });
         }
       }

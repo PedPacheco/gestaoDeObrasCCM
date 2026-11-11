@@ -1,5 +1,5 @@
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
-import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/contracts/works/schedule/IExecMonitoringRepository';
 
 import { Test } from '@nestjs/testing';
 
@@ -7,7 +7,7 @@ describe('ExecMonitoringService', () => {
   let service: ExecMonitoringService;
 
   const mockRepository = {
-    getData: jest.fn(),
+    getData: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -25,7 +25,7 @@ describe('ExecMonitoringService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should call get method and return data', async () => {

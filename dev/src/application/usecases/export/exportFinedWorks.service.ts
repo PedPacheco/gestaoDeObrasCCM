@@ -4,7 +4,7 @@ import moment from 'moment';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 

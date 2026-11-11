@@ -13,10 +13,13 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
@@ -31,6 +34,7 @@ export class ServicesController {
   ) {}
 
   @Patch('cancelar/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
     await this.worksServicesService.cancelServices(id);
 
@@ -41,11 +45,12 @@ export class ServicesController {
   }
 
   @Patch('programar/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async scheduleServices(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: ScheduleServicesDTO[],
   ) {
-    await this.worksServicesService.scheduleServices(id, data);
+    await this.worksServicesService.scheduleServices(id, data, null);
 
     return {
       statusCode: HttpStatus.OK,
@@ -54,6 +59,7 @@ export class ServicesController {
   }
 
   @Patch('aplicar-adicional/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async applyAdditional(
     @Param('id', ParseIntPipe) workId: number,
     @Body() data: ApplyAdditonalDTO[],
@@ -67,6 +73,7 @@ export class ServicesController {
   }
 
   @Post('servico')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async addServices(@Body() data: AddServicesDTO) {
     await this.worksServicesService.addItem(data, 'service');
 
@@ -77,6 +84,7 @@ export class ServicesController {
   }
 
   @Post('material')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async addMaterials(@Body() data: AddServicesDTO) {
     await this.worksServicesService.addItem(data, 'material');
 
@@ -87,6 +95,7 @@ export class ServicesController {
   }
 
   @Post('familia')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async addFamily(@Body() data: AddServicesDTO) {
     const type = data.type === 'S' ? 'service' : 'material';
 
@@ -99,10 +108,11 @@ export class ServicesController {
   }
 
   @Post('importar/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   async importServices(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(UploadSignaturePipe) file: Express.Multer.File,
   ) {
     const response = await this.importServicesService.importFromSpreadsheet(
       id,
@@ -117,6 +127,7 @@ export class ServicesController {
   }
 
   @Delete('todos/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async deleteAllServices(@Param('id', ParseIntPipe) workId: number) {
     await this.worksServicesService.deleteAll(workId);
 
@@ -127,6 +138,7 @@ export class ServicesController {
   }
 
   @Delete('/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async deleteMaterialAndService(
     @Param('id', ParseIntPipe) id: number,
     @Query('workId', ParseIntPipe) workId: number,

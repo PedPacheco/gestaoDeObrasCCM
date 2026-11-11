@@ -7,7 +7,7 @@ describe('PrismaModule', () => {
   let prismaService: PrismaService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const moduleRef = await Test.createTestingModule({
       imports: [PrismaModule],

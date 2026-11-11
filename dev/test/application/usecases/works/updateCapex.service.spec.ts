@@ -1,331 +1,316 @@
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { BadRequestException } from '@nestjs/common';
+import { UpdateCapexService } from 'src/application/usecases/works/management/updateCapex.service';
+
+import type {
+  CalculatedValue,
+  GetAuxiliaryBaseMaterialsInterface,
+} from 'src/domain/entities/capex.entity';
+
+// ─── Helpers ──────────────────────────────────────────────────────────
+
+const makeMaterial = (
+  overrides: Partial<GetAuxiliaryBaseMaterialsInterface> = {},
+): GetAuxiliaryBaseMaterialsInterface =>
+  ({
+    id_obra: 10,
+    diagrama_rede: '170000000001',
+    def_proj: 'B/000215',
+    material: '71000460',
+    cti: 'N',
+    elemento_pep: null,
+    preco: 3.2,
+    qtd_necessaria: 510.9,
+    qtd_retirada: 0,
+    qtd_recebida: 0,
+    qtd_falta: 510.9,
+    reserva: null,
+    ...overrides,
+  }) as GetAuxiliaryBaseMaterialsInterface;
+
+const makeCalculated = (id: number): CalculatedValue => ({
+  id,
+  qtde_calc: 1,
+  qtde_pend: 0,
+  mo_calc: 2,
+  mo_exec: 0,
+  mo_pend: 2,
+  capex_mo_plan: 2,
+  capex_mat_plan: 0,
+  capex_mo_pend: 0,
+  capex_mat_pend: 0,
+});
 
 describe('UpdateCapexService', () => {
   let service: UpdateCapexService;
 
+  const materials = [
+    makeMaterial({ material: '71000460', def_proj: 'B/000215' }),
+    makeMaterial({ material: '71000487', def_proj: 'B/000300', id_obra: 20 }),
+  ];
+  const fatorMap = new Map([['71000460|B/000215', 2]]);
+  const contractMaterials = [{ material: '71000460' }];
+  const calculated = [makeCalculated(10), makeCalculated(20)];
+
   const auxiliaryBaseRepository = {
-    getAuxiliaryBaseCN52N: jest.fn(),
-    getFator: jest.fn(),
+    getAuxiliaryBaseCN52N: vi.fn(),
+    getFator: vi.fn(),
   };
 
   const updateCapexRepository = {
-    getDeletedMaterials: jest.fn(),
-    update: jest.fn(),
+    getDeletedMaterials: vi.fn(),
+    update: vi.fn(),
   };
 
+  const calculator = { calculate: vi.fn() };
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+
+    auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue(materials);
+    auxiliaryBaseRepository.getFator.mockResolvedValue(fatorMap);
+    updateCapexRepository.getDeletedMaterials.mockResolvedValue(
+      contractMaterials,
+    );
+    updateCapexRepository.update.mockResolvedValue(undefined);
+    calculator.calculate.mockReturnValue(calculated);
 
     service = new UpdateCapexService(
       auxiliaryBaseRepository as any,
       updateCapexRepository as any,
+      calculator as any,
     );
   });
 
   // ============================================================
-  // 🧩 TESTES DO UPDATE (ORQUESTRAÇÃO)
+  // Orquestração
   // ============================================================
 
-  describe('update', () => {
-    it('deve executar o fluxo completo com sucesso', async () => {
-      const mockMaterials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          qtd_retirada: 5,
-          qtd_recebida: 3,
-          qtd_falta: 2,
-          preco: 100,
-          reserva: 'X',
-          cti: 'N',
-          diagrama_rede: '170123',
-          elemento_pep: 'XXX-2',
-        },
-      ];
+  describe('orquestração', () => {
+    it('busca os fatores pelos pares material / def_proj', async () => {
+      await service.update();
 
-      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockMaterials,
-      );
-      auxiliaryBaseRepository.getFator.mockResolvedValue(
-        new Map([['MAT1|P1', 2]]),
-      );
-      updateCapexRepository.getDeletedMaterials.mockResolvedValue([
-        { material: 'MAT1' },
+      expect(auxiliaryBaseRepository.getFator).toHaveBeenCalledWith([
+        { material: '71000460', pep_ref: 'B/000215' },
+        { material: '71000487', pep_ref: 'B/000300' },
       ]);
-      updateCapexRepository.update.mockResolvedValue(undefined);
-
-      const progressMock = jest.fn();
-
-      await service.update(progressMock);
-
-      expect(auxiliaryBaseRepository.getAuxiliaryBaseCN52N).toHaveBeenCalled();
-      expect(auxiliaryBaseRepository.getFator).toHaveBeenCalled();
-      expect(updateCapexRepository.getDeletedMaterials).toHaveBeenCalled();
-      expect(updateCapexRepository.update).toHaveBeenCalled();
-
-      expect(progressMock).toHaveBeenCalled();
     });
 
-    it('deve funcionar sem onProgress', async () => {
-      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue([]);
-      auxiliaryBaseRepository.getFator.mockResolvedValue(new Map());
-      updateCapexRepository.getDeletedMaterials.mockResolvedValue([]);
-      updateCapexRepository.update.mockResolvedValue(undefined);
+    it('delega o cálculo ao CapexCalculatorService com os dados carregados', async () => {
+      await service.update();
 
-      await expect(service.update()).resolves.not.toThrow();
-    });
-
-    it('deve emitir erro no onProgress e relançar exceção', async () => {
-      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValue(
-        new Error('Erro teste'),
-      );
-
-      const progressMock = jest.fn();
-
-      await expect(service.update(progressMock)).rejects.toThrow('Erro teste');
-
-      expect(progressMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          phase: 'error',
-        }),
-      );
-    });
-
-    it('deve emitir erro no onProgress e relançar exceção com mensagem padrão', async () => {
-      const error = new Error();
-      (error as any).message = undefined;
-
-      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValue(error);
-
-      const progressMock = jest.fn();
-
-      await expect(service.update(progressMock)).rejects.toThrow();
-
-      expect(progressMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          phase: 'error',
-          message: 'Erro desconhecido na atualização do CAPEX',
-        }),
-      );
-    });
-  });
-
-  // ============================================================
-  // 🧠 TESTES DE HELPERS
-  // ============================================================
-
-  describe('extractAllMaterials', () => {
-    it('deve extrair material e pep_ref corretamente', () => {
-      const input = [{ material: 'MAT1', def_proj: 'P1' }];
-
-      const result = (service as any).extractAllMaterials(input);
-
-      expect(result).toEqual([{ material: 'MAT1', pep_ref: 'P1' }]);
-    });
-  });
-
-  describe('canIncludeCapex', () => {
-    it('deve retornar false se diagrama for vazio', () => {
-      const result = (service as any).canIncludeCapex('');
-
-      expect(result).toBe(false);
-    });
-
-    it('deve validar prefixos padrão', () => {
-      const result = (service as any).canIncludeCapex('170123');
-
-      expect(result).toBe(true);
-    });
-
-    it('deve validar regra especial do prefixo 200 com elemento_pep', () => {
-      const result = (service as any).canIncludeCapex('200123', 'ABC-2');
-
-      expect(result).toBe(true);
-    });
-
-    it('deve falhar regra do 200 sem -2', () => {
-      const result = (service as any).canIncludeCapex('200123', 'ABC-1');
-
-      expect(result).toBe(false);
-    });
-  });
-
-  // ============================================================
-  // 🔥 TESTES DO CORE (calculateCapexValues)
-  // ============================================================
-
-  describe('calculateCapexValues', () => {
-    it('deve calcular corretamente todos os campos', () => {
-      const materials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          qtd_retirada: 5,
-          qtd_recebida: 3,
-          qtd_falta: 2,
-          preco: 100,
-          reserva: 'X',
-          cti: 'N',
-          diagrama_rede: '170123',
-          elemento_pep: 'XXX-2',
-        },
-      ];
-
-      const fatorMap = new Map([['MAT1|P1', 2]]);
-      const deleted = [{ material: 'MAT1' }];
-
-      const result = (service as any).calculateCapexValues(
+      expect(calculator.calculate).toHaveBeenCalledTimes(1);
+      expect(calculator.calculate).toHaveBeenCalledWith(
         materials,
         fatorMap,
-        deleted,
+        contractMaterials,
       );
-
-      expect(result).toHaveLength(1);
-
-      const item = result[0];
-
-      expect(item.qtde_calc).toBe(5);
-      expect(item.qtde_pend).toBe(2.5);
-      expect(item.mo_calc).toBe(1000);
-      expect(item.mo_exec).toBe(300);
-      expect(item.mo_pend).toBe(200);
-      expect(item.capex_mo_plan).toBe(1000);
-      expect(item.capex_mo_pend).toBe(200);
     });
 
-    it('deve ignorar materiais sem id_obra', () => {
-      const result = (service as any).calculateCapexValues(
-        [{ material: 'MAT1' }],
-        new Map(),
-        [],
-      );
+    it('grava no repositório o resultado do calculator', async () => {
+      const onProgress = vi.fn();
 
-      expect(result).toHaveLength(0);
+      await service.update(onProgress);
+
+      expect(updateCapexRepository.update).toHaveBeenCalledWith(
+        calculated,
+        onProgress,
+      );
     });
 
-    it('deve lidar com fator inexistente', () => {
-      const materials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-        },
-      ];
+    it('executa as etapas pela ordem correta', async () => {
+      await service.update();
 
-      const result = (service as any).calculateCapexValues(
-        materials,
-        new Map(),
-        [],
-      );
+      const order = [
+        auxiliaryBaseRepository.getAuxiliaryBaseCN52N,
+        auxiliaryBaseRepository.getFator,
+        updateCapexRepository.getDeletedMaterials,
+        calculator.calculate,
+        updateCapexRepository.update,
+      ].map((mock) => mock.mock.invocationCallOrder[0]);
 
-      expect(result[0].qtde_calc).toBe(0);
+      expect(order).toEqual([...order].sort((a, b) => a - b));
     });
 
-    it('deve calcular capex de material (cti = L)', () => {
-      const materials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          qtd_retirada: 5,
-          preco: 100,
-          reserva: 'X',
-          cti: 'L',
-          diagrama_rede: '170123',
-        },
-      ];
+    it('grava uma lista vazia quando não há materiais', async () => {
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue([]);
+      calculator.calculate.mockReturnValue([]);
 
-      const result = (service as any).calculateCapexValues(
-        materials,
-        new Map(),
-        [],
-      );
+      await service.update();
 
-      expect(result[0].capex_mat_plan).toBe(1000);
-      expect(result[0].capex_mat_pend).toBe(500);
+      expect(auxiliaryBaseRepository.getFator).toHaveBeenCalledWith([]);
+      expect(updateCapexRepository.update).toHaveBeenCalledWith([], undefined);
     });
 
-    it('deve não incluir capex quando não permitido', () => {
-      const materials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          preco: 100,
-          cti: 'L',
-          diagrama_rede: '999999',
-        },
-      ];
+    it('funciona sem callback de progresso', async () => {
+      await expect(service.update()).resolves.toBeUndefined();
+    });
+  });
 
-      const result = (service as any).calculateCapexValues(
-        materials,
-        new Map(),
-        [],
+  // ============================================================
+  // Progresso
+  // ============================================================
+
+  describe('progresso', () => {
+    const phasesEmitted = (onProgress: ReturnType<typeof vi.fn>) =>
+      onProgress.mock.calls.map(([event]) => event.phase);
+
+    it('emite as fases pela ordem loading → calculating → done', async () => {
+      const onProgress = vi.fn();
+
+      await service.update(onProgress);
+
+      const phases = phasesEmitted(onProgress);
+      expect(phases[0]).toBe('loading');
+      expect(phases.indexOf('calculating')).toBeGreaterThan(
+        phases.lastIndexOf('loading'),
       );
-
-      expect(result[0].capex_mat_plan).toBe(0);
+      expect(phases.at(-1)).toBe('done');
     });
 
-    it('deve ignorar materiais com reserva inexistente', () => {
-      jest.spyOn(service as any, 'canIncludeCapex').mockReturnValue(true);
+    it('mantém as percentagens de cada fase entre 0 e 100 e crescentes', async () => {
+      const onProgress = vi.fn();
 
-      const materials = [
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          preco: 100,
-          cti: 'L',
-          diagrama_rede: '170000',
-          reserva: null,
+      await service.update(onProgress);
 
-          // 🔥 CAMPOS NECESSÁRIOS
-          qtd_retirada: 5,
-          qtd_recebida: 5,
-          qtd_falta: 5,
-          elemento_pep: 'X',
-        },
-        {
-          id_obra: 1,
-          material: 'MAT1',
-          def_proj: 'P1',
-          qtd_necessaria: 10,
-          preco: 100,
-          cti: 'N',
-          diagrama_rede: '170000',
-          reserva: null,
+      const events = onProgress.mock.calls.map(([event]) => event);
 
-          qtd_retirada: 5,
-          qtd_recebida: 5,
-          qtd_falta: 5,
-          elemento_pep: 'X',
-        },
-      ];
+      for (const phase of ['loading', 'calculating']) {
+        const values = events
+          .filter((event) => event.phase === phase)
+          .map((event) => event.percentage as number);
 
-      const result = (service as any).calculateCapexValues(
-        materials,
-        new Map([['MAT1|P1', 2]]),
-        [{ material: 'MAT1' }],
+        expect(values.length).toBeGreaterThan(0);
+        values.forEach((value, i) => {
+          expect(value).toBeGreaterThanOrEqual(0);
+          expect(value).toBeLessThanOrEqual(100);
+          if (i > 0) expect(value).toBeGreaterThanOrEqual(values[i - 1]);
+        });
+      }
+    });
+
+    it('informa o número de materiais carregados e de obras calculadas', async () => {
+      const onProgress = vi.fn();
+
+      await service.update(onProgress);
+
+      expect(onProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phase: 'loading',
+          message: expect.stringContaining('2 materiais carregados'),
+        }),
+      );
+      expect(onProgress).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phase: 'calculating',
+          percentage: 100,
+          message: expect.stringContaining('2 obras calculadas'),
+        }),
+      );
+    });
+
+    it('termina com done a 100% e o total de obras', async () => {
+      const onProgress = vi.fn();
+
+      await service.update(onProgress);
+
+      expect(onProgress).toHaveBeenLastCalledWith({
+        phase: 'done',
+        processed: 2,
+        percentage: 100,
+        message: 'Atualização finalizada',
+      });
+    });
+  });
+
+  // ============================================================
+  // Erros
+  // ============================================================
+
+  describe('erros', () => {
+    it.each([
+      [
+        'getAuxiliaryBaseCN52N',
+        () => auxiliaryBaseRepository.getAuxiliaryBaseCN52N,
+      ],
+      ['getFator', () => auxiliaryBaseRepository.getFator],
+      ['getDeletedMaterials', () => updateCapexRepository.getDeletedMaterials],
+      ['update', () => updateCapexRepository.update],
+    ])(
+      'relança o erro e emite a fase error quando %s falha',
+      async (_, mock) => {
+        const onProgress = vi.fn();
+        const error = new Error('DB error');
+        mock().mockRejectedValueOnce(error);
+
+        await expect(service.update(onProgress)).rejects.toThrow(error);
+
+        expect(onProgress).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            phase: 'error',
+            processed: 0,
+            percentage: 0,
+          }),
+        );
+        expect(phasesOf(onProgress)).not.toContain('done');
+      },
+    );
+
+    it('não grava nada quando o cálculo falha', async () => {
+      calculator.calculate.mockImplementationOnce(() => {
+        throw new Error('calc error');
+      });
+
+      await expect(service.update()).rejects.toThrow('calc error');
+
+      expect(updateCapexRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('não calcula nem grava quando o carregamento falha', async () => {
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValueOnce(
+        new Error('DB error'),
       );
 
-      const item = result[0];
+      await expect(service.update()).rejects.toThrow();
 
-      // 🔥 NÃO deve entrar nos blocos com reserva
-      expect(item.qtde_pend).toBe(0);
-      expect(item.capex_mat_pend).toBe(0);
-      expect(item.capex_mo_pend).toBe(0);
+      expect(calculator.calculate).not.toHaveBeenCalled();
+      expect(updateCapexRepository.update).not.toHaveBeenCalled();
+    });
 
-      // 🔥 MAS deve calcular os planos
-      expect(item.capex_mat_plan).toBeGreaterThan(0);
-      expect(item.capex_mo_plan).toBeGreaterThan(0);
+    it('não expõe detalhes internos na mensagem de erro', async () => {
+      const onProgress = vi.fn();
+      updateCapexRepository.update.mockRejectedValueOnce(
+        new Error('connection terminated: host=10.0.0.1'),
+      );
+
+      await expect(service.update(onProgress)).rejects.toThrow();
+
+      const lastEvent = onProgress.mock.calls.at(-1)?.[0];
+      expect(lastEvent.message).not.toContain('10.0.0.1');
+      expect(lastEvent.message).toBe(
+        'Erro inesperado durante a atualização do CAPEX.',
+      );
+    });
+
+    it('mantém a mensagem de erros de validação', async () => {
+      const onProgress = vi.fn();
+      updateCapexRepository.update.mockRejectedValueOnce(
+        new BadRequestException('Nenhuma obra para atualizar'),
+      );
+
+      await expect(service.update(onProgress)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(onProgress).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          phase: 'error',
+          message: expect.stringContaining('Nenhuma obra para atualizar'),
+        }),
+      );
     });
   });
 });
+
+function phasesOf(onProgress: ReturnType<typeof vi.fn>): string[] {
+  return onProgress.mock.calls.map(([event]) => event.phase);
+}

@@ -1,14 +1,14 @@
 import { Test } from '@nestjs/testing';
 import { afterEach } from 'node:test';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorksDetailsRepository';
+import { GetWorksDetailsRepository } from 'src/infra/repositories/works/management/getWorksDetailsRepository';
 
 describe('GetWorksDetailsRepository', () => {
   let repository: GetWorksDetailsRepository;
 
   const mockPrisma = {
     obras: {
-      findFirst: jest.fn(),
+      findFirst: vi.fn(),
     },
   };
 
@@ -221,7 +221,7 @@ describe('GetWorksDetailsRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Get', () => {

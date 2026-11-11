@@ -9,11 +9,8 @@ interface Link {
   href?: string | null;
   allowedFor?: UserAccessLevel[];
   allowedAreas?: number[]; // Vazio ou ausente = todas as áreas
-  allowedUsernames?: string[];
   submenu?: Link[];
 }
-
-export const ADMIN_PANEL_USERNAMES = ["6364B", "169337", "10009591"];
 
 export function getUserAccessLevel(userPermissions: any): UserAccessLevel {
   if (userPermissions?.is_admin) return "admin";
@@ -27,10 +24,6 @@ export function getUserAccessLevel(userPermissions: any): UserAccessLevel {
 }
 
 export function canAccessLink(link: Link, userPermissions: any): boolean {
-  if (link.allowedUsernames) {
-    return link.allowedUsernames.includes(userPermissions?.username);
-  }
-
   const accessLevel = getUserAccessLevel(userPermissions);
 
   // Admin acessa tudo
@@ -62,13 +55,13 @@ export const links: Link[] = [
   {
     name: "Relatórios",
     href: null,
-    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1, 7],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
-        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
       {
@@ -235,6 +228,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
       },
+      {
+        name: "Programações notas D5",
+        href: "/programacao/notas-d5",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 9],
+      },
     ],
   },
   {
@@ -287,14 +286,20 @@ export const links: Link[] = [
     allowedAreas: [8, 1, 9],
   },
   {
+    name: "Notas D5",
+    href: "/notas-d5",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
+  },
+  {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1],
   },
   {
-    name: "Administrar login",
-    href: "/administracao/usuarios",
-    allowedUsernames: ADMIN_PANEL_USERNAMES,
+    name: "Usuários",
+    href: "/usuarios",
+    allowedFor: ["admin"],
   },
 ];

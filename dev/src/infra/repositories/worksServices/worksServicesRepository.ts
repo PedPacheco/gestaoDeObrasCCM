@@ -1,120 +1,123 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { AddServiceInput, ApplyAdditionalInput } from 'src/application/types';
+import { IWorkServicesRepository } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
-  ImportServiceItem,
-  IWorkServicesRepository,
-  SchedulesProgressUpdate,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+  DEMOTED_WORK_STATUS,
+  ScheduleItem,
+  ServiceExecutionStatus,
+  ServiceTotals,
+  WorkItem,
+} from 'src/domain/services/pointByPointRules.service';
+import { ImportServiceItem, SchedulesProgressUpdate } from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+
+const SCHEDULE_ITEM_SELECT = {
+  id_programacao: true,
+  id_servico: true,
+  prog: true,
+  real: true,
+  servicos: { select: { id_material: true } },
+  status: true,
+} satisfies Prisma.programacoes_servicosSelect;
+
+type ScheduleItemRow = Prisma.programacoes_servicosGetPayload<{
+  select: typeof SCHEDULE_ITEM_SELECT;
+}>;
+
+const toScheduleItem = (row: ScheduleItemRow): ScheduleItem => ({
+  scheduleId: row.id_programacao,
+  serviceId: row.id_servico,
+  prog: row.prog,
+  real: row.real,
+  isMaterial: row.servicos.id_material !== null,
+  status: row.status as ServiceExecutionStatus,
+});
 
 @Injectable()
 export class WorkServicesRepository implements IWorkServicesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  // ─── Programação de itens ───────────────────────────────────────────
 
-  async scheduleServices(
-    data: ScheduleServicesDTO[],
-    totalProg: number | { increment: number },
+  async updateScheduleStatus(
     idSchedule: number,
-    idStatusSchedule?: number,
+    idStatus: number,
+    tx: Prisma.TransactionClient,
   ): Promise<void> {
-    await this.prisma.$transaction(
-      async (tx) => {
-        await tx.programacoes.update({
-          where: { id: idSchedule },
-          data: {
-            prog: totalProg,
-            ...(idStatusSchedule !== undefined && {
-              id_status_programacao: idStatusSchedule,
-              reprovada: false,
-            }),
-          },
-        });
-
-        await tx.programacoes_servicos.createMany({
-          data: data.map(({ id, idSchedule, idTeam, prog, additional }) => ({
-            id_programacao: idSchedule,
-            id_servico: id,
-            id_equipe: idTeam,
-            prog: prog,
-            adicional: additional,
-          })),
-        });
-        await Promise.all(
-          data.map(async ({ id, additional }) => {
-            // Buscar todos os programacoes_servicos deste serviço
-            const programacoes = await tx.programacoes_servicos.findMany({
-              where: { id_servico: id },
-              select: { real: true, prog: true },
-            });
-
-            // Somar: real se existir, senão prog
-            const qtdeProg = programacoes.reduce(
-              (acc, item) => acc + (item.real ?? item.prog ?? 0),
-              0,
-            );
-
-            return tx.servicos.update({
-              where: { id },
-              data: {
-                qtde_prog: qtdeProg,
-                qtde_adicional: additional,
-              },
-            });
-          }),
-        );
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
-  }
-
-  async cancelServices(id: number): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const servicosAfetados = await tx.programacoes_servicos.findMany({
-        where: { id_programacao: id },
-        select: { id_servico: true, prog: true },
-      });
-
-      // 2. Subtrair o prog de cada serviço
-      const progPorServico = servicosAfetados.reduce(
-        (acc, { id_servico, prog }) => {
-          acc.set(id_servico, (acc.get(id_servico) ?? 0) + (prog ?? 0));
-          return acc;
-        },
-        new Map<number, number>(),
-      );
-
-      await Promise.all(
-        [...progPorServico.entries()].map(([idServico, progRemovido]) =>
-          tx.servicos.update({
-            where: { id: idServico },
-            data: {
-              qtde_prog: { decrement: progRemovido },
-            },
-          }),
-        ),
-      );
-
-      await tx.programacoes_servicos.deleteMany({
-        where: { id_programacao: id },
-      });
-
-      // 4. Zerar o prog da programação
-      await tx.programacoes.update({ data: { prog: 0 }, where: { id } });
+    await tx.programacoes.update({
+      where: { id: idSchedule },
+      data: { id_status_programacao: idStatus, reprovada: false },
     });
   }
 
-  // Agora recebe `tx`: passou a ser chamado dentro da transação orquestrada
-  // pelo WorksServicesService (junto com o recálculo em massa de prog/exec).
+  async createScheduleItems(
+    idSchedule: number,
+    data: ScheduleServicesDTO[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.programacoes_servicos.createMany({
+      data: data.map(({ id, idTeam, prog, additional }) => ({
+        id_programacao: idSchedule,
+        id_servico: id,
+        id_equipe: idTeam,
+        prog,
+        adicional: additional,
+      })),
+    });
+  }
+
+  async updateServicesAdditional(
+    data: { id: number; additional: number }[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await Promise.all(
+      data.map(({ id, additional }) =>
+        tx.servicos.update({
+          where: { id },
+          data: { qtde_adicional: additional },
+        }),
+      ),
+    );
+  }
+
+  // ─── Cancelamento ───────────────────────────────────────────────────
+
+  findScheduleStatus(id: number, tx: Prisma.TransactionClient) {
+    return tx.programacoes.findUnique({
+      where: { id },
+      select: { id_obra: true, id_status_programacao: true },
+    });
+  }
+
+  findScheduleItemsExecution(id: number, tx: Prisma.TransactionClient) {
+    return tx.programacoes_servicos.findMany({
+      where: { id_programacao: id },
+      select: { id_servico: true, real: true, status: true },
+    });
+  }
+
+  async deleteScheduleItems(
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.programacoes_servicos.deleteMany({
+      where: { id_programacao: id },
+    });
+  }
+
+  async resetScheduleProgress(
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.programacoes.update({
+      where: { id },
+      data: { prog: 0, exec: null },
+    });
+  }
+
+  // ─── Itens da obra (sem alterações) ─────────────────────────────────
+
   async applyAdditional(
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     await Promise.all(
@@ -127,9 +130,8 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     );
   }
 
-  // Idem: recebe `tx` para participar da mesma transação do recálculo em massa.
   async addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
     tx: Prisma.TransactionClient,
   ): Promise<void> {
@@ -141,7 +143,6 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       operationDescription,
       quantity,
     } = data;
-
     await tx.servicos.create({
       data: {
         id_obra: idWork,
@@ -156,76 +157,20 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     });
   }
 
-  // Novo: update em lote de prog/exec de várias programações de uma vez,
-  // via SQL raw (CASE WHEN), evitando N+1 de updates individuais.
-  async updateSchedulesProgress(
-    data: SchedulesProgressUpdate[],
-    tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    if (data.length === 0) return;
-
-    const progCases = Prisma.join(
-      data.map((d) => Prisma.sql`WHEN ${d.idProgramacao} THEN ${d.prog}`),
-      ' ',
-    );
-    const execCases = Prisma.join(
-      data.map((d) =>
-        d.exec === null
-          ? Prisma.sql`
-          WHEN ${d.idProgramacao}
-          THEN NULL::DOUBLE PRECISION
-        `
-          : Prisma.sql`
-          WHEN ${d.idProgramacao}
-          THEN ${d.exec}
-        `,
-      ),
-      ' ',
-    );
-    const ids = Prisma.join(data.map((d) => d.idProgramacao));
-
-    await tx.$executeRaw`
-      UPDATE programacoes
-      SET prog = CASE id ${progCases} END,
-          exec = CASE id ${execCases} END
-      WHERE id IN (${ids})
-    `;
-  }
-
-  async updateWorkExecuted(
-    workId: number,
-    executed: number | null,
-    tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    await tx.obras.update({
-      where: {
-        id: workId,
-      },
-      data: {
-        executado: executed,
-      },
-    });
-  }
-
-  // Recebe `tx`: passou a ser chamado dentro da transação orquestrada
-  // pelo WorksServicesService, junto com o recálculo em massa de prog/exec.
   async delete(id: number, tx: Prisma.TransactionClient): Promise<void> {
     await tx.servicos.delete({ where: { id } });
   }
 
-  // Recebe `tx`: passou a ser chamado dentro da transação orquestrada pelo
-  // WorksServicesService, junto com o recálculo em massa de prog/exec —
-  // mesmo motivo da correção aplicada em reascheduleServices.
   async deleteAll(workId: number, tx: Prisma.TransactionClient): Promise<void> {
     await tx.servicos.deleteMany({ where: { id_obra: workId } });
-    await tx.relatorio.delete({ where: { id_obra: workId } });
+    await tx.relatorio.deleteMany({ where: { id_obra: workId } });
   }
 
   async bulkImportItems(
     workId: number,
     items: ImportServiceItem[],
     tx: Prisma.TransactionClient,
-  ) {
+  ): Promise<void> {
     if (items.length === 0) return;
 
     await tx.servicos.createMany({
@@ -246,6 +191,126 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       where: { id_obra: workId },
       create: { id_obra: workId, encontrado: true },
       update: { encontrado: true },
+    });
+  }
+
+  // ─── Recálculo: leituras ────────────────────────────────────────────
+
+  async findScheduleItemsByServiceIds(
+    serviceIds: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ScheduleItem[]> {
+    const rows = await tx.programacoes_servicos.findMany({
+      where: { id_servico: { in: serviceIds } },
+      select: SCHEDULE_ITEM_SELECT,
+    });
+    return rows.map(toScheduleItem);
+  }
+
+  async findScheduleItemsByWork(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<ScheduleItem[]> {
+    const rows = await tx.programacoes_servicos.findMany({
+      where: { programacoes: { id_obra: workId } },
+      select: SCHEDULE_ITEM_SELECT,
+    });
+    return rows.map(toScheduleItem);
+  }
+
+  async findWorkItems(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<WorkItem[]> {
+    const rows = await tx.servicos.findMany({
+      where: { id_obra: workId },
+      select: {
+        id: true,
+        id_material: true,
+        viabilizado: true,
+        qtde_adicional: true,
+        qtde_real: true,
+      },
+    });
+    return rows.map((row) => ({
+      serviceId: row.id,
+      isMaterial: row.id_material !== null,
+      enabledQuantity: row.viabilizado,
+      additionalQuantity: row.qtde_adicional,
+      realQuantity: row.qtde_real,
+    }));
+  }
+
+  async findWorkStatus(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<number | null> {
+    const work = await tx.obras.findUnique({
+      where: { id: workId },
+      select: { id_status: true },
+    });
+    return work?.id_status ?? null;
+  }
+
+  // ─── Recálculo: escritas ────────────────────────────────────────────
+
+  async updateServiceTotals(
+    totals: ServiceTotals[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await Promise.all(
+      totals.map(({ serviceId, plannedQuantity, realQuantity }) =>
+        tx.servicos.update({
+          where: { id: serviceId },
+          data: { qtde_prog: plannedQuantity, qtde_real: realQuantity },
+        }),
+      ),
+    );
+  }
+
+  async updateSchedulesProgress(
+    data: SchedulesProgressUpdate[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    if (data.length === 0) return;
+
+    const progCases = Prisma.join(
+      data.map(
+        (d) =>
+          Prisma.sql`WHEN ${d.idProgramacao}::INT THEN ${d.prog}::DOUBLE PRECISION`,
+      ),
+      ' ',
+    );
+    const execCases = Prisma.join(
+      data.map((d) =>
+        d.exec == null
+          ? Prisma.sql`WHEN ${d.idProgramacao}::INT THEN NULL::DOUBLE PRECISION`
+          : Prisma.sql`WHEN ${d.idProgramacao}::INT THEN ${d.exec}::DOUBLE PRECISION`,
+      ),
+      ' ',
+    );
+    const ids = Prisma.join(data.map((d) => d.idProgramacao));
+
+    await tx.$executeRaw`
+      UPDATE programacoes
+         SET prog = CASE id ${progCases} END,
+             exec = CASE id ${execCases} END
+       WHERE id IN (${ids})
+    `;
+  }
+
+  async updateWorkProgress(
+    workId: number,
+    executed: number,
+    demote: boolean,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.obras.update({
+      where: { id: workId },
+      data: {
+        executado: executed,
+        ...(demote && { id_status: DEMOTED_WORK_STATUS, data_conclusao: null }),
+      },
     });
   }
 }

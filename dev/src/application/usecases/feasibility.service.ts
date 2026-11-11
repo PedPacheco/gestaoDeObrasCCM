@@ -1,9 +1,12 @@
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { ExistsResponse } from 'src/domain/types';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+import { FeasibilityRejectionOutput } from '../types';
 
 export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
 
@@ -14,7 +17,7 @@ export class FeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
   ) {}
 
-  async feasibilityExists(id: number) {
+  async feasibilityExists(id: number): Promise<ExistsResponse> {
     if (!id) {
       throw new BadRequestException('Obra não foi enviada');
     }
@@ -22,7 +25,7 @@ export class FeasibilityService {
     return await this.feasibilityRepository.exists(id);
   }
 
-  async getRejections(workId: number) {
+  async getRejections(workId: number): Promise<FeasibilityRejectionOutput[]> {
     const response = await this.feasibilityRepository.getRejections(workId);
 
     return response.map((item) => ({
@@ -51,12 +54,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           data_envio: obra.relatorio_viabilidade.data_envio,
           operacao: service.operacao,
           ponto: service.ponto,
@@ -97,12 +95,7 @@ export class FeasibilityService {
 
         return {
           ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
+          ordemDiagrama: resolveOrdemDiagrama(obra),
           operacao: service.operacao,
           ponto: service.ponto,
           numeroOperacao: service.numero_operacao,

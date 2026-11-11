@@ -53,7 +53,7 @@ export default async function BiReports() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {categories.map((category) => (
           <div key={category.title} className="flex flex-col gap-2">
-            <span className="text-[20px] font-black uppercase tracking-[0.2em] text-zinc-700 text-center w-full block">
+            <span className="text-[26px] font-black uppercase tracking-[0.2em] text-zinc-700 text-center w-full block">
               {category.title}
             </span>
 
@@ -62,17 +62,12 @@ export default async function BiReports() {
                 {category.items.map((item, index) => (
                   <div key={item.name}>
                     {index > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />}
-                    <div className="flex items-center justify-between gap-3 py-3">
-                      <span className="text-sm font-semibold text-zinc-200 leading-tight flex-1">
-                        {item.name}
-                      </span>
-                      <ButtonForBILink
-                        text=""
-                        path={item.path}
-                        visible={item.visible}
-                        compact
-                      />
-                    </div>
+                    <ButtonForBILink
+                      text={item.name}
+                      path={item.path}
+                      visible={item.visible}
+                      compact
+                    />
                   </div>
                 ))}
               </div>

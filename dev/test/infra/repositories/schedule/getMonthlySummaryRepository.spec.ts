@@ -1,10 +1,10 @@
 import moment from 'moment';
+import { programacoes } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
+import { GetMonthlySummaryRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryRepository';
+import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
-import { programacoes } from '@prisma/client';
-import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('GetMonthlySummary', () => {
   let prisma: PrismaService;
@@ -30,13 +30,13 @@ describe('GetMonthlySummary', () => {
 
   const prismaMock = {
     programacoes: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     obras: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
     valores_contratos: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -103,12 +103,12 @@ describe('GetMonthlySummary', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetSummary', () => {
     it('should call the method getSummary without filters and return data correctly', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.programacoes, 'findMany')
         .mockResolvedValue(mockGetSummaryResponse);
 
@@ -131,6 +131,7 @@ describe('GetMonthlySummary', () => {
           },
         },
         select: {
+          id: true,
           data_prog: true,
           prog: true,
           exec: true,
@@ -148,6 +149,7 @@ describe('GetMonthlySummary', () => {
               mo_pend: true,
               executado: true,
               id_turma: true,
+              programacao_ponto_a_ponto: true,
               turmas: { select: { turma: true } },
               tipos: {
                 select: { grupos: { select: { grupo: true } }, id_grupo: true },
@@ -160,7 +162,7 @@ describe('GetMonthlySummary', () => {
     });
 
     it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.programacoes, 'findMany')
         .mockResolvedValue(mockGetSummaryResponse);
 
@@ -181,6 +183,7 @@ describe('GetMonthlySummary', () => {
           },
         },
         select: {
+          id: true,
           data_prog: true,
           prog: true,
           exec: true,
@@ -198,6 +201,7 @@ describe('GetMonthlySummary', () => {
               mo_pend: true,
               executado: true,
               id_turma: true,
+              programacao_ponto_a_ponto: true,
               turmas: { select: { turma: true } },
               tipos: {
                 select: { grupos: { select: { grupo: true } }, id_grupo: true },
@@ -212,7 +216,7 @@ describe('GetMonthlySummary', () => {
 
   describe('getPortfolioSummary', () => {
     it('should return portfolio summary without filters', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.obras, 'findMany')
         .mockResolvedValue(mockPortfolioSummaryResponse as any);
 
@@ -265,7 +269,7 @@ describe('GetMonthlySummary', () => {
     });
 
     it('should apply all filters correctly in portfolio summary query', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.obras, 'findMany')
         .mockResolvedValue(mockPortfolioSummaryResponse as any);
 
@@ -315,7 +319,7 @@ describe('GetMonthlySummary', () => {
 
   describe('getContractValue', () => {
     it('should return contract values summary without filters', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.valores_contratos, 'findMany')
         .mockResolvedValue(mockContractValueResponse as any);
 
@@ -333,7 +337,7 @@ describe('GetMonthlySummary', () => {
     });
 
     it('should apply all filters correctly in contract values query', async () => {
-      const spyPrisma = jest
+      const spyPrisma = vi
         .spyOn(prisma.valores_contratos, 'findMany')
         .mockResolvedValue(mockContractValueResponse as any);
 

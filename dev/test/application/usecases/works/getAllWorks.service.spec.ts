@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
-import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
-import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetAllWorksRepository';
+import { GetAllWorksService } from 'src/application/usecases/works/management/getAllWorks.service';
+import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IGetAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -11,12 +11,12 @@ describe('GetAllWorksService', () => {
   let cacheManager: Cache;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockRepository = {
-    getAllWorks: jest.fn(),
+    getAllWorks: vi.fn(),
   };
 
   const mockWorks = [

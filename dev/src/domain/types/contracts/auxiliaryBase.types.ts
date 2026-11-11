@@ -1,0 +1,41 @@
+export type GetAuxiliaryBaseMaterialsResponse = {
+  ovnota: string;
+  ordem_diagrama: string;
+  diagrama_rede: string;
+  elemento_pep: string;
+  def_proj: string;
+  material: string;
+  cti: string;
+  preco: number;
+  qtd_necessaria: number;
+  qtd_retirada: number;
+  qtd_recebida: number;
+  qtd_falta: number;
+  reserva: string;
+  id_obra: number;
+};
+
+export type GetAuxiliaryBaseNotesResponse = {
+  id: number;
+  obra: string;
+  pep: string;
+  dci: string;
+  dcd: string;
+  dca: string;
+  dcim: string;
+  entrada: Date;
+  prazo: string;
+  referencia: string;
+  mo_plan: number;
+  qtde_plan: number;
+  aux_gpm: number;
+  aux_empreendimento: number;
+  aux_tipo: number;
+  aux_turma: number;
+  aux_circuito: number;
+  aux_tecnico: number;
+  capex_mo_plan: number;
+  capex_mat_plan: number;
+  anoplan: number;
+  eh_rda: boolean;
+};

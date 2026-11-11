@@ -1,6 +1,6 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/contracts/works/management/ISuspensionWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -10,8 +10,8 @@ describe('SuspensionWorkService', () => {
   let findExistingWorksService: FindExistingWorksService;
 
   const mockRepository = {
-    create: jest.fn(),
-    createMultiple: jest.fn(),
+    create: vi.fn(),
+    createMultiple: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('SuspensionWorkService', () => {
         {
           provide: FindExistingWorksService,
           useValue: {
-            findExistingWorksOnSuspension: jest.fn(),
+            findExistingWorksOnSuspension: vi.fn(),
           },
         },
         { provide: SUSPENSION_WORK_REPOSITORY, useValue: mockRepository },
@@ -70,9 +70,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should call method create of suspensionWorkRepository with correct data', async () => {
-      jest
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [
         { ovnota: '2134', ordemDiagrama: '190000', motivo: 'Obra suspensa' },
@@ -86,9 +87,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      jest
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [{ ovnota: '2134', ordemDiagrama: '190000', motivo: '' }];
 
@@ -104,9 +106,10 @@ describe('SuspensionWorkService', () => {
     });
 
     it('should throw error if reason of suspension not sent', async () => {
-      jest
-        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
-        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+      vi.spyOn(
+        findExistingWorksService,
+        'findExistingWorksOnSuspension',
+      ).mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
       const data = [
         { ovnota: '21355', ordemDiagrama: '190000', motivo: 'ano do plano' },
