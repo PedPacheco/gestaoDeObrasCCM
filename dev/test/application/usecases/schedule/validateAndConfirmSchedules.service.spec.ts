@@ -1,8 +1,8 @@
 import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IValidateSchedulesRepository';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {

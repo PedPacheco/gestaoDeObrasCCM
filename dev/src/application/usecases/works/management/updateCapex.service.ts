@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ProgressEmitter } from 'src/application/types';
+import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
 
-import { toSafeCapexErrorMessage } from 'src/application/shared/capex-error.util';
-import { ProgressEmitter } from 'src/application/shared/capex.types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -9,7 +9,7 @@ import {
 import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
-} from 'src/domain/contracts/works/IUpdateCapexRepository';
+} from 'src/domain/contracts/works/management/IUpdateCapexRepository';
 import {
   CalculatedValue,
   GetAuxiliaryBaseMaterialsInterface,

@@ -1,7 +1,6 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/contracts/IExecutionReportRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
 import { Readable } from 'stream';
 
@@ -10,6 +9,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { AppLogger } from 'src/core/logger/logger.service';
+import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
+import { StorageKind } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   ScheduleStatus,
@@ -25,6 +27,7 @@ import {
   mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
+  mockUpdateExecutionReportInput,
 } from '../../mocks/mocksExecutionReport';
 
 describe('ExecutionReportService', () => {
@@ -53,8 +56,10 @@ describe('ExecutionReportService', () => {
     recomputeAll: vi.fn(),
   };
 
-  const mockFileService = {
-    deleteFile: vi.fn(),
+  const storageMock = {
+    resolve: vi.fn(),
+    deleteStored: vi.fn().mockResolvedValue(undefined),
+    deleteUploaded: vi.fn().mockResolvedValue(undefined),
   };
 
   const mockExistsFiles: Express.Multer.File[] = [
@@ -87,6 +92,14 @@ describe('ExecutionReportService', () => {
     ),
   };
 
+  const mockLogger = {
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    errorWithMetadata: vi.fn(),
+    setContext: vi.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -101,7 +114,8 @@ describe('ExecutionReportService', () => {
           provide: ProgressRecalculationService,
           useValue: mockProgressCalculationService,
         },
-        { provide: FileService, useValue: mockFileService },
+        { provide: FILE_STORAGE, useValue: storageMock },
+        { provide: AppLogger, useValue: mockLogger },
       ],
     }).compile();
 
@@ -174,7 +188,10 @@ describe('ExecutionReportService', () => {
         ),
       ).rejects.toThrow(BadRequestException);
 
-      expect(mockFileService.deleteFile).toHaveBeenCalled();
+      expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        mockExistsFiles.map((file) => file.path),
+      );
     });
 
     it('should throw BadRequestException if files not sent', async () => {
@@ -269,7 +286,7 @@ describe('ExecutionReportService', () => {
       mockRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.update(1, mockUpdateExecutionReportDTO),
+        service.update(1, mockUpdateExecutionReportInput()),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -278,14 +295,14 @@ describe('ExecutionReportService', () => {
       mockFindScheduleRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.update(1, mockUpdateExecutionReportDTO),
+        service.update(1, mockUpdateExecutionReportInput()),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException with correct message if ExecutionReport.create fails with files sent', async () => {
       mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
       mockFindScheduleRepository.findById.mockResolvedValue({
-        hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
+        hora_ter: new Date('2025-05-17'),
       });
 
       vi.spyOn(
@@ -297,7 +314,7 @@ describe('ExecutionReportService', () => {
 
       const result = service.update(
         1,
-        mockUpdateExecutionReportDTO,
+        mockUpdateExecutionReportInput(),
         mockExistsFiles,
       );
 
@@ -305,13 +322,20 @@ describe('ExecutionReportService', () => {
       await expect(result).rejects.toThrow(
         'Erro ao criar relatório: Erro forçado no create',
       );
-      expect(mockFileService.deleteFile).toHaveBeenCalled();
+
+      // uploads novos apagados; ficheiros antigos mantidos
+      expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        mockExistsFiles.map((file) => file.path),
+      );
+      expect(storageMock.deleteStored).not.toHaveBeenCalled();
+      expect(mockRepository.update).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException with correct message if ExecutionReport.create fails with files not sent', async () => {
       mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
       mockFindScheduleRepository.findById.mockResolvedValue({
-        hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
+        hora_ter: new Date('2025-05-17'),
       });
 
       vi.spyOn(
@@ -321,28 +345,32 @@ describe('ExecutionReportService', () => {
         throw new Error('Erro forçado no create');
       });
 
-      const result = service.update(1, mockUpdateExecutionReportDTO);
+      const result = service.update(1, mockUpdateExecutionReportInput());
 
       await expect(result).rejects.toThrow(BadRequestException);
       await expect(result).rejects.toThrow(
         'Erro ao criar relatório: Erro forçado no create',
       );
-      expect(mockFileService.deleteFile).not.toHaveBeenCalled();
+
+      // sem uploads nem gravação: o disco não é tocado
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
+      expect(storageMock.deleteStored).not.toHaveBeenCalled();
+      expect(mockRepository.update).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException with correct message if ExecutionReport.create fails with files not sent', async () => {
+    it('should delete new uploads and keep stored files if report is incomplete and files are sent', async () => {
       mockRepository.findById.mockResolvedValue({
         idSchedule: 1,
         idWork: 2,
         caminho_arquivo: 'teste.pdf',
       });
       mockFindScheduleRepository.findById.mockResolvedValue({
-        hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
+        hora_ter: new Date('2025-05-17'),
       });
 
       const result = service.update(
         1,
-        { ...mockUpdateExecutionReportDTO, endContact: null },
+        mockUpdateExecutionReportInput({ endContact: null }),
         mockExistsFiles,
       );
 
@@ -350,7 +378,14 @@ describe('ExecutionReportService', () => {
       await expect(result).rejects.toThrow(
         'Arquivos só podem ser enviados quando o relatório de execução estiver completo',
       );
-      expect(mockFileService.deleteFile).toHaveBeenCalled();
+
+      // uploads novos apagados; teste.pdf mantido
+      expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        mockExistsFiles.map((file) => file.path),
+      );
+      expect(storageMock.deleteStored).not.toHaveBeenCalled();
+      expect(mockRepository.update).not.toHaveBeenCalled();
     });
 
     it('should call method update and should create a execution report entity and sent to update method repository', async () => {
@@ -360,7 +395,7 @@ describe('ExecutionReportService', () => {
         caminho_arquivo: '4353.pdf',
       });
       mockFindScheduleRepository.findById.mockResolvedValue({
-        hora_ter: new Date('17-05-2025'),
+        hora_ter: new Date('2025-05-17'),
       });
 
       await service.update(
@@ -373,16 +408,25 @@ describe('ExecutionReportService', () => {
         1,
         mockExecutionReportPersistenceObject,
       );
-      expect(mockFileService.deleteFile).toHaveBeenCalled();
+
+      // ficheiro antigo apagado DEPOIS de gravar; uploads novos mantidos
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['4353.pdf'],
+      );
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
+      expect(mockRepository.update.mock.invocationCallOrder[0]).toBeLessThan(
+        storageMock.deleteStored.mock.invocationCallOrder[0],
+      );
     });
 
-    it('should call method update and should create a execution report entity and sent to update method repository', async () => {
+    it('should update the report without deleting files when there were no stored files', async () => {
       mockRepository.findById.mockResolvedValue({
         id_programacao: 1,
         id_obra: 2,
       });
       mockFindScheduleRepository.findById.mockResolvedValue({
-        hora_ter: new Date('17-05-2025'),
+        hora_ter: new Date('2025-05-17'),
       });
 
       await service.update(
@@ -395,7 +439,13 @@ describe('ExecutionReportService', () => {
         1,
         mockExecutionReportPersistenceObject,
       );
-      expect(mockFileService.deleteFile).not.toHaveBeenCalled();
+
+      // nenhum ficheiro antigo para apagar; uploads novos mantidos
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        [],
+      );
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
   });
 
@@ -452,24 +502,23 @@ describe('ExecutionReportService', () => {
         NotFoundException,
       );
 
-      expect(mockFileService.deleteFile).not.toHaveBeenCalled();
+      expect(storageMock.deleteStored).not.toHaveBeenCalled();
       expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
     });
 
     // ─── Ficheiros ───────────────────────────────────────────────────
 
-    it('should delete every file listed in caminho_arquivo', async () => {
+    it('should delete every file listed in caminho_arquivo after the transaction', async () => {
       await service.delete(REPORT_ID);
 
-      expect(mockFileService.deleteFile).toHaveBeenCalledTimes(2);
-      expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
-        1,
-        `${UPLOAD_DIR}/teste1.pdf`,
+      expect(storageMock.deleteStored).toHaveBeenCalledTimes(1);
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['teste1.pdf', 'teste2.pdf'],
       );
-      expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
-        2,
-        `${UPLOAD_DIR}/teste2.pdf`,
-      );
+      expect(
+        mockPrismaService.$transaction.mock.invocationCallOrder[0],
+      ).toBeLessThan(storageMock.deleteStored.mock.invocationCallOrder[0]);
     });
 
     // ─── Transação ───────────────────────────────────────────────────

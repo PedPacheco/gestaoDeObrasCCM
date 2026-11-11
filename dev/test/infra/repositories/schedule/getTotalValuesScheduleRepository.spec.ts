@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
+import { GetTotalValueScheduleRepository } from 'src/infra/repositories/works/schedule/getTotalValuesScheduleRepository';
 
 import { Test } from '@nestjs/testing';
 

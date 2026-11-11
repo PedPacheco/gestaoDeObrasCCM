@@ -195,6 +195,10 @@ describe('EntryService', () => {
 
       const response = {
         ...mockObrasByMonth[0],
+        municipios: 'SJC',
+        tipos: 'BTZERO',
+        turmas: 'ENGELMIG',
+        observ_obra: undefined,
         prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
       };
 

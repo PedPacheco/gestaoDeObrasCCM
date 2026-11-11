@@ -6,7 +6,6 @@ import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD
 import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { D5_NOTES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
@@ -14,42 +13,23 @@ import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.servic
 import { D5NotesRepository } from 'src/infra/repositories/d5Notes/d5NotesRepository';
 import { D5NotesSchedulesRepository } from 'src/infra/repositories/d5Notes/d5NotesSchedulesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { D5NotesController } from '../controllers/d5Notes.controller';
+import { FileModule } from './file.module';
 import { UsersModule } from './users.module';
 
 @Module({
   imports: [
     UsersModule,
+    FileModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const multerCfg = createMulterConfig({
-          destination: config.get<string>('UPLOAD_AS_BUILD'),
-          allowedMimeTypes: [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/tiff',
-            'image/png',
-            'image/heic',
-            'image/heif',
-          ],
-          allowedExtensions: [
-            '.pdf',
-            '.jpg',
-            '.jpeg',
-            '.png',
-            '.tiff',
-            '.heic',
-            '.heif',
-          ],
-          maxSize: 5 * 1024 * 1024,
-          maxFiles: 3,
-        });
-
-        return multerCfg; // ← AGORA SIM está no formato esperado
-      },
+      useFactory: (config: ConfigService) =>
+        createMulterConfig({
+          destination: config.getOrThrow<string>('UPLOAD_AS_BUILD'),
+          ...DOCUMENT_UPLOAD_PRESET,
+        }),
     }),
   ],
   controllers: [D5NotesController],
@@ -58,7 +38,6 @@ import { UsersModule } from './users.module';
     FindD5SchedulesService,
     ManageD5NoteScheduleService,
     ManageD5NoteService,
-    FileService,
     DeadlineStatusService,
     TimeMetricsService,
     { provide: D5_NOTES_REPOSITORY, useClass: D5NotesRepository },

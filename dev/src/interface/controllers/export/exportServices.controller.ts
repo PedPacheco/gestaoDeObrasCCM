@@ -1,4 +1,3 @@
-import { Response } from 'express';
 import {
   Controller,
   Get,
@@ -8,18 +7,19 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { ExportServicesInputDto } from 'src/interface/dtos/workServicesDTO';
-import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
 
-import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
 import {
   ExportPdfServicesService,
   ExportServicesPdfOutput,
 } from 'src/application/usecases/export/services/exportPdfServices.service';
-import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 
+import { ExportServicesExcelOutput } from 'src/domain/types';
 import {
   ExportRequest,
   applyPartnerFilters,

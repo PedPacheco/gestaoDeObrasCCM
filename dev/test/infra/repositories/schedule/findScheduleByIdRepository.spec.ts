@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
 
 describe('FindScheduleByIdRepository', () => {
   let repository: FindScheduleByIdRepository;

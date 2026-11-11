@@ -3,6 +3,7 @@ import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ScheduleModule } from 'src/interface/modules/schedule.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerModule } from 'src/interface/modules/logger.module';
 
 vi.mock('src/shared/multer/multer.config', () => ({
   createMulterConfig: vi.fn().mockReturnValue({
@@ -15,7 +16,7 @@ describe('ScheduleModule', () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [ScheduleModule, PrismaModule],
+      imports: [ScheduleModule, PrismaModule, LoggerModule],
     })
       .overrideProvider(UsersService)
       .useValue({})

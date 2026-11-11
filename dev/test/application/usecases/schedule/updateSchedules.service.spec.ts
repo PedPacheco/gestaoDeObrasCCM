@@ -1,7 +1,7 @@
 import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

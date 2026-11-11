@@ -1,0 +1,43 @@
+export type GetResponse = {
+  id: number;
+  ano: string;
+  regionais: { regional: string };
+  turmas: { turma: string };
+  id_regional: number;
+  tipo: string;
+  qtd_equipes_rfp: number;
+  equipe: string;
+  jan: number;
+  fev: number;
+  mar: number;
+  abr: number;
+  mai: number;
+  jun: number;
+  jul: number;
+  ago: number;
+  set: number;
+  out: number;
+  nov: number;
+  dez: number;
+};
+
+export type GetFinancialValuesResponse = {
+  id: number;
+  ano: string;
+  regionais: { regional: string };
+  turmas: { turma: string };
+  should_cost: number;
+  qtd_equipes_rfp: number;
+  jan: number;
+  fev: number;
+  mar: number;
+  abr: number;
+  mai: number;
+  jun: number;
+  jul: number;
+  ago: number;
+  set: number;
+  out: number;
+  nov: number;
+  dez: number;
+};

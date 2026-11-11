@@ -1,4 +1,9 @@
 import { Prisma } from 'src/infra/generated/prisma/client';
+import {
+  FindByIdResponse,
+  FindByScheduleResponse,
+  FindByWorkIdResponse,
+} from '../types/contracts/executionReport.types';
 
 export interface IExecutionReportRepository {
   create(
@@ -8,9 +13,9 @@ export interface IExecutionReportRepository {
   findByScheduleId(
     idSchedule: number,
     tx: Prisma.TransactionClient,
-  ): Promise<any>;
-  findByWorkId(idWork: number): Promise<any>;
-  findById(idExecutionReport: number): Promise<any>;
+  ): Promise<FindByScheduleResponse>;
+  findByWorkId(idWork: number): Promise<FindByWorkIdResponse[]>;
+  findById(idExecutionReport: number): Promise<FindByIdResponse>;
   update(
     idExecutionReport: number,
     data: Prisma.relatorio_execucaoUpdateInput,

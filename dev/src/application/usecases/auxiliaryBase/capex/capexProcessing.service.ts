@@ -1,29 +1,23 @@
 import { createReadStream, promises as fs } from 'fs';
 import pLimit from 'p-limit';
 import { createInterface } from 'readline';
-import { toSafeCapexErrorMessage } from 'src/application/shared/capex-error.util';
 import {
+  CapexInsertItem,
   CapexProgressPayload,
   ProgressEmitter,
-} from 'src/application/shared/capex.types';
-
+} from 'src/application/types';
+import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
-
-import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   CAPEX_FILE_PARSER,
   ICapexFileParser,
 } from 'src/domain/contracts/ICapexFileParser';
-import { CapexInsertItem, CapexRow } from 'src/domain/entities/capex.entity';
+import { CapexRow } from 'src/domain/entities/capex.entity';
 
-// Mantido por compatibilidade: o helper agora vive em application/shared.
-export {
-  CAPEX_GENERIC_ERROR_MESSAGE,
-  toSafeCapexErrorMessage,
-} from 'src/application/shared/capex-error.util';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 export type ImportProgressState = CapexProgressPayload;
 

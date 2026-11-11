@@ -73,7 +73,7 @@ FROM
       )
       JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
     )
-    JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
+    LEFT JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
   )
 WHERE
   (

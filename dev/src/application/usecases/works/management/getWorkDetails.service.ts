@@ -4,10 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { WorkDetailsOutput } from 'src/application/types';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
+} from 'src/domain/contracts/works/management/IGetWorksDetailsRepository';
 import { TeamCounterService } from 'src/domain/services/teamCounter.service';
 import { QueriesServicesService } from '../../services/queriesServices.service';
 
@@ -57,7 +58,7 @@ export class GetWorkDetailsService {
       },
     );
 
-    const response = {
+    const response: WorkDetailsOutput = {
       ...workData,
       data_envio: relatorio_viabilidade?.data_envio ?? null,
       prazo_viabilidade:

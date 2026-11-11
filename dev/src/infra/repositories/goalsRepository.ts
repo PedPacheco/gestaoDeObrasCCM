@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
+
 import { IGoalsRepository } from 'src/domain/contracts/IGoalsRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
-import { goalsInterfaceRepository } from 'src/interface/types/goalsInterface';
+
+import { GetGoalsResponse } from 'src/domain/types';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GoalsRepository implements IGoalsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getGoals(filters: GoalsDTO): Promise<goalsInterfaceRepository[]> {
+  async getGoals(filters: GoalsDTO): Promise<GetGoalsResponse[]> {
     const {
       parceira,
       regional,
@@ -113,8 +115,7 @@ export class GoalsRepository implements IGoalsRepository {
 
     query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo, metas_anuais.id_turma, metas_anuais.id_regional;`;
 
-    const result: goalsInterfaceRepository[] =
-      await this.prisma.$queryRaw(query);
+    const result: GetGoalsResponse[] = await this.prisma.$queryRaw(query);
 
     return result;
   }

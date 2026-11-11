@@ -1,5 +1,4 @@
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { FEASIBILITY_REPOSITORY } from 'src/domain/contracts/IFeasibilityRepository';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
@@ -11,45 +10,25 @@ import { MulterModule } from '@nestjs/platform-express';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { FeasibilityController } from '../controllers/feasibility.controller';
+import { FileModule } from './file.module';
 
 @Module({
   imports: [
+    FileModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const multerCfg = createMulterConfig({
+      useFactory: (config: ConfigService) =>
+        createMulterConfig({
           destination: config.get<string>('UPLOAD_DEST'),
-          allowedMimeTypes: [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/tiff',
-            'image/png',
-            'image/heic',
-            'image/heif',
-          ],
-          allowedExtensions: [
-            '.pdf',
-            '.jpg',
-            '.jpeg',
-            '.png',
-            '.tiff',
-            '.heic',
-            '.heif',
-          ],
-          maxSize: 5 * 1024 * 1024,
-          maxFiles: 3,
-        });
-
-        return multerCfg; // ← AGORA SIM está no formato esperado
-      },
+          ...DOCUMENT_UPLOAD_PRESET,
+        }),
     }),
   ],
   controllers: [FeasibilityController],
   providers: [
-    FileService,
     HandleFeasibilityService,
     FeasibilityService,
     {

@@ -1,23 +1,28 @@
 import { IUserRepository } from 'src/domain/contracts/IUserRepository';
-import { User } from 'src/domain/entities/user.entity';
-// import { userInterface } from 'src/interface/types/userInterface';
 
 import { Injectable } from '@nestjs/common';
-import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 
+import { User } from 'src/domain/entities/user.entity';
+import { userResponse } from '../../domain/types/index';
 import { PrismaService } from '../prisma/prisma.service';
+// import { userInterface } from 'src/interface/types/userInterface';
+
+import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findUser(username: string): Promise<novo_tabela_usuarios | null> {
+  async findUser(username: string): Promise<userResponse | null> {
     return await this.prisma.novo_tabela_usuarios.findFirst({
       where: { username },
     });
   }
 
-  async updatePassword(numberId: number, newPassword: string): Promise<any> {
+  async updatePassword(
+    numberId: number,
+    newPassword: string,
+  ): Promise<userResponse> {
     const user = await this.prisma.novo_tabela_usuarios.update({
       where: { id: numberId },
       data: { senha: newPassword },

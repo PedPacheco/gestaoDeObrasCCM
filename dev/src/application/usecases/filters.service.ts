@@ -1,12 +1,19 @@
 import { Cache } from 'cache-manager';
+
+import {
+  FilterCondition,
+  GetFiltersInput,
+  GetFiltersOutput,
+  OvnotaFilterRow,
+} from '../types';
+
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   FILTERS_REPOSITORY,
   IFiltersRepository,
 } from 'src/domain/contracts/IFiltersRepository';
-import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
 import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
@@ -35,10 +42,13 @@ export class FiltersService {
       statusSap,
       equipes,
       notaD5,
-    }: FiltersDto,
-    condition?: any,
-  ) {
-    const result: Record<string, any[]> = {};
+    }: GetFiltersInput,
+    condition?: FilterCondition,
+  ): Promise<GetFiltersOutput> {
+    const result = {};
+
+    condition =
+      condition == null || condition === 'undefined' ? undefined : condition;
 
     if (regional) {
       result['regional'] = await this.getCachedData('regionais', () =>
@@ -124,7 +134,7 @@ export class FiltersService {
 
     if (ovnota) {
       result['ovnota'] = await this.getCachedData('ovnota', async () => {
-        const works = await this.filtersRepository.getData(
+        const works = await this.filtersRepository.getData<OvnotaFilterRow>(
           'obras',
           [
             'id',

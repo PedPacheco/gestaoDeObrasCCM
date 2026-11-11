@@ -1,20 +1,25 @@
 import { Injectable } from '@nestjs/common';
+
 import {
   IWorkServicesQueryRepository,
   ServiceForScheduling,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
-  GetSelectedServicesParamsInterface,
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
   GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryByIdScheduleResponse,
   GetServiceScheduleHistoryResponse,
+  GetServicesContractsResponse,
   GetServicesSelectedByWorkIdResponse,
+  GetTeamsServicesResponse,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
+} from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class WorkServicesQueryRepository implements IWorkServicesQueryRepository {
@@ -123,7 +128,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   async getSelectedServices({
     id,
     idProgramacao,
-  }: GetSelectedServicesParamsInterface): Promise<
+  }: GetSelectedServicesParamsRequest): Promise<
     GetServicesSelectedByWorkIdResponse[]
   > {
     return this.prisma.programacoes_servicos.findMany({
@@ -203,7 +208,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getServiceScheduleHistoryByIdSchedule(ids: number[]) {
+  async getServiceScheduleHistoryByIdSchedule(
+    ids: number[],
+  ): Promise<GetServiceScheduleHistoryByIdScheduleResponse[]> {
     return await this.prisma.programacoes_servicos.findMany({
       select: {
         id: true,
@@ -369,7 +376,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getServicesContracts(idParceira: number): Promise<any[]> {
+  async getServicesContracts(
+    idParceira: number,
+  ): Promise<GetServicesContractsResponse[]> {
     return await this.prisma.servicos_contratos.findMany({
       select: {
         id: true,
@@ -387,11 +396,13 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getMaterialsContract(): Promise<any[]> {
+  async getMaterialsContract(): Promise<GetMaterialsContractsResponse[]> {
     return await this.prisma.materiais.findMany();
   }
 
-  async getTeamsServices(idParceira: number): Promise<any[]> {
+  async getTeamsServices(
+    idParceira: number,
+  ): Promise<GetTeamsServicesResponse[]> {
     return await this.prisma.equipes.findMany({
       select: {
         id: true,

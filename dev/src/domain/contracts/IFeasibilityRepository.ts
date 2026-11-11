@@ -1,12 +1,13 @@
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import { StatusFeasibility } from 'src/application/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import { ExistsResponse, GetRejectionsResponse } from '../types';
 
 export interface IFeasibilityRepository {
-  exists(idWork: number): Promise<any>;
+  exists(idWork: number): Promise<ExistsResponse>;
   getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
-  getRejections(workId: number): Promise<any[]>;
+  getRejections(workId: number): Promise<GetRejectionsResponse[]>;
   exportFeasibility(idStatus: number, idPartner?: number[]): Promise<any[]>;
   saveFiles(
     idWork: number,

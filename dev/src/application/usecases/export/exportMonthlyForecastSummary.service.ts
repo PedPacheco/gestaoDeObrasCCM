@@ -2,14 +2,18 @@ import * as Exceljs from 'exceljs';
 import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
+import {
+  DailySummaryEntryForecast,
+  GroupTeamSummaryEntryForecast,
+} from 'src/application/types';
 
 @Injectable()
 export class ExportMonthlyForecastSummaryService {
   constructor() {}
 
   async export(
-    firstSummaryData: any[],
-    secondSummaryData: any[],
+    firstSummaryData: DailySummaryEntryForecast[],
+    secondSummaryData: GroupTeamSummaryEntryForecast[],
     response: Response,
   ) {
     const workbook = new Exceljs.Workbook();

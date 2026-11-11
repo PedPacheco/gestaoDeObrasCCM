@@ -1,21 +1,30 @@
-export interface ProcessedEliminacaoFilters {
-  dataInicial?: Date;
-  dataFinal?: Date;
-  idRegional?: number[];
-  idParceira?: number[];
-  responsabilidade?: string;
-}
+import { GetRestrictionsAdvancePartnerInput } from 'src/application/types';
+import {
+  GetGripPartnerResponse,
+  GetReaschedulingReasonsResponse,
+  GetRestrictionsAdvancePartnerResponse,
+  GetSparklinesByPartnerAderenciaResponse,
+  GetSparklinesByPartnerEliminacaoResponse,
+  GetWeeksByPartnerResponse,
+} from '../types';
 
 export interface IAdvancePartnerRepository {
   getRestrictionsAdvancePartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]>;
-  getGripPartner(filters: ProcessedEliminacaoFilters): Promise<any[]>;
-  getReaschedulingReasons(filters: ProcessedEliminacaoFilters): Promise<any[]>;
-  getSparklinesByPartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<{ aderencia: any[]; eliminacao: any[] }>;
-  getWeeksByPartner(filters: ProcessedEliminacaoFilters): Promise<any[]>;
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetRestrictionsAdvancePartnerResponse[]>;
+  getGripPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetGripPartnerResponse[]>;
+  getReaschedulingReasons(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetReaschedulingReasonsResponse[]>;
+  getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerInput): Promise<{
+    aderencia: GetSparklinesByPartnerAderenciaResponse[];
+    eliminacao: GetSparklinesByPartnerEliminacaoResponse[];
+  }>;
+  getWeeksByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetWeeksByPartnerResponse[]>;
 }
 
 export const ADVANCE_PARTNER_REPOSITORY = Symbol('AdvancePartnerRepository');

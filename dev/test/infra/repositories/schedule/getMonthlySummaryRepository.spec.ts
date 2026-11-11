@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { programacoes } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
+import { GetMonthlySummaryRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryRepository';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';

@@ -1,13 +1,15 @@
-// application/mappers/work-schedule.mapper.ts
-import { BadRequestException } from '@nestjs/common';
 import moment from 'moment';
 import {
   WorkSchedule,
   WorkScheduleProps,
 } from 'src/domain/entities/schedules/workSchedule.entity';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
-import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+
+// application/mappers/work-schedule.mapper.ts
+import { BadRequestException } from '@nestjs/common';
+
+import { UpdateSchedulesInput } from '../types';
 
 export class WorkScheduleMapper {
   static toDomain(row: any): WorkSchedule {
@@ -140,7 +142,7 @@ export class WorkScheduleMapper {
 
   /** Atualização: o estado de reprovação vem do registo persistido. */
   static fromUpdateInput(
-    data: UpdateSchedulesInterface,
+    data: UpdateSchedulesInput,
     extras: { rejected: boolean },
   ): WorkScheduleProps {
     return {

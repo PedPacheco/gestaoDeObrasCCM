@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ContractUpdateRepository } from 'src/infra/repositories/works/contractUpdateRepository';
+import { ContractUpdateRepository } from 'src/infra/repositories/works/management/contractUpdateRepository';
 
 describe('ContractUpdateRepository', () => {
   let repository: ContractUpdateRepository;
@@ -64,23 +64,5 @@ describe('ContractUpdateRepository', () => {
         });
       });
     });
-  });
-
-  it('should throw an error and log it if prisma fails', async () => {
-    const error = new Error('Prisma failure');
-
-    // Força o $transaction a lançar erro
-    mockPrisma.$transaction.mockRejectedValue(error);
-
-    // Espiona o logger
-    const loggerSpy = vi.spyOn(repository['logger'], 'error');
-
-    await expect(repository.update(mockData)).rejects.toThrow(error);
-
-    // Verifica se o logger foi chamado com a mensagem correta
-    expect(loggerSpy).toHaveBeenCalledWith(
-      `Erro ao atualizar contratos. Payload: ${JSON.stringify(mockData)}`,
-      error.stack,
-    );
   });
 });

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { UpdateNoteRepository } from 'src/infra/repositories/works/management/updateNoteRepository';
 
 describe('UpdateNoteRepository', () => {
   let repository: UpdateNoteRepository;

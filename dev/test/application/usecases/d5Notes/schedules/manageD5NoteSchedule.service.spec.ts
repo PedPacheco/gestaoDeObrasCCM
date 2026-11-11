@@ -1,7 +1,5 @@
-import { join } from 'path';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
-import { FileService } from 'src/application/usecases/file.service';
 import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
@@ -14,6 +12,8 @@ import type { MockInstance, Mocked, MockedFunction } from 'vitest';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
+import { StorageKind } from 'src/domain/types';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
@@ -79,16 +79,23 @@ describe('ManageD5NoteScheduleService', () => {
     rejectMany: vi.fn(),
   };
 
-  const fileService = { deleteMany: vi.fn() };
+  const storageMock = {
+    resolve: vi.fn(),
+    deleteStored: vi.fn().mockResolvedValue(undefined),
+    deleteUploaded: vi.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     process.env.UPLOAD_AS_BUILD = UPLOAD_DIR;
+
+    storageMock.deleteStored.mockResolvedValue(undefined);
+    storageMock.deleteUploaded.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ManageD5NoteScheduleService,
         { provide: D5_NOTES_SCHEDULES_REPOSITORY, useValue: repository },
-        { provide: FileService, useValue: fileService },
+        { provide: FILE_STORAGE, useValue: storageMock },
       ],
     }).compile();
 
@@ -97,7 +104,6 @@ describe('ManageD5NoteScheduleService', () => {
     loggerErrorSpy = vi
       .spyOn((service as any).logger, 'error')
       .mockImplementation(() => undefined);
-    fileService.deleteMany.mockResolvedValue(undefined);
   });
 
   afterEach(() => vi.resetAllMocks());
@@ -217,7 +223,7 @@ describe('ManageD5NoteScheduleService', () => {
         );
 
         expect(repository.getById).not.toHaveBeenCalled();
-        expect(fileService.deleteMany).not.toHaveBeenCalled();
+        expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
       },
     );
 
@@ -247,11 +253,11 @@ describe('ManageD5NoteScheduleService', () => {
         10,
         false,
       );
-      expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
-      expect(fileService.deleteMany).toHaveBeenCalledWith(
-        [join(UPLOAD_DIR, 'obsoleto.pdf')],
-        UPLOAD_DIR,
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['obsoleto.pdf'],
       );
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
 
     it('deve tratar files null como lista vazia', async () => {
@@ -277,7 +283,10 @@ describe('ManageD5NoteScheduleService', () => {
 
       await service.update(1, dto, [], 20);
 
-      expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        [],
+      );
     });
 
     // ---------------------------------------------------------------------
@@ -292,9 +301,9 @@ describe('ManageD5NoteScheduleService', () => {
           NotFoundException,
         );
 
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
           ['/tmp/abs/novo.pdf'],
-          UPLOAD_DIR,
         );
         expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
         expect(loggerErrorSpy).not.toHaveBeenCalled();
@@ -307,9 +316,9 @@ describe('ManageD5NoteScheduleService', () => {
         await expect(service.update(1, dto, files, 20)).rejects.toThrow(
           'timeout',
         );
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
           ['/tmp/a.pdf'],
-          UPLOAD_DIR,
         );
       });
 
@@ -325,9 +334,9 @@ describe('ManageD5NoteScheduleService', () => {
         );
 
         expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
           ['/tmp/dup.pdf'],
-          UPLOAD_DIR,
         );
       });
 
@@ -341,44 +350,44 @@ describe('ManageD5NoteScheduleService', () => {
         await expect(service.update(1, dto, files, 20)).rejects.toThrow(
           'constraint violada',
         );
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
           ['/tmp/b.pdf'],
-          UPLOAD_DIR,
         );
       });
 
       // --- committed = true: não há rollback dos novos ficheiros ---
       it('não deve remover os novos uploads quando a limpeza pós-commit falha', async () => {
         arrangeHappyPath();
-        fileService.deleteMany.mockRejectedValueOnce(new Error('EACCES'));
+        storageMock.deleteStored.mockRejectedValueOnce(new Error('EACCES'));
         const files = [makeFile('c.pdf', '/tmp/c.pdf')];
 
         await expect(service.update(1, dto, files, 20)).rejects.toThrow(
           'EACCES',
         );
 
-        // a escrita foi confirmada: os ficheiros novos têm de permanecer em disco
+        // a escrita foi confirmada: os ficheiros novos têm de ficar em disco
         expect(repository.updateAndSyncWorkStatus).toHaveBeenCalledTimes(1);
-        expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
-        expect(fileService.deleteMany).not.toHaveBeenCalledWith(
-          ['/tmp/c.pdf'],
-          UPLOAD_DIR,
-        );
+        expect(storageMock.deleteStored).toHaveBeenCalledTimes(1);
+        expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
         expect(loggerErrorSpy).not.toHaveBeenCalled();
       });
 
       // --- falha do próprio rollback: erro original preservado ---
       it('deve preservar o erro de negócio quando o próprio rollback falha', async () => {
         repository.getById.mockResolvedValue(null);
-        fileService.deleteMany.mockRejectedValue(new Error('disco ocupado'));
+        storageMock.deleteUploaded.mockRejectedValueOnce(
+          new Error('disco ocupado'),
+        );
+        const files = [makeFile('d.pdf', '/tmp/d.pdf')];
 
-        await expect(
-          service.update(1, dto, [makeFile('d.pdf', '/tmp/d.pdf')], 20),
-        ).rejects.toThrow('Programação não encontrada.');
+        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
+          'Programação não encontrada.',
+        );
 
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
           ['/tmp/d.pdf'],
-          UPLOAD_DIR,
         );
         expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
       });
@@ -386,7 +395,7 @@ describe('ManageD5NoteScheduleService', () => {
       it('deve registar em log a falha de limpeza com a stack do erro', async () => {
         repository.getById.mockResolvedValue(null);
         const cleanupError = new Error('disco ocupado');
-        fileService.deleteMany.mockRejectedValue(cleanupError);
+        storageMock.deleteUploaded.mockRejectedValue(cleanupError);
 
         await expect(
           service.update(1, dto, [makeFile('d.pdf')], 20),
@@ -400,7 +409,7 @@ describe('ManageD5NoteScheduleService', () => {
 
       it('deve registar o valor bruto quando o erro de limpeza não é uma Error', async () => {
         repository.getById.mockResolvedValue(null);
-        fileService.deleteMany.mockRejectedValue('falha string');
+        storageMock.deleteUploaded.mockRejectedValue('falha string');
 
         await expect(
           service.update(1, dto, [makeFile('d.pdf')], 20),
@@ -419,7 +428,10 @@ describe('ManageD5NoteScheduleService', () => {
           NotFoundException,
         );
 
-        expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
+        expect(storageMock.deleteUploaded).toHaveBeenCalledWith(
+          StorageKind.AS_BUILD,
+          [],
+        );
       });
     });
   });
@@ -447,28 +459,30 @@ describe('ManageD5NoteScheduleService', () => {
 
       await expect(service.delete(5)).rejects.toThrow(NotFoundException);
       expect(repository.delete).not.toHaveBeenCalled();
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
 
     it('deve eliminar o registo antes de limpar o disco', async () => {
       const ordem: string[] = [];
+
       repository.getById.mockResolvedValue(
         makeExisting({ caminhos_arquivos: ['a.pdf', 'b.pdf'] }),
       );
       repository.delete.mockImplementation(async () => {
         ordem.push('repositorio');
       });
-      fileService.deleteMany.mockImplementation(async () => {
+      storageMock.deleteStored.mockImplementation(async () => {
         ordem.push('disco');
       });
 
       await service.delete(5);
 
       expect(ordem).toEqual(['repositorio', 'disco']);
-      expect(fileService.deleteMany).toHaveBeenCalledWith(
-        [join(UPLOAD_DIR, 'a.pdf'), join(UPLOAD_DIR, 'b.pdf')],
-        UPLOAD_DIR,
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['a.pdf', 'b.pdf'],
       );
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
 
     it('deve tratar caminhos_arquivos null como lista vazia', async () => {
@@ -479,24 +493,35 @@ describe('ManageD5NoteScheduleService', () => {
 
       await service.delete(5);
 
-      expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        [],
+      );
     });
 
     it('deve propagar falhas do repositório sem tocar no disco', async () => {
       repository.getById.mockResolvedValue(makeExisting());
-      repository.delete.mockRejectedValue(new Error('FK em uso'));
+      repository.delete.mockRejectedValueOnce(new Error('FK em uso'));
 
       await expect(service.delete(5)).rejects.toThrow('FK em uso');
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
+
+      expect(storageMock.deleteStored).not.toHaveBeenCalled();
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
 
     it('deve propagar falhas da limpeza de ficheiros', async () => {
       repository.getById.mockResolvedValue(makeExisting());
       repository.delete.mockResolvedValue(undefined);
-      fileService.deleteMany.mockRejectedValue(new Error('ENOENT'));
+      storageMock.deleteStored.mockRejectedValueOnce(new Error('EACCES'));
 
-      await expect(service.delete(5)).rejects.toThrow('ENOENT');
+      await expect(service.delete(5)).rejects.toThrow('EACCES');
+
+      // o registo já foi removido antes da falha no disco
       expect(repository.delete).toHaveBeenCalledWith(5);
+      expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        expect.any(Array),
+      );
     });
 
     it('deve resolver sem retorno em caso de sucesso', async () => {
@@ -627,7 +652,7 @@ describe('ManageD5NoteScheduleService', () => {
     it('não deve tocar no sistema de ficheiros', async () => {
       await service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER);
 
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
+      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
     });
 
     // --- validação de existência ---
