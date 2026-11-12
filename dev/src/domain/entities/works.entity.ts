@@ -132,6 +132,7 @@ export class NoteWorks extends Work {
     public readonly dcd?: string,
     public readonly dca?: string,
     public readonly dcim?: string,
+    public readonly dcdm?: string,
     public readonly qtdePlanejada?: number,
     public readonly moPlanejada?: number,
     public readonly anoPlan?: number,
@@ -169,6 +170,8 @@ export class NoteWorks extends Work {
     if (this.dca != null && this.dca !== '') updateData.ordem_dca = this.dca;
     if (this.dcim != null && this.dcim !== '')
       updateData.ordem_dcim = this.dcim;
+    if (this.dcdm != null && this.dcdm !== '')
+      updateData.ordem_dcdm = this.dcdm;
     if (this.qtdePlanejada != null) updateData.qtde_plan = this.qtdePlanejada;
     if (this.idEmpreendimento != null)
       updateData.id_empreendimento = this.idEmpreendimento;
@@ -191,6 +194,7 @@ export class NoteWorks extends Work {
     dcd?: string;
     dca?: string;
     dcim?: string;
+    dcdm?: string;
     qtdePlanejada?: number;
     moPlanejada?: number;
     anoPlan?: number;
@@ -213,6 +217,7 @@ export class NoteWorks extends Work {
       props.dcd,
       props.dca,
       props.dcim,
+      props.dcdm,
       props.qtdePlanejada,
       props.moPlanejada,
       props.anoPlan,
