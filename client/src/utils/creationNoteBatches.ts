@@ -18,6 +18,7 @@ type Agrupado = {
   ordem_dcd: string;
   ordem_dci: string;
   ordem_dcim: string;
+  ordem_dcdm: string;
   pep: string;
   texto_breve: string;
 };
@@ -40,7 +41,7 @@ function groupMaterialsByDiagram(materialData: any[]) {
 export function createBatches(
   groupData: any[],
   materialData: any[],
-  batchSize: number = 150
+  batchSize: number = 150,
 ) {
   const materialMap = groupMaterialsByDiagram(materialData);
   const batches: any[] = [];
@@ -52,7 +53,13 @@ export function createBatches(
     const relatedMaterials: any[] = [];
 
     // Verificar cada campo de ordem da nota
-    const ordemFields = ["ordem_dci", "ordem_dcd", "ordem_dca", "ordem_dcim"];
+    const ordemFields = [
+      "ordem_dci",
+      "ordem_dcd",
+      "ordem_dca",
+      "ordem_dcim",
+      "ordem_dcdm",
+    ];
 
     ordemFields.forEach((field) => {
       const ordemValue = nota[field];
@@ -102,8 +109,8 @@ export function groupNoteDate(iw38Data: IW38Item[]): Agrupado[] {
     ];
 
     const chave =
-      item.tipo_de_ordem === "DCIM"
-        ? [...chaveBase, "DCIM"].join("|")
+      item.tipo_de_ordem === "DCIM" || item.tipo_de_ordem === "DCDM"
+        ? [...chaveBase, "DCIM_DCDM"].join("|")
         : chaveBase.join("|");
 
     if (!mapa.has(chave)) {
@@ -116,6 +123,7 @@ export function groupNoteDate(iw38Data: IW38Item[]): Agrupado[] {
         ordem_dcd: "",
         ordem_dci: "",
         ordem_dcim: "",
+        ordem_dcdm: "",
         pep: item.pep,
         texto_breve: item.texto_breve,
       });
@@ -135,6 +143,9 @@ export function groupNoteDate(iw38Data: IW38Item[]): Agrupado[] {
         break;
       case "DCIM":
         agrupado.ordem_dcim = item.ordem;
+        break;
+      case "DCDM":
+        agrupado.ordem_dcdm = item.ordem;
         break;
     }
   }

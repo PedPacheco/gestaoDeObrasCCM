@@ -5,8 +5,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { ImportButton } from "@/components/entryComponents/importMarketWorks/importButton";
 import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
-import { Box, Paper } from "@mui/material";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Box, Paper } from "@mui/material";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function NotesEntry() {
       `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/notas`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   }
 
@@ -40,10 +40,11 @@ export default async function NotesEntry() {
     id: "ID",
     obra: "Nota",
     pep: "Pep",
-    dci: "Dci",
-    dcd: "Dcd",
-    dca: "Dca",
-    dcim: "Dcim",
+    dci: "DCI",
+    dcd: "DCD",
+    dca: "DCA",
+    dcim: "DCIM",
+    dcdm: "DCDM",
     entrada: "Entrada",
     prazo: "Prazo",
     municipio: "Mun",

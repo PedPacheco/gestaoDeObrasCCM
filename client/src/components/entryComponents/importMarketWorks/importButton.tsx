@@ -6,13 +6,11 @@ import { useRef, useState, useTransition } from "react";
 
 import { InsertAuxiliaryBaseMarket } from "@/actions/insertAuxiliaryBase";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
-import { createBatches, groupNoteDate } from "@/utils/creationNoteBatches";
-import { getButtonContent } from "@/utils/getButtonContent";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
 import { useFeedback } from "@/hooks/useFeedback";
+import { groupNoteDate } from "@/utils/creationNoteBatches";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
 
 interface ImportButtonProps {
   storageKey: string;
