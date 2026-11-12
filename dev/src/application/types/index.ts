@@ -2,6 +2,7 @@ export * from './usecases/advancePartner.types';
 export * from './usecases/auth.types';
 export * from './usecases/auxiliaryBase/auxiliaryBase.types';
 export * from './usecases/auxiliaryBase/capex.types';
+export * from './usecases/contingency.types';
 export * from './usecases/entry.types';
 export * from './usecases/equipment.types';
 export * from './usecases/errorsReport.types';

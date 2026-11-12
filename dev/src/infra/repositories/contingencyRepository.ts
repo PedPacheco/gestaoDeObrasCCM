@@ -1,17 +1,21 @@
-import {
-  CapacidadePorAnoMesRow,
-  ContingencyGroupField,
-  EquipeEmergenciaMesRow,
-  IContingencyRepository,
-  RecentContingencyRow,
-} from 'src/domain/repositories/IContingencyRepository';
-
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
-import { PrismaService } from '../prisma/prisma.service';
-import { DashboardFilterDTO } from 'src/interface/dtos/contingencyDTO';
 import moment from 'moment';
+import {
+  ContingencyInput,
+  CountItem,
+  GroupByFieldRow,
+} from 'src/application/types';
+import { IContingencyRepository } from 'src/domain/contracts/IContingencyRepository';
+import {
+  CapacityByYearMonthResponse,
+  ContingencyGroupField,
+  EmergencyTeamResponse,
+  RecentContingencyResponse,
+} from 'src/domain/types';
+
+import { Prisma } from '../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ContingencyRepository implements IContingencyRepository {
@@ -24,8 +28,8 @@ export class ContingencyRepository implements IContingencyRepository {
   }
 
   async findRecent(
-    filter: DashboardFilterDTO | undefined,
-  ): Promise<RecentContingencyRow[]> {
+    filter: ContingencyInput | undefined,
+  ): Promise<RecentContingencyResponse[]> {
     return this.prisma.recursos_contingencia.findMany({
       where: this.buildWhere(filter),
       orderBy: { criado_em: 'desc' },
@@ -39,33 +43,29 @@ export class ContingencyRepository implements IContingencyRepository {
 
   async groupByField(
     field: ContingencyGroupField,
-    filter?: DashboardFilterDTO,
-  ): Promise<
-    {
-      name: string;
-      quantidade_mao_obra: number;
-      quantidade_equipe: number;
-    }[]
-  > {
+    filter: ContingencyInput = {},
+  ): Promise<GroupByFieldRow[]> {
     const result = await this.prisma.recursos_contingencia.findMany({
       where: this.buildWhere(filter),
       select: {
         [field]: true,
         quantidade_mao_obra: true,
         quantidade_equipe: true,
+        disponibilizado_csd: true,
       },
     });
 
     return result
       .filter((row) => row[field] != null)
       .map((row) => ({
-        name: String(row[field]),
-        quantidade_mao_obra: row.quantidade_mao_obra ?? 0,
-        quantidade_equipe: row.quantidade_equipe ?? 0,
+        name: row[field] as string,
+        laborQuantity: row.quantidade_mao_obra ?? 0,
+        teamsQuantity: row.quantidade_equipe ?? 0,
+        allocatedCsd: row.disponibilizado_csd ?? 0,
       }));
   }
 
-  async groupByParceira(filter?: DashboardFilterDTO): Promise<any[]> {
+  async groupByPartner(filter: ContingencyInput = {}): Promise<CountItem[]> {
     const result = await this.prisma.recursos_contingencia.groupBy({
       by: ['id_parceira'],
       where: this.buildWhere(filter),
@@ -87,38 +87,40 @@ export class ContingencyRepository implements IContingencyRepository {
     }));
   }
 
-  async groupByCsd(filter?: DashboardFilterDTO): Promise<any[]> {
+  async groupByCsd(filter: ContingencyInput = {}): Promise<CountItem[]> {
     const result = await this.prisma.recursos_contingencia.groupBy({
       by: ['disponibilizado_csd'],
       where: this.buildWhere(filter),
       _count: { _all: true },
     });
+
     return result.map((row) => ({
       name: row['disponibilizado_csd'] as string,
       value: row._count._all,
     }));
   }
 
-  async getCapacidadePorAnoMes(
-    filter?: DashboardFilterDTO,
+  async getCapacityByYearMonth(
+    filter: ContingencyInput = {},
     month?: number,
-  ): Promise<CapacidadePorAnoMesRow[]> {
+  ): Promise<CapacityByYearMonthResponse[]> {
     let where = Prisma.sql`WHERE 1 = 1`;
-    const ano = moment(filter.dataFinal, 'DD/MM/YYYY').year().toString();
 
-    if (ano) {
-      where = Prisma.sql`${where} AND ano = ${ano}`;
+    const dataFinal = filter.dataFinal
+      ? moment(filter.dataFinal, 'DD/MM/YYYY', true) // parsing estrito
+      : null;
+
+    if (dataFinal?.isValid()) {
+      where = Prisma.sql`${where} AND ano = ${dataFinal.year().toString()}`;
     }
-
     if (month) {
       where = Prisma.sql`${where} AND m.mes = ${month}`;
     }
-
     if (filter.idParceira?.length) {
       where = Prisma.sql`${where} AND t.id IN (${Prisma.join(filter.idParceira)})`;
     }
 
-    return this.prisma.$queryRaw<CapacidadePorAnoMesRow[]>(Prisma.sql`
+    return this.prisma.$queryRaw<CapacityByYearMonthResponse[]>(Prisma.sql`
     SELECT ano, m.mes AS mes, SUM(COALESCE(m.valor, 0))::int AS capacidade, SUM(should_cost * COALESCE(m.valor, 0)) AS valor
     FROM construcao_sp.capacidade_execucao ce
     JOIN construcao_sp.turmas t ON t.id = id_turma
@@ -132,15 +134,18 @@ export class ContingencyRepository implements IContingencyRepository {
   `);
   }
 
-  async getEquipesEmergenciaComValor(
-    filter?: DashboardFilterDTO,
+  async getEmergencyTeamsWithValue(
+    filter: ContingencyInput = {},
     month?: number,
-  ): Promise<EquipeEmergenciaMesRow[]> {
-    const ano = moment(filter.dataFinal, 'DD/MM/YYYY').year().toString();
+  ): Promise<EmergencyTeamResponse[]> {
+    const dataFinal = filter.dataFinal
+      ? moment.utc(filter.dataFinal, 'DD/MM/YYYY', true)
+      : null;
 
+    const ano = dataFinal?.isValid() ? dataFinal.year().toString() : null;
     const idParceiras = filter.idParceira?.length ? filter.idParceira : null;
 
-    return this.prisma.$queryRaw<EquipeEmergenciaMesRow[]>(Prisma.sql`
+    return this.prisma.$queryRaw<EmergencyTeamResponse[]>(Prisma.sql`
     WITH equipes AS (
       SELECT
         EXTRACT(YEAR FROM rc.dia_disponibilidade)::int AS ano,
@@ -149,7 +154,8 @@ export class ContingencyRepository implements IContingencyRepository {
         rc.id_parceira,
         SUM(rc.quantidade_equipe)::int AS quantidade
       FROM public.recursos_contingencia rc
-      WHERE EXTRACT(YEAR FROM rc.dia_disponibilidade)::text = ${ano}
+      WHERE 1 = 1
+        ${ano ? Prisma.sql`AND EXTRACT(YEAR FROM rc.dia_disponibilidade)::text = ${ano}` : Prisma.empty}
         ${month ? Prisma.sql`AND EXTRACT(MONTH FROM rc.dia_disponibilidade)::int = ${month}` : Prisma.empty}
         ${idParceiras ? Prisma.sql`AND rc.id_parceira IN (${Prisma.join(idParceiras)})` : Prisma.empty}
       GROUP BY 1, 2, rc.tipo_recurso_equipe, rc.id_parceira
@@ -161,7 +167,8 @@ export class ContingencyRepository implements IContingencyRepository {
         id_turma AS id_parceira,
         should_cost / 22 AS valor_diario
       FROM public.capacidade_execucao
-      WHERE ano::text = ${ano}
+      WHERE 1 = 1
+        ${ano ? Prisma.sql`AND ano::text = ${ano}` : Prisma.empty}
         ${idParceiras ? Prisma.sql`AND id_turma IN (${Prisma.join(idParceiras)})` : Prisma.empty}
     )
     SELECT
@@ -181,7 +188,7 @@ export class ContingencyRepository implements IContingencyRepository {
   }
 
   private buildWhere(
-    filter?: DashboardFilterDTO,
+    filter: ContingencyInput = {},
   ): Prisma.recursos_contingenciaWhereInput {
     const where: Prisma.recursos_contingenciaWhereInput = {};
     const { csd, dataFinal, dataInicial, equipe, idParceira, maoObra } = filter;

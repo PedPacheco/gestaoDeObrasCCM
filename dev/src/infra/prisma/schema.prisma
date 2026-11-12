@@ -23,6 +23,7 @@ model base_auxiliar {
   dcd                String?     @db.VarChar(30)
   dca                String?     @db.VarChar(30)
   dcim               String?     @db.VarChar(30)
+  dcdm               String?     @db.VarChar(12)
   entrada            DateTime?   @db.Date
   prazo              String?     @db.VarChar(5)
   tipo               String?     @db.VarChar(30)
@@ -312,6 +313,7 @@ model notas_d5 {
   local_instalacao          String?                       @db.VarChar(50)
   validacao_anual           Boolean?
   atualizado_em             DateTime                      @db.Timestamptz
+  motivo_d5                 Int[]
   municipios                municipios                    @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
   obras                     obras?                        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   turmas                    turmas                        @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
@@ -362,6 +364,7 @@ model obras {
   ordem_dcd                 String?                    @db.VarChar(12)
   ordem_dca                 String?                    @db.VarChar(12)
   ordem_dcim                String?                    @db.VarChar(12)
+  ordem_dcdm                String?                    @db.VarChar(12)
   status_ov_sap             Int?
   status_pep                String?                    @db.VarChar(4)
   status_diagrama           String?                    @db.VarChar(4)
@@ -534,7 +537,7 @@ model programacoes_d5 {
   prog                   Int
   exec                   Int?
   observacao_programacao String?
-  num_dp                 String?              @db.VarChar(8)
+  num_dp                 String?              @db.VarChar(12)
   hora_ini               DateTime?            @db.Time(6)
   hora_ter               DateTime?            @db.Time(6)
   equipe_lv              Int?

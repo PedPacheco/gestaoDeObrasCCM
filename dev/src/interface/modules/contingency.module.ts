@@ -1,5 +1,5 @@
 import { ContingencyService } from 'src/application/usecases/contingency.service';
-import { CONTINGENCY_REPOSITORY } from 'src/domain/repositories/IContingencyRepository';
+import { CONTINGENCY_REPOSITORY } from 'src/domain/contracts/IContingencyRepository';
 import { ContingencyRepository } from 'src/infra/repositories/contingencyRepository';
 
 import { Module } from '@nestjs/common';

@@ -1,24 +1,24 @@
 import moment from 'moment';
+
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
 import {
-  CapacidadePorAnoMesRow,
   CONTINGENCY_REPOSITORY,
-  ContingencyDashboard,
   IContingencyRepository,
-} from 'src/domain/repositories/IContingencyRepository';
-
-import { Inject, Injectable } from '@nestjs/common';
-
+} from 'src/domain/contracts/IContingencyRepository';
 import {
-  CreateContingencyDTO,
-  DashboardFilterDTO,
-} from '../../interface/dtos/contingencyDTO';
+  CapacityByYearMonthResponse,
+  EmergencyTeamResponse,
+} from 'src/domain/types';
+import {
+  AggregatedEmergencyTeam,
+  ContingencyDashboardOutput,
+  ContingencyInput,
+  CreateContingencyInput,
+  GroupByFieldRow,
+} from '../types';
 
-interface AggregatedEmergencyTeam {
-  ano: number;
-  mes: number;
-  quantidade: number;
-  valor: number;
-}
+const AVAILABILITY_DATE_FORMAT = 'YYYY-MM-DD';
 
 @Injectable()
 export class ContingencyService {
@@ -27,22 +27,22 @@ export class ContingencyService {
     private readonly contingencyRepository: IContingencyRepository,
   ) {}
 
-  async create(data: CreateContingencyDTO): Promise<void> {
+  async create(data: CreateContingencyInput): Promise<void> {
     await this.contingencyRepository.create({
-      dia_disponibilidade: new Date(data.dia_disponibilidade),
-      id_parceira: data.idParceira,
-      tipo_recurso_mao_obra: data.tipo_recurso_mao_obra,
-      quantidade_mao_obra: data.quantidade_mao_obra,
-      tipo_recurso_equipe: data.tipo_recurso_equipe,
-      quantidade_equipe: data.quantidade_equipe,
-      disponibilizado_csd: data.disponibilizado_csd,
-      id_usuario: data.idUser,
+      dia_disponibilidade: this.parseAvailabilityDate(data.availabilityDate),
+      id_parceira: data.partnerId,
+      tipo_recurso_mao_obra: data.laborType,
+      quantidade_mao_obra: data.laborQuantity,
+      tipo_recurso_equipe: data.teamType,
+      quantidade_equipe: data.teamQuantity,
+      disponibilizado_csd: data.allocatedCsd,
+      id_usuario: data.userId,
     });
   }
 
   async getDashboard(
-    query: DashboardFilterDTO = {},
-  ): Promise<ContingencyDashboard> {
+    query: ContingencyInput = {},
+  ): Promise<ContingencyDashboardOutput> {
     const filterMonth = this.resolveFilterMonth(query);
 
     const [
@@ -50,20 +50,17 @@ export class ContingencyService {
       partner,
       laborRows,
       teamRows,
-      csd,
+      csds,
       emergencyTeams,
       executionCapacity,
     ] = await Promise.all([
       this.contingencyRepository.findRecent(query),
-      this.contingencyRepository.groupByParceira(query),
+      this.contingencyRepository.groupByPartner(query),
       this.contingencyRepository.groupByField('tipo_recurso_mao_obra', query),
       this.contingencyRepository.groupByField('tipo_recurso_equipe', query),
       this.contingencyRepository.groupByCsd(query),
-      this.contingencyRepository.getEquipesEmergenciaComValor(
-        query,
-        filterMonth,
-      ),
-      this.contingencyRepository.getCapacidadePorAnoMes(query, filterMonth),
+      this.contingencyRepository.getEmergencyTeamsWithValue(query, filterMonth),
+      this.contingencyRepository.getCapacityByYearMonth(query, filterMonth),
     ]);
 
     const aggregatedEmergencyTeams =
@@ -75,24 +72,27 @@ export class ContingencyService {
       filterMonth,
     );
 
-    console.log(aggregatedEmergencyTeams);
-
     return {
-      porcentagemCedida: yieldedPercentage,
-      capacidadeMes: executionCapacity,
-      equipesEmergencia: aggregatedEmergencyTeams,
-      recentDates: recent.map((r) => ({
-        date: r.dia_disponibilidade.toISOString().slice(0, 10),
-        nome: r.novo_tabela_usuarios?.nome ?? null,
+      allocatedPercentage: yieldedPercentage,
+      monthlyCapacity: executionCapacity.map((capacity) => ({
+        capacity: capacity.capacidade,
+        month: capacity.mes,
+        value: capacity.valor,
+        year: Number(capacity.ano),
       })),
-      parceira: partner,
-      maoObra: this.sumByName(laborRows, 'quantidade_mao_obra'),
-      equipe: this.sumByName(teamRows, 'quantidade_equipe'),
-      csd,
+      emergencyTeams: aggregatedEmergencyTeams,
+      recentAnswers: recent.map((r) => ({
+        date: r.dia_disponibilidade.toISOString().slice(0, 10),
+        name: r.novo_tabela_usuarios?.nome ?? null,
+      })),
+      partners: partner,
+      laborTypes: this.sumByName(laborRows, 'laborQuantity'),
+      teamTypes: this.sumByName(teamRows, 'teamsQuantity'),
+      csds,
     };
   }
 
-  private resolveFilterMonth(filter?: DashboardFilterDTO): number {
+  private resolveFilterMonth(filter?: ContingencyInput): number {
     if (!filter?.dataInicial || !filter?.dataFinal) {
       return moment().month() + 1;
     }
@@ -113,12 +113,7 @@ export class ContingencyService {
   }
 
   private aggregateEmergencyTeams(
-    rows: {
-      ano: number;
-      mes: number;
-      quantidade: number;
-      valor: number;
-    }[],
+    rows: EmergencyTeamResponse[],
   ): AggregatedEmergencyTeam[] {
     const map = new Map<string, AggregatedEmergencyTeam>();
 
@@ -144,7 +139,7 @@ export class ContingencyService {
 
   private calculateYieldedPercentage(
     emergencyTeams: AggregatedEmergencyTeam[],
-    monthlyCapacity: CapacidadePorAnoMesRow[],
+    monthlyCapacity: CapacityByYearMonthResponse[],
     filterMonth: number,
   ): number | null {
     const capacity = monthlyCapacity.find((item) => item.mes === filterMonth);
@@ -159,14 +154,8 @@ export class ContingencyService {
   }
 
   private sumByName(
-    rows: {
-      name: string;
-      quantidade_mao_obra: number;
-      quantidade_equipe: number;
-      disponibilizado_csd: number;
-    }[],
-    sumField:
-      'quantidade_mao_obra' | 'quantidade_equipe' | 'disponibilizado_csd',
+    rows: GroupByFieldRow[],
+    sumField: keyof Omit<GroupByFieldRow, 'name'>,
   ): { name: string; value: number }[] {
     const map = new Map<string, number>();
 
@@ -175,5 +164,17 @@ export class ContingencyService {
     }
 
     return Array.from(map, ([name, value]) => ({ name, value }));
+  }
+
+  private parseAvailabilityDate(value: string): Date {
+    const date = moment.utc(value, AVAILABILITY_DATE_FORMAT, true);
+
+    if (!date.isValid()) {
+      throw new BadRequestException(
+        `Data de disponibilidade inválida: "${value}". Formato esperado: ${AVAILABILITY_DATE_FORMAT}`,
+      );
+    }
+
+    return date.toDate();
   }
 }

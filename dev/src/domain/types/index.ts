@@ -1,5 +1,6 @@
 export * from './contracts/advancePartner.types';
 export * from './contracts/auxiliaryBase.types';
+export * from './contracts/contingencyResources.types';
 export * from './contracts/entry.types';
 export * from './contracts/equipments.types';
 export * from './contracts/errorsReport.types';

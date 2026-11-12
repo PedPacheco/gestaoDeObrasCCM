@@ -1,18 +1,23 @@
 // contingency.controller.spec.ts
-
-import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
-
+import { Test, TestingModule } from '@nestjs/testing';
 import { ContingencyService } from 'src/application/usecases/contingency.service';
+import { ContingencyController } from 'src/interface/controllers/contingency.controller';
 import {
   CreateContingencyDTO,
   DashboardFilterDTO,
 } from 'src/interface/dtos/contingencyDTO';
-import { ContingencyController } from 'src/interface/controllers/contingency.controller';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 
 // ─── Factories ────────────────────────────────────────────────────────────────
-// Factories isoladas evitam acoplamento entre testes e facilitam manutenção.
-
 const makeCreateContingencyDTO = (
   overrides: Partial<CreateContingencyDTO> = {},
 ): CreateContingencyDTO =>
@@ -35,53 +40,46 @@ const makeDashboardResponse = () => ({
 });
 
 // ─── Mock do Service ──────────────────────────────────────────────────────────
-// Mock mínimo e tipado — apenas os métodos consumidos pelo controller.
-
-type MockContingencyService = Pick<
+type ContingencyServiceContract = Pick<
   ContingencyService,
   'create' | 'getDashboard'
 >;
 
-const makeServiceMock = (): Record<
-  keyof MockContingencyService,
-  jest.Mock
-> => ({
-  create: jest.fn().mockResolvedValue(undefined),
-  getDashboard: jest.fn().mockResolvedValue(makeDashboardResponse()),
+type ContingencyServiceMock = {
+  [K in keyof ContingencyServiceContract]: Mock<ContingencyServiceContract[K]>;
+};
+
+const makeServiceMock = (): ContingencyServiceMock => ({
+  create: vi.fn().mockResolvedValue(undefined),
+  getDashboard: vi.fn().mockResolvedValue(makeDashboardResponse()),
 });
 
 // ─── Suíte ────────────────────────────────────────────────────────────────────
-
 describe('ContingencyController', () => {
   let controller: ContingencyController;
-  let service: ReturnType<typeof makeServiceMock>;
+  let service: ContingencyServiceMock;
 
   beforeEach(async () => {
     service = makeServiceMock();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ContingencyController],
-      providers: [
-        {
-          provide: ContingencyService,
-          useValue: service,
-        },
-      ],
+      providers: [{ provide: ContingencyService, useValue: service }],
     }).compile();
 
-    controller = module.get<ContingencyController>(ContingencyController);
+    controller = module.get(ContingencyController);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
 
   // ── Sanity ────────────────────────────────────────────────────────────────
-
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
   // ── POST / (create) ───────────────────────────────────────────────────────
-
   describe('create', () => {
     it('should delegate to ContingencyService.create with the received DTO', async () => {
       const dto = makeCreateContingencyDTO();
@@ -111,10 +109,12 @@ describe('ContingencyController', () => {
     });
 
     it('should await the service before returning (no fire-and-forget)', async () => {
-      // Garante que o controller realmente aguarda a Promise do service.
       const executionOrder: string[] = [];
 
       service.create.mockImplementationOnce(async () => {
+        // Atraso real (macrotask): se o controller não fizer await,
+        // 'controller' será registado antes de 'service'.
+        await new Promise((resolve) => setTimeout(resolve, 0));
         executionOrder.push('service');
       });
 
@@ -126,7 +126,6 @@ describe('ContingencyController', () => {
   });
 
   // ── GET /dashboard ────────────────────────────────────────────────────────
-
   describe('getDashboard', () => {
     it('should delegate to ContingencyService.getDashboard with the received query', async () => {
       const query = makeDashboardFilterDTO();
@@ -139,7 +138,7 @@ describe('ContingencyController', () => {
 
     it('should return OK status, success message and service data', async () => {
       const dashboardData = makeDashboardResponse();
-      service.getDashboard.mockResolvedValueOnce(dashboardData);
+      service.getDashboard.mockResolvedValueOnce(dashboardData as never);
 
       const result = await controller.getDashboard(makeDashboardFilterDTO());
 
@@ -152,11 +151,10 @@ describe('ContingencyController', () => {
 
     it('should return the exact reference returned by the service (no mutation)', async () => {
       const dashboardData = makeDashboardResponse();
-      service.getDashboard.mockResolvedValueOnce(dashboardData);
+      service.getDashboard.mockResolvedValueOnce(dashboardData as never);
 
       const result = await controller.getDashboard(makeDashboardFilterDTO());
 
-      // Referência idêntica — controller não clona nem transforma o payload.
       expect(result.data).toBe(dashboardData);
     });
 
@@ -171,7 +169,7 @@ describe('ContingencyController', () => {
 
     it('should handle empty dashboard response gracefully', async () => {
       const emptyResponse = { totalItems: 0, items: [] };
-      service.getDashboard.mockResolvedValueOnce(emptyResponse);
+      service.getDashboard.mockResolvedValueOnce(emptyResponse as never);
 
       const result = await controller.getDashboard(makeDashboardFilterDTO());
 

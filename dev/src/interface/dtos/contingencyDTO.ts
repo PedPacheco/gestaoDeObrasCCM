@@ -39,34 +39,34 @@ export class CreateContingencyDTO {
     {},
     { message: 'dia_disponibilidade deve ser uma data válida (YYYY-MM-DD)' },
   )
-  dia_disponibilidade: string;
+  availabilityDate: string;
 
   @IsNumber()
   @IsNotEmpty()
-  idParceira: number;
+  partnerId: number;
 
   @IsIn(TIPOS_MAO_OBRA, { message: 'Tipo de recurso - Mão de Obra inválido' })
-  tipo_recurso_mao_obra: string;
+  laborType: string;
 
   @Type(() => Number)
   @IsInt({ message: 'Quantidade de mão de obra deve ser um número inteiro' })
   @Min(0, { message: 'Quantidade de mão de obra deve ser maior ou igual a 0' })
-  quantidade_mao_obra: number;
+  laborQuantity: number;
 
   @IsIn(TIPOS_EQUIPE, { message: 'Tipo de recurso - Por Equipe inválido' })
-  tipo_recurso_equipe: string;
+  teamType: string;
 
   @Type(() => Number)
   @IsInt({ message: 'Quantidade de equipe deve ser um número inteiro' })
   @Min(0, { message: 'Quantidade de equipe deve ser maior ou igual a 0' })
-  quantidade_equipe: number;
+  teamQuantity: number;
 
   @IsIn(CSDS, { message: 'Disponibilizado ao CSD inválido' })
-  disponibilizado_csd: string;
+  allocatedCsd: string;
 
   @IsNumber()
   @IsNotEmpty()
-  idUser: number;
+  userId: number;
 }
 
 // Filtros do dashboard (query params). Valores multivalorados chegam
