@@ -5,28 +5,29 @@ import { useState } from "react";
 
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 
-import { ContingenciaDashboard } from "./ContingenciaDashboard";
-import { ContingenciaFilters } from "./ContingenciaFilters";
-import { ContingenciaForm } from "./ContingenciaForm";
-import { ContingencyDashboardInterface } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { fetchData } from "@/actions/fetchData.action";
+import { ContingencyDashboardData } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
 
-interface MainContingenciaProps {
-  optionsPartner: FiltersInterface;
-  data: ContingencyDashboardInterface;
+import { fetchData } from "@/actions/fetchData.action";
+import { FiltersInterface } from "@/types/genericFilterSchema";
+import { ContingencyDashboard } from "./contingencyDashboard";
+import { ContingencyFilters } from "./contingencyFilters";
+import { ContingencyForm } from "./contingencyForm";
+
+interface ContingencyMainProps {
+  partnerOptions: FiltersInterface;
+  data: ContingencyDashboardData;
   token: string;
 }
 
 export const DEFAULT_START = () => dayjs().startOf("month");
 export const DEFAULT_END = () => dayjs().endOf("month");
 
-export function MainContingencia({
+export function ContingencyMain({
   data: initialData,
-  optionsPartner,
+  partnerOptions,
   token,
-}: MainContingenciaProps) {
-  const [data, setData] = useState<ContingencyDashboardInterface>(initialData);
+}: ContingencyMainProps) {
+  const [data, setData] = useState<ContingencyDashboardData>(initialData);
   const [formOpen, setFormOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -81,8 +82,8 @@ export function MainContingencia({
 
   return (
     <div className="w-full flex-1 min-h-0 overflow-y-auto flex flex-col">
-      <ContingenciaFilters
-        optionsPartner={optionsPartner}
+      <ContingencyFilters
+        partnerOptions={partnerOptions}
         startDate={startDate}
         endDate={endDate}
         setStartDate={setStartDate}
@@ -125,14 +126,14 @@ export function MainContingencia({
         </div>
 
         {formOpen && (
-          <ContingenciaForm
-            optionsPartner={optionsPartner}
+          <ContingencyForm
+            partnerOptions={partnerOptions}
             onSaved={() => applyFilters()}
           />
         )}
 
-        <ContingenciaDashboard
-          optionsPartner={optionsPartner}
+        <ContingencyDashboard
+          partnerOptions={partnerOptions}
           data={data}
           endDate={endDate}
           startDate={startDate}

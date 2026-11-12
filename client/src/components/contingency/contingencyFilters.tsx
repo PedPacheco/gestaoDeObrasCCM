@@ -2,18 +2,19 @@
 
 import { Dayjs } from "dayjs";
 
-import { DateFilter } from "@/components/common/DateFilter";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import {
   CSDS,
   TIPOS_EQUIPE,
   TIPOS_MAO_OBRA,
 } from "@/utils/contingenciaOptions";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { ButtonComponent } from "../common/Button";
 
-interface ContingenciaFiltersProps {
-  optionsPartner: FiltersInterface;
+import { FiltersInterface } from "@/types/genericFilterSchema";
+import { ButtonComponent } from "../common/Button";
+import { DateFilter } from "../common/filter/DateFilter";
+import { MultipleSelectComponent } from "../common/filter/MultipleSelect";
+
+interface ContingencyFiltersProps {
+  partnerOptions: FiltersInterface;
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   setStartDate: (date: Dayjs | null) => void;
@@ -31,8 +32,8 @@ interface ContingenciaFiltersProps {
   isPending: boolean;
 }
 
-export function ContingenciaFilters({
-  optionsPartner,
+export function ContingencyFilters({
+  partnerOptions,
   startDate,
   endDate,
   setStartDate,
@@ -48,7 +49,7 @@ export function ContingenciaFilters({
   onApply,
   onClear,
   isPending,
-}: ContingenciaFiltersProps) {
+}: ContingencyFiltersProps) {
   return (
     <div className="sticky top-0 z-30 flex flex-col gap-3 border-b border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-3 sm:p-4 shadow-xl backdrop-blur-sm">
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
@@ -71,7 +72,7 @@ export function ContingenciaFilters({
           <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Parceira"
-              menuItems={optionsPartner.parceira || []}
+              menuItems={partnerOptions.parceira || []}
               selectedItem={parceira}
               setSelectedItem={setParceira}
               valueKey="id"

@@ -5,14 +5,13 @@ import "dayjs/locale/pt-br";
 import { useState } from "react";
 
 import {
-  saveContingencia,
   ContingenciaPayload,
+  saveContingencia,
 } from "@/actions/contingencia.action";
-import {
-  CSDS,
-  TIPOS_EQUIPE,
-  TIPOS_MAO_OBRA,
-} from "@/utils/contingenciaOptions";
+import { useUser } from "@/contexts/userContext";
+import { FiltersInterface } from "@/types/genericFilterSchema";
+
+import { CSDS, LABOR_TYPES, TEAMS_TYPES } from "@/constants/contingency";
 import {
   Alert,
   Button,
@@ -23,11 +22,9 @@ import {
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { useUser } from "@/contexts/userContext";
 
-interface ContingenciaFormProps {
-  optionsPartner: FiltersInterface;
+interface ContingencyFormProps {
+  partnerOptions: FiltersInterface;
   onSaved: () => void;
 }
 
@@ -49,10 +46,10 @@ const fieldSx = {
 
 const menuItemSx = { fontSize: "1rem" };
 
-export function ContingenciaForm({
-  optionsPartner,
+export function ContingencyForm({
+  partnerOptions,
   onSaved,
-}: ContingenciaFormProps) {
+}: ContingencyFormProps) {
   const { user } = useUser();
 
   const [diaDisponibilidade, setDiaDisponibilidade] =
@@ -168,7 +165,7 @@ export function ContingenciaForm({
           onChange={(e) => setParceira(e.target.value)}
           sx={fieldSx}
         >
-          {optionsPartner.parceira?.map((option) => (
+          {partnerOptions.parceira?.map((option) => (
             <MenuItem key={option.id} value={option.id} sx={menuItemSx}>
               {option.turma}
             </MenuItem>
@@ -184,7 +181,7 @@ export function ContingenciaForm({
           onChange={(e) => setTipoMaoObra(e.target.value)}
           sx={fieldSx}
         >
-          {TIPOS_MAO_OBRA.map((option) => (
+          {LABOR_TYPES.map((option) => (
             <MenuItem key={option} value={option} sx={menuItemSx}>
               {option}
             </MenuItem>
@@ -211,7 +208,7 @@ export function ContingenciaForm({
           onChange={(e) => setTipoEquipe(e.target.value)}
           sx={fieldSx}
         >
-          {TIPOS_EQUIPE.map((option) => (
+          {TEAMS_TYPES.map((option) => (
             <MenuItem key={option} value={option} sx={menuItemSx}>
               {option}
             </MenuItem>

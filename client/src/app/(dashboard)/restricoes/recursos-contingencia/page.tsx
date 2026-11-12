@@ -1,9 +1,9 @@
 import { fetchData } from "@/actions/fetchData.action";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import { MainContingencia } from "@/components/contingencia/MainContingencia";
 
-import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { ContingencyMain } from "@/components/contingency/contingencyMain";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
@@ -19,31 +19,21 @@ export interface RecentResponse {
   nome: string | null;
 }
 
-export interface ContingencyDashboardInterface {
-  recentDates: RecentResponse[];
-  porcentagemCedida: number;
-  capacidadeMes: {
-    ano: string;
-    mes: number;
-    capacidade: number;
-    valor: number;
-  }[];
-  equipesEmergencia: {
-    ano: number;
-    mes: number;
-    quantidade: number;
-    valor: number;
-  }[];
-  parceira: CountItem[];
-  maoObra: CountItem[];
-  equipe: CountItem[];
-  csd: CountItem[];
+export interface ContingencyDashboardData {
+  partners: CountItem[];
+  laborTypes: CountItem[];
+  teamTypes: CountItem[];
+  csds: CountItem[];
+  recentAnswers: { date: string; name: string | null }[];
+  monthlyCapacity: { capacity: number | null; value: number | null }[];
+  emergencyTeams: { value: number | null; quantity: number | null }[];
+  allocatedPercentage: number;
 }
 
-export default async function RecursosContingencia() {
+export default async function ContingencyResources() {
   const cookieStore = await cookies();
 
-  const [optionsPartner, dashboard] = await Promise.all([
+  const [partnerOptions, dashboard] = await Promise.all([
     fetchFilters({
       parceira: true,
     }),
@@ -66,9 +56,9 @@ export default async function RecursosContingencia() {
 
   return (
     <EmotionCacheProvider>
-      <MainContingencia
+      <ContingencyMain
         data={data}
-        optionsPartner={optionsPartner}
+        partnerOptions={partnerOptions}
         token={token}
       />
     </EmotionCacheProvider>
