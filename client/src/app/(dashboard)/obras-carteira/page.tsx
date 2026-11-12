@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
-import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -59,6 +59,7 @@ export default async function WorksInPortfolio() {
     ordem_dcd: "Ordem DCD",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
+    ordem_dcdm: "Ordem DCDM",
     status_ov_sap: "Status SAP",
     pep: "Pep",
     mun: "Municipio",
