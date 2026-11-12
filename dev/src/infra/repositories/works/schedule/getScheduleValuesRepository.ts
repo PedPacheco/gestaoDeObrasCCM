@@ -147,7 +147,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
     ${this.EQUIPES_JOIN}
     WHERE status.id NOT IN (3, 4)`;
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcdm, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
     turma, status_ov_sap, executado, data_prog, prog, exec,
     CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*prog/100 END AS mo_prog,
     CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*COALESCE(exec, 0)/100 END AS mo_exec,

@@ -11,7 +11,7 @@ describe('GetScheduleValuesRepository', () => {
     $queryRaw: vi.fn(),
   };
 
-  const baseQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
+  const baseQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcdm, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
     turma, status_ov_sap, executado, data_prog, prog, exec,
     CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*prog/100 END AS mo_prog,
     CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*COALESCE(exec, 0)/100 END AS mo_exec,
