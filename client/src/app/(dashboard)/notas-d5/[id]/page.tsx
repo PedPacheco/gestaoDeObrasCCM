@@ -9,6 +9,7 @@ import { D5NotesPanel } from "@/components/details/d5NotesDetails/d5NotesPanel";
 import D5DataItem, {
   SummaryD5DataItem,
 } from "@/components/details/d5NotesDetails/dataItemD5";
+import D5NoteDescription from "@/components/details/d5NotesDetails/editableData/d5NoteDescription";
 import { D5NoteObservation } from "@/components/details/d5NotesDetails/editableData/d5NoteObservation";
 import { EditableColumnD5 } from "@/components/details/d5NotesDetails/editableData/editableColumn";
 import { SaveD5NoteButton } from "@/components/details/d5NotesDetails/editableData/saveD5NoteButton";
@@ -176,8 +177,10 @@ export default async function DetailsD5({ params }: DetailsParams) {
               <EditableColumnD5 data={data} options={filters} />
             </div>
 
-            {/* Observação */}
-            <D5NoteObservation />
+            <div className="col-span-full grid min-w-0 grid-cols-2 gap-3 pb-2 md:px-4">
+              <D5NoteDescription value={data.motivos} />
+              <D5NoteObservation />
+            </div>
           </section>
 
           {/* Tabs e tabela */}

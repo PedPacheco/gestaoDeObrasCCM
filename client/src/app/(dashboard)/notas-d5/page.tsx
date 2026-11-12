@@ -51,6 +51,7 @@ export default async function D5NotesPage() {
     nota_d5: "Nota D5",
     obra: "Ov/Nota",
     ordemDiagrama: "Ordem/Diagrama",
+    motivos: "Motivos D5",
     regional: "Regional",
     municipio: "Municipio",
     parceira: "Parceira",

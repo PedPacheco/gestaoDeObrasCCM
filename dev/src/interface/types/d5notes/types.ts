@@ -9,6 +9,7 @@ export type FindD5NotesQueryResult = {
   validacao_anual: boolean | null;
   mo_planejada: Prisma.Decimal;
   nota_d5: string;
+  motivo_d5: number[];
   obras: {
     ovnota: string | null;
     diagrama: string | null;
@@ -49,6 +50,7 @@ export const d5NoteByIdSelect = {
   mo_planejada: true,
   nota_d5: true,
   descricao: true,
+  motivo_d5: true,
   obras: {
     select: {
       ovnota: true,

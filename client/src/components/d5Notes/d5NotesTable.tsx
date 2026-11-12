@@ -147,6 +147,11 @@ export function D5NotesTable({
                           bgColorClass = "bg-black text-white";
                       }
 
+                      if (column === "motivos") {
+                        cellValue = cellValue.join();
+                        console.log(cellValue);
+                      }
+
                       return (
                         <TableCell
                           key={column}

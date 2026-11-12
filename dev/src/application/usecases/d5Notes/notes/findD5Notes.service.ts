@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import moment from 'moment';
+import { mapMotivosD5 } from 'src/domain/constants/d5Notes/reasonsD5';
 import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
@@ -39,6 +40,7 @@ export class FindD5NotesService {
         turmas,
         status,
         novo_tabela_usuarios,
+        motivo_d5,
         ...rest
       }) => {
         const { tmAberto, tmExecucao } = this.timeMetrics.getDeadlineInfo(
@@ -60,6 +62,7 @@ export class FindD5NotesService {
           tmExecucao,
           statusPrazo: this.timeMetrics.calculateStatus(tmAberto),
           usuarioModificador: novo_tabela_usuarios?.nome ?? null,
+          motivos: mapMotivosD5(motivo_d5),
         };
       },
     );
@@ -86,6 +89,7 @@ export class FindD5NotesService {
       status,
       novo_tabela_usuarios,
       programacoes_d5,
+      motivo_d5,
       ...rest
     } = response;
 
@@ -107,6 +111,7 @@ export class FindD5NotesService {
       totalExecutado,
       observacao: rest.descricao,
       prazo: moment(rest.criado_em).add(7, 'days').toDate(),
+      motivos: mapMotivosD5(motivo_d5),
     };
   }
 

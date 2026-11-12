@@ -21,6 +21,7 @@ export class D5NotesRepository implements ID5NotesRepository {
     validacao_anual: true,
     mo_planejada: true,
     nota_d5: true,
+    motivo_d5: true,
     obras: {
       select: {
         ovnota: true,
@@ -80,6 +81,7 @@ export class D5NotesRepository implements ID5NotesRepository {
         id_parceira: true,
         id_status: true,
         descricao: true,
+        motivo_d5: true,
         programacoes_d5: { select: { prog: true, exec: true } },
       },
     });

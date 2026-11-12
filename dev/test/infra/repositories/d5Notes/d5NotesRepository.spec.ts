@@ -40,6 +40,7 @@ const SCALAR_FIELDS = [
   'validacao_anual',
   'mo_planejada',
   'nota_d5',
+  'motivo_d5',
 ];
 
 /** Colunas exigidas pela cadeia de fallback do ordemDiagrama. */
