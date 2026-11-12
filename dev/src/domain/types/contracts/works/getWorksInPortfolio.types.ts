@@ -5,6 +5,7 @@ export type WorkSummary = {
   ordem_dca: string;
   ordem_dcd: string;
   ordem_dcim: string;
+  ordem_dcdm: string;
   status_ov_sap: number;
   pep: string;
   executado: number;

@@ -305,6 +305,9 @@ export class InsertNotesDTO {
   @IsString()
   dcim: string;
 
+  @IsString()
+  dcdm: string;
+
   @IsDate()
   entrada: Date;
 

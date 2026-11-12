@@ -95,6 +95,7 @@ export type WorkDetailsRepositoryResponse = {
   ordem_dcd: string | null;
   ordem_dca: string | null;
   ordem_dcim: string | null;
+  ordem_dcdm: string | null;
   status_ov_sap: number | null;
   status_diagrama: string | null;
   status_usuario_diagrama: string | null;

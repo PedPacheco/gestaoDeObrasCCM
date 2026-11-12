@@ -132,6 +132,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         ordem_dca,
         ordem_dcd,
         ordem_dcim,
+        ordem_dcdm,
         status_ov_sap,
         executado,
         pep,
@@ -188,7 +189,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
     query = Prisma.sql`
       ${query}
       GROUP BY 
-        obras.id, obras.ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd,
+        obras.id, obras.ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, ordem_dcdm,
         status_ov_sap, pep, mun, obras.id_status, prazo, abrev_regional, tipo_obra,
         tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status,
         conjunto, empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias, encontrado
