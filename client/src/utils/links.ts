@@ -50,7 +50,7 @@ export const links: Link[] = [
     name: "Tela inicial",
     href: "/",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 9],
+    allowedAreas: [8, 1, 9, 10],
   },
   {
     name: "Relatórios",
@@ -82,18 +82,6 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer"],
         allowedAreas: [8, 1],
       },
-      // {
-      //   name: "Controle SMC",
-      //   href: "/relatorios/controle-smc",
-      //   allowedFor: ["interno_editor", "interno_viewer"],
-      //   allowedAreas: [8, 1, 7],
-      // },
-      // {
-      //   name: "Sigo nucleos",
-      //   href: "/relatorios/sigo-nucleos",
-      //   allowedFor: ["interno_editor", "interno_viewer"],
-      //   allowedAreas: [8, 1, 7],
-      // },
     ],
   },
   {
@@ -153,12 +141,6 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer"],
         allowedAreas: [8, 1],
       },
-      // {
-      //   name: "Importação Execução EDP",
-      //   href: "/entrada/importacao-execucao-edp",
-      //   allowedFor: ["interno_editor", "interno_viewer"],
-      //   allowedAreas: [8, 1],
-      // },
     ],
   },
   {
@@ -202,7 +184,7 @@ export const links: Link[] = [
     name: "Programação",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
     submenu: [
       {
         name: "Resumo mensal - Mão de Obra",
@@ -226,7 +208,7 @@ export const links: Link[] = [
         name: "Programação por data",
         href: "/programacao/por-data",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
       },
       {
         name: "Programações notas D5",
@@ -256,7 +238,7 @@ export const links: Link[] = [
       },
       {
         name: "Equipes para Contingência",
-        href: "/recursos-contingencia",
+        href: "/restricoes/recursos-contingencia",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
       },
       {
@@ -271,7 +253,7 @@ export const links: Link[] = [
     name: "Mapa de obras",
     href: "/mapa-obras",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
   },
   {
     name: "Obras em carteira",

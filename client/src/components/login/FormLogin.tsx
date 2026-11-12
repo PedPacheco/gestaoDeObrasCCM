@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,8 +11,8 @@ import { userLoginSchema } from "@/validations/validationUserLogin";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox, TextField } from "@mui/material";
 
-import { ButtonComponent } from "../common/Button";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import { ButtonComponent } from "../common/Button";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -103,15 +102,6 @@ export function FormLogin() {
         />
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showPassword}
-              // onChange={() => setShowPassword(!showPassword)}
-              className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
-            />
-            <span className="text-sm text-slate-600">Exibir senha</span>
-          </label>
           {/* 
         <Link
           href="/login/forget-password"

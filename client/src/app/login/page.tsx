@@ -2,7 +2,7 @@ import { FormLogin } from "@/components/login/FormLogin";
 
 export default function Login() {
   return (
-    <div className="flex min-h-screen min-h-[100dvh] w-full">
+    <div className="flex min-h-screen w-full">
       {/* Lado esquerdo — fundo escuro com espiral EDP apagada + logo SIGO */}
       <div className="hidden md:flex md:w-1/2 relative items-center justify-center overflow-hidden px-8 lg:px-12 py-10 bg-[#212e3e]">
         <div
