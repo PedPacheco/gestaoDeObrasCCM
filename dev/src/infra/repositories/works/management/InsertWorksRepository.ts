@@ -52,6 +52,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
           ordem_dcd: work.dcd,
           ordem_dca: work.dca,
           ordem_dcim: work.dcim,
+          ordem_dcdm: work.dcdm,
           entrada: new Date(work.entrada),
           prazo: Number(work.prazoTexto),
           referencia: work.equipeNumPedido,

@@ -75,6 +75,9 @@ export class NotesDTO {
   ordem_dcim: string;
 
   @IsString()
+  ordem_dcdm: string;
+
+  @IsString()
   conjunto: string;
 
   @IsString()

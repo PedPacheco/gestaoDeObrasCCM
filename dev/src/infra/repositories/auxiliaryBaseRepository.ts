@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   CapexInsertItem,
   InsertAuxiliaryMarketInput,
+  NoteInsertInput,
 } from 'src/application/types';
 import { AppLogger } from 'src/core/logger/logger.service';
 import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
@@ -13,7 +14,6 @@ import {
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
-import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
@@ -100,6 +100,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         dcd: true,
         dca: true,
         dcim: true,
+        dcdm: true,
         entrada: true,
         prazo: true,
         referencia: true,
@@ -305,7 +306,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
-  async insertNotes(data: InsertNotesInterface[]): Promise<any> {
+  async insertNotes(data: NoteInsertInput[]): Promise<any> {
     try {
       const rows = data.map(
         (item) => Prisma.sql`
@@ -320,18 +321,25 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         ${item.grp_plnj_pm},
         ${item.texto_breve},
         ${item.denominacao},
-        ${item.ehRda}
-        )::construcao_sp.base_auxiliar_input
+        ${item.ehRda},
+        ${item.ordem_dcdm}
+        )::public.base_auxiliar_input
         `,
       );
 
-      const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
+      const query = Prisma.sql`SELECT public.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::public.base_auxiliar_input[])`;
 
       await this.prisma.$executeRaw(query);
 
       return { message: 'Dados inseridos com sucesso' };
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      this.logger.error(
+        'Erro ao inserir dados da base auxiliar',
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new Error('Falha ao inserir dados da base auxiliar', {
+        cause: error,
+      });
     }
   }
 
