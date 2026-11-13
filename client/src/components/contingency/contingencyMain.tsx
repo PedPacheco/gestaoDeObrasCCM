@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
 
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
@@ -9,9 +8,21 @@ import { ContingencyDashboardData } from "@/app/(dashboard)/restricoes/recursos-
 
 import { fetchData } from "@/actions/fetchData.action";
 import { FiltersInterface } from "@/types/genericFilterSchema";
+import dayjs from "dayjs";
+import { MonthRange } from "../common/filter/monthFilter";
 import { ContingencyDashboard } from "./contingencyDashboard";
 import { ContingencyFilters } from "./contingencyFilters";
 import { ContingencyForm } from "./contingencyForm";
+
+type DashboardParams = Record<string, string | string[]>;
+
+interface DashboardFilters {
+  period: MonthRange;
+  partners: string[];
+  maoObra: string[];
+  equipe: string[];
+  csd: string[];
+}
 
 interface ContingencyMainProps {
   partnerOptions: FiltersInterface;
@@ -19,21 +30,30 @@ interface ContingencyMainProps {
   token: string;
 }
 
-export const DEFAULT_START = () => dayjs().startOf("month");
-export const DEFAULT_END = () => dayjs().endOf("month");
-
 export function ContingencyMain({
   data: initialData,
   partnerOptions,
   token,
 }: ContingencyMainProps) {
+  const defaultPeriod = (): MonthRange => ({
+    startMonth: dayjs().startOf("month"),
+    endMonth: dayjs().startOf("month"),
+  });
+
+  const defaultFilters = (): DashboardFilters => ({
+    period: defaultPeriod(),
+    partners: [],
+    maoObra: [],
+    equipe: [],
+    csd: [],
+  });
+
   const [data, setData] = useState<ContingencyDashboardData>(initialData);
   const [formOpen, setFormOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   // Estado dos filtros
-  const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START);
-  const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END);
+  const [period, setPeriod] = useState<MonthRange>(defaultPeriod);
   const [partners, setPartners] = useState<string[]>([]);
   const [maoObra, setMaoObra] = useState<string[]>([]);
   const [equipe, setEquipe] = useState<string[]>([]);
@@ -51,43 +71,50 @@ export function ContingencyMain({
     setIsPending(false);
   }
 
+  function buildDashboardParams({
+    period,
+    partners,
+    maoObra,
+    equipe,
+    csd,
+  }: DashboardFilters): DashboardParams {
+    const params: DashboardParams = {};
+
+    if (period.startMonth)
+      params.mesInicial = period.startMonth.format("YYYY-MM");
+    if (period.endMonth) params.mesFinal = period.endMonth.format("YYYY-MM");
+    if (partners.length) params.idParceira = partners;
+    if (maoObra.length) params.maoObra = maoObra;
+    if (equipe.length) params.equipe = equipe;
+    if (csd.length) params.csd = csd;
+
+    return params;
+  }
+
   function applyFilters() {
-    const params: Record<string, any> = {};
-
-    if (startDate) params.dataInicial = startDate.format("DD/MM/YYYY");
-    if (endDate) params.dataFinal = endDate.format("DD/MM/YYYY");
-    if (partners?.length) params.idParceira = partners;
-    if (maoObra?.length) params.maoObra = maoObra;
-    if (equipe?.length) params.equipe = equipe;
-    if (csd?.length) params.csd = csd;
-
-    fetchDashboard(params);
+    fetchDashboard(
+      buildDashboardParams({ period, partners, maoObra, equipe, csd }),
+    );
   }
 
   function clearFilters() {
-    setStartDate(DEFAULT_START);
-    setEndDate(DEFAULT_END);
-    setPartners([]);
-    setMaoObra([]);
-    setEquipe([]);
-    setCsd([]);
+    const initial = defaultFilters();
 
-    const params = {
-      dataInicial: DEFAULT_START().format("DD/MM/YYYY"),
-      dataFinal: DEFAULT_END().format("DD/MM/YYYY"),
-    };
+    setPeriod(initial.period);
+    setPartners(initial.partners);
+    setMaoObra(initial.maoObra);
+    setEquipe(initial.equipe);
+    setCsd(initial.csd);
 
-    fetchDashboard(params);
+    fetchDashboard(buildDashboardParams(initial));
   }
 
   return (
     <div className="w-full flex-1 min-h-0 overflow-y-auto flex flex-col">
       <ContingencyFilters
         partnerOptions={partnerOptions}
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
+        period={period}
+        setPeriod={setPeriod}
         parceira={partners}
         setParceira={setPartners}
         maoObra={maoObra}
@@ -132,12 +159,7 @@ export function ContingencyMain({
           />
         )}
 
-        <ContingencyDashboard
-          partnerOptions={partnerOptions}
-          data={data}
-          endDate={endDate}
-          startDate={startDate}
-        />
+        <ContingencyDashboard partnerOptions={partnerOptions} data={data} />
       </div>
     </div>
   );

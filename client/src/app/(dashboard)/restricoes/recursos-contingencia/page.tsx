@@ -24,7 +24,12 @@ export interface ContingencyDashboardData {
   laborTypes: CountItem[];
   teamTypes: CountItem[];
   csds: CountItem[];
-  recentAnswers: { date: string; name: string | null }[];
+  recentAnswers: {
+    id: number;
+    date: string;
+    name: string | null;
+    partner: string | null;
+  }[];
   monthlyCapacity: { capacity: number | null; value: number | null }[];
   emergencyTeams: { value: number | null; quantity: number | null }[];
   allocatedPercentage: number;
@@ -40,8 +45,8 @@ export default async function ContingencyResources() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/recursos-contingencia/dashboard`,
       {
-        dataInicial: dayjs().startOf("month").format("DD/MM/YYYY"),
-        dataFinal: dayjs().endOf("month").format("DD/MM/YYYY"),
+        mesInicial: dayjs().startOf("month").format("YYYY-MM"),
+        mesFinal: dayjs().startOf("month").format("YYYY-MM"),
       },
       cookieStore.get("token")?.value,
       { cache: "no-store" },

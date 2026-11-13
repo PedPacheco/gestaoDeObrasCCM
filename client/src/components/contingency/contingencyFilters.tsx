@@ -1,24 +1,15 @@
 "use client";
 
-import { Dayjs } from "dayjs";
-
-import {
-  CSDS,
-  TIPOS_EQUIPE,
-  TIPOS_MAO_OBRA,
-} from "@/utils/contingenciaOptions";
-
+import { CSDS, LABOR_TYPES, TEAMS_TYPES } from "@/constants/contingency";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { ButtonComponent } from "../common/Button";
-import { DateFilter } from "../common/filter/DateFilter";
 import { MultipleSelectComponent } from "../common/filter/MultipleSelect";
+import { MonthRange, MonthRangeFilter } from "../common/filter/monthFilter";
 
 interface ContingencyFiltersProps {
   partnerOptions: FiltersInterface;
-  startDate: Dayjs | null;
-  endDate: Dayjs | null;
-  setStartDate: (date: Dayjs | null) => void;
-  setEndDate: (date: Dayjs | null) => void;
+  period: MonthRange;
+  setPeriod: (period: MonthRange) => void;
   parceira: string[];
   setParceira: (data: string[]) => void;
   maoObra: string[];
@@ -34,10 +25,8 @@ interface ContingencyFiltersProps {
 
 export function ContingencyFilters({
   partnerOptions,
-  startDate,
-  endDate,
-  setStartDate,
-  setEndDate,
+  period,
+  setPeriod,
   parceira,
   setParceira,
   maoObra,
@@ -55,16 +44,12 @@ export function ContingencyFilters({
       <div className="flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:items-center flex-1 min-w-0">
           {/* Período */}
-          <div className="flex gap-2 items-center shrink-0">
-            <DateFilter
-              startDate={startDate}
-              endDate={endDate}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
-              backgroundColor="#0f1e2e"
-              textColor="#a1a1aa"
-              svgColor="#94a3b8"
-              spacing="!mb-0"
+          <div className="shrink-0 mt-2">
+            <MonthRangeFilter
+              startMonth={period.startMonth}
+              endMonth={period.endMonth}
+              onChange={setPeriod}
+              maxMonths={12}
             />
           </div>
 
@@ -85,7 +70,7 @@ export function ContingencyFilters({
           <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Mão de Obra"
-              menuItems={TIPOS_MAO_OBRA}
+              menuItems={LABOR_TYPES}
               selectedItem={maoObra}
               setSelectedItem={setMaoObra}
               backgroundColor="#0f1e2e"
@@ -96,7 +81,7 @@ export function ContingencyFilters({
           <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Por Equipe"
-              menuItems={TIPOS_EQUIPE}
+              menuItems={TEAMS_TYPES}
               selectedItem={equipe}
               setSelectedItem={setEquipe}
               backgroundColor="#0f1e2e"

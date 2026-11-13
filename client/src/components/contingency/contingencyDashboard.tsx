@@ -16,14 +16,11 @@ import {
 } from "@/constants/contingency";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { FormatCurrency } from "@/utils/formatValue";
-import { Dayjs } from "dayjs";
 import { BarListCard } from "./barListCard";
 
 interface ContingencyDashboardProps {
   partnerOptions: FiltersInterface;
   data: ContingencyDashboardData;
-  startDate: Dayjs | null;
-  endDate: Dayjs | null;
 }
 
 // Ensures every option is shown (even with 0 answers), in the official order
@@ -48,7 +45,7 @@ export function ContingencyDashboard({
   partnerOptions,
 }: ContingencyDashboardProps) {
   const partners = zeroFill(
-    partnerOptions.partners?.map((partner) => partner.crew) ?? [],
+    partnerOptions.parceira?.map((partner) => partner.turma) ?? [],
     data.partners,
   );
   const laborTypes = zeroFill(LABOR_TYPES, data.laborTypes);
@@ -56,8 +53,10 @@ export function ContingencyDashboard({
   const csds = zeroFill(CSDS, data.csds);
 
   const recentAnswers = data.recentAnswers.map((answer) => ({
+    id: answer.id,
     date: formatIsoDate(answer.date),
     name: answer.name,
+    partner: answer.partner,
   }));
 
   const monthlyCapacityCount = sumBy(
@@ -72,18 +71,6 @@ export function ContingencyDashboard({
   const emergencyTeamsCount = sumBy(
     data.emergencyTeams,
     (item) => item.quantity,
-  );
-
-  console.log(
-    emergencyTeamsCount,
-    emergencyTeamsValue,
-    monthlyCapacityCount,
-    monthlyCapacityValue,
-    recentAnswers,
-    laborTypes,
-    csds,
-    teamTypes,
-    partners,
   );
 
   return (
@@ -106,7 +93,7 @@ export function ContingencyDashboard({
               {recentAnswers.length ? (
                 recentAnswers.map((answer, index) => (
                   <div
-                    key={`${answer.date}-${answer.name ?? index}`}
+                    key={`${answer.id}-${answer.date}-${answer.name ?? index}`}
                     className="flex items-baseline gap-2"
                   >
                     <span className="text-white font-bold text-sm">
@@ -114,6 +101,9 @@ export function ContingencyDashboard({
                     </span>
                     <span className="text-white/60 text-sm truncate">
                       {answer.name ?? "—"}
+                    </span>
+                    <span className="text-white/60 text-sm truncate">
+                      {answer.partner ?? "—"}
                     </span>
                   </div>
                 ))
