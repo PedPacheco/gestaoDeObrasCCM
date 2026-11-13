@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
 export interface ContingenciaPayload {
-  dia_disponibilidade: string;
-  idParceira: number;
-  tipo_recurso_mao_obra: string;
-  quantidade_mao_obra: number;
-  tipo_recurso_equipe: string;
-  quantidade_equipe: number;
-  disponibilizado_csd: string;
-  idUser?: number;
+  availabilityDate: string;
+  partnerId: number;
+  laborType: string;
+  laborQuantity: number;
+  teamType: string;
+  teamQuantity: number;
+  allocatedCsd: string;
+  userId?: number;
 }
 
 export async function saveContingencia(data: ContingenciaPayload) {

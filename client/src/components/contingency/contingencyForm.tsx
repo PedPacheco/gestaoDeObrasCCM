@@ -99,14 +99,14 @@ export function ContingencyForm({
     }
 
     const payload: ContingenciaPayload = {
-      dia_disponibilidade: diaDisponibilidade.format("YYYY-MM-DD"),
-      idParceira: Number(parceira),
-      tipo_recurso_mao_obra: tipoMaoObra,
-      quantidade_mao_obra: Number(quantidadeMaoObra),
-      tipo_recurso_equipe: tipoEquipe,
-      quantidade_equipe: Number(quantidadeEquipe),
-      disponibilizado_csd: csd,
-      idUser: user?.id,
+      availabilityDate: diaDisponibilidade.format("YYYY-MM-DD"),
+      partnerId: Number(parceira),
+      laborType: tipoMaoObra,
+      laborQuantity: Number(quantidadeMaoObra),
+      teamType: tipoEquipe,
+      teamQuantity: Number(quantidadeEquipe),
+      allocatedCsd: csd,
+      userId: user?.id,
     };
     setLoading(true);
     const result = await saveContingencia(payload);
