@@ -7,8 +7,12 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsString,
+  Matches,
   Min,
+  Validate,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import {
   convertParameterValue,
@@ -69,16 +73,33 @@ export class CreateContingencyDTO {
   userId: number;
 }
 
+const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MONTH_MESSAGE = 'deve estar no formato YYYY-MM (ex.: 2026-01)';
+
+@ValidatorConstraint({ name: 'monthRange' })
+class MonthRangeConstraint implements ValidatorConstraintInterface {
+  validate(mesFinal: string, args: ValidationArguments): boolean {
+    const { mesInicial } = args.object as DashboardFilterDTO;
+    // YYYY-MM pode ser comparado como texto
+    return !mesInicial || !mesFinal || mesFinal >= mesInicial;
+  }
+
+  defaultMessage(): string {
+    return 'mesFinal deve ser igual ou posterior a mesInicial';
+  }
+}
+
 // Filtros do dashboard (query params). Valores multivalorados chegam
 // separados por vírgula (ex.: parceira=ENGELMIG,LIG) e são divididos no service.
 export class DashboardFilterDTO {
-  @IsString()
   @IsOptional()
-  dataInicial?: string;
+  @Matches(MONTH_REGEX, { message: `mesInicial ${MONTH_MESSAGE}` })
+  mesInicial?: string;
 
-  @IsString()
   @IsOptional()
-  dataFinal?: string;
+  @Matches(MONTH_REGEX, { message: `mesFinal ${MONTH_MESSAGE}` })
+  @Validate(MonthRangeConstraint)
+  mesFinal?: string;
 
   @IsOptional()
   @IsArray()

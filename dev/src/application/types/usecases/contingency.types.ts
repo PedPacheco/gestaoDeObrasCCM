@@ -10,22 +10,14 @@ export interface CreateContingencyInput {
 }
 
 export type ContingencyInput = {
-  dataInicial?: string;
-  dataFinal?: string;
+  mesInicial?: string; // YYYY-MM
+  mesFinal?: string; // YYYY-MM
   idParceira?: number[];
   maoObra?: string[];
   equipe?: string[];
   csd?: string[];
 };
 
-export type AggregatedEmergencyTeam = {
-  ano: number;
-  mes: number;
-  quantidade: number;
-  valor: number;
-};
-
-// src/domain/types/contracts/contingency.types.ts
 export interface CountItem {
   name: string;
   value: number;
@@ -46,11 +38,10 @@ export interface GroupByFieldRow {
   name: string;
   laborQuantity: number | null;
   teamsQuantity: number | null;
-  allocatedCsd: number | null;
 }
 
 export interface MonthlyCapacityRow {
-  year: number;
+  year: string;
   month: number;
   capacity: number;
   value: number;
@@ -67,8 +58,13 @@ export interface EmergencyTeamRow {
 export interface ContingencyDashboardOutput {
   allocatedPercentage: number | null;
   monthlyCapacity: MonthlyCapacityRow[];
-  emergencyTeams: AggregatedEmergencyTeam[];
-  recentAnswers: { date: string; name: string | null }[];
+  emergencyTeams: EmergencyTeamRow[];
+  recentAnswers: {
+    id: number;
+    date: string;
+    name: string | null;
+    partner: string | null;
+  }[];
   partners: CountItem[];
   laborTypes: CountItem[];
   teamTypes: CountItem[];

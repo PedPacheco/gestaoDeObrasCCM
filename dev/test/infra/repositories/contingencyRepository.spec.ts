@@ -20,8 +20,8 @@ import {
 const makeFilter = (
   overrides: Partial<ContingencyInput> = {},
 ): ContingencyInput => ({
-  dataInicial: '01/06/2025', // formato DD/MM/YYYY esperado pelo buildWhere
-  dataFinal: '30/06/2025',
+  mesInicial: '2025-06', // formato YYYY-MM
+  mesFinal: '2025-06',
   idParceira: [1, 2],
   maoObra: ['ELETRICISTA'],
   equipe: ['EQUIPE_A'],
@@ -29,7 +29,12 @@ const makeFilter = (
   ...overrides,
 });
 
-const makeRecentRow = (dateStr: string, nome: string | null = 'João') => ({
+const makeRecentRow = (
+  dateStr: string,
+  id = 1,
+  nome: string | null = 'João',
+) => ({
+  id,
   dia_disponibilidade: new Date(dateStr),
   novo_tabela_usuarios: nome !== null ? { nome } : null,
   turmas: { turma: 'Turma A' },
@@ -37,23 +42,15 @@ const makeRecentRow = (dateStr: string, nome: string | null = 'João') => ({
 
 const makeCreateInput = (
   overrides: Partial<Prisma.recursos_contingenciaUncheckedCreateInput> = {},
-): Prisma.recursos_contingenciaUncheckedCreateInput =>
-  ({
-    dia_disponibilidade: new Date('2025-06-10'),
-    id_parceira: 1,
-    tipo_recurso_mao_obra: 'ELETRICISTA',
-    quantidade_mao_obra: 5,
-    tipo_recurso_equipe: 'EQUIPE_A',
-    quantidade_equipe: 3,
-    disponibilizado_csd: 'SIM',
-    id_usuario: 42,
-    ...overrides,
-  }) as Prisma.recursos_contingenciaUncheckedCreateInput;
-
-const makeAggregateResult = (overrides = {}) => ({
-  _sum: { quantidade_mao_obra: 20, quantidade_equipe: 10 },
-  _min: { dia_disponibilidade: new Date('2025-06-01') },
-  _max: { dia_disponibilidade: new Date('2025-06-30') },
+): Prisma.recursos_contingenciaUncheckedCreateInput => ({
+  dia_disponibilidade: new Date('2025-06-10T00:00:00.000Z'),
+  id_parceira: 1,
+  tipo_recurso_mao_obra: 'ELETRICISTA',
+  quantidade_mao_obra: 5,
+  tipo_recurso_equipe: 'EQUIPE_A',
+  quantidade_equipe: 3,
+  disponibilizado_csd: 'SIM',
+  id_usuario: 42,
   ...overrides,
 });
 
@@ -63,7 +60,6 @@ type GroupByFieldFindManyRow = {
   tipo_recurso_equipe?: string | null;
   quantidade_mao_obra: number | null;
   quantidade_equipe: number | null;
-  disponibilizado_csd: string | null;
 };
 
 const makeGroupByFieldFindManyRow = (
@@ -71,7 +67,6 @@ const makeGroupByFieldFindManyRow = (
 ): GroupByFieldFindManyRow => ({
   quantidade_mao_obra: 0,
   quantidade_equipe: 0,
-  disponibilizado_csd: null,
   ...overrides,
 });
 
@@ -79,6 +74,13 @@ const makeCsdGroupRow = (value: string | null, count: number) => ({
   disponibilizado_csd: value,
   _count: { _all: count },
 });
+
+const makeGroupByParceiraRow = (idParceira: number, count: number) => ({
+  id_parceira: idParceira,
+  _count: { _all: count },
+});
+
+const makeTurmaRow = (id: number, turma: string) => ({ id, turma });
 
 type EmergencyTeamRawRow = {
   ano: number;
@@ -99,20 +101,12 @@ const makeEmergencyTeamRawRow = (
   ...overrides,
 });
 
-const makeGroupByParceiraRow = (idParceira: number, count: number) => ({
-  id_parceira: idParceira,
-  _count: { _all: count },
-});
-
-const makeTurmaRow = (id: number, turma: string) => ({ id, turma });
-
 // ─── Prisma Mock ──────────────────────────────────────────────────────────────
 
 const makePrismaMock = () => ({
   recursos_contingencia: {
-    create: vi.fn().mockResolvedValue(undefined),
     count: vi.fn().mockResolvedValue(15),
-    aggregate: vi.fn().mockResolvedValue(makeAggregateResult()),
+    create: vi.fn().mockResolvedValue(undefined),
     findMany: vi.fn().mockResolvedValue([makeRecentRow('2025-06-10')]),
     groupBy: vi.fn().mockResolvedValue([]),
   },
@@ -130,13 +124,9 @@ type PrismaMock = ReturnType<typeof makePrismaMock>;
 const extractWhere = (mock: Mock, callIndex = 0) =>
   mock.mock.calls[callIndex]?.[0]?.where;
 
-/**
- * Extrai o Prisma.Sql passado ao $queryRaw.
- * Os parâmetros aparecem como '?' e os espaços são normalizados.
- */
+/** Extrai o Prisma.Sql passado ao $queryRaw, com parâmetros como '?' e espaços normalizados. */
 const extractRawQuery = (mock: Mock, callIndex = 0) => {
   const arg = mock.mock.calls[callIndex][0] as Prisma.Sql;
-
   return {
     arg,
     sql: arg.strings.join('?').replace(/\s+/g, ' ').trim(),
@@ -145,24 +135,26 @@ const extractRawQuery = (mock: Mock, callIndex = 0) => {
 };
 
 /**
- * Converte 'DD/MM/YYYY' em Date à meia-noite UTC.
- * Não usa o moment, para que a validação seja independente da implementação.
+ * Primeiro dia (UTC) de um mês YYYY-MM, com deslocamento opcional.
+ * Implementação independente do repository (sem moment).
  */
-const parseDateBR = (value: string): Date => {
-  const [day, month, year] = value.split('/').map(Number);
-  return new Date(Date.UTC(year, month - 1, day));
+const monthStart = (value?: string, offset = 0): Date | null => {
+  if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return null;
+  const [year, month] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1 + offset, 1)); // Date.UTC trata a virada do ano
 };
 
-/** Monta o `where` esperado e espelha a lógica de `buildWhere`. */
+/** Monta o `where` esperado para as consultas Prisma. */
 const buildExpectedWhere = (filter: ContingencyInput = {}) => {
   const where: Record<string, any> = {};
+  const start = monthStart(filter.mesInicial);
+  const endExclusive = monthStart(filter.mesFinal, 1);
 
-  if (filter.dataInicial || filter.dataFinal) {
-    where.dia_disponibilidade = {};
-    if (filter.dataInicial)
-      where.dia_disponibilidade.gte = parseDateBR(filter.dataInicial);
-    if (filter.dataFinal)
-      where.dia_disponibilidade.lte = parseDateBR(filter.dataFinal);
+  if (start || endExclusive) {
+    where.dia_disponibilidade = {
+      ...(start && { gte: start }),
+      ...(endExclusive && { lt: endExclusive }),
+    };
   }
   if (filter.idParceira?.length) where.id_parceira = { in: filter.idParceira };
   if (filter.maoObra?.length)
@@ -172,7 +164,6 @@ const buildExpectedWhere = (filter: ContingencyInput = {}) => {
 
   return where;
 };
-
 // ─── Suíte ────────────────────────────────────────────────────────────────────
 
 describe('ContingencyRepository', () => {
@@ -203,9 +194,8 @@ describe('ContingencyRepository', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════
-  // buildWhere (testado indiretamente via count — método mais simples)
+  // buildWhere
   // ═══════════════════════════════════════════════════════════════════════
-
   describe('buildWhere (via findRecent)', () => {
     const lastWhere = () => extractWhere(prisma.recursos_contingencia.findMany);
 
@@ -217,79 +207,95 @@ describe('ContingencyRepository', () => {
       expect(lastWhere()).toStrictEqual(buildExpectedWhere(filter));
     });
 
-    it('should return empty where when filter is undefined', async () => {
-      await repository.findRecent(undefined);
+    it.each<[string, ContingencyInput | undefined]>([
+      ['undefined', undefined],
+      ['an empty object', {}],
+    ])('should return an empty where when filter is %s', async (_, filter) => {
+      await repository.findRecent(filter);
 
       expect(lastWhere()).toStrictEqual({});
     });
 
-    it('should return empty where when filter is empty object', async () => {
-      await repository.findRecent({});
-
-      expect(lastWhere()).toStrictEqual({});
-    });
-
-    // ── Datas ─────────────────────────────────────────────────────────────────
-    it('should parse dates in DD/MM/YYYY format as UTC midnight', async () => {
+    // ── Período ───────────────────────────────────────────────────────────────
+    it('should cover the whole month (gte first day, lt first day of next month)', async () => {
       await repository.findRecent({
-        dataInicial: '01/06/2025',
-        dataFinal: '30/06/2025',
+        mesInicial: '2025-06',
+        mesFinal: '2025-06',
       });
 
       expect(lastWhere()).toStrictEqual({
         dia_disponibilidade: {
           gte: new Date('2025-06-01T00:00:00.000Z'),
-          lte: new Date('2025-06-30T00:00:00.000Z'),
+          lt: new Date('2025-07-01T00:00:00.000Z'),
         },
       });
     });
 
-    it('should include only gte when only dataInicial is provided', async () => {
-      await repository.findRecent({ dataInicial: '01/06/2025' });
+    it('should cover a range of several months', async () => {
+      await repository.findRecent({
+        mesInicial: '2026-01',
+        mesFinal: '2026-03',
+      });
+
+      expect(lastWhere()).toStrictEqual({
+        dia_disponibilidade: {
+          gte: new Date('2026-01-01T00:00:00.000Z'),
+          lt: new Date('2026-04-01T00:00:00.000Z'),
+        },
+      });
+    });
+
+    it('should roll over the year when mesFinal is December', async () => {
+      await repository.findRecent({ mesFinal: '2025-12' });
+
+      expect(lastWhere()).toStrictEqual({
+        dia_disponibilidade: { lt: new Date('2026-01-01T00:00:00.000Z') },
+      });
+    });
+
+    it('should include only gte when only mesInicial is provided', async () => {
+      await repository.findRecent({ mesInicial: '2025-06' });
 
       expect(lastWhere()).toStrictEqual({
         dia_disponibilidade: { gte: new Date('2025-06-01T00:00:00.000Z') },
       });
     });
 
-    it('should include only lte when only dataFinal is provided', async () => {
-      await repository.findRecent({ dataFinal: '30/06/2025' });
+    it('should include only lt when only mesFinal is provided', async () => {
+      await repository.findRecent({ mesFinal: '2025-06' });
 
       expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: { lte: new Date('2025-06-30T00:00:00.000Z') },
+        dia_disponibilidade: { lt: new Date('2025-07-01T00:00:00.000Z') },
       });
     });
 
-    it('should not include dia_disponibilidade when both dates are undefined', async () => {
+    it.each([
+      ['undefined', undefined],
+      ['empty string', ''],
+      ['old format MM/YYYY', '06/2025'],
+      ['old format DD/MM/YYYY', '01/06/2025'],
+      ['invalid month', '2025-13'],
+      ['single-digit month', '2025-6'],
+      ['text', 'abc'],
+    ])('should ignore the period when months are %s', async (_, value) => {
       await repository.findRecent(
-        makeFilter({ dataInicial: undefined, dataFinal: undefined }),
-      );
-
-      expect(lastWhere()).not.toHaveProperty('dia_disponibilidade');
-    });
-
-    it('should not include dia_disponibilidade when dates are empty strings', async () => {
-      await repository.findRecent(
-        makeFilter({ dataInicial: '', dataFinal: '' }),
+        makeFilter({ mesInicial: value, mesFinal: value }),
       );
 
       expect(lastWhere()).not.toHaveProperty('dia_disponibilidade');
     });
 
     // ── Arrays vazios ─────────────────────────────────────────────────────────
-    it.each([
+    it.each<[keyof ContingencyInput, string]>([
       ['idParceira', 'id_parceira'],
       ['maoObra', 'tipo_recurso_mao_obra'],
       ['equipe', 'tipo_recurso_equipe'],
       ['csd', 'disponibilizado_csd'],
-    ] as const)(
-      'should skip %s when array is empty',
-      async (filterKey, whereKey) => {
-        await repository.findRecent(makeFilter({ [filterKey]: [] }));
+    ])('should skip %s when array is empty', async (filterKey, whereKey) => {
+      await repository.findRecent(makeFilter({ [filterKey]: [] }));
 
-        expect(lastWhere()).not.toHaveProperty(whereKey);
-      },
-    );
+      expect(lastWhere()).not.toHaveProperty(whereKey);
+    });
 
     // ── Campos isolados ───────────────────────────────────────────────────────
     it.each<[ContingencyInput, Record<string, unknown>]>([
@@ -354,6 +360,7 @@ describe('ContingencyRepository', () => {
         where: buildExpectedWhere(filter),
         orderBy: { criado_em: 'desc' },
         select: {
+          id: true,
           dia_disponibilidade: true,
           novo_tabela_usuarios: { select: { nome: true } },
           turmas: { select: { turma: true } },
@@ -370,7 +377,7 @@ describe('ContingencyRepository', () => {
 
     it('should return the rows from prisma unchanged', async () => {
       const rows = [
-        makeRecentRow('2025-06-10', 'Ana'),
+        makeRecentRow('2025-06-10', 2, 'Ana'),
         makeRecentRow('2025-06-09', null),
       ];
       prisma.recursos_contingencia.findMany.mockResolvedValueOnce(rows);
@@ -471,181 +478,6 @@ describe('ContingencyRepository', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════
-  // getEmergencyTeamsWithValue
-  // ═══════════════════════════════════════════════════════════════════════
-
-  describe('getEmergencyTeamsWithValue', () => {
-    const lastRawQuery = () => extractRawQuery(prisma.$queryRaw);
-
-    const YEAR_CONDITION =
-      'EXTRACT(YEAR FROM rc.dia_disponibilidade)::text = ?';
-    const MONTH_CONDITION =
-      'AND EXTRACT(MONTH FROM rc.dia_disponibilidade)::int = ?';
-
-    // ── Execução ──────────────────────────────────────────────────────────────
-    it('should call $queryRaw once and return its result unchanged', async () => {
-      const rows = [
-        makeEmergencyTeamRawRow({ tipo: 'EQUIPE_A' }),
-        makeEmergencyTeamRawRow({ tipo: 'EQUIPE_B', quantidade: 1, valor: 0 }),
-      ];
-      prisma.$queryRaw.mockResolvedValueOnce(rows);
-
-      const result = await repository.getEmergencyTeamsWithValue(
-        makeFilter(),
-        6,
-      );
-
-      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toBe(rows);
-    });
-
-    it('should pass a Prisma.Sql instance to $queryRaw', async () => {
-      await repository.getEmergencyTeamsWithValue(makeFilter(), 6);
-
-      expect(lastRawQuery().arg).toBeInstanceOf(Prisma.Sql);
-    });
-
-    // ── Estrutura da query ────────────────────────────────────────────────────
-    it('should build the CTEs, the LEFT JOIN and the final grouping', async () => {
-      await repository.getEmergencyTeamsWithValue(makeFilter(), 6);
-
-      const { sql } = lastRawQuery();
-      expect(sql).toContain('WITH equipes AS (');
-      expect(sql).toContain('FROM public.recursos_contingencia rc');
-      expect(sql).toContain('valores AS (');
-      expect(sql).toContain('FROM public.capacidade_execucao');
-      expect(sql).toContain('should_cost / 22 AS valor_diario');
-      expect(sql).toContain(
-        'LEFT JOIN valores v ON v.ano = e.ano AND v.tipo = e.tipo AND v.id_parceira = e.id_parceira',
-      );
-      expect(sql).toContain(
-        'COALESCE(SUM(e.quantidade * v.valor_diario), 0) AS valor',
-      );
-      expect(sql).toMatch(
-        /GROUP BY e\.ano, e\.mes, e\.tipo ORDER BY e\.ano, e\.mes, e\.tipo$/,
-      );
-    });
-
-    it('should parameterize all values (no interpolation into the SQL text)', async () => {
-      await repository.getEmergencyTeamsWithValue(
-        makeFilter({ dataFinal: '30/06/2031', idParceira: [7771, 8881] }),
-        9,
-      );
-
-      const { sql } = lastRawQuery();
-      expect(sql).not.toContain('2031');
-      expect(sql).not.toContain('7771');
-      expect(sql).not.toContain('8881');
-    });
-
-    // ── Filtros ───────────────────────────────────────────────────────────────
-    it('should apply year, month and partners in both CTEs with the right parameter order', async () => {
-      await repository.getEmergencyTeamsWithValue(
-        makeFilter({ dataFinal: '30/06/2025', idParceira: [1, 2] }),
-        6,
-      );
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain(YEAR_CONDITION);
-      expect(sql).toContain(MONTH_CONDITION);
-      expect(sql).toContain('AND rc.id_parceira IN (?,?)');
-      expect(sql).toContain('ano::text = ?');
-      expect(sql).toContain('AND id_turma IN (?,?)');
-      // equipes: ano, mês, parceiras | valores: ano, parceiras
-      expect(values).toStrictEqual(['2025', 6, 1, 2, '2025', 1, 2]);
-    });
-
-    it('should extract the year from dataFinal (DD/MM/YYYY), ignoring dataInicial', async () => {
-      await repository.getEmergencyTeamsWithValue(
-        makeFilter({
-          dataInicial: '01/01/2023',
-          dataFinal: '15/03/2024',
-          idParceira: undefined,
-        }),
-      );
-
-      expect(lastRawQuery().values).toStrictEqual(['2024', '2024']);
-    });
-
-    it.each([undefined, 0])(
-      'should not filter by month when month is %s',
-      async (month) => {
-        await repository.getEmergencyTeamsWithValue(
-          makeFilter({ idParceira: undefined }),
-          month,
-        );
-
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain(
-          'EXTRACT(MONTH FROM rc.dia_disponibilidade)::int = ?',
-        );
-        expect(values).toStrictEqual(['2025', '2025']);
-      },
-    );
-
-    it.each<[string, number[] | undefined]>([
-      ['empty', []],
-      ['undefined', undefined],
-    ])(
-      'should not filter by partner when idParceira is %s',
-      async (_, idParceira) => {
-        await repository.getEmergencyTeamsWithValue(
-          makeFilter({ idParceira }),
-          6,
-        );
-
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain('rc.id_parceira IN');
-        expect(sql).not.toContain('id_turma IN');
-        expect(values).toStrictEqual(['2025', 6, '2025']);
-      },
-    );
-
-    it('should ignore filter fields not used by this query', async () => {
-      await repository.getEmergencyTeamsWithValue(
-        makeFilter({ idParceira: undefined }), // maoObra, equipe e csd preenchidos
-      );
-
-      const { sql, values } = lastRawQuery();
-      expect(values).toStrictEqual(['2025', '2025']);
-      expect(sql).not.toMatch(/tipo_recurso_mao_obra|disponibilizado_csd/);
-    });
-
-    // ── Erros ─────────────────────────────────────────────────────────────────
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('raw query failed');
-      prisma.$queryRaw.mockRejectedValueOnce(error);
-
-      await expect(
-        repository.getEmergencyTeamsWithValue(makeFilter(), 6),
-      ).rejects.toBe(error);
-    });
-
-    // ── Requer a correção da secção 3 ─────────────────────────────────────────
-    describe('without a valid dataFinal', () => {
-      it('should not throw and should not filter by year when filter is undefined', async () => {
-        await repository.getEmergencyTeamsWithValue(undefined, 6);
-
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain(YEAR_CONDITION);
-        expect(sql).not.toContain('ano::text = ?');
-        expect(values).toStrictEqual([6]);
-      });
-
-      it.each(['2025-06-30', 'abc', '31/02/2025'])(
-        'should not filter by year when dataFinal is invalid ("%s")',
-        async (dataFinal) => {
-          await repository.getEmergencyTeamsWithValue({ dataFinal });
-
-          const { sql, values } = lastRawQuery();
-          expect(sql).not.toContain(YEAR_CONDITION);
-          expect(values).not.toContain('NaN');
-        },
-      );
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
   // groupByField
   // ═══════════════════════════════════════════════════════════════════════
 
@@ -653,13 +485,11 @@ describe('ContingencyRepository', () => {
     const baseSelect = {
       quantidade_mao_obra: true,
       quantidade_equipe: true,
-      disponibilizado_csd: true,
     };
 
     const fields: readonly ContingencyGroupField[] = [
       'tipo_recurso_mao_obra',
       'tipo_recurso_equipe',
-      'disponibilizado_csd',
     ];
 
     // ── Query ───────────────────────────────────────────────────────────────
@@ -731,13 +561,11 @@ describe('ContingencyRepository', () => {
           name: 'EQUIPE_A',
           laborQuantity: 10,
           teamsQuantity: 2,
-          allocatedCsd: 0,
         },
         {
           name: 'EQUIPE_B',
           laborQuantity: 5,
           teamsQuantity: 1,
-          allocatedCsd: 0,
         },
       ]);
     });
@@ -748,7 +576,6 @@ describe('ContingencyRepository', () => {
           tipo_recurso_mao_obra: 'ELETRICISTA',
           quantidade_mao_obra: null,
           quantidade_equipe: null,
-          disponibilizado_csd: null,
         }),
       ]);
 
@@ -762,7 +589,6 @@ describe('ContingencyRepository', () => {
           name: 'ELETRICISTA',
           laborQuantity: 0,
           teamsQuantity: 0,
-          allocatedCsd: 0,
         },
       ]);
     });
@@ -790,7 +616,6 @@ describe('ContingencyRepository', () => {
           name: 'ELETRICISTA',
           laborQuantity: 3,
           teamsQuantity: 0,
-          allocatedCsd: 0,
         },
       ]);
     });
@@ -840,30 +665,11 @@ describe('ContingencyRepository', () => {
       expect(result.map((r) => r.teamsQuantity)).toStrictEqual([1, 4]);
     });
 
-    it('should use disponibilizado_csd value as name when grouping by csd', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({
-          disponibilizado_csd: 'SIM',
-          quantidade_mao_obra: 2,
-        }),
-        makeGroupByFieldFindManyRow({ disponibilizado_csd: null }), // descartada
-      ]);
-
-      const result = await repository.groupByField(
-        'disponibilizado_csd',
-        makeFilter(),
-      );
-
-      expect(result).toHaveLength(1);
-      // allocatedCsd não é validado aqui de propósito — ver nota sobre o repository.
-      expect(result[0]).toMatchObject({ name: 'SIM', laborQuantity: 2 });
-    });
-
     it('should return empty array when no rows exist', async () => {
       prisma.recursos_contingencia.findMany.mockResolvedValueOnce([]);
 
       const result = await repository.groupByField(
-        'disponibilizado_csd',
+        'tipo_recurso_equipe',
         makeFilter(),
       );
 
@@ -939,15 +745,12 @@ describe('ContingencyRepository', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('should query turmas with empty array when groupBy returns no rows', async () => {
+    it('should not call query turmas with empty array when groupBy ', async () => {
       prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([]);
 
       await repository.groupByPartner(makeFilter());
 
-      expect(prisma.turmas.findMany).toHaveBeenCalledWith({
-        where: { id: { in: [] } },
-        select: { id: true, turma: true },
-      });
+      expect(prisma.turmas.findMany).not.toHaveBeenCalled();
     });
 
     it('should propagate prisma exceptions from groupBy', async () => {
@@ -979,171 +782,177 @@ describe('ContingencyRepository', () => {
   describe('getCapacityByYearMonth', () => {
     const lastRawQuery = () => extractRawQuery(prisma.$queryRaw);
 
-    // ── Execução ──────────────────────────────────────────────────────────────
     it('should call $queryRaw once and return its result unchanged', async () => {
-      const rows = [
-        { ano: 2025, mes: 6, capacidade: 10, valor: 1500 },
-        { ano: 2025, mes: 7, capacidade: 8, valor: 1200 },
-      ];
+      const rows = [{ ano: '2025', mes: 6, capacidade: 10, valor: 1500 }];
       prisma.$queryRaw.mockResolvedValueOnce(rows);
 
-      const result = await repository.getCapacityByYearMonth(
-        { dataFinal: '30/06/2025' },
-        6,
-      );
+      const result = await repository.getCapacityByYearMonth(makeFilter());
 
       expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toBe(rows); // mesma referência, sem transformação
+      expect(result).toBe(rows);
     });
 
-    it('should return empty array when $queryRaw returns no rows', async () => {
-      prisma.$queryRaw.mockResolvedValueOnce([]);
+    it('should build the base query', async () => {
+      await repository.getCapacityByYearMonth(makeFilter());
 
-      const result = await repository.getCapacityByYearMonth({
-        dataFinal: '30/06/2025',
-      });
-
-      expect(result).toStrictEqual([]);
+      const { arg, sql } = lastRawQuery();
+      expect(arg).toBeInstanceOf(Prisma.Sql);
+      expect(sql).toContain('FROM public.capacidade_execucao ce');
+      expect(sql).toContain('JOIN public.turmas t ON t.id = ce.id_turma');
+      expect(sql).toContain('SUM(COALESCE(m.valor, 0))::int AS capacidade');
+      expect(sql).toContain('::float8 AS valor');
+      expect(sql).toMatch(/GROUP BY ce\.ano, m\.mes ORDER BY ce\.ano, m\.mes$/);
     });
 
-    it('should pass a Prisma.Sql instance (not a raw string) to $queryRaw', async () => {
-      await repository.getCapacityByYearMonth({ dataFinal: '30/06/2025' }, 6);
+    it('should filter months overlapping the period and partners', async () => {
+      await repository.getCapacityByYearMonth(
+        makeFilter({ mesInicial: '2026-01', mesFinal: '2026-03' }),
+      );
 
-      expect(lastRawQuery().arg).toBeInstanceOf(Prisma.Sql);
+      const { sql, values } = lastRawQuery();
+      expect(sql).toContain(
+        'WHERE make_date(ce.ano::int, m.mes, 1) >= ?::date AND make_date(ce.ano::int, m.mes, 1) < ?::date AND t.id IN (?,?)',
+      );
+      expect(values).toStrictEqual(['2026-01-01', '2026-04-01', 1, 2]);
     });
 
-    // ── Estrutura da query ────────────────────────────────────────────────────
-    it('should build the base query with WHERE 1 = 1 and GROUP BY ano, mes', async () => {
-      await repository.getCapacityByYearMonth({ dataFinal: '30/06/2025' });
+    it('should ignore labor, team and csd filters', async () => {
+      await repository.getCapacityByYearMonth(makeFilter());
+
+      const { sql, values } = lastRawQuery();
+      expect(values).toStrictEqual(['2025-06-01', '2025-07-01', 1, 2]);
+      expect(sql).not.toMatch(/tipo_recurso|disponibilizado_csd/);
+    });
+
+    it('should not generate a WHERE without period and partners', async () => {
+      await repository.getCapacityByYearMonth({});
+
+      const { sql, values } = lastRawQuery();
+      expect(sql).not.toContain('WHERE');
+      expect(values).toStrictEqual([]);
+    });
+
+    it('should parameterize all values', async () => {
+      await repository.getCapacityByYearMonth(
+        makeFilter({
+          mesInicial: '2031-06',
+          mesFinal: '2031-06',
+          idParceira: [7771],
+        }),
+      );
 
       const { sql } = lastRawQuery();
-      expect(sql).toContain('FROM construcao_sp.capacidade_execucao ce');
-      expect(sql).toContain('JOIN construcao_sp.turmas t ON t.id = id_turma');
-      expect(sql).toContain('WHERE 1 = 1');
-      expect(sql).toMatch(/GROUP BY ano, m\.mes$/);
+      expect(sql).not.toContain('2031');
+      expect(sql).not.toContain('7771');
     });
 
-    it('should parameterize all values (no interpolation into the SQL text)', async () => {
-      await repository.getCapacityByYearMonth(
-        { dataFinal: '30/06/2025', idParceira: [77, 88] },
-        9,
-      );
-
-      const { sql } = lastRawQuery();
-      expect(sql).not.toContain('2025');
-      expect(sql).not.toContain('77');
-      expect(sql).not.toContain('88');
-    });
-
-    // ── Filtro: ano ───────────────────────────────────────────────────────────
-    it('should filter by the year extracted from dataFinal (DD/MM/YYYY)', async () => {
-      await repository.getCapacityByYearMonth({ dataFinal: '15/03/2024' });
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain('WHERE 1 = 1 AND ano = ?');
-      expect(values).toStrictEqual(['2024']);
-    });
-
-    // ── Filtro: mês ───────────────────────────────────────────────────────────
-    it('should filter by month when provided', async () => {
-      await repository.getCapacityByYearMonth({ dataFinal: '30/06/2025' }, 4);
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain('AND ano = ? AND m.mes = ?');
-      expect(values).toStrictEqual(['2025', 4]);
-    });
-
-    it.each([undefined, 0])(
-      'should not filter by month when month is %s',
-      async (month) => {
-        await repository.getCapacityByYearMonth(
-          { dataFinal: '30/06/2025' },
-          month,
-        );
-
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain('AND m.mes =');
-        expect(values).toStrictEqual(['2025']);
-      },
-    );
-
-    // ── Filtro: parceira ──────────────────────────────────────────────────────
-    it('should filter by idParceira using IN with one placeholder per id', async () => {
-      await repository.getCapacityByYearMonth(
-        { dataFinal: '30/06/2025', idParceira: [1, 2, 3] },
-        6,
-      );
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain('AND m.mes = ? AND t.id IN (?,?,?)');
-      expect(values).toStrictEqual(['2025', 6, 1, 2, 3]);
-    });
-
-    it.each<[string, number[] | undefined]>([
-      ['empty', []],
-      ['undefined', undefined],
-    ])(
-      'should not filter by idParceira when it is %s',
-      async (_, idParceira) => {
-        await repository.getCapacityByYearMonth({
-          dataFinal: '30/06/2025',
-          idParceira,
-        });
-
-        expect(lastRawQuery().sql).not.toContain('t.id IN');
-      },
-    );
-
-    it('should ignore filter fields not used by this query', async () => {
-      await repository.getCapacityByYearMonth(
-        makeFilter({ idParceira: undefined }), // maoObra, equipe, csd, dataInicial preenchidos
-      );
-
-      const { sql, values } = lastRawQuery();
-      expect(values).toStrictEqual(['2025']);
-      expect(sql).not.toMatch(
-        /tipo_recurso|disponibilizado_csd|dia_disponibilidade/,
-      );
-    });
-
-    // ── Erros ─────────────────────────────────────────────────────────────────
     it('should propagate prisma exceptions', async () => {
       const error = new Error('raw query failed');
       prisma.$queryRaw.mockRejectedValueOnce(error);
 
       await expect(
-        repository.getCapacityByYearMonth({ dataFinal: '30/06/2025' }, 1),
-      ).rejects.toThrow(error);
+        repository.getCapacityByYearMonth(makeFilter()),
+      ).rejects.toBe(error);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // getEmergencyTeamsWithValue
+  // ═══════════════════════════════════════════════════════════════════════
+
+  describe('getEmergencyTeamsWithValue', () => {
+    const lastRawQuery = () => extractRawQuery(prisma.$queryRaw);
+
+    it('should call $queryRaw once and return its result unchanged', async () => {
+      const rows = [
+        makeEmergencyTeamRawRow(),
+        makeEmergencyTeamRawRow({ tipo: 'EQUIPE_B' }),
+      ];
+      prisma.$queryRaw.mockResolvedValueOnce(rows);
+
+      const result = await repository.getEmergencyTeamsWithValue(makeFilter());
+
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+      expect(result).toBe(rows);
     });
 
-    // ── Entradas inválidas / ausentes (requer a correção da secção 3) ───────
-    describe('without a valid dataFinal', () => {
-      it('should not throw and should not filter by year when filter is undefined', async () => {
-        await repository.getCapacityByYearMonth(undefined, 6);
+    it('should build the CTEs, the LEFT JOIN and the final grouping', async () => {
+      await repository.getEmergencyTeamsWithValue(makeFilter());
 
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain('AND ano =');
-        expect(values).toStrictEqual([6]);
-      });
-
-      it('should not filter by year when dataFinal is missing', async () => {
-        await repository.getCapacityByYearMonth({ idParceira: [1] });
-
-        const { sql, values } = lastRawQuery();
-        expect(sql).not.toContain('AND ano =');
-        expect(values).toStrictEqual([1]);
-      });
-
-      it.each(['2025-06-30', 'abc', '31/02/2025'])(
-        'should not filter by year when dataFinal is invalid ("%s")',
-        async (dataFinal) => {
-          await repository.getCapacityByYearMonth({ dataFinal });
-
-          const { sql, values } = lastRawQuery();
-          expect(sql).not.toContain('AND ano =');
-          expect(values).not.toContain('NaN');
-        },
+      const { sql } = lastRawQuery();
+      expect(sql).toContain('WITH equipes AS (');
+      expect(sql).toContain('FROM public.recursos_contingencia rc');
+      expect(sql).toContain('FROM public.capacidade_execucao');
+      expect(sql).toContain('should_cost / 22 AS valor_diario');
+      expect(sql).toContain(
+        'LEFT JOIN valores v ON v.ano = e.ano AND v.tipo = e.tipo AND v.id_parceira = e.id_parceira',
       );
+      expect(sql).toContain(
+        'COALESCE(SUM(e.quantidade * v.valor_diario), 0)::float8 AS valor',
+      );
+      expect(sql).toMatch(
+        /GROUP BY e\.ano, e\.mes, e\.tipo ORDER BY e\.ano, e\.mes, e\.tipo$/,
+      );
+    });
+
+    it('should filter teams by date range and values by year range', async () => {
+      await repository.getEmergencyTeamsWithValue(
+        makeFilter({ mesInicial: '2025-11', mesFinal: '2026-02' }),
+      );
+
+      const { sql, values } = lastRawQuery();
+      expect(sql).toContain(
+        'WHERE rc.dia_disponibilidade >= ?::date AND rc.dia_disponibilidade < ?::date AND rc.id_parceira IN (?,?)',
+      );
+      expect(sql).toContain(
+        'WHERE ano::int >= ? AND ano::int <= ? AND id_turma IN (?,?)',
+      );
+      // equipes: início, fim exclusivo, parceiras | valores: ano inicial, ano final, parceiras
+      expect(values).toStrictEqual([
+        '2025-11-01',
+        '2026-03-01',
+        1,
+        2,
+        2025,
+        2026,
+        1,
+        2,
+      ]);
+    });
+
+    it('should filter only by partners when no period is given', async () => {
+      await repository.getEmergencyTeamsWithValue({ idParceira: [1, 2] });
+
+      const { sql, values } = lastRawQuery();
+      expect(sql).not.toContain('rc.dia_disponibilidade >=');
+      expect(sql).not.toContain('ano::int >=');
+      expect(values).toStrictEqual([1, 2, 1, 2]);
+    });
+
+    it('should not generate any WHERE without filters', async () => {
+      await repository.getEmergencyTeamsWithValue();
+
+      const { sql, values } = lastRawQuery();
+      expect(sql).not.toContain('WHERE');
+      expect(values).toStrictEqual([]);
+    });
+
+    it('should ignore invalid months', async () => {
+      await repository.getEmergencyTeamsWithValue({
+        mesInicial: '06/2025',
+        mesFinal: 'abc',
+      });
+
+      expect(lastRawQuery().values).toStrictEqual([]);
+    });
+
+    it('should propagate prisma exceptions', async () => {
+      const error = new Error('raw query failed');
+      prisma.$queryRaw.mockRejectedValueOnce(error);
+
+      await expect(
+        repository.getEmergencyTeamsWithValue(makeFilter()),
+      ).rejects.toBe(error);
     });
   });
 });

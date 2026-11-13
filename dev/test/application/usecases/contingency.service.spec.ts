@@ -29,11 +29,9 @@ import {
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-/** Data fixa do sistema: o fallback de resolveFilterMonth usa o mês corrente. */
+/** Data fixa do sistema: o withDefaultPeriod usa o mês corrente quando o pedido não traz período. */
 const SYSTEM_DATE = new Date('2026-11-12T12:00:00.000Z');
-const CURRENT_MONTH = 11;
-/** Mês do filtro por omissão (junho/2025). É diferente de CURRENT_MONTH de propósito. */
-const FILTER_MONTH = 6;
+const CURRENT_PERIOD = '2026-11';
 
 // ─── Factories ────────────────────────────────────────────────────────────────
 
@@ -54,17 +52,19 @@ const makeCreateDTO = (
 const makeDashboardFilter = (
   overrides: Partial<ContingencyInput> = {},
 ): ContingencyInput => ({
-  dataInicial: '01/06/2025',
-  dataFinal: '30/06/2025',
+  mesInicial: '2025-06', // formato YYYY-MM
+  mesFinal: '2025-06',
   idParceira: [1],
   ...overrides,
 });
 
 const makeRecentEntry = (
   date: Date | string,
+  id = 1,
   nome: string | null = 'João',
 ): RecentContingencyResponse =>
   ({
+    id,
     dia_disponibilidade:
       date instanceof Date ? date : new Date(`${date}T00:00:00.000Z`),
     novo_tabela_usuarios: nome !== null ? { nome } : null,
@@ -77,31 +77,34 @@ const makeGroupByFieldRow = (
   name: 'X',
   laborQuantity: 0,
   teamsQuantity: 0,
-  allocatedCsd: 0,
   ...overrides,
 });
 
+/** Aceita strings nos valores para simular o Decimal/text devolvido pelo $queryRaw. */
+type RawOverrides<T> = Partial<Record<keyof T, unknown>>;
+
 const makeCapacityRow = (
-  overrides: Record<string, unknown> = {},
+  overrides: RawOverrides<CapacityByYearMonthResponse> = {},
 ): CapacityByYearMonthResponse =>
   ({
-    ano: 2025,
-    mes: FILTER_MONTH,
+    ano: '2025',
+    mes: 6,
     capacidade: 40,
     valor: 1000,
     ...overrides,
   }) as unknown as CapacityByYearMonthResponse;
 
 const makeEmergencyTeamRow = (
-  overrides: Partial<EmergencyTeamResponse> = {},
-): EmergencyTeamResponse => ({
-  ano: 2025,
-  mes: FILTER_MONTH,
-  quantidade: 10,
-  valor: 500,
-  tipo: 'B4',
-  ...overrides,
-});
+  overrides: RawOverrides<EmergencyTeamResponse> = {},
+): EmergencyTeamResponse =>
+  ({
+    ano: 2025,
+    mes: 6,
+    tipo: 'B4',
+    quantidade: 10,
+    valor: 500,
+    ...overrides,
+  }) as unknown as EmergencyTeamResponse;
 
 // ─── Mock do Repository ───────────────────────────────────────────────────────
 
@@ -144,7 +147,7 @@ describe('ContingencyService', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.clearAllMocks();
+    vi.restoreAllMocks(); // restaura spies (ex.: console.log) e limpa os mocks
   });
 
   it('should be defined', () => {
@@ -243,12 +246,8 @@ describe('ContingencyService', () => {
         expect(repository.groupByCsd).toHaveBeenCalledWith(query);
         expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
           query,
-          FILTER_MONTH,
         );
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(
-          query,
-          FILTER_MONTH,
-        );
+        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(query);
 
         // mesma referência: o service não clona nem transforma o filtro
         expect(repository.findRecent.mock.calls[0][0]).toBe(query);
@@ -268,11 +267,14 @@ describe('ContingencyService', () => {
       it('should default to an empty filter when query is undefined', async () => {
         await service.getDashboard();
 
-        expect(repository.findRecent).toHaveBeenCalledWith({});
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(
-          {},
-          CURRENT_MONTH,
-        );
+        expect(repository.findRecent).toHaveBeenCalledWith({
+          mesInicial: '2026-11',
+          mesFinal: '2026-11',
+        });
+        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith({
+          mesInicial: '2026-11',
+          mesFinal: '2026-11',
+        });
       });
 
       it('should start all 7 repository calls before any of them resolves (Promise.all)', async () => {
@@ -292,46 +294,88 @@ describe('ContingencyService', () => {
     });
 
     // ── resolveFilterMonth ──────────────────────────────────────────────────
-    describe('filter month resolution', () => {
-      it.each<[string, ContingencyInput, number]>([
+    describe('period resolution', () => {
+      const expectPeriodSentToRepository = (expected: ContingencyInput) => {
+        expect(repository.findRecent).toHaveBeenCalledWith(expected);
+        expect(repository.groupByPartner).toHaveBeenCalledWith(expected);
+        expect(repository.groupByField).toHaveBeenCalledWith(
+          'tipo_recurso_mao_obra',
+          expected,
+        );
+        expect(repository.groupByField).toHaveBeenCalledWith(
+          'tipo_recurso_equipe',
+          expected,
+        );
+        expect(repository.groupByCsd).toHaveBeenCalledWith(expected);
+        expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
+          expected,
+        );
+        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(
+          expected,
+        );
+      };
+
+      it.each<[string, ContingencyInput]>([
+        ['a single month', { mesInicial: '2025-03', mesFinal: '2025-03' }],
+        ['a range of months', { mesInicial: '2025-03', mesFinal: '2025-04' }],
         [
-          'both dates in the same month',
-          { dataInicial: '02/03/2025', dataFinal: '20/03/2025' },
-          3,
+          'a range across years',
+          { mesInicial: '2024-12', mesFinal: '2025-02' },
         ],
-        ['no dates', {}, CURRENT_MONTH],
-        ['only dataInicial', { dataInicial: '02/03/2025' }, CURRENT_MONTH],
-        ['only dataFinal', { dataFinal: '20/03/2025' }, CURRENT_MONTH],
-        [
-          'dates in different months',
-          { dataInicial: '01/03/2025', dataFinal: '30/04/2025' },
-          CURRENT_MONTH,
-        ],
-        [
-          'same month in different years',
-          { dataInicial: '01/03/2024', dataFinal: '31/03/2025' },
-          CURRENT_MONTH,
-        ],
-        [
-          'invalid dates',
-          { dataInicial: 'abc', dataFinal: 'xyz' },
-          CURRENT_MONTH,
-        ],
+        ['only mesInicial', { mesInicial: '2025-03' }],
+        ['only mesFinal', { mesFinal: '2025-03' }],
       ])(
-        'should resolve the month correctly with %s',
-        async (_, filter, expectedMonth) => {
+        'should keep the given period unchanged with %s',
+        async (_, filter) => {
           await service.getDashboard(filter);
 
-          expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
-            filter,
-            expectedMonth,
-          );
-          expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(
-            filter,
-            expectedMonth,
-          );
+          expectPeriodSentToRepository(filter);
+          // mesma referência: o service não clona o filtro quando já tem período
+          expect(repository.findRecent.mock.calls[0][0]).toBe(filter);
         },
       );
+
+      it.each<[string, ContingencyInput | undefined, ContingencyInput]>([
+        ['query is undefined', undefined, {}],
+        ['query is an empty object', {}, {}],
+        [
+          'only partners are given',
+          { idParceira: [1, 2] },
+          { idParceira: [1, 2] },
+        ],
+        ['months are empty strings', { mesInicial: '', mesFinal: '' }, {}],
+      ])(
+        'should default to the current month when %s',
+        async (_, query, base) => {
+          await service.getDashboard(query);
+
+          expectPeriodSentToRepository({
+            ...base,
+            mesInicial: CURRENT_PERIOD,
+            mesFinal: CURRENT_PERIOD,
+          });
+        },
+      );
+
+      it('should not mutate the original query when applying the default period', async () => {
+        const query: ContingencyInput = { idParceira: [1] };
+
+        await service.getDashboard(query);
+
+        expect(query).toStrictEqual({ idParceira: [1] });
+      });
+
+      it('should use the UTC month for the default period', async () => {
+        // 31/12/2026 às 23:30 em Brasília = 01/01/2027 02:30 UTC
+        vi.setSystemTime(new Date('2026-12-31T23:30:00-03:00'));
+
+        await service.getDashboard({});
+
+        expect(repository.findRecent).toHaveBeenCalledWith({
+          mesInicial: '2027-01',
+          mesFinal: '2027-01',
+        });
+      });
     });
 
     // ── allocatedPercentage ─────────────────────────────────────────────────
@@ -346,7 +390,7 @@ describe('ContingencyService', () => {
         return service.getDashboard(filter);
       };
 
-      it('should be round(emergency / capacity * 100) for the filter month', async () => {
+      it('should be round(total emergency / total capacity * 100)', async () => {
         const result = await run(
           [makeEmergencyTeamRow({ quantidade: 10 })],
           [makeCapacityRow({ capacidade: 40 })],
@@ -371,11 +415,11 @@ describe('ContingencyService', () => {
         },
       );
 
-      it('should sum emergency quantities of the same month before calculating', async () => {
+      it('should sum emergency quantities of every type in the same month', async () => {
         const result = await run(
           [
-            makeEmergencyTeamRow({ quantidade: 3 }),
-            makeEmergencyTeamRow({ quantidade: 2 }),
+            makeEmergencyTeamRow({ tipo: 'B4', quantidade: 3 }),
+            makeEmergencyTeamRow({ tipo: 'B2', quantidade: 2 }),
           ],
           [makeCapacityRow({ capacidade: 10 })],
         );
@@ -383,25 +427,67 @@ describe('ContingencyService', () => {
         expect(result.allocatedPercentage).toBe(50);
       });
 
-      it('should only consider rows of the filter month', async () => {
+      it('should consider every month of the period', async () => {
         const result = await run(
           [
-            makeEmergencyTeamRow({ mes: 5, quantidade: 100 }),
-            makeEmergencyTeamRow({ mes: FILTER_MONTH, quantidade: 5 }),
+            makeEmergencyTeamRow({ mes: 3, quantidade: 2 }),
+            makeEmergencyTeamRow({ mes: 4, quantidade: 3 }),
           ],
           [
-            makeCapacityRow({ mes: 5, capacidade: 1 }),
-            makeCapacityRow({ mes: FILTER_MONTH, capacidade: 10 }),
+            makeCapacityRow({ mes: 3, capacidade: 10 }),
+            makeCapacityRow({ mes: 4, capacidade: 10 }),
           ],
+          makeDashboardFilter({ mesInicial: '2025-03', mesFinal: '2025-04' }),
         );
 
-        expect(result.allocatedPercentage).toBe(50);
+        expect(result.allocatedPercentage).toBe(25); // 5 / 20
       });
 
-      it('should use the current month when the filter has no dates', async () => {
+      it('should consider months of different years in the period', async () => {
         const result = await run(
-          [makeEmergencyTeamRow({ mes: CURRENT_MONTH, quantidade: 4 })],
-          [makeCapacityRow({ mes: CURRENT_MONTH, capacidade: 8 })],
+          [
+            makeEmergencyTeamRow({ ano: 2025, mes: 12, quantidade: 1 }),
+            makeEmergencyTeamRow({ ano: 2026, mes: 1, quantidade: 1 }),
+          ],
+          [
+            makeCapacityRow({ ano: '2025', mes: 12, capacidade: 4 }),
+            makeCapacityRow({ ano: '2026', mes: 1, capacidade: 4 }),
+          ],
+          makeDashboardFilter({ mesInicial: '2025-12', mesFinal: '2026-01' }),
+        );
+
+        expect(result.allocatedPercentage).toBe(25); // 2 / 8
+      });
+
+      it('should count months with capacity but no emergency teams', async () => {
+        const result = await run(
+          [makeEmergencyTeamRow({ mes: 3, quantidade: 5 })],
+          [
+            makeCapacityRow({ mes: 3, capacidade: 10 }),
+            makeCapacityRow({ mes: 4, capacidade: 10 }),
+          ],
+          makeDashboardFilter({ mesInicial: '2025-03', mesFinal: '2025-04' }),
+        );
+
+        expect(result.allocatedPercentage).toBe(25); // 5 / 20
+      });
+
+      it('should convert string/decimal values from the database to numbers', async () => {
+        const result = await run(
+          [
+            makeEmergencyTeamRow({ quantidade: '3' }),
+            makeEmergencyTeamRow({ quantidade: '2' }),
+          ],
+          [makeCapacityRow({ capacidade: '20' })],
+        );
+
+        expect(result.allocatedPercentage).toBe(25); // 5 / 20, sem concatenar texto
+      });
+
+      it('should still calculate when the request has no period (default month)', async () => {
+        const result = await run(
+          [makeEmergencyTeamRow({ quantidade: 4 })],
+          [makeCapacityRow({ capacidade: 8 })],
           {},
         );
 
@@ -417,22 +503,32 @@ describe('ContingencyService', () => {
         expect(result.allocatedPercentage).toBe(150);
       });
 
+      it.each<[string, EmergencyTeamResponse[]]>([
+        ['there are no emergency rows', []],
+        ['emergency quantity is 0', [makeEmergencyTeamRow({ quantidade: 0 })]],
+      ])('should be 0 when %s but there is capacity', async (_, emergency) => {
+        const result = await run(emergency, [
+          makeCapacityRow({ capacidade: 10 }),
+        ]);
+
+        expect(result.allocatedPercentage).toBe(0);
+      });
+
       it.each<[string, EmergencyTeamResponse[], CapacityByYearMonthResponse[]]>(
         [
-          [
-            'there is no capacity row for the month',
-            [makeEmergencyTeamRow()],
-            [makeCapacityRow({ mes: 5 })],
-          ],
-          [
-            'there is no emergency row for the month',
-            [makeEmergencyTeamRow({ mes: 5 })],
-            [makeCapacityRow()],
-          ],
+          ['there are no capacity rows', [makeEmergencyTeamRow()], []],
           [
             'capacity is 0',
             [makeEmergencyTeamRow()],
             [makeCapacityRow({ capacidade: 0 })],
+          ],
+          [
+            'capacity of every month is 0',
+            [makeEmergencyTeamRow()],
+            [
+              makeCapacityRow({ mes: 3, capacidade: 0 }),
+              makeCapacityRow({ mes: 4, capacidade: 0 }),
+            ],
           ],
           ['both lists are empty', [], []],
         ],
@@ -445,18 +541,33 @@ describe('ContingencyService', () => {
 
     // ── emergencyTeams ──────────────────────────────────────────────────────
     describe('emergencyTeams', () => {
-      it('should aggregate quantidade and valor by ano/mes, keeping first-occurrence order', async () => {
+      it('should aggregate quantity and value by year/month across types, keeping first-occurrence order', async () => {
         repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
-          makeEmergencyTeamRow({ mes: 6, quantidade: 3, valor: 100 }),
-          makeEmergencyTeamRow({ mes: 7, quantidade: 1, valor: 50 }),
-          makeEmergencyTeamRow({ mes: 6, quantidade: 2, valor: 200 }),
+          makeEmergencyTeamRow({
+            mes: 6,
+            tipo: 'B4',
+            quantidade: 3,
+            valor: 100,
+          }),
+          makeEmergencyTeamRow({
+            mes: 7,
+            tipo: 'B4',
+            quantidade: 1,
+            valor: 50,
+          }),
+          makeEmergencyTeamRow({
+            mes: 6,
+            tipo: 'B2',
+            quantidade: 2,
+            valor: 200,
+          }),
         ]);
 
         const result = await service.getDashboard(makeDashboardFilter());
 
         expect(result.emergencyTeams).toStrictEqual([
-          { ano: 2025, mes: 6, quantidade: 5, valor: 300 },
-          { ano: 2025, mes: 7, quantidade: 1, valor: 50 },
+          { year: 2025, month: 6, type: 'B4', quantity: 5, value: 300 },
+          { year: 2025, month: 7, type: 'B4', quantity: 1, value: 50 },
         ]);
       });
 
@@ -468,7 +579,23 @@ describe('ContingencyService', () => {
 
         const result = await service.getDashboard(makeDashboardFilter());
 
-        expect(result.emergencyTeams).toHaveLength(2);
+        expect(result.emergencyTeams).toStrictEqual([
+          { year: 2024, month: 6, type: 'B4', quantity: 1, value: 500 },
+          { year: 2025, month: 6, type: 'B4', quantity: 2, value: 500 },
+        ]);
+      });
+
+      it('should convert string/decimal values to numbers before summing', async () => {
+        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
+          makeEmergencyTeamRow({ quantidade: 3, valor: 150.5 }),
+          makeEmergencyTeamRow({ quantidade: 2, valor: 49.5 }),
+        ]);
+
+        const result = await service.getDashboard(makeDashboardFilter());
+
+        expect(result.emergencyTeams).toStrictEqual([
+          { year: 2025, month: 6, type: 'B4', quantity: 5, value: 200 },
+        ]);
       });
 
       it('should not mutate the rows returned by the repository', async () => {
@@ -483,6 +610,12 @@ describe('ContingencyService', () => {
 
         expect(rows).toStrictEqual(snapshot);
       });
+
+      it('should return an empty array when there are no emergency teams', async () => {
+        const result = await service.getDashboard(makeDashboardFilter());
+
+        expect(result.emergencyTeams).toStrictEqual([]);
+      });
     });
 
     // ── monthlyCapacity ─────────────────────────────────────────────────────
@@ -496,9 +629,27 @@ describe('ContingencyService', () => {
         const result = await service.getDashboard(makeDashboardFilter());
 
         expect(result.monthlyCapacity).toStrictEqual([
-          { capacity: 40, month: 6, value: 1000, year: 2025 },
-          { capacity: 20, month: 7, value: 500, year: 2025 },
+          { year: '2025', month: 6, capacity: 40, value: 1000 },
+          { year: '2025', month: 7, capacity: 20, value: 500 },
         ]);
+      });
+
+      it('should convert string/decimal values to numbers', async () => {
+        repository.getCapacityByYearMonth.mockResolvedValueOnce([
+          makeCapacityRow({ capacidade: 18, valor: 1609308.88 }),
+        ]);
+
+        const result = await service.getDashboard(makeDashboardFilter());
+
+        expect(result.monthlyCapacity).toStrictEqual([
+          { year: '2025', month: 6, capacity: 18, value: 1609308.88 },
+        ]);
+      });
+
+      it('should return an empty array when there is no capacity', async () => {
+        const result = await service.getDashboard(makeDashboardFilter());
+
+        expect(result.monthlyCapacity).toStrictEqual([]);
       });
     });
 
@@ -506,27 +657,27 @@ describe('ContingencyService', () => {
     describe('recentAnswers', () => {
       it('should format dates as YYYY-MM-DD and map the user name', async () => {
         repository.findRecent.mockResolvedValueOnce([
-          makeRecentEntry('2025-06-10', 'Ana'),
-          makeRecentEntry('2025-06-09', 'Carlos'),
+          makeRecentEntry('2025-06-10', 2, 'Ana'),
+          makeRecentEntry('2025-06-09', 3, 'Carlos'),
         ]);
 
         const result = await service.getDashboard(makeDashboardFilter());
 
         expect(result.recentAnswers).toStrictEqual([
-          { date: '2025-06-10', name: 'Ana' },
-          { date: '2025-06-09', name: 'Carlos' },
+          { id: 2, date: '2025-06-10', name: 'Ana', partner: 'Turma A' },
+          { id: 3, date: '2025-06-09', name: 'Carlos', partner: 'Turma A' },
         ]);
       });
 
       it('should return name as null when the user relation is null', async () => {
         repository.findRecent.mockResolvedValueOnce([
-          makeRecentEntry('2025-06-10', null),
+          makeRecentEntry('2025-06-10', 2, null),
         ]);
 
         const result = await service.getDashboard(makeDashboardFilter());
 
         expect(result.recentAnswers).toStrictEqual([
-          { date: '2025-06-10', name: null },
+          { id: 2, date: '2025-06-10', name: null, partner: 'Turma A' },
         ]);
       });
 

@@ -11,11 +11,12 @@ import {
   EmergencyTeamResponse,
 } from 'src/domain/types';
 import {
-  AggregatedEmergencyTeam,
   ContingencyDashboardOutput,
   ContingencyInput,
   CreateContingencyInput,
+  EmergencyTeamRow,
   GroupByFieldRow,
+  MonthlyCapacityRow,
 } from '../types';
 
 const AVAILABILITY_DATE_FORMAT = 'YYYY-MM-DD';
@@ -43,93 +44,81 @@ export class ContingencyService {
   async getDashboard(
     query: ContingencyInput = {},
   ): Promise<ContingencyDashboardOutput> {
-    const filterMonth = this.resolveFilterMonth(query);
+    const filter = this.withDefaultPeriod(query);
 
     const [
       recent,
-      partner,
+      partners,
       laborRows,
       teamRows,
       csds,
       emergencyTeams,
       executionCapacity,
     ] = await Promise.all([
-      this.contingencyRepository.findRecent(query),
-      this.contingencyRepository.groupByPartner(query),
-      this.contingencyRepository.groupByField('tipo_recurso_mao_obra', query),
-      this.contingencyRepository.groupByField('tipo_recurso_equipe', query),
-      this.contingencyRepository.groupByCsd(query),
-      this.contingencyRepository.getEmergencyTeamsWithValue(query, filterMonth),
-      this.contingencyRepository.getCapacityByYearMonth(query, filterMonth),
+      this.contingencyRepository.findRecent(filter),
+      this.contingencyRepository.groupByPartner(filter),
+      this.contingencyRepository.groupByField('tipo_recurso_mao_obra', filter),
+      this.contingencyRepository.groupByField('tipo_recurso_equipe', filter),
+      this.contingencyRepository.groupByCsd(filter),
+      this.contingencyRepository.getEmergencyTeamsWithValue(filter),
+      this.contingencyRepository.getCapacityByYearMonth(filter),
     ]);
 
-    const aggregatedEmergencyTeams =
-      this.aggregateEmergencyTeams(emergencyTeams);
+    const emergencyTeamRows = this.aggregateEmergencyTeams(emergencyTeams);
 
-    const yieldedPercentage = this.calculateYieldedPercentage(
-      aggregatedEmergencyTeams,
-      executionCapacity,
-      filterMonth,
-    );
+    const monthlyCapacityRows = this.toMonthlyCapacityOutput(executionCapacity);
 
     return {
-      allocatedPercentage: yieldedPercentage,
+      allocatedPercentage: this.calculateYieldedPercentage(
+        emergencyTeamRows,
+        monthlyCapacityRows,
+      ),
       monthlyCapacity: executionCapacity.map((capacity) => ({
         capacity: capacity.capacidade,
         month: capacity.mes,
         value: capacity.valor,
-        year: Number(capacity.ano),
+        year: capacity.ano,
       })),
-      emergencyTeams: aggregatedEmergencyTeams,
+      emergencyTeams: emergencyTeamRows,
       recentAnswers: recent.map((r) => ({
+        id: r.id,
         date: r.dia_disponibilidade.toISOString().slice(0, 10),
         name: r.novo_tabela_usuarios?.nome ?? null,
+        partner: r.turmas.turma ?? null,
       })),
-      partners: partner,
+      partners,
       laborTypes: this.sumByName(laborRows, 'laborQuantity'),
       teamTypes: this.sumByName(teamRows, 'teamsQuantity'),
       csds,
     };
   }
 
-  private resolveFilterMonth(filter?: ContingencyInput): number {
-    if (!filter?.dataInicial || !filter?.dataFinal) {
-      return moment().month() + 1;
-    }
+  private withDefaultPeriod(query: ContingencyInput): ContingencyInput {
+    if (query.mesInicial || query.mesFinal) return query;
 
-    const start = moment(filter.dataInicial, 'DD/MM/YYYY');
-    const end = moment(filter.dataFinal, 'DD/MM/YYYY');
-
-    if (
-      start.isValid() &&
-      end.isValid() &&
-      start.month() === end.month() &&
-      start.year() === end.year()
-    ) {
-      return start.month() + 1;
-    }
-
-    return moment().month() + 1;
+    const currentMonth = moment.utc().format('YYYY-MM');
+    return { ...query, mesInicial: currentMonth, mesFinal: currentMonth };
   }
 
   private aggregateEmergencyTeams(
     rows: EmergencyTeamResponse[],
-  ): AggregatedEmergencyTeam[] {
-    const map = new Map<string, AggregatedEmergencyTeam>();
+  ): EmergencyTeamRow[] {
+    const map = new Map<string, EmergencyTeamRow>();
 
-    for (const { ano, mes, quantidade, valor } of rows) {
+    for (const { ano, mes, quantidade, tipo, valor } of rows) {
       const key = `${ano}-${mes}`;
       const existing = map.get(key);
 
       if (existing) {
-        existing.quantidade += quantidade;
-        existing.valor += valor;
+        existing.quantity += Number(quantidade);
+        existing.value += Number(valor);
       } else {
         map.set(key, {
-          ano,
-          mes,
-          quantidade,
-          valor,
+          year: ano,
+          month: Number(mes),
+          type: tipo,
+          quantity: Number(quantidade),
+          value: Number(valor),
         });
       }
     }
@@ -137,20 +126,34 @@ export class ContingencyService {
     return Array.from(map.values());
   }
 
+  private toMonthlyCapacityOutput(
+    rows: CapacityByYearMonthResponse[],
+  ): MonthlyCapacityRow[] {
+    return rows.map((item) => ({
+      year: item.ano,
+      month: Number(item.mes),
+      capacity: Number(item.capacidade),
+      value: Number(item.valor),
+    }));
+  }
+
+  /** Percentagem cedida no período: total de equipas / capacidade total. */
   private calculateYieldedPercentage(
-    emergencyTeams: AggregatedEmergencyTeam[],
-    monthlyCapacity: CapacityByYearMonthResponse[],
-    filterMonth: number,
+    emergencyTeams: EmergencyTeamRow[],
+    monthlyCapacity: MonthlyCapacityRow[],
   ): number | null {
-    const capacity = monthlyCapacity.find((item) => item.mes === filterMonth);
+    const totalCapacity = monthlyCapacity.reduce(
+      (total, item) => total + item.capacity,
+      0,
+    );
+    const totalEmergency = emergencyTeams.reduce(
+      (total, item) => total + item.quantity,
+      0,
+    );
 
-    const emergency = emergencyTeams.find((item) => item.mes === filterMonth);
+    if (!totalCapacity) return null;
 
-    if (!capacity || !emergency) return null;
-
-    if (capacity.capacidade === 0) return null;
-
-    return Math.round((emergency.quantidade / capacity.capacidade) * 100);
+    return Math.round((totalEmergency / totalCapacity) * 100);
   }
 
   private sumByName(
