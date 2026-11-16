@@ -107,7 +107,20 @@ export function ContingencyFilters({
             onClick={onApply}
             disabled={isPending}
             text={isPending ? "Carregando..." : "Aplicar"}
-            styled="flex-1 lg:flex-none bg-[#53FF75] hover:bg-[#3de062] text-[#0f1a26] rounded-xl px-3 py-1 shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+            styled="flex-1 lg:flex-none rounded-xl px-3 py-1 shadow-lg transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#0f1a26",
+              backgroundColor: "#53FF75",
+              "&:hover": {
+                color: "#0f1a26",
+                backgroundColor: "#2ED158",
+              },
+              "&.Mui-disabled": {
+                color: "#0f1a26",
+                backgroundColor: "#53FF75",
+                opacity: 0.5,
+              },
+            }}
           />
 
           <ButtonComponent
@@ -115,7 +128,23 @@ export function ContingencyFilters({
             onClick={onClear}
             disabled={isPending}
             text="Limpar"
-            styled="flex-1 lg:flex-none rounded-xl border border-solid border-white/60 bg-transparent px-3 py-1 text-zinc-300 transition-all hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+            styled="flex-1 lg:flex-none rounded-xl px-3 py-1 transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#D4D4D8", // zinc-300
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              "&:hover": {
+                color: "#FFFFFF",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                borderColor: "#FFFFFF",
+              },
+              "&.Mui-disabled": {
+                color: "#71717A", // zinc-500
+                backgroundColor: "transparent",
+                borderColor: "rgba(255, 255, 255, 0.3)",
+                opacity: 0.5,
+              },
+            }}
           />
         </div>
       </div>
