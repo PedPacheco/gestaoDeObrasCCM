@@ -6,6 +6,7 @@ type ObraOrdens =
       ordem_dca?: string | null;
       ordem_dcd?: string | null;
       ordem_dcim?: string | null;
+      ordem_dcdm?: string | null;
     }
   | null
   | undefined;
@@ -17,6 +18,7 @@ export function resolveOrdemDiagrama(obra: ObraOrdens): string | null {
     obra?.ordem_dca ??
     obra?.ordem_dcd ??
     obra?.ordem_dcim ??
+    obra?.ordem_dcdm ??
     null
   );
 }
