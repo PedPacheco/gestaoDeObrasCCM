@@ -1,7 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
 import { CreateExecutionReportInput } from 'src/application/types';
 import { EquipmentItem } from 'src/interface/dtos/executionReportDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import { ValidationError } from '../errors/domain.error';
 
 export class ExecutionReport {
   private scheduledFinishTime: Date;
@@ -81,19 +81,15 @@ export class ExecutionReport {
 
   private validate() {
     if (this.hasEquipmentInstalled && !this.appliedEquipment.length) {
-      throw new BadRequestException(
-        'Deve conter ao menos 1 equipamento aplicado.',
-      );
+      throw new ValidationError('Deve conter ao menos 1 equipamento aplicado.');
     }
 
     if (this.hasEquipmentRemoved && !this.equipmentRemoved.length) {
-      throw new BadRequestException(
-        'Deve conter ao menos 1 equipamento removido.',
-      );
+      throw new ValidationError('Deve conter ao menos 1 equipamento removido.');
     }
 
     if (this.provisionalKeyInstalled && !this.provisionalKeyReference) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Referência da chave provisória é obrigatória.',
       );
     }
@@ -102,13 +98,13 @@ export class ExecutionReport {
       this.provisionalKeyWithdrawn &&
       !this.provisionalKeyReferenceWithdrawn
     ) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Referência da chave provisória retirada é obrigatória.',
       );
     }
 
     if (!this.isComplete() && this.files.length > 0) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Arquivos só podem ser enviados quando o relatório de execução estiver completo',
       );
     }

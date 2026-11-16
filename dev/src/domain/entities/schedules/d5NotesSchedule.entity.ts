@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import { BaseSchedule, BaseScheduleProps } from './baseSchedule.entity';
 
 export interface D5ScheduleProps extends BaseScheduleProps {
@@ -44,36 +44,36 @@ export class D5NoteSchedule extends BaseSchedule {
 
   protected validateSpecific(): void {
     if (!this.d5NoteId || this.d5NoteId <= 0) {
-      throw new BadRequestException('ID da nota D5 é obrigatório');
+      throw new ValidationError('ID da nota D5 é obrigatório');
     }
 
     if (this.id == null && (!this.creatorUserId || this.creatorUserId <= 0)) {
-      throw new BadRequestException('Utilizador criador é obrigatório');
+      throw new ValidationError('Utilizador criador é obrigatório');
     }
 
     if (!this.modifyingUserId || this.modifyingUserId <= 0) {
-      throw new BadRequestException('Utilizador modificador é obrigatório');
+      throw new ValidationError('Utilizador modificador é obrigatório');
     }
 
     if (!this.dataProg || isNaN(this.dataProg.getTime())) {
-      throw new BadRequestException('Data de programação inválida');
+      throw new ValidationError('Data de programação inválida');
     }
 
     if (!!this.startTime !== !!this.finishTime) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Informe hora de início e hora de término em conjunto',
       );
     }
 
     if (!this.serviceType) {
-      throw new BadRequestException('O tipo do serviço deve ser informado!');
+      throw new ValidationError('O tipo do serviço deve ser informado!');
     }
 
     if (
       this.responsibility &&
       this.responsibility.length > D5NoteSchedule.MAX_RESPONSIBILITY
     ) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Responsável pela restrição deve ter no máximo ${D5NoteSchedule.MAX_RESPONSIBILITY} caracteres`,
       );
     }
@@ -85,7 +85,7 @@ export class D5NoteSchedule extends BaseSchedule {
     const teams = [this.lmTeam, this.lvTeam, this.regulTeam];
 
     if (teams.every((t) => !t) && !this.fiscalization) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Informe pelo menos uma equipe(LM, LV ou Regularização)',
       );
     }
@@ -94,12 +94,12 @@ export class D5NoteSchedule extends BaseSchedule {
   private validateExecutionFields(): void {
     if (!this.hasExecution) {
       if (this.filePaths.length > 0) {
-        throw new BadRequestException(
+        throw new ValidationError(
           'Só é possível anexar ficheiros após informar a execução',
         );
       }
       if (this.executionObservation) {
-        throw new BadRequestException(
+        throw new ValidationError(
           'A observação de execução só pode ser preenchida após informar a execução',
         );
       }
@@ -110,7 +110,7 @@ export class D5NoteSchedule extends BaseSchedule {
 
     // Com execução, ambos passam a ser obrigatórios
     if (this.filePaths.length === 0) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'É obrigatório anexar ao menos um ficheiro quando há execução',
       );
     }
@@ -119,7 +119,7 @@ export class D5NoteSchedule extends BaseSchedule {
       !this.executionObservation ||
       this.executionObservation.trim().length === 0
     ) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'A observação de execução é obrigatória quando há execução',
       );
     }
@@ -127,13 +127,13 @@ export class D5NoteSchedule extends BaseSchedule {
 
   private validateFiles(): void {
     if (this.filePaths.length > D5NoteSchedule.MAX_FILES) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Máximo de ${D5NoteSchedule.MAX_FILES} ficheiros permitidos por programação`,
       );
     }
 
     if (new Set(this.filePaths).size !== this.filePaths.length) {
-      throw new BadRequestException('Existem ficheiros duplicados');
+      throw new ValidationError('Existem ficheiros duplicados');
     }
   }
 

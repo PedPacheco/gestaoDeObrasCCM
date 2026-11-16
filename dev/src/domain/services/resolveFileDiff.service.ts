@@ -1,5 +1,6 @@
 // src/domain/services/resolveFileDiff.ts
-import { BadRequestException } from '@nestjs/common';
+
+import { ValidationError } from '../errors/domain.error';
 
 export interface FileDiff {
   finalPaths: string[];
@@ -16,7 +17,7 @@ export function resolveFileDiff(
   const forged = kept.filter((path) => !stored.includes(path));
 
   if (forged.length > 0) {
-    throw new BadRequestException(
+    throw new ValidationError(
       'Lista de anexos contém ficheiros que não pertencem a esta programação.',
     );
   }

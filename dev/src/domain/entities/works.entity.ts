@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
 import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
+import { ValidationError } from '../errors/domain.error';
 
 export class Work {
   public readonly pontoAPonto: boolean;
@@ -263,29 +263,29 @@ export class NoteWorks extends Work {
 
   validateNota(): void {
     if (this.isPepGenericoNote) {
-      throw new BadRequestException(`Obra ${this.obra} está com PEP genérico.`);
+      throw new ValidationError(`Obra ${this.obra} está com PEP genérico.`);
     }
 
     if (this.isEmpreendimentoInvalido) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Selecione um empreendimento válido para a obra ${this.obra}.`,
       );
     }
 
     if (this.isAnoplanInvalid) {
-      throw new BadRequestException('Falta informar o ano de Planejamento');
+      throw new ValidationError('Falta informar o ano de Planejamento');
     }
 
     if (this.isRda) {
-      throw new BadRequestException('Necessário selecionar o tipo da RDA');
+      throw new ValidationError('Necessário selecionar o tipo da RDA');
     }
 
     if (this.isTypeWorkInvalid) {
-      throw new BadRequestException('Selecione um tipo de obra');
+      throw new ValidationError('Selecione um tipo de obra');
     }
 
     if (this.isCircuitInvalid) {
-      throw new BadRequestException('Selecione um circuito');
+      throw new ValidationError('Selecione um circuito');
     }
   }
 }

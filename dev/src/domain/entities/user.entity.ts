@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationError } from '../errors/domain.error';
 
 export enum TipoUsuario {
   INTERNO = 'INTERNO',
@@ -30,7 +30,7 @@ export class User {
 
   private validateInternalUserArea(): void {
     if (this.tipo_usuario === TipoUsuario.INTERNO && !this.id_area) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Usuários internos devem possuir uma área vinculada.',
       );
     }
@@ -42,7 +42,7 @@ export class User {
 
   private userIsActive(): void {
     if (!this.ativo) {
-      throw new BadRequestException('Usuário está inativo no sistema');
+      throw new ValidationError('Usuário está inativo no sistema');
     }
   }
 }
