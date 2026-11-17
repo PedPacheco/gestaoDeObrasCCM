@@ -14,92 +14,19 @@ import {
   vi,
   type Mock,
 } from 'vitest';
-
-// ─── Factories ────────────────────────────────────────────────────────────────
-
-const makeFilter = (
-  overrides: Partial<ContingencyInput> = {},
-): ContingencyInput => ({
-  mesInicial: '2025-06', // formato YYYY-MM
-  mesFinal: '2025-06',
-  idParceira: [1, 2],
-  maoObra: ['ELETRICISTA'],
-  equipe: ['EQUIPE_A'],
-  csd: ['SIM'],
-  ...overrides,
-});
-
-const makeRecentRow = (
-  dateStr: string,
-  id = 1,
-  nome: string | null = 'João',
-) => ({
-  id,
-  dia_disponibilidade: new Date(dateStr),
-  novo_tabela_usuarios: nome !== null ? { nome } : null,
-  turmas: { turma: 'Turma A' },
-});
-
-const makeCreateInput = (
-  overrides: Partial<Prisma.recursos_contingenciaUncheckedCreateInput> = {},
-): Prisma.recursos_contingenciaUncheckedCreateInput => ({
-  dia_disponibilidade: new Date('2025-06-10T00:00:00.000Z'),
-  id_parceira: 1,
-  tipo_recurso_mao_obra: 'ELETRICISTA',
-  quantidade_mao_obra: 5,
-  tipo_recurso_equipe: 'EQUIPE_A',
-  quantidade_equipe: 3,
-  disponibilizado_csd: 'SIM',
-  id_usuario: 42,
-  ...overrides,
-});
-
-/** Linha devolvida por `findMany` dentro de `groupByField`. */
-type GroupByFieldFindManyRow = {
-  tipo_recurso_mao_obra?: string | null;
-  tipo_recurso_equipe?: string | null;
-  quantidade_mao_obra: number | null;
-  quantidade_equipe: number | null;
-};
-
-const makeGroupByFieldFindManyRow = (
-  overrides: Partial<GroupByFieldFindManyRow> = {},
-): GroupByFieldFindManyRow => ({
-  quantidade_mao_obra: 0,
-  quantidade_equipe: 0,
-  ...overrides,
-});
-
-const makeCsdGroupRow = (value: string | null, count: number) => ({
-  disponibilizado_csd: value,
-  _count: { _all: count },
-});
-
-const makeGroupByParceiraRow = (idParceira: number, count: number) => ({
-  id_parceira: idParceira,
-  _count: { _all: count },
-});
-
-const makeTurmaRow = (id: number, turma: string) => ({ id, turma });
-
-type EmergencyTeamRawRow = {
-  ano: number;
-  mes: number;
-  tipo: string;
-  quantidade: number;
-  valor: number;
-};
-
-const makeEmergencyTeamRawRow = (
-  overrides: Partial<EmergencyTeamRawRow> = {},
-): EmergencyTeamRawRow => ({
-  ano: 2025,
-  mes: 6,
-  tipo: 'EQUIPE_A',
-  quantidade: 3,
-  valor: 450,
-  ...overrides,
-});
+import {
+  makeCreateInput,
+  makeCreateInputRow,
+  makeCsdGroupRow,
+  makeEmergencyTeam,
+  makeEmergencyTeamRawRow,
+  makeFilter,
+  makeGroupByFieldFindManyRow,
+  makeGroupByParceiraRow,
+  makeRecent,
+  makeRecentRow,
+  makeTurmaRow,
+} from '../../factories/contingencyResources.factory';
 
 // ─── Prisma Mock ──────────────────────────────────────────────────────────────
 
@@ -321,14 +248,17 @@ describe('ContingencyRepository', () => {
   // ═══════════════════════════════════════════════════════════════════════
 
   describe('create', () => {
-    it('should delegate to prisma.recursos_contingencia.create with exact data', async () => {
+    it('should delegate to prisma.recursos_contingencia.create with mapped data', async () => {
       const data = makeCreateInput();
+      const expected = makeCreateInputRow();
+      const created = { id: 1, ...expected };
+      prisma.recursos_contingencia.create.mockResolvedValueOnce(created as any);
 
       await repository.create(data);
 
       expect(prisma.recursos_contingencia.create).toHaveBeenCalledTimes(1);
       expect(prisma.recursos_contingencia.create).toHaveBeenCalledWith({
-        data,
+        data: expected,
       });
     });
 
@@ -380,11 +310,17 @@ describe('ContingencyRepository', () => {
         makeRecentRow('2025-06-10', 2, 'Ana'),
         makeRecentRow('2025-06-09', null),
       ];
+
+      const expected = [
+        makeRecent('2025-06-10', 2, 'Ana'),
+        makeRecent('2025-06-09', null),
+      ];
+
       prisma.recursos_contingencia.findMany.mockResolvedValueOnce(rows);
 
       const result = await repository.findRecent(makeFilter());
 
-      expect(result).toBe(rows); // mesma referência
+      expect(result).toStrictEqual(expected); // mesma referência
     });
 
     it('should handle undefined filter', async () => {
@@ -487,10 +423,7 @@ describe('ContingencyRepository', () => {
       quantidade_equipe: true,
     };
 
-    const fields: readonly ContingencyGroupField[] = [
-      'tipo_recurso_mao_obra',
-      'tipo_recurso_equipe',
-    ];
+    const fields: readonly ContingencyGroupField[] = ['laborType', 'teamType'];
 
     // ── Query ───────────────────────────────────────────────────────────────
     it.each(fields)(
@@ -503,13 +436,17 @@ describe('ContingencyRepository', () => {
         expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledTimes(1);
         expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
           where: buildExpectedWhere(filter),
-          select: { ...baseSelect, [field]: true },
+          select: {
+            ...baseSelect,
+            tipo_recurso_mao_obra: true,
+            tipo_recurso_equipe: true,
+          },
         });
       },
     );
 
     it('should not use groupBy anymore', async () => {
-      await repository.groupByField('tipo_recurso_mao_obra', makeFilter());
+      await repository.groupByField('laborType', makeFilter());
 
       expect(prisma.recursos_contingencia.groupBy).not.toHaveBeenCalled();
     });
@@ -521,7 +458,7 @@ describe('ContingencyRepository', () => {
         csd: [],
       });
 
-      await repository.groupByField('tipo_recurso_equipe', filter);
+      await repository.groupByField('teamType', filter);
 
       expect(extractWhere(prisma.recursos_contingencia.findMany)).toStrictEqual(
         buildExpectedWhere(filter),
@@ -529,7 +466,7 @@ describe('ContingencyRepository', () => {
     });
 
     it('should use an empty where when no filter is provided', async () => {
-      await repository.groupByField('tipo_recurso_mao_obra');
+      await repository.groupByField('laborType');
 
       expect(extractWhere(prisma.recursos_contingencia.findMany)).toStrictEqual(
         buildExpectedWhere({}),
@@ -551,10 +488,7 @@ describe('ContingencyRepository', () => {
         }),
       ]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_equipe',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('teamType', makeFilter());
 
       expect(result).toStrictEqual([
         {
@@ -579,10 +513,7 @@ describe('ContingencyRepository', () => {
         }),
       ]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_mao_obra',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('laborType', makeFilter());
 
       expect(result).toStrictEqual([
         {
@@ -606,10 +537,7 @@ describe('ContingencyRepository', () => {
         }),
       ]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_mao_obra',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('laborType', makeFilter());
 
       expect(result).toStrictEqual([
         {
@@ -622,10 +550,7 @@ describe('ContingencyRepository', () => {
 
     it('should return empty array when the default findMany rows lack the grouped field', async () => {
       // Usa o retorno por omissão do mock (makeRecentRow), que não tem o campo.
-      const result = await repository.groupByField(
-        'tipo_recurso_mao_obra',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('laborType', makeFilter());
 
       expect(result).toStrictEqual([]);
     });
@@ -635,10 +560,7 @@ describe('ContingencyRepository', () => {
         makeGroupByFieldFindManyRow({ tipo_recurso_equipe: '' }),
       ]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_equipe',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('teamType', makeFilter());
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('');
@@ -656,10 +578,7 @@ describe('ContingencyRepository', () => {
         }),
       ]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_equipe',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('teamType', makeFilter());
 
       expect(result).toHaveLength(2);
       expect(result.map((r) => r.teamsQuantity)).toStrictEqual([1, 4]);
@@ -668,10 +587,7 @@ describe('ContingencyRepository', () => {
     it('should return empty array when no rows exist', async () => {
       prisma.recursos_contingencia.findMany.mockResolvedValueOnce([]);
 
-      const result = await repository.groupByField(
-        'tipo_recurso_equipe',
-        makeFilter(),
-      );
+      const result = await repository.groupByField('teamType', makeFilter());
 
       expect(result).toStrictEqual([]);
     });
@@ -682,7 +598,7 @@ describe('ContingencyRepository', () => {
       prisma.recursos_contingencia.findMany.mockRejectedValueOnce(error);
 
       await expect(
-        repository.groupByField('tipo_recurso_mao_obra', makeFilter()),
+        repository.groupByField('laborType', makeFilter()),
       ).rejects.toThrow(error);
     });
   });
@@ -784,12 +700,13 @@ describe('ContingencyRepository', () => {
 
     it('should call $queryRaw once and return its result unchanged', async () => {
       const rows = [{ ano: '2025', mes: 6, capacidade: 10, valor: 1500 }];
+      const expected = [{ year: 2025, month: 6, capacity: 10, value: 1500 }];
       prisma.$queryRaw.mockResolvedValueOnce(rows);
 
       const result = await repository.getCapacityByYearMonth(makeFilter());
 
       expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toBe(rows);
+      expect(result).toStrictEqual(expected);
     });
 
     it('should build the base query', async () => {
@@ -868,12 +785,18 @@ describe('ContingencyRepository', () => {
         makeEmergencyTeamRawRow(),
         makeEmergencyTeamRawRow({ tipo: 'EQUIPE_B' }),
       ];
+
+      const expected = [
+        makeEmergencyTeam(),
+        makeEmergencyTeam({ type: 'EQUIPE_B' }),
+      ];
+
       prisma.$queryRaw.mockResolvedValueOnce(rows);
 
       const result = await repository.getEmergencyTeamsWithValue(makeFilter());
 
       expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toBe(rows);
+      expect(result).toStrictEqual(expected);
     });
 
     it('should build the CTEs, the LEFT JOIN and the final grouping', async () => {

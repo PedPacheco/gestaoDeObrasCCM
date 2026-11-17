@@ -1,9 +1,9 @@
-import { BadRequestException } from '@nestjs/common';
 import {
   D5NoteSchedule,
   D5ScheduleChanges,
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
+import { ValidationError } from 'src/domain/errors/domain.error';
 
 // ---------------------------------------------------------------------------
 // Mensagens de erro (fonte única — evita divergência entre testes e entidade)
@@ -76,7 +76,7 @@ const makeFiles = (count: number) =>
 
 /** Valida o tipo E a mensagem da exceção numa só chamada. */
 const expectBadRequest = (fn: () => unknown, message: string) => {
-  expect(fn).toThrow(BadRequestException);
+  expect(fn).toThrow(ValidationError);
   expect(fn).toThrow(message);
 };
 

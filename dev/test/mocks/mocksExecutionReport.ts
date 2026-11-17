@@ -1,7 +1,4 @@
-import {
-  EquipmentItem,
-  UpdateExecutionReportInput,
-} from 'src/application/types';
+import { UpdateExecutionReportInput } from 'src/application/types';
 import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {

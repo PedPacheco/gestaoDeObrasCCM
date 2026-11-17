@@ -1,8 +1,8 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
 
 const expectBadRequest = (fn: () => unknown) => {
-  expect(fn).toThrow(BadRequestException);
+  expect(fn).toThrow(ValidationError);
   expect(fn).toThrow(
     'Lista de anexos contém ficheiros que não pertencem a esta programação.',
   );

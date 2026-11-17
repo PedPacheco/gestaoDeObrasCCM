@@ -10,6 +10,7 @@ import type { Mock } from 'vitest';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ValidationError } from 'src/domain/errors/domain.error';
 
 vi.mock('bcrypt', () => ({
   compare: vi.fn(),
@@ -110,7 +111,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw BadRequestException if user is not active', async () => {
+    it('should throw ValidationError if user is not active', async () => {
       vi.spyOn(usersService, 'findUser').mockResolvedValue({
         ...loginUser,
         ativo: false,
@@ -118,9 +119,7 @@ describe('AuthService', () => {
 
       await expect(
         authService.login({ username: 'username', password: 'teste123' }),
-      ).rejects.toThrow(
-        new BadRequestException('Usuário está inativo no sistema'),
-      );
+      ).rejects.toThrow(new ValidationError('Usuário está inativo no sistema'));
     });
 
     it('should return user and access_token if login is successful', async () => {
@@ -152,7 +151,7 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('should throw BadRequestExpection when user already exists', async () => {
+    it('should throw ValidationError when user already exists', async () => {
       vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
 
       await expect(authService.register(loginUser)).rejects.toThrow(
@@ -160,7 +159,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw BadRequestExpection when password not sent', async () => {
+    it('should throw BadRequestException when password not sent', async () => {
       vi.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
 
       await expect(
@@ -170,13 +169,13 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw BadRequestExpection the internal user does not have a defined area.', async () => {
+    it('should throw ValidationError the internal user does not have a defined area.', async () => {
       vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
       await expect(
         authService.register({ ...registerUser, id_area: undefined }),
       ).rejects.toThrow(
-        new BadRequestException(
+        new ValidationError(
           'Usuários internos devem possuir uma área vinculada.',
         ),
       );

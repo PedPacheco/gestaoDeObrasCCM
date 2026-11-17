@@ -8,6 +8,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
@@ -151,7 +152,7 @@ describe('UpdateSchedulesService', () => {
           mockUpdateSchedulesServiceWithoutIdWork,
           mockTransaction,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         updateSchedulesService.update(

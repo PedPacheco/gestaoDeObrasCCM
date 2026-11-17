@@ -1,4 +1,5 @@
 import { HttpException } from '@nestjs/common';
+import { DomainError } from 'src/domain/errors/domain.error';
 
 export const CAPEX_GENERIC_ERROR_MESSAGE =
   'Ocorreu um erro inesperado ao processar o CAPEX.';
@@ -14,5 +15,7 @@ export function toSafeCapexErrorMessage(
   error: unknown,
   fallback: string = CAPEX_GENERIC_ERROR_MESSAGE,
 ): string {
-  return error instanceof HttpException ? error.message : fallback;
+  return error instanceof HttpException || error instanceof DomainError
+    ? error.message
+    : fallback;
 }

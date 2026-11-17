@@ -9,9 +9,17 @@ import {
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
 import {
-  mockExecutionReportPersistenceObject,
-  mockExecutionReportRepository,
-} from '../../../test/mocks/mocksExecutionReport';
+  makeExecutionReport,
+  makeExecutionReportDetail,
+  makeExecutionReportDetailRow,
+  makeExecutionReportRow,
+} from '../../factories/executionReport.factory';
+import {
+  LARGEST_ID_CANDIDATE,
+  makeExpectedReportSelect,
+  makeWorkTextConditions,
+  SMALLEST_TEXT_ONLY,
+} from '../../fixtures/executionReport.queries';
 
 describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;
@@ -69,24 +77,44 @@ describe('ExecutionReportRepository', () => {
 
   describe('create', () => {
     it('call method create and create a new register in table', async () => {
-      await repository.create(mockExecutionReportRepository, mockTransaction);
+      await repository.create(makeExecutionReport(), mockTransaction);
 
       expect(mockTransaction.relatorio_execucao.create).toHaveBeenCalledWith({
-        data: mockExecutionReportRepository,
+        data: makeExecutionReportRow(),
       });
     });
   });
 
   describe('findByScheduleId', () => {
     it('should return the report found by schedule id', async () => {
-      const expected = { id: 123, id_programacao: 1 };
-      mockTransaction.relatorio_execucao.findFirst.mockResolvedValue(expected);
+      const row = {
+        id: 123,
+        id_programacao: 1,
+        id_obra: 456,
+        caminhos_arquivos: [],
+      };
+
+      const expected = {
+        id: 123,
+        scheduleId: 1,
+        workId: 456,
+        filePaths: [],
+      };
+
+      mockTransaction.relatorio_execucao.findFirst.mockResolvedValue(row);
 
       const result = await repository.findByScheduleId(1, mockTransaction);
 
       expect(mockTransaction.relatorio_execucao.findFirst).toHaveBeenCalledWith(
         {
           where: { id_programacao: 1 },
+          select: {
+            caminho_arquivo: true,
+            caminhos_arquivos: true,
+            id: true,
+            id_obra: true,
+            id_programacao: true,
+          },
         },
       );
 
@@ -94,159 +122,84 @@ describe('ExecutionReportRepository', () => {
     });
   });
 
-  describe('findByWorkId', () => {
-    it('should return the report found by work id', async () => {
-      const expected = { id: 123, ovnota: 1 };
-      mockPrisma.relatorio_execucao.findMany.mockResolvedValue(expected);
+  describe('findByWorkIdentifier', () => {
+    const getCallArgs = () =>
+      mockPrisma.relatorio_execucao.findMany.mock.calls[0][0];
 
-      const result = await repository.findByWorkId(1);
-
-      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
-        where: {
-          obras: {
-            OR: [
-              { id: 1 },
-              { ovnota: '1' },
-              { ordem_dci: '1' },
-              { ordem_dcd: '1' },
-              { ordem_dca: '1' },
-              { ordem_dcim: '1' },
-              { diagrama: '1' },
-            ],
-          },
-        },
-        select: {
-          id: true,
-          id_usuario: true,
-          criado_em: true,
-          supervisor: true,
-          liberado_ligacao_parcial: true,
-          hora_inicio: true,
-          hora_conclusao: true,
-          contato_inicio: true,
-          contato_termino: true,
-          atraso: true,
-          justificativa_atraso: true,
-          possui_equipamentos_instalados: true,
-          equipamentos_aplicados: true,
-          potencia_equipamento_aplicado: true,
-          patrimonio_equipamento_aplicado: true,
-          instalacao_equipamento_aplicado: true,
-          possui_equipamentos_retirados: true,
-          equipamentos_retirados: true,
-          potencia_equipamento_retirado: true,
-          patrimonio_equipamento_retirado: true,
-          instalacao_equipamento_retirado: true,
-          alteracoes_execucao: true,
-          observacoes_gerais: true,
-          chave_provisoria_instalada: true,
-          referencia_chave_provisoria: true,
-          chave_provisoria_retirada: true,
-          referencia_chave_provisoria_retirada: true,
-          motivo: true,
-          caminho_arquivo: true,
-          caminhos_arquivos: true,
-          usuario: { select: { nome: true } },
-          obras: {
-            select: {
-              ovnota: true,
-              ordem_dci: true,
-              tipos: { select: { tipo_obra: true } },
-              status: { select: { status: true } },
-            },
-          },
-          programacoes: {
-            select: {
-              data_prog: true,
-              prog: true,
-              exec: true,
-              num_dp: true,
-              hora_ini: true,
-              hora_ter: true,
-              chave_provisoria: true,
-            },
-          },
-        },
-      });
-
-      expect(result).toEqual(expected);
+    beforeEach(() => {
+      vi.clearAllMocks(); // garante que calls[0] é sempre a chamada do teste atual
     });
 
-    it('should return the report found by order', async () => {
-      const expected = { id: 123, ovnota: 1 };
-      mockPrisma.relatorio_execucao.findMany.mockResolvedValue(expected);
+    it('should call findMany once with the expected select', async () => {
+      mockPrisma.relatorio_execucao.findMany.mockResolvedValueOnce([]);
 
-      const result = await repository.findByWorkId(11111111111);
+      await repository.findByWorkIdentifier(1);
 
-      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
-        where: {
+      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledTimes(1);
+      expect(getCallArgs().select).toStrictEqual(makeExpectedReportSelect());
+    });
+
+    it.each([1, LARGEST_ID_CANDIDATE])(
+      'should search by id and text fields when identifier has fewer than 10 digits (%s)',
+      async (identifier) => {
+        mockPrisma.relatorio_execucao.findMany.mockResolvedValueOnce([]);
+
+        await repository.findByWorkIdentifier(identifier);
+
+        expect(getCallArgs().where).toStrictEqual({
           obras: {
             OR: [
-              { id: undefined },
-              { ovnota: '11111111111' },
-              { ordem_dci: '11111111111' },
-              { ordem_dcd: '11111111111' },
-              { ordem_dca: '11111111111' },
-              { ordem_dcim: '11111111111' },
-              { diagrama: '11111111111' },
+              { id: identifier },
+              ...makeWorkTextConditions(String(identifier)),
             ],
           },
-        },
-        select: {
-          id: true,
-          id_usuario: true,
-          criado_em: true,
-          supervisor: true,
-          liberado_ligacao_parcial: true,
-          hora_inicio: true,
-          hora_conclusao: true,
-          contato_inicio: true,
-          contato_termino: true,
-          atraso: true,
-          justificativa_atraso: true,
-          possui_equipamentos_instalados: true,
-          equipamentos_aplicados: true,
-          potencia_equipamento_aplicado: true,
-          patrimonio_equipamento_aplicado: true,
-          instalacao_equipamento_aplicado: true,
-          possui_equipamentos_retirados: true,
-          equipamentos_retirados: true,
-          potencia_equipamento_retirado: true,
-          patrimonio_equipamento_retirado: true,
-          instalacao_equipamento_retirado: true,
-          alteracoes_execucao: true,
-          observacoes_gerais: true,
-          chave_provisoria_instalada: true,
-          referencia_chave_provisoria: true,
-          chave_provisoria_retirada: true,
-          referencia_chave_provisoria_retirada: true,
-          motivo: true,
-          caminho_arquivo: true,
-          caminhos_arquivos: true,
-          usuario: { select: { nome: true } },
-          obras: {
-            select: {
-              ovnota: true,
-              ordem_dci: true,
-              tipos: { select: { tipo_obra: true } },
-              status: { select: { status: true } },
-            },
-          },
-          programacoes: {
-            select: {
-              data_prog: true,
-              prog: true,
-              exec: true,
-              num_dp: true,
-              hora_ini: true,
-              hora_ter: true,
-              chave_provisoria: true,
-            },
-          },
-        },
-      });
+        });
+      },
+    );
 
-      expect(result).toEqual(expected);
+    it.each([SMALLEST_TEXT_ONLY, 11_111_111_111])(
+      'should search only by text fields when identifier has 10 or more digits (%s)',
+      async (identifier) => {
+        mockPrisma.relatorio_execucao.findMany.mockResolvedValueOnce([]);
+
+        await repository.findByWorkIdentifier(identifier);
+
+        expect(getCallArgs().where).toStrictEqual({
+          obras: { OR: makeWorkTextConditions(String(identifier)) },
+        });
+      },
+    );
+
+    it('should map every row returned by prisma', async () => {
+      mockPrisma.relatorio_execucao.findMany.mockResolvedValueOnce([
+        makeExecutionReportDetailRow(),
+        makeExecutionReportDetailRow({ id: 124 }),
+      ]);
+
+      const result = await repository.findByWorkIdentifier(1);
+
+      expect(result).toStrictEqual([
+        makeExecutionReportDetail(),
+        makeExecutionReportDetail({ id: 124 }),
+      ]);
+    });
+
+    it('should return an empty array when nothing is found', async () => {
+      mockPrisma.relatorio_execucao.findMany.mockResolvedValueOnce([]);
+
+      await expect(repository.findByWorkIdentifier(1)).resolves.toStrictEqual(
+        [],
+      );
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockPrisma.relatorio_execucao.findMany.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(repository.findByWorkIdentifier(1)).rejects.toThrow(
+        'db down',
+      );
     });
   });
 
@@ -255,6 +208,9 @@ describe('ExecutionReportRepository', () => {
       mockPrisma.relatorio_execucao.findFirst.mockResolvedValue({
         id: 1,
         id_obra: 234,
+        id_programacao: 12,
+        caminho_arquivo: 'path/to/file.pdf',
+        caminhos_arquivos: ['path/to/file1.pdf', 'path/to/file2.pdf'],
       });
 
       const result = await repository.findById(1);
@@ -270,17 +226,22 @@ describe('ExecutionReportRepository', () => {
         where: { id: 1 },
       });
 
-      expect(result).toEqual({ id: 1, id_obra: 234 });
+      expect(result).toEqual({
+        id: 1,
+        workId: 234,
+        scheduleId: 12,
+        filePaths: ['path/to/file1.pdf', 'path/to/file2.pdf'],
+      });
     });
   });
 
   describe('update', () => {
     it('should call prisma update with correct id and data', async () => {
-      await repository.update(1, mockExecutionReportPersistenceObject);
+      await repository.update(1, makeExecutionReport());
 
       expect(mockPrisma.relatorio_execucao.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: mockExecutionReportPersistenceObject,
+        data: makeExecutionReportRow(),
       });
     });
   });
@@ -339,7 +300,7 @@ describe('ExecutionReportRepository', () => {
           obras: { select: { programacao_ponto_a_ponto: true } },
         },
       });
-      expect(result).toEqual(schedule);
+      expect(result).toEqual({ workId: 10, pointToPoint: true });
     });
 
     it('should return null when the schedule does not exist', async () => {

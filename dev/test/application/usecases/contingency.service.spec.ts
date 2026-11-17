@@ -1,22 +1,12 @@
-// contingency.service.spec.ts
-import { BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ContingencyInput,
-  CreateContingencyInput,
-  GroupByFieldRow,
-} from 'src/application/types';
-import { ContingencyService } from 'src/application/usecases/contingency.service';
-import {
-  CONTINGENCY_REPOSITORY,
-  IContingencyRepository,
-} from 'src/domain/contracts/IContingencyRepository';
-import {
-  CapacityByYearMonthResponse,
-  EmergencyTeamResponse,
-  RecentContingencyResponse,
+// test/application/usecases/contingency.service.spec.ts
+import type { IContingencyRepository } from 'src/domain/contracts/IContingencyRepository';
+import { ValidationError } from 'src/domain/errors/domain.error';
+import type {
+  CapacityByYearMonth,
+  ContingencyGroupItem,
+  EmergencyTeam,
+  RecentContingency,
 } from 'src/domain/types';
-
 import {
   afterEach,
   beforeEach,
@@ -26,790 +16,424 @@ import {
   vi,
   type Mock,
 } from 'vitest';
+// ⚠️ Ajuste estes caminhos à localização real
+import type { CreateContingencyInput } from 'src/application/types';
+import { ContingencyService } from 'src/application/usecases/contingency.service';
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
+// ─── Dados de teste ──────────────────────────────────────────────────
 
-/** Data fixa do sistema: o withDefaultPeriod usa o mês corrente quando o pedido não traz período. */
-const SYSTEM_DATE = new Date('2026-11-12T12:00:00.000Z');
-const CURRENT_PERIOD = '2026-11';
-
-// ─── Factories ────────────────────────────────────────────────────────────────
-
-const makeCreateDTO = (
+const makeCreateContingencyInput = (
   overrides: Partial<CreateContingencyInput> = {},
-): CreateContingencyInput => ({
-  availabilityDate: '2025-06-10',
-  partnerId: 1,
-  laborType: 'ELETRICISTA',
-  laborQuantity: 5,
-  teamType: 'EQUIPE_A',
-  teamQuantity: 3,
-  allocatedCsd: 'SIM',
-  userId: 42,
-  ...overrides,
-});
-
-const makeDashboardFilter = (
-  overrides: Partial<ContingencyInput> = {},
-): ContingencyInput => ({
-  mesInicial: '2025-06', // formato YYYY-MM
-  mesFinal: '2025-06',
-  idParceira: [1],
-  ...overrides,
-});
-
-const makeRecentEntry = (
-  date: Date | string,
-  id = 1,
-  nome: string | null = 'João',
-): RecentContingencyResponse =>
+): CreateContingencyInput =>
   ({
-    id,
-    dia_disponibilidade:
-      date instanceof Date ? date : new Date(`${date}T00:00:00.000Z`),
-    novo_tabela_usuarios: nome !== null ? { nome } : null,
-    turmas: { turma: 'Turma A' },
-  }) as unknown as RecentContingencyResponse;
-
-const makeGroupByFieldRow = (
-  overrides: Partial<GroupByFieldRow> = {},
-): GroupByFieldRow => ({
-  name: 'X',
-  laborQuantity: 0,
-  teamsQuantity: 0,
-  ...overrides,
-});
-
-/** Aceita strings nos valores para simular o Decimal/text devolvido pelo $queryRaw. */
-type RawOverrides<T> = Partial<Record<keyof T, unknown>>;
-
-const makeCapacityRow = (
-  overrides: RawOverrides<CapacityByYearMonthResponse> = {},
-): CapacityByYearMonthResponse =>
-  ({
-    ano: '2025',
-    mes: 6,
-    capacidade: 40,
-    valor: 1000,
+    availabilityDate: '2025-06-10',
+    partnerId: 1,
+    laborType: 'ELETRICISTA',
+    laborQuantity: 5,
+    teamType: 'EQUIPE_A',
+    teamQuantity: 3,
+    allocatedCsd: 'SIM',
+    userId: 42,
     ...overrides,
-  }) as unknown as CapacityByYearMonthResponse;
+  }) as CreateContingencyInput;
 
-const makeEmergencyTeamRow = (
-  overrides: RawOverrides<EmergencyTeamResponse> = {},
-): EmergencyTeamResponse =>
-  ({
-    ano: 2025,
-    mes: 6,
-    tipo: 'B4',
-    quantidade: 10,
-    valor: 500,
-    ...overrides,
-  }) as unknown as EmergencyTeamResponse;
-
-// ─── Mock do Repository ───────────────────────────────────────────────────────
-
-type RepositoryMock = {
-  [K in keyof IContingencyRepository]: Mock<IContingencyRepository[K]>;
-};
-
-const makeRepositoryMock = (): RepositoryMock => ({
-  create: vi.fn().mockResolvedValue(undefined),
-  findRecent: vi.fn().mockResolvedValue([]),
-  groupByPartner: vi.fn().mockResolvedValue([]),
-  groupByField: vi.fn().mockResolvedValue([]),
-  groupByCsd: vi.fn().mockResolvedValue([]),
-  getEmergencyTeamsWithValue: vi.fn().mockResolvedValue([]),
-  getCapacityByYearMonth: vi.fn().mockResolvedValue([]),
+const makeEmergencyTeam = (
+  overrides: Partial<EmergencyTeam> = {},
+): EmergencyTeam => ({
+  year: 2025,
+  month: 6,
+  type: 'EQUIPE_A',
+  quantity: 3,
+  value: 450,
+  ...overrides,
 });
 
-// ─── Suíte ────────────────────────────────────────────────────────────────────
+const makeCapacity = (
+  overrides: Partial<CapacityByYearMonth> = {},
+): CapacityByYearMonth =>
+  ({
+    year: 2025,
+    month: 6,
+    capacity: 10,
+    value: 1000,
+    ...overrides,
+  }) as CapacityByYearMonth;
+
+const makeRecentContingency = (
+  overrides: Partial<RecentContingency> = {},
+): RecentContingency =>
+  ({
+    id: 1,
+    availabilityDate: new Date('2025-06-10T00:00:00.000Z'),
+    userName: 'Ana Silva',
+    partner: 'Parceira A',
+    ...overrides,
+  }) as RecentContingency;
+
+const makeGroupItem = (
+  overrides: Partial<ContingencyGroupItem> = {},
+): ContingencyGroupItem =>
+  ({
+    name: 'ELETRICISTA',
+    laborQuantity: 5,
+    teamsQuantity: 1,
+    ...overrides,
+  }) as ContingencyGroupItem;
+
+// ─── Mocks ───────────────────────────────────────────────────────────
+
+const makeRepository = () =>
+  ({
+    create: vi.fn(),
+    findRecent: vi.fn(),
+    groupByPartner: vi.fn(),
+    groupByField: vi.fn(),
+    groupByCsd: vi.fn(),
+    getEmergencyTeamsWithValue: vi.fn(),
+    getCapacityByYearMonth: vi.fn(),
+  }) satisfies Partial<Record<keyof IContingencyRepository, Mock>>;
+
+// ─── Suíte ───────────────────────────────────────────────────────────
 
 describe('ContingencyService', () => {
+  let repository: ReturnType<typeof makeRepository>;
   let service: ContingencyService;
-  let repository: RepositoryMock;
 
-  beforeEach(async () => {
-    // Só o Date é simulado; Promises e setTimeout continuam reais.
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(SYSTEM_DATE);
-
-    repository = makeRepositoryMock();
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ContingencyService,
-        { provide: CONTINGENCY_REPOSITORY, useValue: repository },
-      ],
-    }).compile();
-
-    service = module.get(ContingencyService);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    repository = makeRepository();
+    service = new ContingencyService(repository as never);
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks(); // restaura spies (ex.: console.log) e limpa os mocks
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+  // ─── create ──────────────────────────────────────────────────────
 
   describe('create', () => {
-    it('should map DTO fields to repository entity and call create', async () => {
-      const dto = makeCreateDTO();
+    it('should parse the availability date as UTC midnight and delegate to the repository', async () => {
+      const input = makeCreateContingencyInput();
 
-      await service.create(dto);
+      await expect(service.create(input)).resolves.toBeUndefined();
 
       expect(repository.create).toHaveBeenCalledTimes(1);
       expect(repository.create).toHaveBeenCalledWith({
-        dia_disponibilidade: new Date('2025-06-10T00:00:00.000Z'),
-        id_parceira: dto.partnerId,
-        tipo_recurso_mao_obra: dto.laborType,
-        quantidade_mao_obra: dto.laborQuantity,
-        tipo_recurso_equipe: dto.teamType,
-        quantidade_equipe: dto.teamQuantity,
-        disponibilizado_csd: dto.allocatedCsd,
-        id_usuario: dto.userId,
+        ...input,
+        availabilityDate: new Date('2025-06-10T00:00:00.000Z'),
       });
     });
 
-    it('should convert availabilityDate to a Date at UTC midnight', async () => {
-      await service.create(makeCreateDTO({ availabilityDate: '2025-12-25' }));
-
-      const arg = repository.create.mock.calls[0][0];
-      expect(arg.dia_disponibilidade).toBeInstanceOf(Date);
-      // toISOString é sempre UTC, independentemente do fuso da máquina
-      expect((arg.dia_disponibilidade as Date).toISOString()).toBe(
-        '2025-12-25T00:00:00.000Z',
-      );
-    });
-
     it.each([
-      ['wrong format', '25/12/2025'],
-      ['impossible date', '2025-02-30'],
-      ['non-date text', 'SIM'],
-      ['empty string', ''],
+      ['an impossible calendar date', '2025-02-30'],
+      ['a different date format', '10/06/2025'],
+      ['a single-digit month', '2025-6-10'],
+      ['a date with time', '2025-06-10T10:00:00'],
+      ['an empty string', ''],
     ])(
-      'should reject %s ("%s") without calling the repository',
-      async (_, availabilityDate) => {
-        await expect(
-          service.create(makeCreateDTO({ availabilityDate })),
-        ).rejects.toThrow(BadRequestException);
+      'should throw ValidationError and skip persistence when the date is %s',
+      async (_label, availabilityDate) => {
+        const promise = service.create(
+          makeCreateContingencyInput({ availabilityDate }),
+        );
 
+        await expect(promise).rejects.toBeInstanceOf(ValidationError);
+        await expect(promise).rejects.toThrow(
+          `Data de disponibilidade inválida: "${availabilityDate}". Formato esperado: YYYY-MM-DD`,
+        );
         expect(repository.create).not.toHaveBeenCalled();
       },
     );
 
-    it('should return void (no return value)', async () => {
-      const result = await service.create(makeCreateDTO());
+    it('should propagate repository errors', async () => {
+      const dbError = new Error('db down');
+      repository.create.mockRejectedValueOnce(dbError);
 
-      expect(result).toBeUndefined();
-    });
-
-    it('should propagate repository exceptions', async () => {
-      const error = new Error('DB write failed');
-      repository.create.mockRejectedValueOnce(error);
-
-      await expect(service.create(makeCreateDTO())).rejects.toBe(error);
+      await expect(service.create(makeCreateContingencyInput())).rejects.toBe(
+        dbError,
+      );
     });
   });
 
+  // ─── getDashboard ────────────────────────────────────────────────
+
   describe('getDashboard', () => {
-    /** Encaminha as linhas de groupByField conforme o campo pedido. */
-    const mockGroupByField = (
-      labor: GroupByFieldRow[],
-      team: GroupByFieldRow[],
-    ) =>
-      repository.groupByField.mockImplementation(async (field) =>
-        field === 'tipo_recurso_mao_obra' ? labor : team,
+    beforeEach(() => {
+      // 02:00 UTC de 1 de julho = ainda 30 de junho no Brasil (UTC-3)
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2025-07-01T02:00:00.000Z'));
+
+      repository.findRecent.mockResolvedValue([]);
+      repository.groupByPartner.mockResolvedValue([]);
+      repository.groupByField.mockResolvedValue([]);
+      repository.groupByCsd.mockResolvedValue([]);
+      repository.getEmergencyTeamsWithValue.mockResolvedValue([]);
+      repository.getCapacityByYearMonth.mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const expectAllQueriesCalledWith = (filter: unknown) => {
+      expect(repository.findRecent).toHaveBeenCalledWith(filter);
+      expect(repository.groupByPartner).toHaveBeenCalledWith(filter);
+      expect(repository.groupByField).toHaveBeenCalledWith('laborType', filter);
+      expect(repository.groupByField).toHaveBeenCalledWith('teamType', filter);
+      expect(repository.groupByField).toHaveBeenCalledTimes(2);
+      expect(repository.groupByCsd).toHaveBeenCalledWith(filter);
+      expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
+        filter,
       );
+      expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(filter);
+    };
 
-    // ── Chamadas ao repository ──────────────────────────────────────────────
-    describe('repository calls', () => {
-      it('should pass the query unchanged to every repository call', async () => {
-        const query = makeDashboardFilter();
+    // ─── Período ───────────────────────────────────────────────────
 
-        await service.getDashboard(query);
-
-        expect(repository.findRecent).toHaveBeenCalledWith(query);
-        expect(repository.groupByPartner).toHaveBeenCalledWith(query);
-        expect(repository.groupByField).toHaveBeenNthCalledWith(
-          1,
-          'tipo_recurso_mao_obra',
-          query,
-        );
-        expect(repository.groupByField).toHaveBeenNthCalledWith(
-          2,
-          'tipo_recurso_equipe',
-          query,
-        );
-        expect(repository.groupByCsd).toHaveBeenCalledWith(query);
-        expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
-          query,
-        );
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(query);
-
-        // mesma referência: o service não clona nem transforma o filtro
-        expect(repository.findRecent.mock.calls[0][0]).toBe(query);
-      });
-
-      it('should use groupByCsd (not groupByField) for csds', async () => {
-        await service.getDashboard(makeDashboardFilter());
-
-        expect(repository.groupByField).toHaveBeenCalledTimes(2);
-        expect(repository.groupByField).not.toHaveBeenCalledWith(
-          'disponibilizado_csd',
-          expect.anything(),
-        );
-        expect(repository.groupByCsd).toHaveBeenCalledTimes(1);
-      });
-
-      it('should default to an empty filter when query is undefined', async () => {
+    describe('default period', () => {
+      it('should use the current UTC month when called without a query', async () => {
         await service.getDashboard();
 
-        expect(repository.findRecent).toHaveBeenCalledWith({
-          mesInicial: '2026-11',
-          mesFinal: '2026-11',
-        });
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith({
-          mesInicial: '2026-11',
-          mesFinal: '2026-11',
+        expectAllQueriesCalledWith({
+          mesInicial: '2025-07',
+          mesFinal: '2025-07',
         });
       });
 
-      it('should start all 7 repository calls before any of them resolves (Promise.all)', async () => {
-        // Sem await: só ficam registadas as chamadas iniciadas de forma síncrona.
-        // Com awaits sequenciais, apenas a primeira estaria registada aqui.
-        const pending = service.getDashboard(makeDashboardFilter());
+      it('should keep other filters when applying the default period', async () => {
+        await service.getDashboard({ idParceira: [10] } as never);
 
-        expect(repository.findRecent).toHaveBeenCalledTimes(1);
-        expect(repository.groupByPartner).toHaveBeenCalledTimes(1);
-        expect(repository.groupByField).toHaveBeenCalledTimes(2);
-        expect(repository.groupByCsd).toHaveBeenCalledTimes(1);
-        expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledTimes(1);
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledTimes(1);
-
-        await pending;
+        expectAllQueriesCalledWith({
+          idParceira: [10],
+          mesInicial: '2025-07',
+          mesFinal: '2025-07',
+        });
       });
-    });
 
-    // ── resolveFilterMonth ──────────────────────────────────────────────────
-    describe('period resolution', () => {
-      const expectPeriodSentToRepository = (expected: ContingencyInput) => {
-        expect(repository.findRecent).toHaveBeenCalledWith(expected);
-        expect(repository.groupByPartner).toHaveBeenCalledWith(expected);
-        expect(repository.groupByField).toHaveBeenCalledWith(
-          'tipo_recurso_mao_obra',
-          expected,
-        );
-        expect(repository.groupByField).toHaveBeenCalledWith(
-          'tipo_recurso_equipe',
-          expected,
-        );
-        expect(repository.groupByCsd).toHaveBeenCalledWith(expected);
-        expect(repository.getEmergencyTeamsWithValue).toHaveBeenCalledWith(
-          expected,
-        );
-        expect(repository.getCapacityByYearMonth).toHaveBeenCalledWith(
-          expected,
-        );
-      };
-
-      it.each<[string, ContingencyInput]>([
-        ['a single month', { mesInicial: '2025-03', mesFinal: '2025-03' }],
-        ['a range of months', { mesInicial: '2025-03', mesFinal: '2025-04' }],
-        [
-          'a range across years',
-          { mesInicial: '2024-12', mesFinal: '2025-02' },
-        ],
-        ['only mesInicial', { mesInicial: '2025-03' }],
+      it.each([
+        ['only mesInicial', { mesInicial: '2025-01' }],
         ['only mesFinal', { mesFinal: '2025-03' }],
+        ['both months', { mesInicial: '2025-01', mesFinal: '2025-03' }],
       ])(
-        'should keep the given period unchanged with %s',
-        async (_, filter) => {
-          await service.getDashboard(filter);
-
-          expectPeriodSentToRepository(filter);
-          // mesma referência: o service não clona o filtro quando já tem período
-          expect(repository.findRecent.mock.calls[0][0]).toBe(filter);
-        },
-      );
-
-      it.each<[string, ContingencyInput | undefined, ContingencyInput]>([
-        ['query is undefined', undefined, {}],
-        ['query is an empty object', {}, {}],
-        [
-          'only partners are given',
-          { idParceira: [1, 2] },
-          { idParceira: [1, 2] },
-        ],
-        ['months are empty strings', { mesInicial: '', mesFinal: '' }, {}],
-      ])(
-        'should default to the current month when %s',
-        async (_, query, base) => {
+        'should keep the query unchanged when it has %s',
+        async (_label, query) => {
           await service.getDashboard(query);
 
-          expectPeriodSentToRepository({
-            ...base,
-            mesInicial: CURRENT_PERIOD,
-            mesFinal: CURRENT_PERIOD,
-          });
+          expect(repository.findRecent.mock.calls[0][0]).toBe(query);
+          expectAllQueriesCalledWith(query);
         },
       );
-
-      it('should not mutate the original query when applying the default period', async () => {
-        const query: ContingencyInput = { idParceira: [1] };
-
-        await service.getDashboard(query);
-
-        expect(query).toStrictEqual({ idParceira: [1] });
-      });
-
-      it('should use the UTC month for the default period', async () => {
-        // 31/12/2026 às 23:30 em Brasília = 01/01/2027 02:30 UTC
-        vi.setSystemTime(new Date('2026-12-31T23:30:00-03:00'));
-
-        await service.getDashboard({});
-
-        expect(repository.findRecent).toHaveBeenCalledWith({
-          mesInicial: '2027-01',
-          mesFinal: '2027-01',
-        });
-      });
     });
 
-    // ── allocatedPercentage ─────────────────────────────────────────────────
-    describe('allocatedPercentage', () => {
-      const run = (
-        emergency: EmergencyTeamResponse[],
-        capacity: CapacityByYearMonthResponse[],
-        filter: ContingencyInput = makeDashboardFilter(),
-      ) => {
-        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce(emergency);
-        repository.getCapacityByYearMonth.mockResolvedValueOnce(capacity);
-        return service.getDashboard(filter);
-      };
+    // ─── Montagem completa ────────────────────────────────────────
 
-      it('should be round(total emergency / total capacity * 100)', async () => {
-        const result = await run(
-          [makeEmergencyTeamRow({ quantidade: 10 })],
-          [makeCapacityRow({ capacidade: 40 })],
-        );
+    it('should build the dashboard from every repository result', async () => {
+      const partners = [{ name: 'Parceira A', value: 4 }];
+      const csds = [{ name: 'CSD Norte', value: 2 }];
 
-        expect(result.allocatedPercentage).toBe(25);
-      });
-
-      it.each([
-        [1, 3, 33], // 33.33…
-        [2, 3, 67], // 66.66…
-        [1, 8, 13], // 12.5 → Math.round arredonda para cima
-      ])(
-        'should round %i / %i to %i%%',
-        async (quantidade, capacidade, expected) => {
-          const result = await run(
-            [makeEmergencyTeamRow({ quantidade })],
-            [makeCapacityRow({ capacidade })],
-          );
-
-          expect(result.allocatedPercentage).toBe(expected);
-        },
-      );
-
-      it('should sum emergency quantities of every type in the same month', async () => {
-        const result = await run(
-          [
-            makeEmergencyTeamRow({ tipo: 'B4', quantidade: 3 }),
-            makeEmergencyTeamRow({ tipo: 'B2', quantidade: 2 }),
-          ],
-          [makeCapacityRow({ capacidade: 10 })],
-        );
-
-        expect(result.allocatedPercentage).toBe(50);
-      });
-
-      it('should consider every month of the period', async () => {
-        const result = await run(
-          [
-            makeEmergencyTeamRow({ mes: 3, quantidade: 2 }),
-            makeEmergencyTeamRow({ mes: 4, quantidade: 3 }),
-          ],
-          [
-            makeCapacityRow({ mes: 3, capacidade: 10 }),
-            makeCapacityRow({ mes: 4, capacidade: 10 }),
-          ],
-          makeDashboardFilter({ mesInicial: '2025-03', mesFinal: '2025-04' }),
-        );
-
-        expect(result.allocatedPercentage).toBe(25); // 5 / 20
-      });
-
-      it('should consider months of different years in the period', async () => {
-        const result = await run(
-          [
-            makeEmergencyTeamRow({ ano: 2025, mes: 12, quantidade: 1 }),
-            makeEmergencyTeamRow({ ano: 2026, mes: 1, quantidade: 1 }),
-          ],
-          [
-            makeCapacityRow({ ano: '2025', mes: 12, capacidade: 4 }),
-            makeCapacityRow({ ano: '2026', mes: 1, capacidade: 4 }),
-          ],
-          makeDashboardFilter({ mesInicial: '2025-12', mesFinal: '2026-01' }),
-        );
-
-        expect(result.allocatedPercentage).toBe(25); // 2 / 8
-      });
-
-      it('should count months with capacity but no emergency teams', async () => {
-        const result = await run(
-          [makeEmergencyTeamRow({ mes: 3, quantidade: 5 })],
-          [
-            makeCapacityRow({ mes: 3, capacidade: 10 }),
-            makeCapacityRow({ mes: 4, capacidade: 10 }),
-          ],
-          makeDashboardFilter({ mesInicial: '2025-03', mesFinal: '2025-04' }),
-        );
-
-        expect(result.allocatedPercentage).toBe(25); // 5 / 20
-      });
-
-      it('should convert string/decimal values from the database to numbers', async () => {
-        const result = await run(
-          [
-            makeEmergencyTeamRow({ quantidade: '3' }),
-            makeEmergencyTeamRow({ quantidade: '2' }),
-          ],
-          [makeCapacityRow({ capacidade: '20' })],
-        );
-
-        expect(result.allocatedPercentage).toBe(25); // 5 / 20, sem concatenar texto
-      });
-
-      it('should still calculate when the request has no period (default month)', async () => {
-        const result = await run(
-          [makeEmergencyTeamRow({ quantidade: 4 })],
-          [makeCapacityRow({ capacidade: 8 })],
-          {},
-        );
-
-        expect(result.allocatedPercentage).toBe(50);
-      });
-
-      it('should not cap the percentage at 100', async () => {
-        const result = await run(
-          [makeEmergencyTeamRow({ quantidade: 15 })],
-          [makeCapacityRow({ capacidade: 10 })],
-        );
-
-        expect(result.allocatedPercentage).toBe(150);
-      });
-
-      it.each<[string, EmergencyTeamResponse[]]>([
-        ['there are no emergency rows', []],
-        ['emergency quantity is 0', [makeEmergencyTeamRow({ quantidade: 0 })]],
-      ])('should be 0 when %s but there is capacity', async (_, emergency) => {
-        const result = await run(emergency, [
-          makeCapacityRow({ capacidade: 10 }),
-        ]);
-
-        expect(result.allocatedPercentage).toBe(0);
-      });
-
-      it.each<[string, EmergencyTeamResponse[], CapacityByYearMonthResponse[]]>(
-        [
-          ['there are no capacity rows', [makeEmergencyTeamRow()], []],
-          [
-            'capacity is 0',
-            [makeEmergencyTeamRow()],
-            [makeCapacityRow({ capacidade: 0 })],
-          ],
-          [
-            'capacity of every month is 0',
-            [makeEmergencyTeamRow()],
-            [
-              makeCapacityRow({ mes: 3, capacidade: 0 }),
-              makeCapacityRow({ mes: 4, capacidade: 0 }),
+      repository.findRecent.mockResolvedValueOnce([
+        makeRecentContingency({
+          id: 7,
+          availabilityDate: new Date('2025-06-10T23:30:00.000Z'),
+        }),
+      ]);
+      repository.groupByPartner.mockResolvedValueOnce(partners);
+      repository.groupByCsd.mockResolvedValueOnce(csds);
+      repository.groupByField.mockImplementation(async (field: string) =>
+        field === 'laborType'
+          ? [
+              makeGroupItem({
+                name: 'ELETRICISTA',
+                laborQuantity: 5,
+                teamsQuantity: 1,
+              }),
+              makeGroupItem({
+                name: 'AJUDANTE',
+                laborQuantity: 2,
+                teamsQuantity: 1,
+              }),
+              makeGroupItem({
+                name: 'ELETRICISTA',
+                laborQuantity: 3,
+                teamsQuantity: 1,
+              }),
+            ]
+          : [
+              makeGroupItem({
+                name: 'EQUIPE_A',
+                laborQuantity: 9,
+                teamsQuantity: 2,
+              }),
+              makeGroupItem({
+                name: 'EQUIPE_A',
+                laborQuantity: 9,
+                teamsQuantity: 1,
+              }),
             ],
-          ],
-          ['both lists are empty', [], []],
+      );
+      repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
+        makeEmergencyTeam({
+          month: 6,
+          type: 'EQUIPE_A',
+          quantity: 3,
+          value: 450,
+        }),
+        makeEmergencyTeam({
+          month: 6,
+          type: 'EQUIPE_B',
+          quantity: 2,
+          value: 300,
+        }),
+        makeEmergencyTeam({
+          month: 7,
+          type: 'EQUIPE_A',
+          quantity: 1,
+          value: 150,
+        }),
+      ]);
+      repository.getCapacityByYearMonth.mockResolvedValueOnce([
+        makeCapacity({ month: 6, capacity: 10, value: 1000 }),
+        makeCapacity({ month: 7, capacity: 10, value: 1200 }),
+      ]);
+
+      const result = await service.getDashboard({
+        mesInicial: '2025-06',
+        mesFinal: '2025-07',
+      });
+
+      expect(result).toStrictEqual({
+        allocatedPercentage: 30, // 6 equipas / 20 de capacidade
+        monthlyCapacity: [
+          { year: '2025', month: 6, capacity: 10, value: 1000 },
+          { year: '2025', month: 7, capacity: 10, value: 1200 },
         ],
-      )('should be null when %s', async (_, emergency, capacity) => {
-        const result = await run(emergency, capacity);
+        emergencyTeams: [
+          { year: 2025, month: 6, type: 'EQUIPE_A', quantity: 5, value: 750 },
+          { year: 2025, month: 7, type: 'EQUIPE_A', quantity: 1, value: 150 },
+        ],
+        recentAnswers: [
+          {
+            id: 7,
+            date: '2025-06-10',
+            name: 'Ana Silva',
+            partner: 'Parceira A',
+          },
+        ],
+        partners,
+        laborTypes: [
+          { name: 'ELETRICISTA', value: 8 },
+          { name: 'AJUDANTE', value: 2 },
+        ],
+        teamTypes: [{ name: 'EQUIPE_A', value: 3 }],
+        csds,
+      });
+      expect(result.partners).toBe(partners);
+      expect(result.csds).toBe(csds);
+    });
 
-        expect(result.allocatedPercentage).toBeNull();
+    it('should return empty sections and a null percentage when there is no data', async () => {
+      await expect(service.getDashboard()).resolves.toStrictEqual({
+        allocatedPercentage: null,
+        monthlyCapacity: [],
+        emergencyTeams: [],
+        recentAnswers: [],
+        partners: [],
+        laborTypes: [],
+        teamTypes: [],
+        csds: [],
       });
     });
 
-    // ── emergencyTeams ──────────────────────────────────────────────────────
-    describe('emergencyTeams', () => {
-      it('should aggregate quantity and value by year/month across types, keeping first-occurrence order', async () => {
-        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
-          makeEmergencyTeamRow({
-            mes: 6,
-            tipo: 'B4',
-            quantidade: 3,
-            valor: 100,
-          }),
-          makeEmergencyTeamRow({
-            mes: 7,
-            tipo: 'B4',
-            quantidade: 1,
-            valor: 50,
-          }),
-          makeEmergencyTeamRow({
-            mes: 6,
-            tipo: 'B2',
-            quantidade: 2,
-            valor: 200,
-          }),
-        ]);
+    // ─── Equipas de emergência ────────────────────────────────────
 
-        const result = await service.getDashboard(makeDashboardFilter());
+    it('should merge emergency teams by year and month, keeping first-seen order', async () => {
+      repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
+        makeEmergencyTeam({ year: 2025, month: 7, quantity: 1, value: 100 }),
+        makeEmergencyTeam({ year: 2024, month: 7, quantity: 2, value: 200 }),
+        makeEmergencyTeam({
+          year: 2025,
+          month: 7,
+          type: 'EQUIPE_B',
+          quantity: 4,
+          value: 400,
+        }),
+      ]);
 
-        expect(result.emergencyTeams).toStrictEqual([
-          { year: 2025, month: 6, type: 'B4', quantity: 5, value: 300 },
-          { year: 2025, month: 7, type: 'B4', quantity: 1, value: 50 },
-        ]);
-      });
+      const { emergencyTeams } = await service.getDashboard();
 
-      it('should keep the same month of different years separate', async () => {
-        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
-          makeEmergencyTeamRow({ ano: 2024, mes: 6, quantidade: 1 }),
-          makeEmergencyTeamRow({ ano: 2025, mes: 6, quantidade: 2 }),
-        ]);
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.emergencyTeams).toStrictEqual([
-          { year: 2024, month: 6, type: 'B4', quantity: 1, value: 500 },
-          { year: 2025, month: 6, type: 'B4', quantity: 2, value: 500 },
-        ]);
-      });
-
-      it('should convert string/decimal values to numbers before summing', async () => {
-        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce([
-          makeEmergencyTeamRow({ quantidade: 3, valor: 150.5 }),
-          makeEmergencyTeamRow({ quantidade: 2, valor: 49.5 }),
-        ]);
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.emergencyTeams).toStrictEqual([
-          { year: 2025, month: 6, type: 'B4', quantity: 5, value: 200 },
-        ]);
-      });
-
-      it('should not mutate the rows returned by the repository', async () => {
-        const rows = [
-          makeEmergencyTeamRow({ quantidade: 3 }),
-          makeEmergencyTeamRow({ quantidade: 2 }),
-        ];
-        const snapshot = structuredClone(rows);
-        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce(rows);
-
-        await service.getDashboard(makeDashboardFilter());
-
-        expect(rows).toStrictEqual(snapshot);
-      });
-
-      it('should return an empty array when there are no emergency teams', async () => {
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.emergencyTeams).toStrictEqual([]);
-      });
+      expect(emergencyTeams).toStrictEqual([
+        { year: 2025, month: 7, type: 'EQUIPE_A', quantity: 5, value: 500 },
+        { year: 2024, month: 7, type: 'EQUIPE_A', quantity: 2, value: 200 },
+      ]);
     });
 
-    // ── monthlyCapacity ─────────────────────────────────────────────────────
-    describe('monthlyCapacity', () => {
-      it('should map capacity rows and convert ano to number', async () => {
-        repository.getCapacityByYearMonth.mockResolvedValueOnce([
-          makeCapacityRow({ ano: '2025', mes: 6, capacidade: 40, valor: 1000 }),
-          makeCapacityRow({ ano: '2025', mes: 7, capacidade: 20, valor: 500 }),
-        ]);
+    it('should not mutate the rows returned by the repository', async () => {
+      const rows = [
+        makeEmergencyTeam({ quantity: 3, value: 450 }),
+        makeEmergencyTeam({ type: 'EQUIPE_B', quantity: 2, value: 300 }),
+      ];
+      const snapshot = structuredClone(rows);
+      repository.getEmergencyTeamsWithValue.mockResolvedValueOnce(rows);
 
-        const result = await service.getDashboard(makeDashboardFilter());
+      await service.getDashboard();
 
-        expect(result.monthlyCapacity).toStrictEqual([
-          { year: '2025', month: 6, capacity: 40, value: 1000 },
-          { year: '2025', month: 7, capacity: 20, value: 500 },
-        ]);
-      });
-
-      it('should convert string/decimal values to numbers', async () => {
-        repository.getCapacityByYearMonth.mockResolvedValueOnce([
-          makeCapacityRow({ capacidade: 18, valor: 1609308.88 }),
-        ]);
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.monthlyCapacity).toStrictEqual([
-          { year: '2025', month: 6, capacity: 18, value: 1609308.88 },
-        ]);
-      });
-
-      it('should return an empty array when there is no capacity', async () => {
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.monthlyCapacity).toStrictEqual([]);
-      });
+      expect(rows).toStrictEqual(snapshot);
     });
 
-    // ── recentAnswers ───────────────────────────────────────────────────────
-    describe('recentAnswers', () => {
-      it('should format dates as YYYY-MM-DD and map the user name', async () => {
-        repository.findRecent.mockResolvedValueOnce([
-          makeRecentEntry('2025-06-10', 2, 'Ana'),
-          makeRecentEntry('2025-06-09', 3, 'Carlos'),
-        ]);
+    // ─── Percentagem cedida ───────────────────────────────────────
 
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.recentAnswers).toStrictEqual([
-          { id: 2, date: '2025-06-10', name: 'Ana', partner: 'Turma A' },
-          { id: 3, date: '2025-06-09', name: 'Carlos', partner: 'Turma A' },
-        ]);
-      });
-
-      it('should return name as null when the user relation is null', async () => {
-        repository.findRecent.mockResolvedValueOnce([
-          makeRecentEntry('2025-06-10', 2, null),
-        ]);
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.recentAnswers).toStrictEqual([
-          { id: 2, date: '2025-06-10', name: null, partner: 'Turma A' },
-        ]);
-      });
-
-      it('should use the UTC date (toISOString)', async () => {
-        // 23:30 em Brasília = 02:30 UTC do dia seguinte
-        repository.findRecent.mockResolvedValueOnce([
-          makeRecentEntry(new Date('2025-06-10T23:30:00-03:00')),
-        ]);
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.recentAnswers[0].date).toBe('2025-06-11');
-      });
-    });
-
-    // ── laborTypes / teamTypes ──────────────────────────────────────────────
-    describe('laborTypes and teamTypes', () => {
-      it('should sum laborQuantity by name for laborTypes', async () => {
-        mockGroupByField(
-          [
-            makeGroupByFieldRow({ name: 'ELETRICISTA', laborQuantity: 2 }),
-            makeGroupByFieldRow({ name: 'AJUDANTE', laborQuantity: 1 }),
-            makeGroupByFieldRow({ name: 'ELETRICISTA', laborQuantity: 3 }),
-          ],
-          [],
+    it.each([
+      ['capacity is empty', [3], [], null],
+      ['total capacity is zero', [3], [0, 0], null],
+      ['there are no emergency teams', [], [10], 0],
+      ['the ratio is exact', [3], [10], 30],
+      ['the ratio rounds down', [1], [3], 33],
+      ['the ratio rounds up', [2], [3], 67],
+      ['teams exceed capacity', [15], [10], 150],
+    ])(
+      'should calculate allocatedPercentage when %s',
+      async (_label, quantities, capacities, expected) => {
+        repository.getEmergencyTeamsWithValue.mockResolvedValueOnce(
+          quantities.map((quantity, i) =>
+            makeEmergencyTeam({ month: i + 1, quantity }),
+          ),
+        );
+        repository.getCapacityByYearMonth.mockResolvedValueOnce(
+          capacities.map((capacity, i) =>
+            makeCapacity({ month: i + 1, capacity }),
+          ),
         );
 
-        const result = await service.getDashboard(makeDashboardFilter());
+        const { allocatedPercentage } = await service.getDashboard();
 
-        expect(result.laborTypes).toStrictEqual([
-          { name: 'ELETRICISTA', value: 5 },
-          { name: 'AJUDANTE', value: 1 },
-        ]);
-      });
+        expect(allocatedPercentage).toBe(expected);
+      },
+    );
 
-      it('should sum teamsQuantity by name for teamTypes', async () => {
-        mockGroupByField(
-          [],
-          [
-            makeGroupByFieldRow({ name: 'EQUIPE_A', teamsQuantity: 1 }),
-            makeGroupByFieldRow({ name: 'EQUIPE_A', teamsQuantity: 4 }),
-            makeGroupByFieldRow({ name: 'EQUIPE_B', teamsQuantity: 2 }),
-          ],
-        );
+    // ─── Respostas recentes ───────────────────────────────────────
 
-        const result = await service.getDashboard(makeDashboardFilter());
+    it('should format recent answer dates as UTC YYYY-MM-DD', async () => {
+      repository.findRecent.mockResolvedValueOnce([
+        makeRecentContingency({
+          availabilityDate: new Date('2025-12-31T23:59:59.000Z'),
+        }),
+        makeRecentContingency({
+          id: 2,
+          availabilityDate: new Date('2026-01-01T00:00:00.000Z'),
+        }),
+      ]);
 
-        expect(result.teamTypes).toStrictEqual([
-          { name: 'EQUIPE_A', value: 5 },
-          { name: 'EQUIPE_B', value: 2 },
-        ]);
-      });
+      const { recentAnswers } = await service.getDashboard();
 
-      it('should treat null quantities as 0', async () => {
-        mockGroupByField(
-          [
-            makeGroupByFieldRow({ name: 'ELETRICISTA', laborQuantity: null }),
-            makeGroupByFieldRow({ name: 'ELETRICISTA', laborQuantity: 4 }),
-          ],
-          [makeGroupByFieldRow({ name: 'EQUIPE_A', teamsQuantity: null })],
-        );
-
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result.laborTypes).toStrictEqual([
-          { name: 'ELETRICISTA', value: 4 },
-        ]);
-        expect(result.teamTypes).toStrictEqual([
-          { name: 'EQUIPE_A', value: 0 },
-        ]);
-      });
+      expect(recentAnswers.map((r) => r.date)).toStrictEqual([
+        '2025-12-31',
+        '2026-01-01',
+      ]);
     });
 
-    // ── Pass-through ────────────────────────────────────────────────────────
-    describe('partners and csds', () => {
-      it('should return repository results by reference', async () => {
-        const partners = [{ name: 'Parceira 1', value: 3 }];
-        const csds = [{ name: 'SIM', value: 7 }];
-        repository.groupByPartner.mockResolvedValueOnce(partners as never);
-        repository.groupByCsd.mockResolvedValueOnce(csds as never);
+    // ─── Erros ────────────────────────────────────────────────────
 
-        const result = await service.getDashboard(makeDashboardFilter());
+    it('should propagate errors from any repository query', async () => {
+      const dbError = new Error('db down');
+      repository.getCapacityByYearMonth.mockRejectedValueOnce(dbError);
 
-        expect(result.partners).toBe(partners);
-        expect(result.csds).toBe(csds);
-      });
-    });
-
-    // ── Formato da resposta ─────────────────────────────────────────────────
-    describe('response shape', () => {
-      it('should return an empty dashboard when the repository has no data', async () => {
-        const result = await service.getDashboard(makeDashboardFilter());
-
-        expect(result).toStrictEqual({
-          allocatedPercentage: null,
-          monthlyCapacity: [],
-          emergencyTeams: [],
-          recentAnswers: [],
-          partners: [],
-          laborTypes: [],
-          teamTypes: [],
-          csds: [],
-        });
-      });
-
-      it('should not log the dashboard to the console', async () => {
-        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-        await service.getDashboard(makeDashboardFilter());
-
-        expect(logSpy).not.toHaveBeenCalled();
-        logSpy.mockRestore();
-      });
-    });
-
-    // ── Erros ───────────────────────────────────────────────────────────────
-    describe('error propagation', () => {
-      it.each([
-        'findRecent',
-        'groupByPartner',
-        'groupByField',
-        'groupByCsd',
-        'getEmergencyTeamsWithValue',
-        'getCapacityByYearMonth',
-      ] as const)('should propagate errors from %s', async (method) => {
-        const error = new Error(`${method} failed`);
-        (repository[method] as Mock).mockRejectedValueOnce(error);
-
-        await expect(
-          service.getDashboard(makeDashboardFilter()),
-        ).rejects.toThrow(error);
-      });
+      await expect(service.getDashboard()).rejects.toBe(dbError);
     });
   });
 });

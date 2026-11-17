@@ -5,6 +5,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockAddSchedulesServiceData,
   mockAddSchedulesServiceDataNotTimeValid,
@@ -66,7 +67,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithoutIdWork,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
@@ -82,7 +83,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithWrongProg,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
@@ -98,7 +99,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataNotTimeValid,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
