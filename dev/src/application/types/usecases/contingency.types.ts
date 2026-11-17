@@ -1,3 +1,10 @@
+// application/types/usecases/contingency/contingency.types.ts
+import type {
+  ContingencyFilter,
+  CountItem,
+  EmergencyTeam,
+} from 'src/domain/types';
+
 export interface CreateContingencyInput {
   availabilityDate: string; // YYYY-MM-DD
   partnerId: number;
@@ -9,62 +16,29 @@ export interface CreateContingencyInput {
   userId: number;
 }
 
-export type ContingencyInput = {
-  mesInicial?: string; // YYYY-MM
-  mesFinal?: string; // YYYY-MM
-  idParceira?: number[];
-  maoObra?: string[];
-  equipe?: string[];
-  csd?: string[];
-};
+export type ContingencyInput = ContingencyFilter;
 
-export interface CountItem {
-  name: string;
-  value: number;
-}
-
-export interface QuantityByNameRow {
-  name: string;
-  quantity: number;
-}
-
-export interface RecentContingencyRow {
-  availabilityDate: Date;
-  userName: string | null;
-  crew: string | null;
-}
-
-export interface GroupByFieldRow {
-  name: string;
-  laborQuantity: number | null;
-  teamsQuantity: number | null;
-}
-
-export interface MonthlyCapacityRow {
-  year: string;
+export interface MonthlyCapacityOutput {
+  year: string; // mantido como string para não mudar o contrato com o front
   month: number;
   capacity: number;
   value: number;
 }
 
-export interface EmergencyTeamRow {
-  year: number;
-  month: number;
-  type: string;
-  quantity: number;
-  value: number;
+export type EmergencyTeamOutput = EmergencyTeam;
+
+export interface RecentAnswerOutput {
+  id: number;
+  date: string; // YYYY-MM-DD
+  name: string | null;
+  partner: string | null;
 }
 
 export interface ContingencyDashboardOutput {
   allocatedPercentage: number | null;
-  monthlyCapacity: MonthlyCapacityRow[];
-  emergencyTeams: EmergencyTeamRow[];
-  recentAnswers: {
-    id: number;
-    date: string;
-    name: string | null;
-    partner: string | null;
-  }[];
+  monthlyCapacity: MonthlyCapacityOutput[];
+  emergencyTeams: EmergencyTeamOutput[];
+  recentAnswers: RecentAnswerOutput[];
   partners: CountItem[];
   laborTypes: CountItem[];
   teamTypes: CountItem[];

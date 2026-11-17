@@ -1,22 +1,27 @@
 import moment from 'moment';
 
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import {
   CONTINGENCY_REPOSITORY,
   IContingencyRepository,
 } from 'src/domain/contracts/IContingencyRepository';
+
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
-  CapacityByYearMonthResponse,
-  EmergencyTeamResponse,
+  CapacityByYearMonth,
+  ContingencyGroupItem,
+  CountItem,
+  EmergencyTeam,
+  RecentContingency,
 } from 'src/domain/types';
 import {
   ContingencyDashboardOutput,
   ContingencyInput,
   CreateContingencyInput,
-  EmergencyTeamRow,
-  GroupByFieldRow,
-  MonthlyCapacityRow,
+  EmergencyTeamOutput,
+  MonthlyCapacityOutput,
+  RecentAnswerOutput,
 } from '../types';
 
 const AVAILABILITY_DATE_FORMAT = 'YYYY-MM-DD';
@@ -30,14 +35,8 @@ export class ContingencyService {
 
   async create(data: CreateContingencyInput): Promise<void> {
     await this.contingencyRepository.create({
-      dia_disponibilidade: this.parseAvailabilityDate(data.availabilityDate),
-      id_parceira: data.partnerId,
-      tipo_recurso_mao_obra: data.laborType,
-      quantidade_mao_obra: data.laborQuantity,
-      tipo_recurso_equipe: data.teamType,
-      quantidade_equipe: data.teamQuantity,
-      disponibilizado_csd: data.allocatedCsd,
-      id_usuario: data.userId,
+      ...data,
+      availabilityDate: this.parseAvailabilityDate(data.availabilityDate),
     });
   }
 
@@ -49,135 +48,114 @@ export class ContingencyService {
     const [
       recent,
       partners,
-      laborRows,
-      teamRows,
+      laborGroups,
+      teamGroups,
       csds,
       emergencyTeams,
-      executionCapacity,
+      capacity,
     ] = await Promise.all([
       this.contingencyRepository.findRecent(filter),
       this.contingencyRepository.groupByPartner(filter),
-      this.contingencyRepository.groupByField('tipo_recurso_mao_obra', filter),
-      this.contingencyRepository.groupByField('tipo_recurso_equipe', filter),
+      this.contingencyRepository.groupByField('laborType', filter),
+      this.contingencyRepository.groupByField('teamType', filter),
       this.contingencyRepository.groupByCsd(filter),
       this.contingencyRepository.getEmergencyTeamsWithValue(filter),
       this.contingencyRepository.getCapacityByYearMonth(filter),
     ]);
 
-    const emergencyTeamRows = this.aggregateEmergencyTeams(emergencyTeams);
-
-    const monthlyCapacityRows = this.toMonthlyCapacityOutput(executionCapacity);
+    const aggregatedTeams = this.aggregateEmergencyTeams(emergencyTeams);
 
     return {
       allocatedPercentage: this.calculateYieldedPercentage(
-        emergencyTeamRows,
-        monthlyCapacityRows,
+        aggregatedTeams,
+        capacity,
       ),
-      monthlyCapacity: executionCapacity.map((capacity) => ({
-        capacity: capacity.capacidade,
-        month: capacity.mes,
-        value: capacity.valor,
-        year: capacity.ano,
-      })),
-      emergencyTeams: emergencyTeamRows,
-      recentAnswers: recent.map((r) => ({
-        id: r.id,
-        date: r.dia_disponibilidade.toISOString().slice(0, 10),
-        name: r.novo_tabela_usuarios?.nome ?? null,
-        partner: r.turmas.turma ?? null,
-      })),
+      monthlyCapacity: capacity.map(this.toMonthlyCapacityOutput),
+      emergencyTeams: aggregatedTeams,
+      recentAnswers: recent.map(this.toRecentAnswerOutput),
       partners,
-      laborTypes: this.sumByName(laborRows, 'laborQuantity'),
-      teamTypes: this.sumByName(teamRows, 'teamsQuantity'),
+      laborTypes: this.sumByName(laborGroups, 'laborQuantity'),
+      teamTypes: this.sumByName(teamGroups, 'teamsQuantity'),
       csds,
     };
   }
 
-  private withDefaultPeriod(query: ContingencyInput): ContingencyInput {
-    if (query.mesInicial || query.mesFinal) return query;
+  // ─── Output (formato da resposta: fica na application) ─────────────
+  private toMonthlyCapacityOutput = (
+    c: CapacityByYearMonth,
+  ): MonthlyCapacityOutput => ({
+    year: String(c.year),
+    month: c.month,
+    capacity: c.capacity,
+    value: c.value,
+  });
 
-    const currentMonth = moment.utc().format('YYYY-MM');
-    return { ...query, mesInicial: currentMonth, mesFinal: currentMonth };
-  }
+  private toRecentAnswerOutput = (
+    r: RecentContingency,
+  ): RecentAnswerOutput => ({
+    id: r.id,
+    date: r.availabilityDate.toISOString().slice(0, 10),
+    name: r.userName,
+    partner: r.partner,
+  });
 
+  // ─── Regras: vão para domain/rules no PR 6 (6c/6e) ────────────────
   private aggregateEmergencyTeams(
-    rows: EmergencyTeamResponse[],
-  ): EmergencyTeamRow[] {
-    const map = new Map<string, EmergencyTeamRow>();
-
-    for (const { ano, mes, quantidade, tipo, valor } of rows) {
-      const key = `${ano}-${mes}`;
+    rows: EmergencyTeam[],
+  ): EmergencyTeamOutput[] {
+    const map = new Map<string, EmergencyTeamOutput>();
+    for (const row of rows) {
+      const key = `${row.year}-${row.month}`;
       const existing = map.get(key);
-
       if (existing) {
-        existing.quantity += Number(quantidade);
-        existing.value += Number(valor);
+        existing.quantity += row.quantity;
+        existing.value += row.value;
       } else {
-        map.set(key, {
-          year: ano,
-          month: Number(mes),
-          type: tipo,
-          quantity: Number(quantidade),
-          value: Number(valor),
-        });
+        map.set(key, { ...row });
       }
     }
-
     return Array.from(map.values());
-  }
-
-  private toMonthlyCapacityOutput(
-    rows: CapacityByYearMonthResponse[],
-  ): MonthlyCapacityRow[] {
-    return rows.map((item) => ({
-      year: item.ano,
-      month: Number(item.mes),
-      capacity: Number(item.capacidade),
-      value: Number(item.valor),
-    }));
   }
 
   /** Percentagem cedida no período: total de equipas / capacidade total. */
   private calculateYieldedPercentage(
-    emergencyTeams: EmergencyTeamRow[],
-    monthlyCapacity: MonthlyCapacityRow[],
+    emergencyTeams: EmergencyTeam[],
+    capacity: CapacityByYearMonth[],
   ): number | null {
-    const totalCapacity = monthlyCapacity.reduce(
-      (total, item) => total + item.capacity,
-      0,
-    );
+    const totalCapacity = capacity.reduce((total, c) => total + c.capacity, 0);
     const totalEmergency = emergencyTeams.reduce(
-      (total, item) => total + item.quantity,
+      (total, t) => total + t.quantity,
       0,
     );
-
     if (!totalCapacity) return null;
-
     return Math.round((totalEmergency / totalCapacity) * 100);
   }
 
   private sumByName(
-    rows: GroupByFieldRow[],
-    sumField: keyof Omit<GroupByFieldRow, 'name'>,
-  ): { name: string; value: number }[] {
+    rows: ContingencyGroupItem[],
+    sumField: 'laborQuantity' | 'teamsQuantity',
+  ): CountItem[] {
     const map = new Map<string, number>();
-
     for (const row of rows) {
-      map.set(row.name, (map.get(row.name) ?? 0) + (row[sumField] ?? 0));
+      map.set(row.name, (map.get(row.name) ?? 0) + row[sumField]);
     }
-
     return Array.from(map, ([name, value]) => ({ name, value }));
+  }
+
+  // ─── Input ─────────────────────────────────────────────────────────
+  private withDefaultPeriod(query: ContingencyInput): ContingencyInput {
+    if (query.mesInicial || query.mesFinal) return query;
+    const currentMonth = moment.utc().format('YYYY-MM');
+    return { ...query, mesInicial: currentMonth, mesFinal: currentMonth };
   }
 
   private parseAvailabilityDate(value: string): Date {
     const date = moment.utc(value, AVAILABILITY_DATE_FORMAT, true);
-
     if (!date.isValid()) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Data de disponibilidade inválida: "${value}". Formato esperado: ${AVAILABILITY_DATE_FORMAT}`,
       );
     }
-
     return date.toDate();
   }
 }

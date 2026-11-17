@@ -1,26 +1,55 @@
-// src/infra/repositories/contingency/contingency.rows.ts
-// Formato das linhas devolvidas pelo Prisma (nomes das colunas da BD)
-export type ContingencyGroupField =
-  'tipo_recurso_mao_obra' | 'tipo_recurso_equipe';
+// domain/types/contingency.types.ts
+export type ContingencyFilter = {
+  mesInicial?: string; // YYYY-MM
+  mesFinal?: string; // YYYY-MM
+  idParceira?: number[];
+  maoObra?: string[];
+  equipe?: string[];
+  csd?: string[];
+};
 
-export interface RecentContingencyResponse {
+export type CreateContingencyData = {
+  availabilityDate: Date;
+  partnerId: number;
+  laborType: string;
+  laborQuantity: number;
+  teamType: string;
+  teamQuantity: number;
+  allocatedCsd: string;
+  userId: number;
+};
+
+export type ContingencyGroupField = 'laborType' | 'teamType';
+
+export interface CountItem {
+  name: string;
+  value: number;
+}
+
+export interface ContingencyGroupItem {
+  name: string;
+  laborQuantity: number;
+  teamsQuantity: number;
+}
+
+export interface RecentContingency {
   id: number;
-  dia_disponibilidade: Date;
-  novo_tabela_usuarios: { nome: string } | null;
-  turmas: { turma: string } | null;
+  availabilityDate: Date;
+  userName: string | null;
+  partner: string | null;
 }
 
-export interface CapacityByYearMonthResponse {
-  ano: string;
-  mes: number;
-  capacidade: number;
-  valor: number;
+export interface CapacityByYearMonth {
+  year: number;
+  month: number;
+  capacity: number;
+  value: number;
 }
 
-export interface EmergencyTeamResponse {
-  ano: number;
-  mes: number;
-  tipo: string;
-  quantidade: number;
-  valor: number;
+export interface EmergencyTeam {
+  year: number;
+  month: number;
+  type: string | null;
+  quantity: number;
+  value: number;
 }

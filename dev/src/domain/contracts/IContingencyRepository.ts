@@ -1,14 +1,12 @@
 import {
-  ContingencyInput,
-  CountItem,
-  GroupByFieldRow,
-} from 'src/application/types';
-import { Prisma } from 'src/infra/generated/prisma/client';
-import {
-  CapacityByYearMonthResponse,
+  CapacityByYearMonth,
+  ContingencyFilter,
   ContingencyGroupField,
-  EmergencyTeamResponse,
-  RecentContingencyResponse,
+  ContingencyGroupItem,
+  CountItem,
+  CreateContingencyData,
+  EmergencyTeam,
+  RecentContingency,
 } from '../types';
 
 export const CONTINGENCY_REPOSITORY = 'CONTINGENCY_REPOSITORY';
@@ -21,20 +19,20 @@ export type MonthPeriod = {
 };
 
 export interface IContingencyRepository {
-  create(data: Prisma.recursos_contingenciaUncheckedCreateInput): Promise<void>;
-  findRecent(filter: ContingencyInput): Promise<RecentContingencyResponse[]>;
+  create(data: CreateContingencyData): Promise<void>;
+  findRecent(filter: ContingencyFilter): Promise<RecentContingency[]>;
   groupByField(
     field: ContingencyGroupField,
-    filter: ContingencyInput,
-  ): Promise<GroupByFieldRow[]>;
-  groupByPartner(filter: ContingencyInput): Promise<CountItem[]>;
-  groupByCsd(filter: ContingencyInput): Promise<CountItem[]>;
+    filter: ContingencyFilter,
+  ): Promise<ContingencyGroupItem[]>;
+  groupByPartner(filter: ContingencyFilter): Promise<CountItem[]>;
+  groupByCsd(filter: ContingencyFilter): Promise<CountItem[]>;
   getCapacityByYearMonth(
-    filter: ContingencyInput,
+    filter: ContingencyFilter,
     month?: number,
-  ): Promise<CapacityByYearMonthResponse[]>;
+  ): Promise<CapacityByYearMonth[]>;
   getEmergencyTeamsWithValue(
-    filter: ContingencyInput,
+    filter: ContingencyFilter,
     month?: number,
-  ): Promise<EmergencyTeamResponse[]>;
+  ): Promise<EmergencyTeam[]>;
 }

@@ -1,39 +1,31 @@
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { ExecutionReport } from '../entities/executionReport.entity';
 import {
-  FindByIdResponse,
-  FindByScheduleResponse,
-  FindByWorkIdResponse,
-} from '../types/contracts/executionReport.types';
+  ExecutionReportDetail,
+  ExecutionReportFiles,
+  ScheduleWorkMode,
+  WorkStatusResetData,
+} from '../types';
 
 export interface IExecutionReportRepository {
-  create(
-    data: Prisma.relatorio_execucaoUncheckedCreateInput,
-    tx: Prisma.TransactionClient,
-  ): Promise<void>;
+  create(data: ExecutionReport, tx: Prisma.TransactionClient): Promise<void>;
+  update(id: number, data: ExecutionReport): Promise<void>;
+  findById(id: number): Promise<ExecutionReportFiles | null>;
   findByScheduleId(
-    idSchedule: number,
+    scheduleId: number,
     tx: Prisma.TransactionClient,
-  ): Promise<FindByScheduleResponse>;
-  findByWorkId(idWork: number): Promise<FindByWorkIdResponse[]>;
-  findById(idExecutionReport: number): Promise<FindByIdResponse>;
-  update(
-    idExecutionReport: number,
-    data: Prisma.relatorio_execucaoUpdateInput,
-  ): Promise<void>;
+  ): Promise<ExecutionReportFiles | null>;
+  findByWorkIdentifier(identifier: number): Promise<ExecutionReportDetail[]>;
   findScheduleWorkMode(
-    idSchedule: number,
+    scheduleId: number,
     tx: Prisma.TransactionClient,
-  ): Promise<{
-    id_obra: number;
-    obras: { programacao_ponto_a_ponto: boolean | null } | null;
-  } | null>;
+  ): Promise<ScheduleWorkMode | null>;
   findScheduledServiceIds(
-    idSchedule: number,
+    scheduleId: number,
     tx: Prisma.TransactionClient,
   ): Promise<number[]>;
-  /** Limpa o real de todas as linhas e grava exec = null e o estado indicado na programação. */
   resetScheduleExecution(
-    idSchedule: number,
+    scheduleId: number,
     scheduleStatus: number,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
@@ -45,10 +37,9 @@ export interface IExecutionReportRepository {
     workId: number,
     tx: Prisma.TransactionClient,
   ): Promise<number>;
-  /** Grava o estado da obra e limpa a data de conclusão. O executado só é gravado se for indicado. */
   updateWorkStatusAfterReset(
     workId: number,
-    data: { status: number; executed?: number },
+    data: WorkStatusResetData,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   deleteReport(id: number, tx: Prisma.TransactionClient): Promise<void>;
