@@ -430,6 +430,7 @@ model obras {
   @@index([ordem_dcd], map: "idx_obras_ordem_dcd")
   @@index([ordem_dca], map: "idx_obras_ordem_dca")
   @@index([ordem_dcim], map: "idx_obras_ordem_dcim")
+  @@index([ordem_dcdm], map: "idx_obras_ordem_dcdm")
 }
 
 model plano_capex {

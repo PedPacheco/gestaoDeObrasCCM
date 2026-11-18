@@ -1,4 +1,4 @@
-import { toExecutionReportListItemOutput } from 'src/application/mappers/executionReport.mapper';
+import { toExecutionReportListItemOutput } from 'src/application/mappers/executionReportMapper';
 import {
   CreateExecutionReportInput,
   UpdateExecutionReportInput,

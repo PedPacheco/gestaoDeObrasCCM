@@ -7,6 +7,7 @@ import {
   ScheduleWorkMode,
 } from 'src/domain/types';
 import type { Prisma } from 'src/infra/generated/prisma/client';
+import { toNumberOrNull } from 'src/utils/toNumberToNull';
 import {
   ExecutionReportDetailRow,
   ExecutionReportFilesRow,
@@ -42,10 +43,6 @@ const toEquipmentColumns = (items: EquipmentItem[]) => ({
   patrimony: items.map((i) => i.patrimony).join(LIST_SEPARATOR),
   installation: items.map((i) => i.installation).join(LIST_SEPARATOR),
 });
-
-const toNumberOrNull = (
-  value: { toString(): string } | number | null,
-): number | null => (value === null ? null : Number(value));
 
 // ─── Entidade → Prisma (antigo ExecutionReport.toPersistenceObject) ─
 export const toExecutionReportPersistence = (report: ExecutionReport) => {

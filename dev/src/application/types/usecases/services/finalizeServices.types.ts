@@ -1,4 +1,4 @@
-import { EquipmentItem } from '../executionReport.types';
+import { EquipmentItem } from 'src/domain/types';
 
 export type PerformServicesInput = {
   id: number;

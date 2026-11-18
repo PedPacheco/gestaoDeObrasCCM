@@ -29,7 +29,7 @@ import {
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
 
-import { toExecutionReportListItemOutput } from '../mappers/executionReport.mapper';
+import { toExecutionReportListItemOutput } from '../mappers/executionReportMapper';
 import {
   CreateExecutionReportInput,
   ExecutionReportListItemOutput,
