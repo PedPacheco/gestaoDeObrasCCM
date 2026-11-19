@@ -1,240 +1,197 @@
-import { compare, genSalt, hash } from 'bcrypt';
-import { AuthService } from 'src/application/usecases/auth.service';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { hash } from 'bcrypt';
+import type { RegisterUserInput } from 'src/application/types';
 import { UsersService } from 'src/application/usecases/users.service';
-import { AUTH_REPOSITORY } from 'src/domain/contracts/IAuthRepository';
+import { USER_REPOSITORY } from 'src/domain/contracts/IUserRepository';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { generateRandomPassword } from 'src/utils/generatePassword';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import type { Mock } from 'vitest';
 
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ValidationError } from 'src/domain/errors/domain.error';
+vi.mock('bcrypt', () => ({ hash: vi.fn(), compare: vi.fn() }));
 
-vi.mock('bcrypt', () => ({
-  compare: vi.fn(),
-  hash: vi.fn(),
-  genSalt: vi.fn(),
-}));
-
-const mockAuthRepository = {
-  register: vi.fn(),
-};
-
-vi.mock('src/utils/generatePassword');
-
-const registerUser: RegisterUserDTO = {
+const registerInput: RegisterUserInput = {
   username: 'username',
   senha: 'teste123',
   nome: 'test',
   email: 'teste@gmail.com',
+  tipo_usuario: TipoUsuario.INTERNO,
+  is_admin: true,
+  permissao_edicao: true,
   id_regional: 1,
   id_turma: 2,
   id_area: 8,
-  is_admin: true,
-  tipo_usuario: TipoUsuario.INTERNO,
-  permissao_edicao: true,
 };
 
-const loginUser = {
+const record = {
   id: 1,
   username: 'username',
-  senha: 'teste123',
   nome: 'test',
   email: 'teste@gmail.com',
+  tipo_usuario: TipoUsuario.INTERNO,
+  is_admin: true,
+  permissao_edicao: true,
+  ativo: true,
   id_regional: 1,
   id_turma: 2,
   id_area: 8,
-  is_admin: true,
-  tipo_usuario: TipoUsuario.INTERNO,
-  permissao_edicao: true,
-  ativo: true,
 };
 
-describe('AuthService', () => {
-  let authService: AuthService;
-  let usersService: UsersService;
-  let jwtService: JwtService;
+describe('UsersService', () => {
+  let service: UsersService;
+
+  const repoMock = {
+    findByUsernameWithPassword: vi.fn(),
+    findById: vi.fn(),
+    findAll: vi.fn(),
+    existsByUsername: vi.fn(),
+    create: vi.fn(),
+    updatePassword: vi.fn(),
+    softDelete: vi.fn(),
+  };
 
   beforeEach(async () => {
     vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AuthService,
-        {
-          provide: UsersService,
-          useValue: {
-            findUser: vi.fn(),
-            registerUser: vi.fn(),
-          },
-        },
-        {
-          provide: JwtService,
-          useValue: {
-            signAsync: vi.fn(),
-            sign: vi.fn(),
-          },
-        },
-        {
-          provide: AUTH_REPOSITORY,
-          useValue: mockAuthRepository,
-        },
+        UsersService,
+        { provide: USER_REPOSITORY, useValue: repoMock },
       ],
     }).compile();
 
-    authService = module.get<AuthService>(AuthService);
-    usersService = module.get<UsersService>(UsersService);
-    jwtService = module.get<JwtService>(JwtService);
+    service = module.get(UsersService);
   });
 
-  describe('login', () => {
-    it('should throw NotFoundExpection if user is not found', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
-
-      await expect(
-        authService.login({ username: '7081545', password: 'pedro132' }),
-      ).rejects.toThrow(
-        new UnauthorizedException('Usuário ou senha inválidos'),
-      );
+  describe('findUser', () => {
+    it('devolve null quando não existe', async () => {
+      repoMock.findByUsernameWithPassword.mockResolvedValue(null);
+      expect(await service.findUser('x')).toBeNull();
     });
 
-    it('should throw UnauthorizedExpection if password is incorrect', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
-      (compare as Mock).mockResolvedValue(false);
-
-      await expect(
-        authService.login({ username: 'username', password: 'wrong_password' }),
-      ).rejects.toThrow(
-        new UnauthorizedException('Usuário ou senha inválidos'),
-      );
-    });
-
-    it('should throw ValidationError if user is not active', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue({
-        ...loginUser,
+    it('devolve uma entidade User, mesmo se inativa', async () => {
+      repoMock.findByUsernameWithPassword.mockResolvedValue({
+        ...record,
         ativo: false,
-      } as User);
-
-      await expect(
-        authService.login({ username: 'username', password: 'teste123' }),
-      ).rejects.toThrow(new ValidationError('Usuário está inativo no sistema'));
-    });
-
-    it('should return user and access_token if login is successful', async () => {
-      const access_token = 'jwt_token';
-
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
-      (compare as Mock).mockResolvedValue(true);
-      vi.spyOn(jwtService, 'signAsync').mockResolvedValue(access_token);
-
-      const result = await authService.login({
-        username: 'username',
-        password: 'teste123',
+        senha: 'hash',
       });
 
-      expect(result).toEqual({
-        id: loginUser.id,
-        id_area: loginUser.id_area,
-        id_turma: loginUser.id_turma,
-        id_regional: loginUser.id_regional,
-        is_admin: loginUser.is_admin,
-        permissao_edicao: loginUser.permissao_edicao,
-        tipo_usuario: loginUser.tipo_usuario,
-        username: loginUser.username,
-        nome_usuario: loginUser.nome,
-        email: loginUser.email,
-        access_token: access_token,
-      });
+      const user = await service.findUser('username');
+
+      expect(user).toBeInstanceOf(User);
+      expect(user?.ativo).toBe(false);
     });
   });
 
-  describe('register', () => {
-    it('should throw ValidationError when user already exists', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(new User(loginUser));
+  describe('listUsers', () => {
+    it('devolve o resultado do repositório', async () => {
+      const list = [
+        { ...record, regional: 'Norte', parceira: 'Turma A', area: 'Obras' },
+      ];
+      repoMock.findAll.mockResolvedValue(list);
 
-      await expect(authService.register(loginUser)).rejects.toThrow(
-        new BadRequestException('Nome de usuário já está em uso.'),
-      );
+      expect(await service.listUsers()).toBe(list);
     });
+  });
 
-    it('should throw BadRequestException when password not sent', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
-
+  describe('createUser', () => {
+    it('lança BadRequestException sem palavra-passe, sem ir à base de dados', async () => {
       await expect(
-        authService.register({ ...loginUser, senha: undefined }),
+        service.createUser({ ...registerInput, senha: undefined }),
       ).rejects.toThrow(
         new BadRequestException('A senha do usuário tem que ser enviada.'),
       );
+      expect(repoMock.existsByUsername).not.toHaveBeenCalled();
     });
 
-    it('should throw ValidationError the internal user does not have a defined area.', async () => {
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
+    it('lança BadRequestException se o username já existe', async () => {
+      repoMock.existsByUsername.mockResolvedValue(true);
+
+      await expect(service.createUser(registerInput)).rejects.toThrow(
+        new BadRequestException('Nome de usuário já está em uso.'),
+      );
+      expect(repoMock.create).not.toHaveBeenCalled();
+    });
+
+    it('lança ValidationError para INTERNO sem área', async () => {
+      repoMock.existsByUsername.mockResolvedValue(false);
+      (hash as Mock).mockResolvedValue('hashed');
 
       await expect(
-        authService.register({ ...registerUser, id_area: undefined }),
+        service.createUser({ ...registerInput, id_area: undefined }),
       ).rejects.toThrow(
         new ValidationError(
           'Usuários internos devem possuir uma área vinculada.',
         ),
       );
+      expect(repoMock.create).not.toHaveBeenCalled();
     });
 
-    it('should be set the partner user area to null', async () => {
-      const salt = 10;
-      const hashedPassword = 'hashPassword';
+    it('aplica o hash bcrypt e persiste a entidade', async () => {
+      repoMock.existsByUsername.mockResolvedValue(false);
+      (hash as Mock).mockResolvedValue('hashed');
+      repoMock.create.mockResolvedValue(record);
 
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(
-        new User({
-          ...registerUser,
-          tipo_usuario: TipoUsuario.PARCEIRA,
-          ativo: true,
-        }),
-      );
+      const result = await service.createUser(registerInput);
 
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      expect(hash).toHaveBeenCalledWith('teste123', 10);
+      const [user] = repoMock.create.mock.calls[0];
+      expect(user).toBeInstanceOf(User);
+      expect(user).toMatchObject({ senha: 'hashed', ativo: true, id_area: 8 });
+      expect(result).toBe(record);
+    });
 
-      (genSalt as Mock).mockResolvedValue(salt);
-      (hash as Mock).mockResolvedValue(hashedPassword);
+    it('define id_area = null para PARCEIRA', async () => {
+      repoMock.existsByUsername.mockResolvedValue(false);
+      (hash as Mock).mockResolvedValue('hashed');
 
-      await authService.register({
-        ...registerUser,
-        senha: hashedPassword,
+      await service.createUser({
+        ...registerInput,
         tipo_usuario: TipoUsuario.PARCEIRA,
       });
 
-      expect(mockAuthRepository.register).toHaveBeenCalledWith({
-        ...registerUser,
-        senha: hashedPassword,
-        id_area: null,
-        tipo_usuario: 'PARCEIRA',
-        ativo: true,
-      });
+      const [user] = repoMock.create.mock.calls[0];
+      expect(user.id_area).toBeNull();
     });
 
-    it('should create user and return user', async () => {
-      const salt = 10;
-      const hashedPassword = 'hashPassword';
+    it('aplica valores por omissão a is_admin e permissao_edicao', async () => {
+      repoMock.existsByUsername.mockResolvedValue(false);
+      (hash as Mock).mockResolvedValue('hashed');
 
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { is_admin, permissao_edicao, ...input } = registerInput;
+      await service.createUser(input);
 
-      (genSalt as Mock).mockResolvedValue(salt);
-      (hash as Mock).mockResolvedValue(hashedPassword);
+      const [user] = repoMock.create.mock.calls[0];
+      expect(user).toMatchObject({ is_admin: false, permissao_edicao: false });
+    });
+  });
 
-      const user = new User({
-        ...registerUser,
-        senha: hashedPassword,
-        ativo: true,
-      });
+  describe('deactivateUser', () => {
+    it('impede a autodesativação sem ir à base de dados', async () => {
+      await expect(service.deactivateUser(1, 1)).rejects.toThrow(
+        new BadRequestException('Você não pode desativar sua própria conta'),
+      );
+      expect(repoMock.findById).not.toHaveBeenCalled();
+    });
 
-      vi.spyOn(usersService, 'findUser').mockResolvedValue(null);
-      mockAuthRepository.register.mockResolvedValue(user);
-      (generateRandomPassword as Mock).mockReturnValue('hashPassword');
+    it('lança NotFoundException se o utilizador não existe', async () => {
+      repoMock.findById.mockResolvedValue(null);
 
-      const result = await authService.register(registerUser);
+      await expect(service.deactivateUser(2, 1)).rejects.toThrow(
+        new NotFoundException('Usuário não encontrado'),
+      );
+      expect(repoMock.softDelete).not.toHaveBeenCalled();
+    });
 
-      expect(result).toEqual(user);
+    it('desativa e devolve o registo', async () => {
+      repoMock.findById.mockResolvedValue({ ...record, id: 2 });
+      repoMock.softDelete.mockResolvedValue({ ...record, id: 2, ativo: false });
+
+      const result = await service.deactivateUser(2, 1);
+
+      expect(repoMock.softDelete).toHaveBeenCalledWith(2);
+      expect(result.ativo).toBe(false);
     });
   });
 });

@@ -1,5 +1,5 @@
 import { Decimal } from 'src/infra/generated/prisma/internal/prismaNamespace';
-import { Partners, Types } from 'src/interface/types/common/commonInterface';
+import { Partners, Types } from 'src/interface/types/shared/commonInterface';
 
 export type GetPortfolioSummaryResponse = {
   ovnota: string;

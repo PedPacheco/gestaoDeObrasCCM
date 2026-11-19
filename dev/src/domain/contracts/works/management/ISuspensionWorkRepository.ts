@@ -1,4 +1,4 @@
-import { SuspensionWorkRequestInterface } from 'src/interface/types/works/suspensionInterface';
+import { SuspensionWorkRequestInterface } from 'src/interface/types/controllers/works/suspensionInterface';
 
 export interface ISuspensionWorkRepository {
   create(data: SuspensionWorkRequestInterface): Promise<void>;

@@ -11,7 +11,7 @@ vi.mock('bcrypt', () => ({
 }));
 
 const mockUserRepository = {
-  findUser: vi.fn(),
+  findByUsernameWithPassword: vi.fn(),
   updatePassword: vi.fn(),
 };
 
@@ -22,7 +22,7 @@ const mockJwtService = {
 
 describe('UsersService', () => {
   let usersService: UsersService;
-  let jwtService: JwtService;
+  // let jwtService: JwtService;
 
   const mockUser = {
     id: 1,
@@ -56,28 +56,30 @@ describe('UsersService', () => {
     }).compile();
 
     usersService = module.get<UsersService>(UsersService);
-    jwtService = module.get<JwtService>(JwtService);
+    // jwtService = module.get<JwtService>(JwtService);
   });
 
-  describe('findUser', () => {
+  describe('findByUsernameWithPassword', () => {
     it('should return a user if found', async () => {
       const userData = { ...mockUser };
 
-      mockUserRepository.findUser.mockResolvedValue(userData);
+      mockUserRepository.findByUsernameWithPassword.mockResolvedValue(userData);
 
       const user = await usersService.findUser('testuser');
       expect(user).toEqual(new User(userData));
-      expect(mockUserRepository.findUser).toHaveBeenCalledWith('testuser');
+      expect(
+        mockUserRepository.findByUsernameWithPassword,
+      ).toHaveBeenCalledWith('testuser');
     });
 
     it('should return null if no user is found', async () => {
-      mockUserRepository.findUser.mockResolvedValue(null);
+      mockUserRepository.findByUsernameWithPassword.mockResolvedValue(null);
 
       const user = await usersService.findUser('nonexistentuser');
       expect(user).toBeNull();
-      expect(mockUserRepository.findUser).toHaveBeenCalledWith(
-        'nonexistentuser',
-      );
+      expect(
+        mockUserRepository.findByUsernameWithPassword,
+      ).toHaveBeenCalledWith('nonexistentuser');
     });
   });
 

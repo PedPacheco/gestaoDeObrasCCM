@@ -1,4 +1,4 @@
-import { Partners, Types } from 'src/interface/types/common/commonInterface';
+import { Partners, Types } from 'src/interface/types/shared/commonInterface';
 
 export type GetMonthlySummaryForecastResponse = {
   obras: {
