@@ -1,46 +1,37 @@
 import {
-  D5_NOTES_REPOSITORY,
-  ID5NotesRepository,
-} from 'src/domain/contracts/d5Notes/ID5notesRepository';
-import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
-
-import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-
-import { Prisma } from 'src/infra/generated/prisma/client';
+import type { UpdateD5NoteInput } from 'src/application/types/usecases/d5Notes/d5Notes.types';
+import {
+  D5_NOTES_REPOSITORY,
+  ID5NotesRepository,
+} from 'src/domain/contracts/d5Notes/ID5notesRepository';
 
 @Injectable()
 export class ManageD5NoteService {
   constructor(
     @Inject(D5_NOTES_REPOSITORY)
-    private d5NotesRepository: ID5NotesRepository,
+    private readonly d5NotesRepository: ID5NotesRepository,
   ) {}
 
-  async update(id: number, data: UpdateD5NoteDTO, modifyingUserId: number) {
+  async update(
+    id: number,
+    data: UpdateD5NoteInput,
+    modifyingUserId: number,
+  ): Promise<void> {
     if (!data || Object.keys(data).length === 0) {
       throw new BadRequestException('Nenhum campo fornecido para atualização.');
     }
 
     const existing = await this.d5NotesRepository.getById(id);
-
     if (!existing) {
       throw new NotFoundException('Nota D5 não encontrada.');
     }
 
-    try {
-      await this.d5NotesRepository.update(id, data, modifyingUserId);
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025')
-          throw new NotFoundException('Nota D5 não encontrada.');
-        if (e.code === 'P2003')
-          throw new BadRequestException('Parceira ou status inexistente.');
-      }
-      throw e;
-    }
+    // P2025/P2003 são traduzidos no repositório para NotFoundError/ValidationError
+    await this.d5NotesRepository.update(id, data, modifyingUserId);
   }
 }

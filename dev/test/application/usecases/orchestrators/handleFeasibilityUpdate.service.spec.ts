@@ -1,695 +1,475 @@
-import moment from 'moment';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
-
-import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/contracts/IFeasibilityRepository';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/contracts/IStatusFlowRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import type { Mocked } from 'vitest';
-
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { FILE_STORAGE } from 'src/domain/contracts/storage/IFileStorage';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type {
+  FeasibleItemInput,
+  RejectFeasibilityInput,
+  StatusFeasibility,
+} from 'src/application/types';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import { type IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
+import { type IStatusFlowRepository } from 'src/domain/contracts/IStatusFlowRepository';
+import { type IFileStorage } from 'src/domain/contracts/storage/IFileStorage';
 import { StorageKind } from 'src/domain/types';
+import type { PrismaService } from 'src/infra/prisma/prisma.service';
+import { uploadedPaths } from 'src/shared/upload/storedFileName';
+import { countBusinessDays } from 'src/utils/parseTimeToDate';
+// ajuste ao import real do service
+
+// ─── Module mocks ─────────────────────────────────────────────────────
+
+vi.mock('src/utils/parseTimeToDate', () => ({
+  countBusinessDays: vi.fn(),
+}));
+
+vi.mock('src/shared/upload/storedFileName', () => ({
+  uploadedPaths: vi.fn(),
+}));
+
+// ─── Fixtures ─────────────────────────────────────────────────────────
+
+const WORK_ID = 41;
+const USER_ID = 9;
+const PROJECT_DATE = new Date('2026-11-01T00:00:00.000Z');
+
+const makeFile = (filename: string): Express.Multer.File =>
+  ({
+    filename,
+    path: `/tmp/uploads/${filename}`,
+  }) as Express.Multer.File;
+
+const uploadedFile = makeFile('new-file.pdf');
+
+const existingTechnicalFiles = ['technical-old.pdf'];
+const existingComplementaryFiles = ['complementary-old.pdf'];
+
+const makeClient = () => ({
+  $executeRaw: vi.fn().mockResolvedValue(1),
+  relatorio_viabilidade: {
+    upsert: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+  },
+});
+
+type Client = ReturnType<typeof makeClient>;
+
+// ─── Suite ────────────────────────────────────────────────────────────
 
 describe('HandleFeasibilityService', () => {
+  let prisma: Client & { $transaction: ReturnType<typeof vi.fn> };
+  let tx: Client;
+  let feasibilityRepository: Pick<
+    IFeasibilityRepository,
+    | 'getProjectDate'
+    | 'findFiles'
+    | 'saveFiles'
+    | 'updateFiles'
+    | 'makeItemsFeasible'
+    | 'reject'
+    | 'approve'
+  >;
+  let statusFlowRepository: Pick<IStatusFlowRepository, 'updateStatusWorks'>;
+  let storage: Pick<IFileStorage, 'deleteStored' | 'deleteUploaded'>;
   let service: HandleFeasibilityService;
-  let feasibilityRepository: Mocked<IFeasibilityRepository>;
-  let statusFlowRepository: Mocked<IStatusFlowRepository>;
 
-  let mockFeasibilityRepository: Mocked<Partial<IFeasibilityRepository>>;
-
-  let mockStatusFlowRepository: Mocked<Partial<IStatusFlowRepository>>;
-
-  const storageMock = {
-    resolve: vi.fn(),
-    deleteStored: vi.fn().mockResolvedValue(undefined),
-    deleteUploaded: vi.fn().mockResolvedValue(undefined),
-  };
-
-  const mockPrisma = {
-    $transaction: vi.fn((callback: (tx: any) => Promise<void>) => {
-      const fakeTx = {};
-      return callback(fakeTx);
-    }),
-  };
-
-  beforeEach(async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-06-20'));
-
-    mockFeasibilityRepository = {
-      saveFiles: vi.fn(),
-      makeItemsFeasible: vi.fn(),
-      getProjectDate: vi.fn(),
-      reject: vi.fn(),
-      updateFiles: vi.fn(),
-      approve: vi.fn(),
-      findFiles: vi.fn(),
-    };
-
-    mockStatusFlowRepository = {
-      updateStatusWorks: vi.fn(),
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        HandleFeasibilityService,
-        {
-          provide: FEASIBILITY_REPOSITORY,
-          useValue: mockFeasibilityRepository,
-        },
-        {
-          provide: STATUS_FLOW_REPOSITORY,
-          useValue: mockStatusFlowRepository,
-        },
-        {
-          provide: FILE_STORAGE,
-          useValue: storageMock,
-        },
-        {
-          provide: PrismaService,
-          useValue: mockPrisma,
-        },
-      ],
-    }).compile();
-
-    service = module.get<HandleFeasibilityService>(HandleFeasibilityService);
-    feasibilityRepository = module.get(FEASIBILITY_REPOSITORY);
-    statusFlowRepository = module.get(STATUS_FLOW_REPOSITORY);
-
+  beforeEach(() => {
     vi.clearAllMocks();
+
+    tx = makeClient();
+    prisma = {
+      ...makeClient(),
+      $transaction: vi.fn(
+        async (callback: (client: Client) => Promise<unknown>) => callback(tx),
+      ),
+    };
+
+    feasibilityRepository = {
+      getProjectDate: vi.fn().mockResolvedValue(PROJECT_DATE),
+      findFiles: vi.fn().mockResolvedValue({
+        id: 1,
+        technicalFiles: existingTechnicalFiles,
+        complementaryFiles: existingComplementaryFiles,
+      }),
+      saveFiles: vi.fn().mockResolvedValue(undefined),
+      updateFiles: vi.fn().mockResolvedValue(undefined),
+      makeItemsFeasible: vi.fn().mockResolvedValue(undefined),
+      reject: vi.fn().mockResolvedValue(undefined),
+      approve: vi.fn().mockResolvedValue(undefined),
+    };
+
+    statusFlowRepository = {
+      updateStatusWorks: vi.fn().mockResolvedValue(undefined),
+    };
+
+    storage = {
+      deleteStored: vi.fn().mockResolvedValue(undefined),
+      deleteUploaded: vi.fn().mockResolvedValue(undefined),
+    };
+
+    vi.mocked(countBusinessDays).mockReturnValue(0);
+    vi.mocked(uploadedPaths).mockImplementation((files) =>
+      (Array.isArray(files) ? files : files ? [files] : []).map(
+        (file) => file.path,
+      ),
+    );
+
+    service = new HandleFeasibilityService(
+      statusFlowRepository as IStatusFlowRepository,
+      feasibilityRepository as IFeasibilityRepository,
+      storage as IFileStorage,
+      prisma as unknown as PrismaService,
+    );
   });
 
-  // ─── Helpers ──────────────────────────────────────────────
-
-  const makeFile = (filename = 'report.pdf'): Express.Multer.File => ({
-    fieldname: 'file',
-    originalname: filename,
-    encoding: '7bit',
-    mimetype: 'application/pdf',
-    size: 1024,
-    buffer: Buffer.from('fake-content'),
-    stream: null as any,
-    destination: '',
-    filename,
-    path: '',
-  });
-
-  const makeItems = (count = 1): ServiceMaterialItemDto[] =>
-    Array.from({ length: count }, (_, i) => ({
-      id: i + 1,
-      viabilizado: 10,
-    }));
+  // ═══ upload ═════════════════════════════════════════════════════════
 
   describe('upload', () => {
-    const idWork = 1;
-    const idUser = 42;
+    it('rejects a missing work id and cleans up uploaded files', async () => {
+      await expect(
+        service.upload(0, USER_ID, false, [uploadedFile], [], []),
+      ).rejects.toThrow(new BadGatewayException('Obra não foi encontrada'));
 
-    describe('validation', () => {
-      it('should throw BadGatewayException when idWork is 0 (falsy)', async () => {
-        await expect(
-          service.upload(0, idUser, false, [makeFile()], [], makeItems()),
-        ).rejects.toThrow(BadGatewayException);
-      });
-
-      it('should throw BadGatewayException when idWork is null', async () => {
-        await expect(
-          service.upload(
-            null as any,
-            idUser,
-            false,
-            [makeFile()],
-            [],
-            makeItems(),
-          ),
-        ).rejects.toThrow(BadGatewayException);
-      });
-
-      it('should throw BadGatewayException when idWork is undefined', async () => {
-        await expect(
-          service.upload(
-            undefined as any,
-            idUser,
-            false,
-            [makeFile()],
-            [],
-            makeItems(),
-          ),
-        ).rejects.toThrow(BadGatewayException);
-      });
-
-      it('should throw BadRequestException when items array is empty', async () => {
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], []),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException when items is null', async () => {
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], null as any),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException when items is undefined', async () => {
-        await expect(
-          service.upload(
-            idWork,
-            idUser,
-            true,
-            [makeFile()],
-            [],
-            undefined as any,
-          ),
-        ).rejects.toThrow(BadRequestException);
-      });
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+      expect(feasibilityRepository.getProjectDate).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    describe('validation messages', () => {
-      it('should include correct message when idWork is missing', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
+    it('rejects point-by-point uploads without service items and cleans up files', async () => {
+      await expect(
+        service.upload(WORK_ID, USER_ID, true, [uploadedFile], [], []),
+      ).rejects.toThrow(new BadRequestException('Nenhum item foi enviado.'));
 
-        await expect(
-          service.upload(0, idUser, false, [makeFile()], [], makeItems()),
-        ).rejects.toThrow('Obra não foi encontrada');
-      });
-
-      it('should include correct message when items are missing', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], []),
-        ).rejects.toThrow('Nenhum item foi enviado.');
-      });
-
-      it('should include correct message when project date is missing', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: undefined,
-        });
-
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
-        ).rejects.toThrow(
-          new BadRequestException('Obra sem data de empreitamento'),
-        );
-      });
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+      expect(feasibilityRepository.getProjectDate).not.toHaveBeenCalled();
     });
 
-    describe('happy path', () => {
-      it('should execute all operations inside a transaction', async () => {
-        const files = [makeFile()];
-        const items = makeItems(2);
+    it('rejects a work without an inception date and cleans up files', async () => {
+      vi.mocked(feasibilityRepository.getProjectDate).mockResolvedValue(null);
 
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
+      await expect(
+        service.upload(WORK_ID, USER_ID, false, [uploadedFile], [], []),
+      ).rejects.toThrow(
+        new BadRequestException('Obra sem data de empreitamento'),
+      );
 
-        await service.upload(idWork, idUser, false, files, [], items);
+      expect(feasibilityRepository.getProjectDate).toHaveBeenCalledWith(
+        WORK_ID,
+      );
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+    });
 
-        expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      });
+    it.each([
+      [0, 'DENTRO DO PRAZO'],
+      [6, 'FORA DO PRAZO'],
+    ] as const)(
+      'saves the technical files with status %s when business-day count is %i',
+      async (businessDays, expectedStatus) => {
+        vi.mocked(countBusinessDays).mockReturnValue(businessDays);
 
-      it('should call saveFiles with correct parameters', async () => {
-        const files = [makeFile('doc.pdf')];
-        const items = makeItems(2);
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-18').toDate(),
-        });
-
-        mockFeasibilityRepository.findFiles.mockResolvedValue({
-          id: 1,
-          caminhos_arquivos: ['doc.pdf'],
-          arquivos_complementares: null,
-        });
-
-        await service.upload(idWork, idUser, true, files, ['doc.pdf'], items);
-
-        expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
-          idWork,
-          idUser,
-          'DENTRO DO PRAZO',
-          ['doc.pdf'],
-          expect.anything(), // tx
-        );
-      });
-
-      it('should call makeItemsFeasible with correct items', async () => {
-        const files = [makeFile()];
-        const items = makeItems(3);
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        await service.upload(idWork, idUser, true, files, [], items);
-
-        expect(feasibilityRepository.makeItemsFeasible).toHaveBeenCalledWith(
-          items,
-          expect.anything(),
-        );
-      });
-
-      it('should update status to 46 (feasible)', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
+        const items: FeasibleItemInput[] = [
+          { id: 101, viabilizado: 6 },
+          { id: 102, viabilizado: 4 },
+        ];
 
         await service.upload(
-          idWork,
-          idUser,
+          WORK_ID,
+          USER_ID,
           true,
-          [makeFile()],
-          [],
-          makeItems(),
+          [uploadedFile],
+          ['technical-old.pdf', 'foreign.pdf'],
+          items,
         );
 
+        expect(countBusinessDays).toHaveBeenCalledWith(
+          PROJECT_DATE,
+          expect.any(Date),
+        );
+        expect(feasibilityRepository.findFiles).toHaveBeenCalledWith(WORK_ID);
+        expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
+          WORK_ID,
+          USER_ID,
+          expectedStatus satisfies StatusFeasibility,
+          ['technical-old.pdf', 'new-file.pdf'],
+          tx,
+        );
+        expect(feasibilityRepository.makeItemsFeasible).toHaveBeenCalledWith(
+          [
+            { id: 101, feasibleQuantity: 6 },
+            { id: 102, feasibleQuantity: 4 },
+          ],
+          tx,
+        );
         expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
           46,
-          idWork,
-          expect.anything(),
+          WORK_ID,
+          tx,
         );
-      });
-
-      it('should call repository methods in the correct order', async () => {
-        const callOrder: string[] = [];
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        feasibilityRepository.saveFiles.mockImplementation(async () => {
-          callOrder.push('saveFiles');
-        });
-        feasibilityRepository.makeItemsFeasible.mockImplementation(async () => {
-          callOrder.push('makeItemsFeasible');
-        });
-        statusFlowRepository.updateStatusWorks.mockImplementation(async () => {
-          callOrder.push('updateStatusWorks');
-        });
-
-        await service.upload(
-          idWork,
-          idUser,
-          true,
-          [makeFile()],
-          [],
-          makeItems(),
-        );
-
-        expect(callOrder).toEqual([
-          'saveFiles',
-          'makeItemsFeasible',
-          'updateStatusWorks',
-        ]);
-      });
-
-      it('should handle multiple files correctly', async () => {
-        const files = [makeFile('a.pdf'), makeFile('b.pdf'), makeFile('c.pdf')];
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        await service.upload(idWork, idUser, false, files, [], []);
-
-        expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
-          idWork,
-          idUser,
-          'FORA DO PRAZO',
-          ['a.pdf', 'b.pdf', 'c.pdf'],
-          {},
-        );
-      });
-
-      it('should delete files that were removed from feasibility', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-        mockFeasibilityRepository.findFiles.mockResolvedValue({
-          id: 1,
-          caminhos_arquivos: [
-            'old-file-1.pdf',
-            'old-file-2.pdf',
-            'keep-file.pdf',
-          ],
-          arquivos_complementares: null,
-        });
-
-        await service.upload(
-          idWork,
-          idUser,
-          false,
-          [],
-          ['keep-file.pdf'],
-          makeItems(),
-        );
-
-        expect(storageMock.deleteStored).toHaveBeenCalledTimes(1);
-        expect(storageMock.deleteStored).toHaveBeenCalledWith(
+        expect(storage.deleteStored).toHaveBeenCalledWith(
           StorageKind.VIABILIDADE,
-          ['old-file-1.pdf', 'old-file-2.pdf'],
+          [],
         );
-        expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
-        expect(
-          mockPrisma.$transaction.mock.invocationCallOrder[0],
-        ).toBeLessThan(storageMock.deleteStored.mock.invocationCallOrder[0]);
-      });
+        expect(storage.deleteUploaded).not.toHaveBeenCalled();
+      },
+    );
 
-      it('should send all removed files to the storage in a single call', async () => {
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-        mockFeasibilityRepository.findFiles.mockResolvedValue({
-          id: 1,
-          caminhos_arquivos: ['file1.pdf', 'file2.pdf', 'file3.pdf'],
-          arquivos_complementares: null,
-        });
+    it('skips updating feasible items when the upload is not point-by-point', async () => {
+      await service.upload(
+        WORK_ID,
+        USER_ID,
+        false,
+        [uploadedFile],
+        [],
+        undefined,
+      );
 
-        await service.upload(idWork, idUser, false, [], [], makeItems());
-
-        expect(storageMock.deleteStored).toHaveBeenCalledTimes(1);
-        expect(storageMock.deleteStored).toHaveBeenCalledWith(
-          StorageKind.VIABILIDADE,
-          ['file1.pdf', 'file2.pdf', 'file3.pdf'],
-        );
-      });
+      expect(feasibilityRepository.saveFiles).toHaveBeenCalled();
+      expect(feasibilityRepository.makeItemsFeasible).not.toHaveBeenCalled();
+      expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        46,
+        WORK_ID,
+        tx,
+      );
     });
 
-    describe('error propagation', () => {
-      it('should propagate error when saveFiles fails', async () => {
-        feasibilityRepository.saveFiles.mockRejectedValueOnce(
-          new Error('Storage unavailable'),
-        );
+    it('uses an empty list when no current technical files exist', async () => {
+      vi.mocked(feasibilityRepository.findFiles).mockResolvedValue(null);
 
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
+      await service.upload(
+        WORK_ID,
+        USER_ID,
+        false,
+        [uploadedFile],
+        undefined as never,
+      );
 
-        await expect(
-          service.upload(idWork, idUser, false, [makeFile()], [], makeItems()),
-        ).rejects.toThrow('Storage unavailable');
-      });
-
-      it('should propagate error when makeItemsFeasible fails', async () => {
-        feasibilityRepository.makeItemsFeasible.mockRejectedValueOnce(
-          new Error('Invalid item data'),
-        );
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
-        ).rejects.toThrow('Invalid item data');
-      });
-
-      it('should propagate error when updateStatusWorks fails', async () => {
-        statusFlowRepository.updateStatusWorks.mockRejectedValueOnce(
-          new Error('Status update failed'),
-        );
-
-        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
-          data_empreitamento: moment('2026-06-10').toDate(),
-        });
-
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
-        ).rejects.toThrow('Status update failed');
-      });
-
-      it('should not call makeItemsFeasible if saveFiles fails', async () => {
-        feasibilityRepository.saveFiles.mockRejectedValueOnce(
-          new Error('fail'),
-        );
-
-        await expect(
-          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
-        ).rejects.toThrow();
-
-        expect(feasibilityRepository.makeItemsFeasible).not.toHaveBeenCalled();
-      });
-
-      it('should not call updateStatusWorks if makeItemsFeasible fails', async () => {
-        feasibilityRepository.makeItemsFeasible.mockRejectedValueOnce(
-          new Error('fail'),
-        );
-
-        await expect(
-          service.upload(idWork, idUser, false, [makeFile()], [], undefined),
-        ).rejects.toThrow();
-
-        expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-      });
-
-      it('should not call any repository method when validation fails', async () => {
-        await expect(
-          service.upload(0, idUser, true, [makeFile()], [], makeItems()),
-        ).rejects.toThrow();
-
-        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-        expect(feasibilityRepository.saveFiles).not.toHaveBeenCalled();
-        expect(feasibilityRepository.makeItemsFeasible).not.toHaveBeenCalled();
-        expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('uploadComplementaryFiles', () => {
-    const idWork = 1;
-    const idUser = 42;
-
-    it('should throw when idWork is invalid', async () => {
-      await expect(
-        service.uploadComplementaryFiles(0, idUser, [makeFile()], []),
-      ).rejects.toThrow('Obra não foi encontrada');
-
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
-
-    it('should update complementary files merging existing and uploaded files', async () => {
-      mockFeasibilityRepository.findFiles.mockResolvedValue({
-        id: 1,
-        caminhos_arquivos: [],
-        arquivos_complementares: null,
-      });
-
-      await service.uploadComplementaryFiles(
-        idWork,
-        idUser,
-        [makeFile('new.pdf')],
+      expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
+        WORK_ID,
+        USER_ID,
+        'DENTRO DO PRAZO',
+        ['new-file.pdf'],
+        tx,
+      );
+      expect(storage.deleteStored).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
         [],
       );
-
-      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-
-      expect(feasibilityRepository.findFiles).toHaveBeenCalledWith(idWork);
-
-      expect(feasibilityRepository.updateFiles).toHaveBeenCalledWith(
-        idWork,
-        ['new.pdf'],
-        'complementary',
-        expect.anything(),
-      );
     });
 
-    it('should delete removed complementary files after the transaction', async () => {
-      mockFeasibilityRepository.findFiles.mockResolvedValue({
-        id: 1,
-        caminhos_arquivos: [],
-        arquivos_complementares: ['remove-1.pdf', 'remove-2.pdf'],
-      });
-
-      await service.uploadComplementaryFiles(idWork, idUser, [], ['keep.pdf']);
-
-      expect(storageMock.deleteStored).toHaveBeenCalledTimes(1);
-      expect(storageMock.deleteStored).toHaveBeenCalledWith(
-        StorageKind.VIABILIDADE,
-        ['remove-1.pdf', 'remove-2.pdf'],
-      );
-      expect(storageMock.deleteUploaded).not.toHaveBeenCalled();
-      expect(mockPrisma.$transaction.mock.invocationCallOrder[0]).toBeLessThan(
-        storageMock.deleteStored.mock.invocationCallOrder[0],
-      );
-    });
-
-    it('should propagate repository errors', async () => {
-      feasibilityRepository.findFiles.mockRejectedValueOnce(
-        new Error('Database error'),
+    it('cleans uploaded files when a transactional operation fails', async () => {
+      const error = new Error('status update failed');
+      vi.mocked(statusFlowRepository.updateStatusWorks).mockRejectedValue(
+        error,
       );
 
       await expect(
-        service.uploadComplementaryFiles(idWork, idUser, [], []),
-      ).rejects.toThrow('Database error');
+        service.upload(WORK_ID, USER_ID, false, [uploadedFile], [], []),
+      ).rejects.toBe(error);
+
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+      expect(storage.deleteStored).not.toHaveBeenCalled();
+    });
+
+    it('does not store duplicate file names in the final technical path list', async () => {
+      await service.upload(
+        WORK_ID,
+        USER_ID,
+        false,
+        [makeFile('technical-old.pdf'), makeFile('new-file.pdf')],
+        ['technical-old.pdf'],
+      );
+
+      expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
+        WORK_ID,
+        USER_ID,
+        'DENTRO DO PRAZO',
+        ['technical-old.pdf', 'new-file.pdf'],
+        tx,
+      );
     });
   });
+
+  // ═══ uploadComplementaryFiles ═══════════════════════════════════════
+
+  describe('uploadComplementaryFiles', () => {
+    it('rejects a missing work id and cleans up uploaded files', async () => {
+      await expect(
+        service.uploadComplementaryFiles(0, USER_ID, [uploadedFile], []),
+      ).rejects.toThrow(new BadGatewayException('Obra não foi encontrada'));
+
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('updates complementary files and removes replaced files after commit', async () => {
+      await service.uploadComplementaryFiles(
+        WORK_ID,
+        USER_ID,
+        [uploadedFile],
+        ['complementary-old.pdf', 'foreign.pdf'],
+      );
+
+      expect(feasibilityRepository.findFiles).toHaveBeenCalledWith(WORK_ID);
+      expect(feasibilityRepository.updateFiles).toHaveBeenCalledWith(
+        WORK_ID,
+        ['complementary-old.pdf', 'new-file.pdf'],
+        'complementary',
+        tx,
+      );
+      expect(storage.deleteStored).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [],
+      );
+      expect(storage.deleteUploaded).not.toHaveBeenCalled();
+    });
+
+    it('removes current complementary files when the client keeps none', async () => {
+      await service.uploadComplementaryFiles(WORK_ID, USER_ID, [], []);
+
+      expect(feasibilityRepository.updateFiles).toHaveBeenCalledWith(
+        WORK_ID,
+        [],
+        'complementary',
+        tx,
+      );
+    });
+
+    it('cleans newly uploaded files when the transaction fails', async () => {
+      const error = new Error('update failed');
+      vi.mocked(feasibilityRepository.updateFiles).mockRejectedValue(error);
+
+      await expect(
+        service.uploadComplementaryFiles(WORK_ID, USER_ID, [uploadedFile], []),
+      ).rejects.toBe(error);
+
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.VIABILIDADE,
+        [uploadedFile.path],
+      );
+      expect(storage.deleteStored).not.toHaveBeenCalled();
+    });
+  });
+
+  // ═══ reject ═════════════════════════════════════════════════════════
 
   describe('reject', () => {
-    const mockData: RejectFeasibilityDTO = {
-      workId: 10,
-      reason: 'Budget exceeded',
-      description: 'The estimated cost is above the approved limit',
-      userId: 5,
-      feasibilityReportId: 2,
-    };
+    it('records the rejection and updates the work status in one transaction', async () => {
+      const input = {
+        workId: WORK_ID,
+        feasibilityReportId: 72,
+        userId: USER_ID,
+        reason: 'Missing information',
+        description: 'Please add the technical document',
+      } as RejectFeasibilityInput;
 
-    describe('happy path', () => {
-      it('should execute all operations inside a transaction', async () => {
-        await service.reject(mockData);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { workId, ...rejection } = input;
 
-        expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      });
+      await service.reject(input);
 
-      it('should call feasibilityRepository.reject with correct data', async () => {
-        await service.reject(mockData);
-
-        expect(feasibilityRepository.reject).toHaveBeenCalledWith(
-          mockData,
-          expect.anything(),
-        );
-      });
-
-      it('should update status to 45 (rejected)', async () => {
-        await service.reject(mockData);
-
-        expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-          45,
-          mockData.workId,
-          expect.anything(),
-        );
-      });
-
-      it('should call reject before updateStatusWorks', async () => {
-        const callOrder: string[] = [];
-
-        feasibilityRepository.reject.mockImplementation(async () => {
-          callOrder.push('reject');
-        });
-        statusFlowRepository.updateStatusWorks.mockImplementation(async () => {
-          callOrder.push('updateStatusWorks');
-        });
-
-        await service.reject(mockData);
-
-        expect(callOrder).toEqual(['reject', 'updateStatusWorks']);
-      });
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(feasibilityRepository.reject).toHaveBeenCalledWith(rejection, tx);
+      expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        45,
+        WORK_ID,
+        tx,
+      );
     });
 
-    describe('error propagation', () => {
-      it('should propagate error when reject fails', async () => {
-        feasibilityRepository.reject.mockRejectedValueOnce(
-          new Error('Database error'),
-        );
+    it('propagates an error from the rejection repository', async () => {
+      const error = new Error('rejection failed');
+      vi.mocked(feasibilityRepository.reject).mockRejectedValue(error);
 
-        await expect(service.reject(mockData)).rejects.toThrow(
-          'Database error',
-        );
-      });
+      await expect(
+        service.reject({
+          workId: WORK_ID,
+          feasibilityReportId: 72,
+          userId: USER_ID,
+          reason: 'reason',
+          description: 'description',
+        } as RejectFeasibilityInput),
+      ).rejects.toBe(error);
 
-      it('should propagate error when updateStatusWorks fails', async () => {
-        statusFlowRepository.updateStatusWorks.mockRejectedValueOnce(
-          new Error('Status transition not allowed'),
-        );
-
-        await expect(service.reject(mockData)).rejects.toThrow(
-          'Status transition not allowed',
-        );
-      });
-
-      it('should not call updateStatusWorks if reject fails', async () => {
-        feasibilityRepository.reject.mockRejectedValueOnce(new Error('fail'));
-
-        await expect(service.reject(mockData)).rejects.toThrow();
-
-        expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-      });
+      expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
     });
   });
 
+  // ═══ approve ════════════════════════════════════════════════════════
+
   describe('approve', () => {
-    describe('happy path', () => {
-      it('should execute all operations inside a transaction', async () => {
-        await service.approve(1, 2);
+    it('approves the feasibility and updates the work status in one transaction', async () => {
+      await service.approve(WORK_ID, USER_ID);
 
-        expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      });
-
-      it('should call feasibilityRepository.approve with correct data', async () => {
-        mockFeasibilityRepository.findFiles.mockResolvedValue({
-          id: 1,
-          caminhos_arquivos: undefined,
-          arquivos_complementares: undefined,
-        });
-
-        await service.approve(1, 2);
-
-        expect(feasibilityRepository.approve).toHaveBeenCalledWith(1, 2, {});
-      });
-
-      it('should update status to 45 (rejected)', async () => {
-        await service.approve(1, 2);
-
-        expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-          1,
-          1,
-          expect.anything(),
-        );
-      });
-
-      it('should call approve before updateStatusWorks', async () => {
-        const callOrder: string[] = [];
-
-        feasibilityRepository.approve.mockImplementation(async () => {
-          callOrder.push('approve');
-        });
-        statusFlowRepository.updateStatusWorks.mockImplementation(async () => {
-          callOrder.push('updateStatusWorks');
-        });
-
-        await service.approve(1, 2);
-
-        expect(callOrder).toEqual(['approve', 'updateStatusWorks']);
-      });
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(feasibilityRepository.approve).toHaveBeenCalledWith(
+        WORK_ID,
+        USER_ID,
+        tx,
+      );
+      expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        1,
+        WORK_ID,
+        tx,
+      );
     });
 
-    describe('error propagation', () => {
-      it('should propagate error when approve fails', async () => {
-        feasibilityRepository.approve.mockRejectedValueOnce(
-          new Error('Database error'),
-        );
+    it('propagates an error from the approval repository', async () => {
+      const error = new Error('approval failed');
+      vi.mocked(feasibilityRepository.approve).mockRejectedValue(error);
 
-        await expect(service.approve(1, 2)).rejects.toThrow('Database error');
-      });
-
-      it('should propagate error when updateStatusWorks fails', async () => {
-        statusFlowRepository.updateStatusWorks.mockRejectedValueOnce(
-          new Error('Status transition not allowed'),
-        );
-
-        await expect(service.approve(1, 2)).rejects.toThrow(
-          'Status transition not allowed',
-        );
-      });
-
-      it('should not call updateStatusWorks if approve fails', async () => {
-        feasibilityRepository.approve.mockRejectedValueOnce(new Error('fail'));
-
-        await expect(service.approve(1, 2)).rejects.toThrow();
-
-        expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-      });
+      await expect(service.approve(WORK_ID, USER_ID)).rejects.toBe(error);
+      expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
     });
+  });
+
+  it('removes every current complementary file when none are kept and none are uploaded', async () => {
+    await service.uploadComplementaryFiles(WORK_ID, USER_ID, [], []);
+
+    expect(feasibilityRepository.updateFiles).toHaveBeenCalledWith(
+      WORK_ID,
+      [],
+      'complementary',
+      tx,
+    );
+    expect(storage.deleteStored).toHaveBeenCalledWith(StorageKind.VIABILIDADE, [
+      'complementary-old.pdf',
+    ]);
+    expect(uploadedPaths).not.toHaveBeenCalled();
+    expect(storage.deleteUploaded).not.toHaveBeenCalled();
+  });
+
+  it('cleans up with an empty path list when the flow fails without uploads', async () => {
+    const error = new Error('update failed');
+    vi.mocked(feasibilityRepository.updateFiles).mockRejectedValue(error);
+
+    await expect(
+      service.uploadComplementaryFiles(
+        WORK_ID,
+        USER_ID,
+        undefined as never,
+        [],
+      ),
+    ).rejects.toBe(error);
+
+    expect(uploadedPaths).toHaveBeenCalledWith(undefined);
+    expect(storage.deleteUploaded).toHaveBeenCalledWith(
+      StorageKind.VIABILIDADE,
+      [],
+    );
   });
 });

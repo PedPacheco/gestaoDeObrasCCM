@@ -134,7 +134,7 @@ export class ExecutionReportService {
           ...data,
           files: newFiles ?? currentFiles, // depois do spread, para não ser sobreposto
         },
-        schedule.hora_ter, // ⚠ muda quando o IFindScheduleByIdRepository for refatorado
+        schedule.scheduledFinishTime, // ⚠ muda quando o IFindScheduleByIdRepository for refatorado
       );
 
       await this.executionReportRepository.update(

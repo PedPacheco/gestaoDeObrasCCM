@@ -224,19 +224,19 @@ export class WorksServicesService {
       );
     }
 
-    if (schedule.id_obra !== workId) {
+    if (schedule.workId !== workId) {
       throw new BadRequestException(
         'A programação informada não pertence a esta obra.',
       );
     }
 
-    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)) {
+    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId)) {
       throw new ConflictException(
         'Programação já finalizada: não é possível programar novos serviços.',
       );
     }
 
-    const realWorkId = schedule.id_obra;
+    const realWorkId = schedule.workId;
 
     const history =
       await this.workServicesQueryRepository.getServiceScheduleHistory(
@@ -248,7 +248,7 @@ export class WorksServicesService {
     this.validateNotDuplicated(data, history);
 
     const newStatus =
-      schedule.id_status_programacao === ScheduleStatus.PENDENTE_REVISAO
+      schedule.statusId === ScheduleStatus.PENDENTE_REVISAO
         ? ScheduleStatus.APROVADA
         : undefined;
 

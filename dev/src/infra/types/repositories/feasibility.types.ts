@@ -34,6 +34,7 @@ export const FEASIBILITY_EXPORT_SELECT = {
   ordem_dca: true,
   ordem_dcd: true,
   ordem_dcim: true,
+  ordem_dcdm: true,
   relatorio_viabilidade: { select: { data_envio: true } },
   servicos: {
     select: {

@@ -1,3 +1,5 @@
+import { WorkOrderNumbers } from '../shared/workOrder.types';
+
 export type StatusFeasibility = 'DENTRO DO PRAZO' | 'FORA DO PRAZO';
 
 export type FeasibilityFileType = 'technical' | 'complementary';
@@ -61,12 +63,7 @@ export interface FeasibilityExportService {
 }
 
 export interface FeasibilityExportWork {
-  ovnota: string | null; // ovnota
-  diagram: string | null;
-  dciOrder: string | null;
-  dcaOrder: string | null;
-  dcdOrder: string | null;
-  dcimOrder: string | null;
+  work: WorkOrderNumbers;
   sentAt: Date | null;
   services: FeasibilityExportService[];
 }

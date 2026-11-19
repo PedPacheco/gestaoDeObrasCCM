@@ -57,23 +57,23 @@ export class UpdateSchedulesService {
       );
     }
 
-    const { reprovada, id_status_programacao } =
+    const { rejected, statusId } =
       await this.findScheduleByIdRepository.findById(data.id);
 
     const schedule = WorkSchedule.create(
-      WorkScheduleMapper.fromUpdateInput(data, { rejected: reprovada }),
+      WorkScheduleMapper.fromUpdateInput(data, { rejected }),
     );
 
     const formattedData = WorkScheduleMapper.toPersistenceUpdate(schedule);
 
-    if (reprovada === true) {
+    if (rejected === true) {
       formattedData.reprovada = false;
     }
 
     try {
       await this.updateSchedulesRepository.update(formattedData, tx);
 
-      if (id_status_programacao === 7) {
+      if (statusId === 7) {
         await this.statusFlowRepository.updateScheduleStatus(1, data.id, tx);
         await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
       }

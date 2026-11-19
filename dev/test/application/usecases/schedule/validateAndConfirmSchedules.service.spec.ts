@@ -44,18 +44,18 @@ const expectError = async (
 
 type ScheduleRow = {
   id: number;
-  id_obra: number;
-  id_status_programacao: number;
+  workId: number;
+  statusId: number;
 };
 
 const buildSchedule = (
   id: number,
-  id_obra: number,
-  id_status_programacao = OPEN_STATUS,
+  workId: number,
+  statusId = OPEN_STATUS,
 ): ScheduleRow => ({
   id,
-  id_obra,
-  id_status_programacao,
+  workId,
+  statusId,
 });
 
 describe('ValidateConfirmAndRejectSchedulesService', () => {
@@ -578,7 +578,7 @@ describe('ValidateConfirmAndRejectSchedulesService', () => {
       await service.reject([{ id: 1, id_obra: 999, reason: 'x' }] as any);
 
       const [merged] = mockRepository.reject.mock.calls[0];
-      expect(merged.id_obra).toBe(10);
+      expect(merged.workId).toBe(10);
       expect(merged.reason).toBe('x');
     });
 

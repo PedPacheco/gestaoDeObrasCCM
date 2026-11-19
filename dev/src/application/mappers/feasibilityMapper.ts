@@ -4,7 +4,8 @@ import type {
   FeasibilityRejection,
   FeasibilityReport,
 } from 'src/domain/types';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+
+import { resolveOrdemDiagrama } from 'src/domain/services/workOrder.rules';
 import type {
   FeasibilityApprovalExportOutput,
   FeasibilityPendingExportOutput,
@@ -38,16 +39,6 @@ export const toFeasibilityRejectionOutput = (
 
 // ─── Exportação ────────────────────────────────────────────────────
 
-/** ⚠ Adaptador: a função recebe hoje a row em snake_case. Confirme as chaves que lê. */
-const orderOrDiagram = (w: FeasibilityExportWork): string | null =>
-  resolveOrdemDiagrama({
-    diagrama: w.diagram,
-    ordem_dci: w.dciOrder,
-    ordem_dca: w.dcaOrder,
-    ordem_dcd: w.dcdOrder,
-    ordem_dcim: w.dcimOrder,
-  });
-
 /** Igual ao cálculo atual: qtde_adicional não vem no select, por isso contava sempre 0. */
 const pricing = (s: FeasibilityExportService) => {
   const unitPrice = s.contractItem?.price ?? s.material?.price ?? 0;
@@ -68,8 +59,8 @@ export const toFeasibilityPendingExport = (
   const { unitPrice, totalPrice } = pricing(s);
   const { material, textoBreve, tipo } = materialOf(s);
   return {
-    ovnota: w.ovnota,
-    ordemDiagrama: orderOrDiagram(w),
+    ovnota: w.work.ovnota,
+    ordemDiagrama: resolveOrdemDiagrama(w.work),
     operacao: s.operation,
     ponto: s.point,
     numeroOperacao: s.operationNumber,
@@ -90,8 +81,8 @@ export const toFeasibilityApprovalExport = (
   const { unitPrice, totalPrice } = pricing(s);
   const { material, textoBreve, tipo } = materialOf(s);
   return {
-    ovnota: w.ovnota,
-    ordemDiagrama: orderOrDiagram(w),
+    ovnota: w.work.ovnota,
+    ordemDiagrama: resolveOrdemDiagrama(w.work),
     data_envio: w.sentAt,
     operacao: s.operation,
     ponto: s.point,

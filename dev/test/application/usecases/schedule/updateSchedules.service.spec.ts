@@ -97,8 +97,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       await updateSchedulesService.update(
@@ -124,8 +124,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 80]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       const mockData = { ...mockUpdateSchedulesService, prog: 20, exec: 20 };

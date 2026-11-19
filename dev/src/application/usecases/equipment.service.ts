@@ -10,8 +10,9 @@ import {
   GetEquipmentOutput,
 } from '../types';
 
+import { resolveOrdemDiagrama } from 'src/domain/services/workOrder.rules';
 import { Prisma } from 'src/infra/generated/prisma/client';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+import { toWorkOrderNumbers } from 'src/infra/shared/workOrderNumbers';
 
 @Injectable()
 export class EquipmentService {
@@ -82,7 +83,7 @@ export class EquipmentService {
         return {
           id: work.id,
           ovnota: work.ovnota,
-          ordemDiagrama: resolveOrdemDiagrama(work),
+          ordemDiagrama: resolveOrdemDiagrama(toWorkOrderNumbers(work)),
           referencia: work.referencia,
           tipo_obra: work.tipos?.tipo_obra,
           status: work.status?.status,

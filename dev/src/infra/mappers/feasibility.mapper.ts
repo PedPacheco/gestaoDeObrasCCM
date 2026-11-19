@@ -74,12 +74,15 @@ const toFeasibilityExportService = (
 export const toFeasibilityExportWork = (
   r: FeasibilityExportRow,
 ): FeasibilityExportWork => ({
-  ovnota: r.ovnota,
-  diagram: r.diagrama,
-  dciOrder: r.ordem_dci,
-  dcaOrder: r.ordem_dca,
-  dcdOrder: r.ordem_dcd,
-  dcimOrder: r.ordem_dcim,
+  work: {
+    ovnota: r.ovnota,
+    diagram: r.diagrama,
+    dciOrder: r.ordem_dci,
+    dcaOrder: r.ordem_dca,
+    dcdOrder: r.ordem_dcd,
+    dcimOrder: r.ordem_dcim,
+    dcdmOrder: r.ordem_dcdm,
+  },
   sentAt: r.relatorio_viabilidade?.data_envio ?? null,
   services: r.servicos.map(toFeasibilityExportService),
 });

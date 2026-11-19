@@ -4,7 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { D5NoteScheduleMapper } from 'src/application/mappers/d5Notes/d5NotesScheduleMapper';
+import {
+  CreateD5ScheduleInput,
+  RejectD5ScheduleInput,
+  UpdateD5ScheduleInput,
+} from 'src/application/types';
+
 import { AppLogger } from 'src/core/logger/logger.service';
 import {
   D5_NOTES_SCHEDULES_REPOSITORY,
@@ -15,13 +21,8 @@ import {
   IFileStorage,
 } from 'src/domain/contracts/storage/IFileStorage';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
-import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
+import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service'; // 6b: domain/rules
 import { StorageKind } from 'src/domain/types';
-import {
-  CreateProgramacaoD5Dto,
-  RejectD5ScheduleDTO,
-  UpdateScheduleD5Dto,
-} from 'src/interface/dtos/d5NotesDTO';
 import { uploadedPaths } from 'src/shared/upload/storedFileName';
 
 @Injectable()
@@ -30,12 +31,12 @@ export class ManageD5NoteScheduleService {
 
   constructor(
     @Inject(D5_NOTES_SCHEDULES_REPOSITORY)
-    private d5NotesScheduleRepository: ID5NotesSchedulesRepository,
+    private readonly d5NotesScheduleRepository: ID5NotesSchedulesRepository,
     @Inject(FILE_STORAGE)
     private readonly storage: IFileStorage,
   ) {}
 
-  async create(data: CreateProgramacaoD5Dto) {
+  async create(data: CreateD5ScheduleInput): Promise<void> {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -45,21 +46,15 @@ export class ManageD5NoteScheduleService {
     const schedule = D5NoteSchedule.create(
       D5NoteScheduleMapper.fromCreateInput(data),
     );
-
-    const formattedData = D5NoteScheduleMapper.toPersistenceCreate(schedule);
-
-    return await this.d5NotesScheduleRepository.create(
-      formattedData.id_nota_d5,
-      formattedData,
-    );
+    await this.d5NotesScheduleRepository.create(schedule);
   }
 
   async update(
     id: number,
-    data: UpdateScheduleD5Dto,
+    data: UpdateD5ScheduleInput,
     files: Express.Multer.File[],
     modifyingUserId: number,
-  ) {
+  ): Promise<void> {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -70,16 +65,13 @@ export class ManageD5NoteScheduleService {
     let committed = false;
 
     try {
-      const existing = await this.d5NotesScheduleRepository.getById(id);
-
-      if (!existing) {
+      const current = await this.d5NotesScheduleRepository.getById(id);
+      if (!current) {
         throw new NotFoundException('Programação não encontrada.');
       }
 
-      const current = D5NoteScheduleMapper.toDomain(existing);
-
       const { finalPaths, toRemove } = resolveFileDiff(
-        existing.caminhos_arquivos ?? [],
+        current.filePaths ?? [],
         data.keptFiles,
         uploaded.map((file) => file.filename),
       );
@@ -97,14 +89,12 @@ export class ManageD5NoteScheduleService {
 
       await this.d5NotesScheduleRepository.updateAndSyncWorkStatus(
         id,
-        D5NoteScheduleMapper.toPersistenceUpdate(schedule),
-        current.d5NoteId,
+        schedule,
         schedule.rejected,
       );
-
       committed = true;
 
-      // ponto de não retorno — só aqui os antigos saem do disco
+      // ponto de não retorno: só aqui os antigos saem do disco
       await this.storage.deleteStored(StorageKind.AS_BUILD, toRemove);
     } catch (error) {
       if (!committed) {
@@ -117,7 +107,6 @@ export class ManageD5NoteScheduleService {
             );
           });
       }
-
       throw error;
     }
   }
@@ -128,14 +117,13 @@ export class ManageD5NoteScheduleService {
     }
 
     const existing = await this.d5NotesScheduleRepository.getById(id);
-
     if (!existing) {
       throw new NotFoundException('Programação não encontrada.');
     }
 
-    const storedFiles = existing.caminhos_arquivos ?? [];
+    const storedFiles = existing.filePaths ?? [];
 
-    // 1) remove o registo primeiro — ponto de não retorno
+    // 1) remove o registo primeiro: ponto de não retorno
     await this.d5NotesScheduleRepository.delete(id);
 
     // 2) só depois limpa o disco
@@ -144,20 +132,18 @@ export class ManageD5NoteScheduleService {
 
   async reject(
     d5NoteId: number,
-    data: RejectD5ScheduleDTO[],
+    data: RejectD5ScheduleInput[],
     rejectingUserId: number,
   ): Promise<void> {
     if (!data.length) return;
 
     const existingSchedules =
       await this.d5NotesScheduleRepository.getByD5NoteId(d5NoteId);
-
     const byId = new Map(existingSchedules.map((s) => [s.id, s]));
 
     const missingIds = data
       .map((item) => item.id)
       .filter((id) => !byId.has(id));
-
     if (missingIds.length) {
       throw new NotFoundException(
         `Programações não encontradas para esta nota D5: ${missingIds.join(', ')}`,
@@ -165,9 +151,8 @@ export class ManageD5NoteScheduleService {
     }
 
     const ids = data.map((item) => item.id);
-
     const rejections = data.map((item) =>
-      D5NoteScheduleMapper.toRejectionSnapshot(byId.get(item.id)!, {
+      D5NoteScheduleMapper.toRejectionData(byId.get(item.id)!, {
         restrictionId: item.restrictionId,
         description: item.description,
         rejectingUserId,

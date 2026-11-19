@@ -152,7 +152,7 @@ export class ValidateConfirmAndRejectSchedulesService {
 
         await this.statusFlowRepository.updateStatusWorks(
           WorkStatus.SERVICOS_REAGENDADOS,
-          schedule.id_obra,
+          schedule.workId,
           tx,
         );
       }
@@ -175,8 +175,8 @@ export class ValidateConfirmAndRejectSchedulesService {
     return schedules;
   }
 
-  private distinctWorkIds(schedules: { id_obra: number }[]): number[] {
-    return [...new Set(schedules.map((schedule) => schedule.id_obra))];
+  private distinctWorkIds(schedules: { workId: number }[]): number[] {
+    return [...new Set(schedules.map((schedule) => schedule.workId))];
   }
 
   /**
@@ -186,7 +186,7 @@ export class ValidateConfirmAndRejectSchedulesService {
    *  - validar/confirmar exige ao menos um item programado.
    */
   private async assertPointByPointTransitionAllowed(
-    schedules: { id: number; id_obra: number; id_status_programacao: number }[],
+    schedules: { id: number; workId: number; statusId: number }[],
     requireServices: boolean,
   ): Promise<void> {
     const works = await this.prisma.obras.findMany({
@@ -201,13 +201,13 @@ export class ValidateConfirmAndRejectSchedulesService {
     );
 
     const pointByPointSchedules = schedules.filter((schedule) =>
-      pointByPointWorks.has(schedule.id_obra),
+      pointByPointWorks.has(schedule.workId),
     );
 
     if (pointByPointSchedules.length === 0) return;
 
     const finalized = pointByPointSchedules.filter((schedule) =>
-      FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao),
+      FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId),
     );
 
     if (finalized.length > 0) {
