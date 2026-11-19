@@ -12,6 +12,7 @@ import {
   toScheduleWorkMode,
 } from '../mappers/executionReport.mapper';
 import { PrismaService } from '../prisma/prisma.service';
+import { workIdentifierWhere } from '../shared/workIdentifierWhere';
 import {
   EXECUTION_REPORT_DETAIL_SELECT,
   EXECUTION_REPORT_FILES_SELECT,
@@ -54,21 +55,10 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
     return row && toExecutionReportFiles(row);
   }
 
-  async findByWorkIdentifier(identifier: number) {
-    const value = String(identifier);
+  async findByWorkIdentifier(id: number) {
     const rows = await this.prisma.relatorio_execucao.findMany({
       where: {
-        obras: {
-          OR: [
-            ...(value.length < 10 ? [{ id: identifier }] : []),
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(id),
       },
       select: EXECUTION_REPORT_DETAIL_SELECT,
     });

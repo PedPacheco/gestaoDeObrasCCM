@@ -60,14 +60,3 @@ export const makeExpectedReportSelect = () =>
       },
     },
   }) satisfies Prisma.relatorio_execucaoSelect;
-
-export const makeWorkTextConditions = (
-  value: string,
-): Prisma.obrasWhereInput[] => [
-  { ovnota: value },
-  { ordem_dci: value },
-  { ordem_dcd: value },
-  { ordem_dca: value },
-  { ordem_dcim: value },
-  { diagrama: value },
-];

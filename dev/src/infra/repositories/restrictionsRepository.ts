@@ -19,6 +19,7 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import { workIdentifierWhere } from '../shared/workIdentifierWhere';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
@@ -238,21 +239,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
   async getPublicationRestrictionByWorkId(
     id: number,
   ): Promise<GetPublicationRestrictionByWorkIdResponse[]> {
-    const value = id.toString();
-
     return await this.prisma.restricoes_publicacoes.findMany({
       where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : id },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(id),
       },
       select: {
         restricoes: { select: { restricao: true } },

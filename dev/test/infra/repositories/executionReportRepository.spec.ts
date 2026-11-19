@@ -4,6 +4,7 @@ import { ExecutionReportRepository } from 'src/infra/repositories/executionRepor
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { workIdentifierWhere } from 'src/infra/shared/workIdentifierWhere';
 import {
   ScheduleStatus,
   WorkStatus,
@@ -17,7 +18,6 @@ import {
 import {
   LARGEST_ID_CANDIDATE,
   makeExpectedReportSelect,
-  makeWorkTextConditions,
   SMALLEST_TEXT_ONLY,
 } from '../../fixtures/executionReport.queries';
 
@@ -147,12 +147,7 @@ describe('ExecutionReportRepository', () => {
         await repository.findByWorkIdentifier(identifier);
 
         expect(getCallArgs().where).toStrictEqual({
-          obras: {
-            OR: [
-              { id: identifier },
-              ...makeWorkTextConditions(String(identifier)),
-            ],
-          },
+          obras: workIdentifierWhere(identifier),
         });
       },
     );
@@ -165,7 +160,7 @@ describe('ExecutionReportRepository', () => {
         await repository.findByWorkIdentifier(identifier);
 
         expect(getCallArgs().where).toStrictEqual({
-          obras: { OR: makeWorkTextConditions(String(identifier)) },
+          obras: workIdentifierWhere(identifier),
         });
       },
     );

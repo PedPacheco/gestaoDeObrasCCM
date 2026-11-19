@@ -1,5 +1,3 @@
-import { Prisma } from 'src/infra/generated/prisma/client';
-
 export type ScheduleStatus = {
   status_programacao: string;
 };
@@ -74,7 +72,7 @@ export type ServicesType = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Prisma.Decimal;
+    preco: number;
     unidade: string;
   } | null;
   servicos_contratos: {

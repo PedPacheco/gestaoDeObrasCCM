@@ -4,7 +4,7 @@ import { IFindScheduleByIdRepository } from 'src/domain/contracts/works/schedule
 import { ScheduleState } from 'src/domain/types';
 
 import { Prisma } from 'src/infra/generated/prisma/client';
-import { toScheduleSnapshot } from 'src/infra/mappers/schedule/findById.mapper';
+import { toScheduleSnapshot } from 'src/infra/mappers/works/schedule/findById.mapper';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SCHEDULE_SNAPSHOT_SELECT } from 'src/infra/types/repositories/schedule/findScheduleById.types';
 

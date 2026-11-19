@@ -4,27 +4,16 @@ import { Injectable } from '@nestjs/common';
 
 import { IRejectionOfSchedulesRepository } from 'src/domain/contracts/works/schedule/IRejectionsOfSchedules';
 import { RejectionOfSchedulesGetResponse } from 'src/domain/types';
+import { workIdentifierWhere } from 'src/infra/shared/workIdentifierWhere';
 
 @Injectable()
 export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(idWork): Promise<RejectionOfSchedulesGetResponse[]> {
-    const value = idWork.toString();
-
+  async get(idWork: number): Promise<RejectionOfSchedulesGetResponse[]> {
     return await this.prisma.programacoes_reprovacoes.findMany({
       where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : idWork },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(idWork),
       },
       select: {
         data_prog: true,

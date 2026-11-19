@@ -1,5 +1,5 @@
 import type { Prisma } from 'src/infra/generated/prisma/client';
-import { toScheduleSnapshot } from 'src/infra/mappers/schedule/findById.mapper';
+import { toScheduleSnapshot } from 'src/infra/mappers/works/schedule/findById.mapper';
 
 import type { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Module mocks ─────────────────────────────────────────────────────
 
-vi.mock('src/infra/mappers/schedule/findById.mapper', () => ({
+vi.mock('src/infra/mappers/works/schedule/findById.mapper', () => ({
   toScheduleSnapshot: vi.fn(),
 }));
 

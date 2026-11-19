@@ -1,5 +1,4 @@
-import { Decimal } from 'src/infra/generated/prisma/internal/prismaNamespace';
-import { Partners, Types } from 'src/interface/types/shared/commonInterface';
+import type { Partners, Types } from 'src/domain/types';
 
 export type GetPortfolioSummaryResponse = {
   ovnota: string;
@@ -11,15 +10,15 @@ export type GetPortfolioSummaryResponse = {
   mo_pend: number;
   executado: number;
   id_turma: number;
-  turmas: { turma: string };
-  tipos: { id_grupo: number; grupos: { grupo: string } };
+  turmas: Partners;
+  tipos: Types;
 };
 
 export type GetContractValueResponse = {
   id: number;
   meses: number;
   id_turma: number;
-  valor_contrato?: Decimal;
+  valor_contrato?: number | null;
 };
 
 export type GetMonthlySummaryResponse = {
