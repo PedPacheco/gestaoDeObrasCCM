@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 
-import { ContingencyDashboardData } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
+import { ContingencyDashboardData } from "@/app/(dashboard)/programacao/recursos-contingencia/page";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { FiltersInterface } from "@/types/genericFilterSchema";

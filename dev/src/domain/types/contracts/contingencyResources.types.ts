@@ -11,10 +11,10 @@ export type ContingencyFilter = {
 export type CreateContingencyData = {
   availabilityDate: Date;
   partnerId: number;
-  laborType: string;
-  laborQuantity: number;
-  teamType: string;
-  teamQuantity: number;
+  laborType: string | null;
+  laborQuantity: number | null;
+  teamType: string | null;
+  teamQuantity: number | null;
   allocatedCsd: string;
   userId: number;
 };

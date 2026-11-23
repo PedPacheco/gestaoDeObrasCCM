@@ -607,10 +607,10 @@ model programacoes_servicos {
 model recursos_contingencia {
   id                    Int                  @id @default(autoincrement())
   dia_disponibilidade   DateTime             @db.Date
-  tipo_recurso_mao_obra String               @db.VarChar(100)
-  quantidade_mao_obra   Int                  @default(0)
-  tipo_recurso_equipe   String               @db.VarChar(100)
-  quantidade_equipe     Int                  @default(0)
+  tipo_recurso_mao_obra String?              @db.VarChar(100)
+  quantidade_mao_obra   Int?
+  tipo_recurso_equipe   String?              @db.VarChar(100)
+  quantidade_equipe     Int?
   disponibilizado_csd   String               @db.VarChar(100)
   id_usuario            Int
   criado_em             DateTime             @default(now()) @db.Timestamp(6)

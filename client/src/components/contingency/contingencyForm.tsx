@@ -1,17 +1,12 @@
 "use client";
 
-import dayjs from "dayjs";
-import "dayjs/locale/pt-br";
-import { useState } from "react";
-
 import {
   ContingenciaPayload,
   saveContingencia,
 } from "@/actions/contingencia.action";
+import { CSDS, LABOR_TYPES, TEAMS_TYPES } from "@/constants/contingency";
 import { useUser } from "@/contexts/userContext";
 import { FiltersInterface } from "@/types/genericFilterSchema";
-
-import { CSDS, LABOR_TYPES, TEAMS_TYPES } from "@/constants/contingency";
 import {
   Alert,
   Button,
@@ -22,11 +17,23 @@ import {
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
+import { useState } from "react";
 
 interface ContingencyFormProps {
   partnerOptions: FiltersInterface;
   onSaved: () => void;
 }
+
+type TipoRecurso = "" | "MAO_DE_OBRA" | "EQUIPE";
+
+const INTEGER_REGEX = /^\d*$/;
+
+const RESOURCE_TYPES: { value: Exclude<TipoRecurso, "">; label: string }[] = [
+  { value: "MAO_DE_OBRA", label: "Mão de Obra" },
+  { value: "EQUIPE", label: "Equipe" },
+];
 
 const fieldSx = {
   "& .MuiOutlinedInput-root": {
@@ -55,12 +62,12 @@ export function ContingencyForm({
   const [diaDisponibilidade, setDiaDisponibilidade] =
     useState<dayjs.Dayjs | null>(null);
   const [parceira, setParceira] = useState<string>("");
+  const [tipoRecurso, setTipoRecurso] = useState<TipoRecurso>("");
   const [tipoMaoObra, setTipoMaoObra] = useState("");
   const [quantidadeMaoObra, setQuantidadeMaoObra] = useState("");
   const [tipoEquipe, setTipoEquipe] = useState("");
   const [quantidadeEquipe, setQuantidadeEquipe] = useState("");
   const [csd, setCsd] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{
     open: boolean;
@@ -68,9 +75,34 @@ export function ContingencyForm({
     message: string;
   }>({ open: false, severity: "success", message: "" });
 
+  const isMaoObra = tipoRecurso === "MAO_DE_OBRA";
+  const isEquipe = tipoRecurso === "EQUIPE";
+
+  function handleIntegerChange(
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string>>,
+  ) {
+    if (INTEGER_REGEX.test(value)) {
+      setter(value);
+    }
+  }
+
+  function handleTipoRecursoChange(value: TipoRecurso) {
+    setTipoRecurso(value);
+    // Limpa os campos do tipo que deixou de estar visível
+    if (value === "MAO_DE_OBRA") {
+      setTipoEquipe("");
+      setQuantidadeEquipe("");
+    } else if (value === "EQUIPE") {
+      setTipoMaoObra("");
+      setQuantidadeMaoObra("");
+    }
+  }
+
   function resetForm() {
     setDiaDisponibilidade(null);
     setParceira("");
+    setTipoRecurso("");
     setTipoMaoObra("");
     setQuantidadeMaoObra("");
     setTipoEquipe("");
@@ -81,15 +113,12 @@ export function ContingencyForm({
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    if (
-      !diaDisponibilidade ||
-      !parceira ||
-      !tipoMaoObra ||
-      quantidadeMaoObra === "" ||
-      !tipoEquipe ||
-      quantidadeEquipe === "" ||
-      !csd
-    ) {
+    const camposBaseOk =
+      !!diaDisponibilidade && !!parceira && !!tipoRecurso && !!csd;
+    const maoObraOk = !isMaoObra || (!!tipoMaoObra && quantidadeMaoObra !== "");
+    const equipeOk = !isEquipe || (!!tipoEquipe && quantidadeEquipe !== "");
+
+    if (!camposBaseOk || !maoObraOk || !equipeOk) {
       setFeedback({
         open: true,
         severity: "error",
@@ -99,15 +128,16 @@ export function ContingencyForm({
     }
 
     const payload: ContingenciaPayload = {
-      availabilityDate: diaDisponibilidade.format("YYYY-MM-DD"),
+      availabilityDate: diaDisponibilidade!.format("YYYY-MM-DD"),
       partnerId: Number(parceira),
-      laborType: tipoMaoObra,
-      laborQuantity: Number(quantidadeMaoObra),
-      teamType: tipoEquipe,
-      teamQuantity: Number(quantidadeEquipe),
+      laborType: isMaoObra ? tipoMaoObra : null,
+      laborQuantity: isMaoObra ? Number(quantidadeMaoObra) : null,
+      teamType: isEquipe ? tipoEquipe : null,
+      teamQuantity: isEquipe ? Number(quantidadeEquipe) : null,
       allocatedCsd: csd,
       userId: user?.id,
     };
+
     setLoading(true);
     const result = await saveContingencia(payload);
     setLoading(false);
@@ -147,15 +177,6 @@ export function ContingencyForm({
           />
         </LocalizationProvider>
 
-        {/* <SelectComponent
-          label="Parceira"
-          menuItems={optionsPartner.parceira || []}
-          selectedItem={parceira}
-          setSelectedItem={(value) => setParceira(Number(value))}
-          valueKey="id"
-          displayKey="turma"
-        /> */}
-
         <TextField
           select
           size="small"
@@ -172,65 +193,30 @@ export function ContingencyForm({
           ))}
         </TextField>
 
+        {/* NOVO: seleção do tipo de recurso */}
         <TextField
           select
           size="small"
           fullWidth
-          label="3. Tipo de recurso - Mão de Obra *"
-          value={tipoMaoObra}
-          onChange={(e) => setTipoMaoObra(e.target.value)}
+          label="3. Tipo de recurso *"
+          value={tipoRecurso}
+          onChange={(e) =>
+            handleTipoRecursoChange(e.target.value as TipoRecurso)
+          }
           sx={fieldSx}
         >
-          {LABOR_TYPES.map((option) => (
-            <MenuItem key={option} value={option} sx={menuItemSx}>
-              {option}
+          {RESOURCE_TYPES.map((option) => (
+            <MenuItem key={option.value} value={option.value} sx={menuItemSx}>
+              {option.label}
             </MenuItem>
           ))}
         </TextField>
 
         <TextField
-          size="small"
-          fullWidth
-          type="number"
-          label="4. Quantidade de mão de obra disponibilizada *"
-          value={quantidadeMaoObra}
-          onChange={(e) => setQuantidadeMaoObra(e.target.value)}
-          inputProps={{ min: 0 }}
-          sx={fieldSx}
-        />
-
-        <TextField
           select
           size="small"
           fullWidth
-          label="5. Tipo de recurso - Por Equipe *"
-          value={tipoEquipe}
-          onChange={(e) => setTipoEquipe(e.target.value)}
-          sx={fieldSx}
-        >
-          {TEAMS_TYPES.map((option) => (
-            <MenuItem key={option} value={option} sx={menuItemSx}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <TextField
-          size="small"
-          fullWidth
-          type="number"
-          label="6. Quantidade de equipe disponibilizada *"
-          value={quantidadeEquipe}
-          onChange={(e) => setQuantidadeEquipe(e.target.value)}
-          inputProps={{ min: 0 }}
-          sx={fieldSx}
-        />
-
-        <TextField
-          select
-          size="small"
-          fullWidth
-          label="7. Disponibilizado ao CSD *"
+          label="4. Disponibilizado ao CSD *"
           value={csd}
           onChange={(e) => setCsd(e.target.value)}
           sx={fieldSx}
@@ -241,6 +227,74 @@ export function ContingencyForm({
             </MenuItem>
           ))}
         </TextField>
+
+        {/* Campos de Mão de Obra */}
+        {isMaoObra && (
+          <>
+            <TextField
+              select
+              size="small"
+              fullWidth
+              label="5. Tipo de recurso - Mão de Obra *"
+              value={tipoMaoObra}
+              onChange={(e) => setTipoMaoObra(e.target.value)}
+              sx={fieldSx}
+            >
+              {LABOR_TYPES.map((option) => (
+                <MenuItem key={option} value={option} sx={menuItemSx}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              size="small"
+              fullWidth
+              type="text"
+              label="6. Quantidade de mão de obra disponibilizada *"
+              value={quantidadeMaoObra}
+              onChange={(e) =>
+                handleIntegerChange(e.target.value, setQuantidadeMaoObra)
+              }
+              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+              sx={fieldSx}
+            />
+          </>
+        )}
+
+        {/* Campos de Equipe */}
+        {isEquipe && (
+          <>
+            <TextField
+              select
+              size="small"
+              fullWidth
+              label="5. Tipo de recurso - Por Equipe *"
+              value={tipoEquipe}
+              onChange={(e) => setTipoEquipe(e.target.value)}
+              sx={fieldSx}
+            >
+              {TEAMS_TYPES.map((option) => (
+                <MenuItem key={option} value={option} sx={menuItemSx}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              size="small"
+              fullWidth
+              type="text"
+              label="6. Quantidade de equipe disponibilizada *"
+              value={quantidadeEquipe}
+              onChange={(e) =>
+                handleIntegerChange(e.target.value, setQuantidadeEquipe)
+              }
+              inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+              sx={fieldSx}
+            />
+          </>
+        )}
       </div>
 
       <div className="mt-6 flex justify-end">

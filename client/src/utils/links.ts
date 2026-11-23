@@ -216,6 +216,11 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 9],
       },
+      {
+        name: "Equipes para Contingência",
+        href: "/programacao/recursos-contingencia",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+      },
     ],
   },
   {
@@ -236,17 +241,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
-      {
-        name: "Equipes para Contingência",
-        href: "/restricoes/recursos-contingencia",
-        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-      },
-      {
-        name: "Reclamações e Ouvidoria",
-        href: "/restricoes/reclamacoes-ouvidoria",
-        allowedFor: ["interno_editor", "interno_viewer"],
-        allowedAreas: [8, 1, 7],
-      },
+      // {
+      //   name: "Reclamações e Ouvidoria",
+      //   href: "/restricoes/reclamacoes-ouvidoria",
+      //   allowedFor: ["interno_editor", "interno_viewer"],
+      //   allowedAreas: [8, 1, 7],
+      // },
     ],
   },
   {

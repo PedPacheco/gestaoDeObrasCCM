@@ -3,7 +3,7 @@
 import {
   ContingencyDashboardData,
   CountItem,
-} from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
+} from "@/app/(dashboard)/programacao/recursos-contingencia/page";
 import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
 
@@ -86,7 +86,7 @@ export function ContingencyDashboard({
             style={{ background: CONTINGENCY_KPI_ACCENT }}
           />
           <div className="pl-3">
-            <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+            <span className="text-white/60 text-sm uppercase tracking-widest font-medium">
               Respostas mais recentes
             </span>
             <div className="flex flex-col gap-1 pt-2 overflow-y-auto h-[80px]">

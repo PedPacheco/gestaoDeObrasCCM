@@ -1,4 +1,4 @@
-import { CountItem } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
+import { CountItem } from "@/app/(dashboard)/programacao/recursos-contingencia/page";
 import { NUM } from "@/utils/formatValue";
 import { memo } from "react";
 
@@ -29,7 +29,7 @@ export const BarListCard = memo(function BarListCard({
           <div className="flex flex-col gap-2.5">
             {items.map((item, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="text-zinc-300 text-sm w-40 shrink-0">
+                <span className="text-zinc-300 text-sm font-bold w-40 shrink-0">
                   {item.name}
                 </span>
                 <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -41,7 +41,7 @@ export const BarListCard = memo(function BarListCard({
                     }}
                   />
                 </div>
-                <span className="text-white font-bold text-sm whitespace-nowrap w-5 text-right shrink-0 mr-2">
+                <span className="text-white font-bold whitespace-nowrap w-5 text-right shrink-0 mr-2">
                   {NUM(item.value)}
                 </span>
               </div>

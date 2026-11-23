@@ -49,21 +49,25 @@ export class CreateContingencyDTO {
   @IsNotEmpty()
   partnerId: number;
 
+  @IsOptional()
   @IsIn(TIPOS_MAO_OBRA, { message: 'Tipo de recurso - Mão de Obra inválido' })
-  laborType: string;
+  laborType: string | null;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'Quantidade de mão de obra deve ser um número inteiro' })
   @Min(0, { message: 'Quantidade de mão de obra deve ser maior ou igual a 0' })
-  laborQuantity: number;
+  laborQuantity: number | null;
 
+  @IsOptional()
   @IsIn(TIPOS_EQUIPE, { message: 'Tipo de recurso - Por Equipe inválido' })
-  teamType: string;
+  teamType: string | null;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'Quantidade de equipe deve ser um número inteiro' })
   @Min(0, { message: 'Quantidade de equipe deve ser maior ou igual a 0' })
-  teamQuantity: number;
+  teamQuantity: number | null;
 
   @IsIn(CSDS, { message: 'Disponibilizado ao CSD inválido' })
   allocatedCsd: string;

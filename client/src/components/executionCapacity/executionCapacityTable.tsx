@@ -1,5 +1,6 @@
 "use client";
 
+import { EDITABLE_COLUMNS } from "@/constants/executionCapacity";
 import { useUser } from "@/contexts/userContext";
 import {
   Paper,
@@ -27,21 +28,6 @@ export function ExecutionCapacityTable({
   setTableData,
 }: ExecutionCapacityTableProps) {
   const { permissions, user } = useUser();
-
-  const editableColumns = [
-    "jan",
-    "fev",
-    "mar",
-    "abr",
-    "mai",
-    "jun",
-    "jul",
-    "ago",
-    "set",
-    "out",
-    "nov",
-    "dez",
-  ];
 
   const handleValueChange = (
     rowIndex: number,
@@ -73,7 +59,7 @@ export function ExecutionCapacityTable({
         <TableHead>
           <TableRow>
             {Object.keys(columns).map((column) => {
-              const isEditable = editableColumns.includes(column);
+              const isEditable = EDITABLE_COLUMNS.includes(column);
 
               return (
                 <TableCell
@@ -92,7 +78,7 @@ export function ExecutionCapacityTable({
           {data.map((item, rowIndex) => (
             <TableRow key={rowIndex} className="h-16">
               {Object.keys(columns).map((column, colIndex) => {
-                const isEditable = editableColumns.includes(column);
+                const isEditable = EDITABLE_COLUMNS.includes(column);
                 const canEdit =
                   user?.id_regional === item.id_regional && havePermission;
 
