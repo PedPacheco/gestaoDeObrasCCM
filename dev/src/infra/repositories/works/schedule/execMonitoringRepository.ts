@@ -8,10 +8,14 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 
 @Injectable()
 export class ExecMonitoringRepository implements IExecMonitoringRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
 
   async getData(filters: GetExecMonitoringDTO): Promise<ExecMonitoringRow[]> {
     const {
@@ -26,6 +30,8 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
     const startDate = moment.utc(dataInicial, 'DD/MM/YYYY').toDate();
     const endDate = moment.utc(dataFinal, 'DD/MM/YYYY').toDate();
 
+    const table = (name: string) => this.schema.table(name);
+
     let query = Prisma.sql`
       SELECT
         TO_CHAR(p.data_prog, 'MM/YYYY') AS mes,
@@ -35,11 +41,11 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
         COUNT(*)::int AS total,
         SUM(CASE WHEN p.id_tecnico != 1 THEN 1 ELSE 0 END)::int AS acompanhado,
         SUM(CASE WHEN p.id_tecnico = 1 THEN 1 ELSE 0 END)::int AS nao_acompanhado
-      FROM construcao_sp.programacoes p
-      INNER JOIN construcao_sp.obras o ON o.id = p.id_obra
-      INNER JOIN construcao_sp.municipios m ON m.id = o.id_gpm
-      INNER JOIN construcao_sp.regionais r ON r.id = m.id_regional
-      INNER JOIN construcao_sp.turmas t ON t.id = o.id_turma
+      FROM ${table('programacoes')} p
+      INNER JOIN ${table('obras')} o ON o.id = p.id_obra
+      INNER JOIN ${table('municipios')} m ON m.id = o.id_gpm
+      INNER JOIN ${table('regionais')} r ON r.id = m.id_regional
+      INNER JOIN ${table('turmas')} t ON t.id = o.id_turma
       WHERE p.id_status_programacao IN (4, 6)
         AND t.id NOT IN (1, 6, 10, 11, 14, 15, 16)
         AND p.data_prog >= ${startDate}

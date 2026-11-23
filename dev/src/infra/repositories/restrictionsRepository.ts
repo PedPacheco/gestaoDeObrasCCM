@@ -19,11 +19,19 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import { DbSchema } from '../prisma/dbSchema.provider';
 import { workIdentifierWhere } from '../shared/workIdentifierWhere';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
+
+  private t(name: string): Prisma.Sql {
+    return this.schema.table(name);
+  }
 
   private applyFilters(
     query: Prisma.Sql,
@@ -110,18 +118,18 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     const offset = page * limit;
 
     const baseQuery = Prisma.sql`
-      FROM construcao_sp.obras
-      INNER JOIN construcao_sp.programacoes 
+      FROM ${this.t('obras')}
+      INNER JOIN ${this.t('programacoes')}
         ON programacoes.id_obra = obras.id
-      INNER JOIN construcao_sp.municipios 
+      INNER JOIN ${this.t('municipios')} 
         ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.tipos 
+      INNER JOIN ${this.t('tipos')} 
         ON tipos.id = obras.id_tipo
-      INNER JOIN construcao_sp.turmas 
+      INNER JOIN ${this.t('turmas')} 
         ON turmas.id = obras.id_turma
-      INNER JOIN construcao_sp.restricoes AS restr1
+      INNER JOIN ${this.t('restricoes')} AS restr1
         ON restr1.id = programacoes.id_restricao_prog1
-      INNER JOIN construcao_sp.restricoes AS restr2
+      INNER JOIN ${this.t('restricoes')} AS restr2
         ON restr2.id = programacoes.id_restricao_prog2
       WHERE 1=1
     `;
@@ -179,22 +187,22 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     filters: ProcessedRestrictionsFilters,
   ): Promise<GetPublicationRestricionResponse> {
     const baseQuery = Prisma.sql`
-      FROM construcao_sp.obras
-      INNER JOIN construcao_sp.municipios 
+      FROM ${this.t('restricoes')} 
+      INNER JOIN ${this.t('municipios')}  
         ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.regionais
+      INNER JOIN ${this.t('regionais')} 
         ON regionais.id = municipios.id_regional
-      INNER JOIN construcao_sp.tipos 
+      INNER JOIN ${this.t('tipos')} 
         ON tipos.id = obras.id_tipo
-      INNER JOIN construcao_sp.turmas 
+      INNER JOIN ${this.t('turmas')} 
         ON turmas.id = obras.id_turma
-      INNER JOIN construcao_sp.status
+      INNER JOIN ${this.t('status')} 
         ON status.id = obras.id_status
-      INNER JOIN construcao_sp.restricoes_publicacoes
+      INNER JOIN ${this.t('restricoes_publicacoes')} 
         ON restricoes_publicacoes.id_obra = obras.id
-      INNER JOIN construcao_sp.restricoes
+      INNER JOIN ${this.t('restricoes')} 
         ON restricoes.id = restricoes_publicacoes.id_restricao
-      INNER JOIN construcao_sp.novo_tabela_usuarios
+      INNER JOIN ${this.t('novo_tabela_usuarios')} 
         ON novo_tabela_usuarios.id = restricoes_publicacoes.criado_por
       WHERE 1=1
     `;

@@ -3,11 +3,15 @@ import { GetTotalValuesSchedulesInput } from 'src/application/types';
 import { IGetTotalScheduleValuesRepository } from 'src/domain/contracts/works/schedule/IGetTotalValuesScheduleRepository';
 import { GetTotalValuesScheduleResponse } from 'src/domain/types/contracts/schedule/getTotalValuesSchedule.types';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()
 export class GetTotalValueScheduleRepository implements IGetTotalScheduleValuesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
 
   async getTotalValues(
     filters: GetTotalValuesSchedulesInput,
@@ -22,6 +26,8 @@ export class GetTotalValueScheduleRepository implements IGetTotalScheduleValuesR
       ano,
     } = filters;
 
+    const table = (name: string) => this.schema.table(name);
+
     let query = Prisma.sql`SELECT turma, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS jan_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS jan_exec, 
       SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 2 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS fev_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 2 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS fev_exec,  
       SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 3 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS mar_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 3 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS mar_exec,  
@@ -35,8 +41,8 @@ export class GetTotalValueScheduleRepository implements IGetTotalScheduleValuesR
       SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 11 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS nov_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 11 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS nov_exec,  
       SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 12 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS dez_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 12 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS dez_exec,  
       SUM(COALESCE(mo_final, mo_planejada)*prog/100) AS total_prog, SUM(COALESCE(mo_final, mo_planejada)*exec/100) AS total_exec, EXTRACT(YEAR FROM data_prog) AS ano  
-      FROM construcao_sp.obras INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo INNER JOIN construcao_sp.grupos ON grupos.id = tipos.id_grupo
+      FROM ${table('obras')} INNER JOIN ${table('programacoes')} ON programacoes.id_obra = obras.id INNER JOIN ${table('municipios')} ON municipios.id = obras.id_gpm
+      INNER JOIN ${table('turmas')} ON turmas.id = obras.id_turma INNER JOIN ${table('tipos')} ON tipos.id = obras.id_tipo INNER JOIN ${table('grupos')} ON grupos.id = tipos.id_grupo
       WHERE 1=1`;
 
     if (idRegional && idRegional.length > 0) {

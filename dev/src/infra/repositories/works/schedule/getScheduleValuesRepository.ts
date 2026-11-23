@@ -11,10 +11,18 @@ import {
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 
 @Injectable()
 export class GetScheduleValuesRepository implements IGetScheduleValuesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
+
+  private table(name: string) {
+    return this.schema.table(name);
+  }
 
   /**
    * Equipas por programação:
@@ -22,7 +30,8 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
    * - restantes obras: campos da tabela programacoes
    * Devolve sempre uma linha por programação (agregação sem GROUP BY).
    */
-  private EQUIPES_JOIN = Prisma.sql`
+  private get equipesJoin(): Prisma.Sql {
+    return Prisma.sql`
   LEFT JOIN LATERAL (
     SELECT
       CASE WHEN obras.programacao_ponto_a_ponto
@@ -37,8 +46,8 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
            THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'NR')
            ELSE COALESCE(programacoes.equipe_regularizacao, 0)
       END::int AS equipe_regularizacao
-    FROM construcao_sp.programacoes_servicos ps
-    JOIN construcao_sp.equipes e ON e.id = ps.id_equipe
+    FROM ${this.table('programacoes_servicos')} ps
+    JOIN ${this.table('equipes')} e ON e.id = ps.id_equipe
     CROSS JOIN LATERAL (
       SELECT CASE
                WHEN UPPER(e.equipe) LIKE '%LM%' THEN 'LM'
@@ -47,8 +56,9 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
              END AS tipo
     ) t
     WHERE ps.id_programacao = programacoes.id
-      AND obras.programacao_ponto_a_ponto  -- não lê os serviços das obras que não são ponto a ponto
+      AND obras.programacao_ponto_a_ponto -- não lê os serviços das obras que não são ponto a ponto
   ) eq ON TRUE`;
+  }
 
   private applyFilters(query: Prisma.Sql, filters: GetScheduleFilters) {
     const {
@@ -132,19 +142,19 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
   ): Promise<GetScheduleValuesRepositoryResponse> {
     const { page } = filters;
 
-    const baseQuery = Prisma.sql`FROM construcao_sp.obras
-    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.status ON status.id = obras.id_status
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-    INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
-    ${this.EQUIPES_JOIN}
+    const baseQuery = Prisma.sql`FROM ${this.table('obras')}
+    INNER JOIN ${this.table('circuitos')} ON circuitos.id = obras.id_circuito
+    INNER JOIN ${this.table('conjuntos')} ON conjuntos.id = circuitos.id_conjunto
+    INNER JOIN ${this.table('programacoes')} ON programacoes.id_obra = obras.id
+    INNER JOIN ${this.table('status')} ON status.id = obras.id_status
+    INNER JOIN ${this.table('municipios')} ON municipios.id = obras.id_gpm
+    INNER JOIN ${this.table('regionais')} ON regionais.id = municipios.id_regional
+    INNER JOIN ${this.table('tipos')} ON tipos.id = obras.id_tipo
+    INNER JOIN ${this.table('turmas')} ON turmas.id = obras.id_turma
+    INNER JOIN ${this.table('tecnicos')} ON tecnicos.id = programacoes.id_tecnico
+    INNER JOIN ${this.table('status_programacao')} ON status_programacao.id = programacoes.id_status_programacao
+    LEFT JOIN ${this.table('relatorio')} ON relatorio.id_obra = obras.id
+    ${this.equipesJoin}
     WHERE status.id NOT IN (3, 4)`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcdm, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,

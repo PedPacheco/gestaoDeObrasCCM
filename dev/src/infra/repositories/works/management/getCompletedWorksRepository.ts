@@ -10,10 +10,14 @@ import {
   CompletedWorkTotals,
 } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 
 @Injectable()
 export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
 
   private applyFilters(query: Prisma.Sql, filters: WorkFiltersInput) {
     const {
@@ -90,14 +94,16 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
   ): Promise<CompletedWorksRepositoryResponse> {
     const { page } = filters;
 
-    const baseQuery = Prisma.sql`FROM construcao_sp.obras
-        INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
-        INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-        INNER JOIN construcao_sp.status ON obras.id_status = status.id
-        INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
-        INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-        INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
+    const table = (name: string) => this.schema.table(name);
+
+    const baseQuery = Prisma.sql`FROM ${table('obras')}
+        INNER JOIN ${table('municipios')} ON obras.id_gpm = municipios.id
+        INNER JOIN ${table('circuitos')} ON obras.id_circuito = circuitos.id
+        INNER JOIN ${table('status')} ON obras.id_status = status.id
+        INNER JOIN ${table('tipos')} ON obras.id_tipo = tipos.id
+        INNER JOIN ${table('conjuntos')} ON circuitos.id_conjunto = conjuntos.id
+        INNER JOIN ${table('regionais')} ON municipios.id_regional = regionais.id
+        INNER JOIN ${table('turmas')} ON obras.id_turma = turmas.id
         WHERE ((id_status = 2 AND executado = 100) OR id_status IN (2, 3))`;
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, ordem_dcdm, status_ov_sap, pep, executado, 

@@ -1,21 +1,52 @@
+import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GoalsRepository } from 'src/infra/repositories/goalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
-import { Test, TestingModule } from '@nestjs/testing';
-
 describe('GoalsRepository', () => {
   let goalsRepository: GoalsRepository;
+
+  // Schema "falso": garante que o repositório não tem construcao_sp fixo
+  const SCHEMA = 'schema_teste';
+
+  // Tipos tratados à parte no repositório
+  const BTZERO_TIPOS = [48, 25, 50];
+  const RDA_TIPOS = [54, 55, 35];
+  const EXCLUDED_TIPOS = [48, 49, 54, 55, 35, 25, 50];
 
   const mockPrisma = {
     $queryRaw: vi.fn(),
   };
 
+  const mockConfigService = {
+    getOrThrow: vi.fn().mockReturnValue(SCHEMA),
+  };
+
+  /** Normaliza espaços para comparar SQL multi-linha */
+  function normalizeSQL(sql: string): string {
+    return sql.replace(/\s+/g, ' ').trim();
+  }
+
+  /** Query enviada na n-ésima chamada ao $queryRaw */
+  function sentQuery(callIndex = 0): Prisma.Sql {
+    return mockPrisma.$queryRaw.mock.calls[callIndex][0];
+  }
+
+  function sqlText(query: Prisma.Sql): string {
+    return normalizeSQL(query.strings.join(''));
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GoalsRepository,
+        DbSchema,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -23,6 +54,7 @@ describe('GoalsRepository', () => {
   });
 
   afterEach(() => {
+    // clearAllMocks mantém o mockReturnValue do getOrThrow
     vi.clearAllMocks();
   });
 
@@ -94,99 +126,121 @@ describe('GoalsRepository', () => {
       expect(mockPrisma.$queryRaw).toHaveBeenCalled();
     });
 
+    it('should use the schema from DB_SCHEMA and never the hardcoded one', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([]);
+
+      await goalsRepository.getGoals(baseFilters);
+
+      const sql = sqlText(sentQuery());
+      expect(sql).toContain(`FROM ${SCHEMA}.get_view_data(`);
+      expect(sql).toContain(`INNER JOIN ${SCHEMA}.tipos`);
+      expect(sql).toContain(`INNER JOIN ${SCHEMA}.turmas`);
+      expect(sql).toContain(`INNER JOIN ${SCHEMA}.regionais`);
+      expect(sql).toContain(`LEFT JOIN ${SCHEMA}.empreendimento`);
+      expect(sql).not.toContain('construcao_sp.');
+    });
+
+    it('should exclude btzero and rda tipos when neither filter is active', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
+
+      await goalsRepository.getGoals(baseFilters);
+
+      const query = sentQuery();
+      expect(sqlText(query)).toContain('AND metas_anuais.id_tipo NOT IN (');
+      // [anoPlan (null), ano, ...tipos excluídos]
+      expect(query.values).toEqual([null, 2023, ...EXCLUDED_TIPOS]);
+    });
+
     it('should handle btzero filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, btzero: true };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({ ...baseFilters, btzero: true });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain(
-        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
-      );
+      const query = sentQuery();
+      const sql = sqlText(query);
+      expect(sql).toContain('AND metas_anuais.id_tipo IN (');
+      expect(sql).not.toContain('NOT IN');
+      expect(query.values).toEqual([null, 2023, ...BTZERO_TIPOS]);
     });
 
     it('should handle rda filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, rda: true };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({ ...baseFilters, rda: true });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain(
-        'AND (id_tipo = 54 OR id_tipo = 55 OR id_tipo = 35) AND empreendimento IS NOT NULL',
-      );
+      const query = sentQuery();
+      const sql = sqlText(query);
+      expect(sql).toContain('AND metas_anuais.id_tipo IN (');
+      expect(sql).toContain('AND empreendimento IS NOT NULL');
+      expect(sql).not.toContain('NOT IN');
+      expect(query.values).toEqual([null, 2023, ...RDA_TIPOS]);
     });
 
     it('should handle regional filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, regional: [1, 2] };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({ ...baseFilters, regional: [1, 2] });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN (');
+      const query = sentQuery();
+      expect(sqlText(query)).toContain('AND metas_anuais.id_regional IN (');
+      expect(query.values).toEqual([null, 2023, ...EXCLUDED_TIPOS, 1, 2]);
     });
 
     it('should handle tipo filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, tipo: [1, 2] };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({ ...baseFilters, tipo: [1, 2] });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN (');
+      const query = sentQuery();
+      expect(sqlText(query)).toContain('AND metas_anuais.id_tipo IN (');
+      expect(query.values).toEqual([null, 2023, ...EXCLUDED_TIPOS, 1, 2]);
     });
 
     it('should handle parceira filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, parceira: [1, 2] };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({ ...baseFilters, parceira: [1, 2] });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN (');
+      const query = sentQuery();
+      expect(sqlText(query)).toContain('AND metas_anuais.id_turma IN (');
+      expect(query.values).toEqual([null, 2023, ...EXCLUDED_TIPOS, 1, 2]);
     });
 
     it('should handle empreendimento filter correctly', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = { ...baseFilters, empreendimento: [1, 2] };
-      await goalsRepository.getGoals(filters);
+      await goalsRepository.getGoals({
+        ...baseFilters,
+        empreendimento: [1, 2],
+      });
 
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN (');
+      const query = sentQuery();
+      expect(sqlText(query)).toContain(
+        'AND metas_anuais.id_empreendimento IN (',
+      );
+      expect(query.values).toEqual([null, 2023, ...EXCLUDED_TIPOS, 1, 2]);
     });
 
     it('should handle multiple filters simultaneously', async () => {
       mockPrisma.$queryRaw.mockResolvedValue(mockQueryResult);
 
-      const filters = {
+      await goalsRepository.getGoals({
         ...baseFilters,
         regional: [1],
         tipo: [2],
         parceira: [3],
         empreendimento: [4],
         btzero: true,
-      };
+      });
 
-      await goalsRepository.getGoals(filters);
-
-      const call = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain(
-        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
-      );
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN (');
+      const query = sentQuery();
+      const sql = sqlText(query);
+      expect(sql).toContain('AND metas_anuais.id_regional IN (');
+      expect(sql).toContain('AND metas_anuais.id_tipo IN (');
+      expect(sql).toContain('AND metas_anuais.id_turma IN (');
+      expect(sql).toContain('AND metas_anuais.id_empreendimento IN (');
+      // ordem: anoPlan, ano, btzero, regional, tipo, parceira, empreendimento
+      expect(query.values).toEqual([null, 2023, ...BTZERO_TIPOS, 1, 2, 3, 4]);
     });
 
     it('should handle empty result correctly', async () => {
@@ -215,14 +269,15 @@ describe('GoalsRepository', () => {
 
       await goalsRepository.getGoals(filters);
 
-      const query = mockPrisma.$queryRaw.mock.calls[0][0];
+      const query = sentQuery();
+      const sql = sqlText(query);
+
       expect(query).toBeDefined();
-      expect(query.strings.join('')).toContain('SELECT');
-      expect(query.strings.join('')).toContain(
-        'FROM construcao_sp.get_view_data()',
-      );
-      expect(query.strings.join('')).toContain('WHERE anocalc IN');
-      expect(query.strings.join('')).toContain(
+      expect(sql).toContain('SELECT');
+      // O parâmetro (null) sai de strings, por isso fica "get_view_data()"
+      expect(sql).toContain(`FROM ${SCHEMA}.get_view_data()`);
+      expect(sql).toContain('WHERE anocalc IN');
+      expect(sql).toContain(
         'GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo',
       );
     });
@@ -243,10 +298,7 @@ describe('GoalsRepository', () => {
 
       await goalsRepository.getGoals(filters);
 
-      const query = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = query.values;
-
-      expect(sqlString).toEqual([2026, 2022, 2023]);
+      expect(sentQuery().values).toEqual([2026, 2022, 2023, ...EXCLUDED_TIPOS]);
     });
 
     it('should apply all filters simultaneously in the query', async () => {
@@ -264,19 +316,30 @@ describe('GoalsRepository', () => {
 
       await goalsRepository.getGoals(filters);
 
-      const query = mockPrisma.$queryRaw.mock.calls[0][0];
-      const sqlString = query.strings.join('');
+      const query = sentQuery();
+      const sql = sqlText(query);
 
-      expect(sqlString).toContain(
-        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
-      );
-      expect(sqlString).toContain(
-        'AND (id_tipo = 54 OR id_tipo = 55 OR id_tipo = 35) AND empreendimento IS NOT NULL',
-      );
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN');
+      expect(sql).toContain('AND empreendimento IS NOT NULL');
+      expect(sql).toContain('AND metas_anuais.id_regional IN');
+      expect(sql).toContain('AND metas_anuais.id_tipo IN');
+      expect(sql).toContain('AND metas_anuais.id_turma IN');
+      expect(sql).toContain('AND metas_anuais.id_empreendimento IN');
+      expect(sql).not.toContain('NOT IN');
+      // anoPlan, ano, btzero, rda, regional, tipo, parceira, empreendimento
+      expect(query.values).toEqual([
+        null,
+        2023,
+        ...BTZERO_TIPOS,
+        ...RDA_TIPOS,
+        3,
+        4,
+        5,
+        6,
+        1,
+        2,
+        7,
+        8,
+      ]);
     });
   });
 });

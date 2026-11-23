@@ -9,10 +9,14 @@ import {
   GetAllWorksRepositoryResponse,
 } from 'src/domain/types';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 
 @Injectable()
 export class GetAllWorksRepository implements IGetAllWorksRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetAllWorksDTO) {
     const {
@@ -61,11 +65,13 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
   ): Promise<GetAllWorksRepositoryResponse> {
     const { page } = filters;
 
-    const baseQuery = Prisma.sql`FROM construcao_sp.obras 
-        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
-        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
-        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
-        INNER JOIN construcao_sp.status ON status.id = obras.id_status 
+    const t = (name: string) => this.schema.table(name);
+
+    const baseQuery = Prisma.sql`FROM ${t('obras')} 
+        INNER JOIN ${t('turmas')}  ON turmas.id = obras.id_turma 
+        INNER JOIN ${t('municipios')}  ON municipios.id = obras.id_gpm 
+        INNER JOIN ${t('tipos')}  ON tipos.id = obras.id_tipo 
+        INNER JOIN ${t('status')}  ON status.id = obras.id_status 
         WHERE 1=1`;
 
     let query = Prisma.sql`SELECT
