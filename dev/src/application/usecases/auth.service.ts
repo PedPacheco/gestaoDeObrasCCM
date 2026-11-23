@@ -33,7 +33,11 @@ export class AuthService {
     const access_token = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
-      // mantenha os restantes campos que o payload atual tiver
+      tipo_usuario: user.tipo_usuario,
+      is_admin: user.is_admin,
+      permissao_edicao: user.permissao_edicao,
+      id_turma: user.id_turma,
+      id_area: user.id_area,
     });
 
     // Montado campo a campo: a senha nunca entra no retorno
@@ -47,7 +51,7 @@ export class AuthService {
       is_admin: user.is_admin,
       permissao_edicao: user.permissao_edicao,
       id_turma: user.id_turma,
-      id_area: user.id_area ?? 0, // ver nota abaixo
+      id_area: user.id_area, // ver nota abaixo
       tipo_usuario: user.tipo_usuario,
     };
   }
