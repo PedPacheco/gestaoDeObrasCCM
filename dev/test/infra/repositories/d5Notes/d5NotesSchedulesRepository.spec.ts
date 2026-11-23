@@ -102,6 +102,7 @@ describe('D5NotesSchedulesRepository', () => {
       expect(toD5ScheduleWhere).toHaveBeenCalledWith(FILTER);
       expect(prisma.programacoes_d5.findMany).toHaveBeenCalledWith({
         where: WHERE,
+        orderBy: [{ data_prog: 'asc' }, { id: 'asc' }],
         take: 200,
         skip: 200,
         select: D5_SCHEDULE_WITH_NOTE_SELECT,
