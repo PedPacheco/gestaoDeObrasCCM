@@ -79,6 +79,7 @@ export class AuxiliaryNotesInsertService {
       ordem_dcd: item.ordem_dcd?.toString(),
       ordem_dca: item.ordem_dca?.toString(),
       ordem_dcim: item.ordem_dcim?.toString(),
+      ordem_dcdm: item.ordem_dcdm?.toString(),
     }));
 
     const [existingNotes, existingOrders] = await Promise.all([
@@ -126,6 +127,7 @@ export class AuxiliaryNotesInsertService {
       notesData.ordem_dcd,
       notesData.ordem_dca,
       notesData.ordem_dcim,
+      notesData.ordem_dcdm,
     ].filter(Boolean);
 
     const orderExists = orders.some((order) => existingOrdersSet.has(order));

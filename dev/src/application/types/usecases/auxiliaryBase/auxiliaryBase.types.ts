@@ -24,13 +24,14 @@ export type AuxiliaryBaseMarketResponse = {
   equipeNumPedido: string | null;
 };
 
-export type AuxiliaryBaseNotesResponse = {
+export type AuxiliaryBaseNotesOutput = {
   obra: string;
   pep: string;
   dci: string;
   dcd: string;
   dca: string;
   dcim: string;
+  dcdm: string;
   entrada: Date;
   prazo: string;
   referencia: string;
@@ -55,6 +56,7 @@ export type NotesInput = {
   ordem_dcd: string;
   ordem_dca: string;
   ordem_dcim: string;
+  ordem_dcdm: string;
   conjunto: string;
   texto_breve: string;
   grp_plnj_pm: string;

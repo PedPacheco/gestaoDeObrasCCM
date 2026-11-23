@@ -39,6 +39,7 @@ export class UpdateNoteService {
         work.ordem_dcd ?? '',
         work.ordem_dca ?? '',
         work.ordem_dcim ?? '',
+        work.ordem_dcdm ?? '',
       ].join('|');
 
     const filters = data.map((work) => ({ ovnota: work.obra }));
@@ -58,6 +59,7 @@ export class UpdateNoteService {
           ordem_dcd: ov.ordemDcd,
           ordem_dca: ov.ordemDca,
           ordem_dcim: ov.ordemDcim,
+          ordem_dcdm: ov.ordemDcdm,
         });
 
         const simpleKey = ov.ovnota;
@@ -76,6 +78,7 @@ export class UpdateNoteService {
         ordem_dcd: work.ordem_dcd,
         ordem_dca: work.ordem_dca,
         ordem_dcim: work.ordem_dcim,
+        ordem_dcdm: work.ordem_dcdm,
       });
 
       const simpleKey = work.obra;
@@ -111,6 +114,7 @@ export class UpdateNoteService {
           dcd: work.ordem_dcd,
           dca: work.ordem_dca,
           dcim: work.ordem_dcim,
+          dcdm: work.ordem_dcdm,
           qtdePlanejada: work.qtdePlan,
           moPlanejada: work.moPlan,
           idEmpreendimento: work.idEmpreendimento,

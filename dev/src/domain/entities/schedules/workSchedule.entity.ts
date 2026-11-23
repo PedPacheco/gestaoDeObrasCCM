@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import { BaseSchedule, BaseScheduleProps } from './baseSchedule.entity';
 
 export interface WorkScheduleProps extends BaseScheduleProps {
@@ -84,15 +84,15 @@ export class WorkSchedule extends BaseSchedule {
 
   protected validateSpecific(): void {
     if (!this.idWork || this.idWork <= 0) {
-      throw new BadRequestException('ID da obra é obrigatório');
+      throw new ValidationError('ID da obra é obrigatório');
     }
 
     if (!this.startTime || !this.finishTime) {
-      throw new BadRequestException('Horário de início e fim são obrigatórios');
+      throw new ValidationError('Horário de início e fim são obrigatórios');
     }
 
     if (this.idScheduleStatus <= 0) {
-      throw new BadRequestException('Status da programação inválido');
+      throw new ValidationError('Status da programação inválido');
     }
   }
 

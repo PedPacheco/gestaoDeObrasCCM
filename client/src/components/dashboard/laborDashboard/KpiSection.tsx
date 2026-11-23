@@ -169,7 +169,6 @@ export function KpiSection({
               subValue: FormatCurrency(display.programadoRecom),
             },
           ],
-
           value: FormatCurrency(display.programado),
           gradient: " bg-gradient-to-br from-[#182638] to-[#1c2f42]",
           accent: "#53FF75",

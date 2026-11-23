@@ -1,6 +1,6 @@
 import {
   AuxiliaryBaseMarketResponse,
-  AuxiliaryBaseNotesResponse,
+  AuxiliaryBaseNotesOutput,
   InsertAuxiliaryMarketInput,
   NotesInput,
   OperationType,
@@ -25,7 +25,7 @@ export class AuxiliaryBaseService {
     private readonly auxiliaryMarketInsertService: AuxiliaryMarketInsertService,
   ) {}
 
-  async getNotes(idRegional?: number): Promise<AuxiliaryBaseNotesResponse[]> {
+  async getNotes(idRegional?: number): Promise<AuxiliaryBaseNotesOutput[]> {
     const notes =
       await this.auxiliaryBaseRepository.getAuxiliaryBaseNotes(idRegional);
 
@@ -37,6 +37,7 @@ export class AuxiliaryBaseService {
       dcd: note.dcd,
       dca: note.dca,
       dcim: note.dcim,
+      dcdm: note.dcdm,
       entrada: note.entrada,
       prazo: note.prazo,
       referencia: note.referencia,

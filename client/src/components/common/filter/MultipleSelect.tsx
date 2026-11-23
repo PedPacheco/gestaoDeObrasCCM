@@ -12,6 +12,7 @@ interface SelectProps<T> {
   displayKey?: string;
   backgroundColor?: string;
   textColor?: string;
+  marginBottom?: string;
 }
 
 type SelectItem = string | number;
@@ -25,6 +26,7 @@ export function MultipleSelectComponent<T>({
   displayKey,
   backgroundColor,
   textColor,
+  marginBottom = "0.5rem",
 }: SelectProps<T>) {
   const handleChange = (event: SelectChangeEvent<T[]>) => {
     const { value } = event.target;
@@ -35,7 +37,7 @@ export function MultipleSelectComponent<T>({
     <>
       <FormControl
         className="lg:ml-4 lg:first:ml-0 w-full"
-        sx={{ marginBottom: "0.5rem" }}
+        sx={{ marginBottom }}
         size="small"
       >
         <InputLabel

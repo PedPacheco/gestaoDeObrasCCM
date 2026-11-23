@@ -1,9 +1,11 @@
 import {
+  GetWorksInPortfolioOutput,
+  UpdateNotesInput,
+} from 'src/application/types';
+import {
   InsertMarketWorksDTO,
   InsertNotesDTO,
-  UpdateNotesDTO,
 } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 export const mockMarketWorks: InsertMarketWorksDTO[] = [
   {
@@ -57,6 +59,7 @@ export const mockInsertNotesController: InsertNotesDTO[] = [
     dcd: '',
     dci: '',
     dcim: '',
+    dcdm: '',
     ehRda: false,
   },
 ];
@@ -231,18 +234,18 @@ export const mockResponseDetails = {
   ],
 };
 
-export const mockWorksInPortfolio: worksInPortfolioResponseService = {
+export const mockWorksInPortfolio: GetWorksInPortfolioOutput = {
   works: [
     {
       id: 17617,
       ovnota: '15373379',
       ordem_principal: '170000015211',
-      ordemdiagrama: '170000015211',
       status_ov_sap: 99,
       pep: 'X/005016',
       ordem_dcd: '190000016813',
       ordem_dca: '150000001995',
       ordem_dcim: null,
+      ordem_dcdm: null,
       mun: 'SAE',
       tipo_obra: 'RISCO A SEGURANÇA',
       id_grupo: 1,
@@ -326,7 +329,7 @@ export const mockAllWorks = {
   totalRecords: 1,
 };
 
-export const mockUpdateNotes: UpdateNotesDTO[] = [
+export const mockUpdateNotes: UpdateNotesInput[] = [
   {
     obra: '4001841383',
     referencia: 'REF123',
@@ -354,6 +357,7 @@ export const mockUpdateNotes: UpdateNotesDTO[] = [
     pep: 'PEP-654321',
     ordem_dca: 'DCA002',
     ordem_dcim: 'DCIM002',
+    ordem_dcdm: 'DCDM002',
     moPlan: 120,
     qtdePlan: 60,
   },

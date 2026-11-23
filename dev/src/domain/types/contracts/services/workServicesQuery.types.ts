@@ -1,6 +1,3 @@
-import { Decimal } from '@prisma/client/runtime/client';
-import { Prisma } from 'src/infra/generated/prisma/client';
-
 export type GetSelectedServicesParamsRequest = {
   id: number;
   idProgramacao: number;
@@ -20,7 +17,7 @@ export type GetServicesByWorkIdResponse = {
   viabilizado: number;
   descricao_operacao: string;
   numero_operacao: string;
-  materiais: { codigo: string; descricao: string; preco: Prisma.Decimal };
+  materiais: { codigo: string; descricao: string; preco: number };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -36,6 +33,7 @@ export type GetServicesSelectedByWorkIdResponse = {
   equipes: { equipe: string; encarregado: string; perfil: string };
   programacoes: { data_prog: Date };
   servicos: {
+    id: number;
     id_obra: number;
     operacao: string;
     ponto: string;
@@ -46,7 +44,7 @@ export type GetServicesSelectedByWorkIdResponse = {
     materiais: {
       codigo: string;
       descricao: string;
-      preco: Prisma.Decimal;
+      preco: number;
     } | null;
     servicos_contratos: {
       material: string;
@@ -83,7 +81,7 @@ export type GetServiceScheduleHistoryByIdScheduleResponse = {
   id: number;
   id_servico: number;
   servicos: {
-    materiais: { descricao: string; codigo: string; preco: Decimal };
+    materiais: { descricao: string; codigo: string; preco: number };
     servicos_contratos: {
       texto_breve: string;
       material: string;
@@ -125,7 +123,7 @@ export type GetMaterialsContractsResponse = {
   codigo: string;
   descricao: string;
   unidade: string;
-  preco: Decimal;
+  preco: number;
 };
 
 export type GetTeamsServicesResponse = {
@@ -133,6 +131,18 @@ export type GetTeamsServicesResponse = {
   equipe: string;
   encarregado: string;
   perfil: string;
+};
+
+export type ServiceForScheduling = {
+  id: number;
+  id_obra: number;
+  id_material: number | null;
+  viabilizado: number | null;
+  qtde_adicional: number | null;
+  qtde_real: number | null;
+  ponto: string;
+  operacao: string;
+  descricao_operacao: string | null;
 };
 
 export type ServiceScheduleToExport = {
@@ -152,7 +162,7 @@ export type ServiceToExport = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Prisma.Decimal;
+    preco: number;
     unidade: string;
   } | null;
   servicos_contratos: {

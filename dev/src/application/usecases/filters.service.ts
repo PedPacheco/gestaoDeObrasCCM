@@ -13,8 +13,8 @@ import {
   FILTERS_REPOSITORY,
   IFiltersRepository,
 } from 'src/domain/contracts/IFiltersRepository';
-
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+import { resolveOrdemDiagrama } from 'src/domain/services/workOrder.rules';
+import { toWorkOrderNumbers } from 'src/infra/shared/workOrderNumbers';
 
 @Injectable()
 export class FiltersService {
@@ -153,7 +153,7 @@ export class FiltersService {
           id: work.id,
           ovnota: work.ovnota,
           concluida: work.data_conclusao !== null,
-          ordemDiagrama: resolveOrdemDiagrama(work),
+          ordemDiagrama: resolveOrdemDiagrama(toWorkOrderNumbers(work)),
         }));
       });
     }

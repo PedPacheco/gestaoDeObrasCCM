@@ -5,6 +5,7 @@ export interface filtersOrders {
   ordem_dcd: string | null;
   ordem_dca: string | null;
   ordem_dcim: string | null;
+  ordem_dcdm: string | null;
 }
 
 export interface IFindExistingWorksRepository {

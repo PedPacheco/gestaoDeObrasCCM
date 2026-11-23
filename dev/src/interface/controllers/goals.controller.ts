@@ -1,6 +1,6 @@
 import { GoalsService } from 'src/application/usecases/goals.service';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
-import { GoalsIntefaceController } from 'src/interface/types/goalsInterface';
+import { GoalsIntefaceController } from 'src/interface/types/controllers/goals.types';
 
 import {
   Controller,

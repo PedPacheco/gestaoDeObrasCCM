@@ -580,6 +580,7 @@ describe('AuxiliaryBaseRepository', () => {
       ordem_dcd: `DCD-${n}`,
       ordem_dca: `DCA-${n}`,
       ordem_dcim: `DCIM-${n}`,
+      ordem_dcdm: `DCDM-${n}`,
       conjunto: `CONJ-${n}`,
       grp_plnj_pm: `GRP-${n}`,
       texto_breve: `TXT-${n}`,
@@ -615,16 +616,42 @@ describe('AuxiliaryBaseRepository', () => {
         'TXT-1',
         'DEN-1',
         false,
+        'DCDM-1',
       ]);
       expect(joined[1].values[10]).toBe(true);
     });
 
-    it('rethrows errors raised by the database', async () => {
-      const error = new Error('insert failed');
-      prisma.$executeRaw.mockRejectedValue(error);
+    it('wraps database errors in a domain error keeping the original as cause', async () => {
+      const dbError = new Error('connection refused');
+      prisma.$executeRaw.mockRejectedValueOnce(dbError);
 
-      await expect(repository.insertNotes([makeNote(1)] as any)).rejects.toBe(
-        error,
+      const error = await repository
+        .insertNotes([makeNote(1)] as any)
+        .catch((e: unknown) => e);
+
+      expect(error).toBeInstanceOf(Error);
+      expect(error).not.toBe(dbError);
+      expect((error as Error).message).toBe(
+        'Falha ao inserir dados da base auxiliar',
+      );
+      expect((error as Error).cause).toBe(dbError);
+    });
+
+    it('logs the original error stack before rethrowing', async () => {
+      const loggerSpy = vi
+        .spyOn(repository['logger'], 'error')
+        .mockImplementation(() => {});
+      const dbError = new Error('connection refused');
+      prisma.$executeRaw.mockRejectedValueOnce(dbError);
+
+      await expect(
+        repository.insertNotes([makeNote(1)] as any),
+      ).rejects.toThrow();
+
+      expect(loggerSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao inserir dados da base auxiliar',
+        dbError.stack,
       );
     });
   });

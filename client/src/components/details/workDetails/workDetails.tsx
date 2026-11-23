@@ -75,6 +75,7 @@ interface WorkData {
   status_150: string;
   ordem_dcim: string;
   status_180: string;
+  ordem_dcdm: string;
   executado: number;
   ano_plan: string;
   empreendimento: string;
@@ -397,11 +398,20 @@ export function WorkDetails({
             value={data.ordem_dca}
             status={data.status_150}
           />
-          <DataItem
+          <div className="max-w-96 w-[342px] xl:w-full xl:max-w-[90%] flex gap-2 mb-3">
+            <div className="flex-1">
+              <SummaryDataItem label="Ordem DCIM" value={data.ordem_dcim} />
+            </div>
+
+            <div className="flex-1">
+              <SummaryDataItem label="Ordem DCDM" value={data.ordem_dcdm} />
+            </div>
+          </div>
+          {/* <DataItem
             label="Ordem DCIM"
             value={data.ordem_dcim}
             status={data.status_180}
-          />
+          /> */}
         </div>
 
         <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">

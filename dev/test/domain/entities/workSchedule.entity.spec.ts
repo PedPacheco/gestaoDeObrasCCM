@@ -1,8 +1,8 @@
-import { BadRequestException } from '@nestjs/common';
 import {
   WorkSchedule,
   WorkScheduleProps,
 } from 'src/domain/entities/schedules/workSchedule.entity';
+import { ValidationError } from 'src/domain/errors/domain.error';
 
 // ---------------------------------------------------------------------------
 // Factory: props mínimas válidas
@@ -22,7 +22,7 @@ const makeProps = (
   }) as WorkScheduleProps;
 
 const expectBadRequest = (fn: () => unknown, message: string) => {
-  expect(fn).toThrow(BadRequestException);
+  expect(fn).toThrow(ValidationError);
   expect(fn).toThrow(message);
 };
 

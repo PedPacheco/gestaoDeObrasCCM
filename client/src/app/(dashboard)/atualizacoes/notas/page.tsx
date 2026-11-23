@@ -24,7 +24,7 @@ export default async function NotesUpdates() {
       `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/notas`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   }
 
@@ -40,10 +40,11 @@ export default async function NotesUpdates() {
     id: "ID",
     obra: "Nota",
     pep: "Pep",
-    dci: "Dci",
-    dcd: "Dcd",
-    dca: "Dca",
-    dcim: "Dcim",
+    dci: "DCI",
+    dcd: "DCD",
+    dca: "DCA",
+    dcdm: "DCDM",
+    dcim: "DCIM",
     entrada: "Entrada",
     prazo: "Prazo",
     municipio: "Mun",

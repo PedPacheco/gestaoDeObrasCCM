@@ -9,6 +9,7 @@ import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
 
+import { toContractValue } from 'src/infra/mappers/works/schedule/monthlySummary.mapper';
 import { IGetMonthlySummaryRepository } from '../../../../domain/contracts/works/schedule/IGetMonthlySummaryRepository';
 
 @Injectable()
@@ -121,7 +122,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
   ): Promise<GetContractValueResponse[]> {
     const { idRegional, idParceira } = filters;
 
-    return await this.prisma.valores_contratos.findMany({
+    const rows = await this.prisma.valores_contratos.findMany({
       where: {
         id_turma:
           idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
@@ -133,5 +134,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         },
       },
     });
+
+    return rows.map(toContractValue);
   }
 }

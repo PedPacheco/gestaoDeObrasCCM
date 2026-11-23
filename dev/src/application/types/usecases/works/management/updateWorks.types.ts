@@ -12,6 +12,7 @@ export type UpdateNotesInput = {
   ordem_dcd?: string;
   ordem_dca?: string;
   ordem_dcim?: string;
+  ordem_dcdm?: string;
   moPlan?: number;
   qtdePlan?: number;
 };
@@ -48,6 +49,7 @@ export type WorkOrderKey = {
   ordem_dcd?: string | null;
   ordem_dca?: string | null;
   ordem_dcim?: string | null;
+  ordem_dcdm?: string | null;
 };
 
 export type ExistingNote = {

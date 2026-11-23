@@ -64,7 +64,9 @@ export class GetMonthlySummaryForecastRepository implements IGetMonthlySummaryFo
             capex_mo_plan: true,
             executado: true,
             turmas: { select: { turma: true } },
-            tipos: { select: { grupos: { select: { grupo: true } } } },
+            tipos: {
+              select: { id_grupo: true, grupos: { select: { grupo: true } } },
+            },
           },
         },
       },

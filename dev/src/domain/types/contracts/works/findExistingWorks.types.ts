@@ -5,6 +5,7 @@ export type ExistingNoteResponse = {
   ordemDcd: string;
   ordemDca: string;
   ordemDcim: string;
+  ordemDcdm: string;
 };
 
 export type ExistingWorkResponse = {

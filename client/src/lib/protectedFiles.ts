@@ -47,8 +47,6 @@ async function fetchProtectedFile(
 ): Promise<Blob> {
   const token = getAccessToken();
 
-  console.log(token);
-
   const res = await fetch(
     `${API_URL}/arquivos/${tipo}/${encodeURIComponent(nome)}`,
     {
@@ -56,8 +54,6 @@ async function fetchProtectedFile(
       signal: AbortSignal.timeout(60_000),
     },
   );
-
-  console.log(res);
 
   if (!res.ok) {
     let message = res.statusText || `Erro ${res.status}`;

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,8 +11,8 @@ import { userLoginSchema } from "@/validations/validationUserLogin";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox, TextField } from "@mui/material";
 
-import { ButtonComponent } from "../common/Button";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import { ButtonComponent } from "../common/Button";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -102,12 +101,15 @@ export function FormLogin() {
           disabled={loading}
         />
 
+        <div className="flex items-center justify-between">
+          {/* 
         <Link
           href="/login/forget-password"
           className="self-end mt-4 hover:text-[#53FF75]"
         >
-          Esqueceu sua senha ?
-        </Link>
+          Esqueceu a senha?
+        </Link> */}
+        </div>
       </div>
     </form>
   );

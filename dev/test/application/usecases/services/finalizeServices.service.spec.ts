@@ -466,8 +466,8 @@ describe('FinalizeServicesService', () => {
     beforeEach(() => {
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: OPEN_STATUS,
+        workId: WORK_ID,
+        statusId: OPEN_STATUS,
       });
       mockExecutionRepository.findScheduleItems.mockResolvedValue(ROWS);
       mockPlanReschedule.mockReturnValue(buildPlan());
@@ -489,8 +489,8 @@ describe('FinalizeServicesService', () => {
     it('should throw BadRequestException when the schedule belongs to another work', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: 999,
-        id_status_programacao: OPEN_STATUS,
+        workId: 999,
+        statusId: OPEN_STATUS,
       });
 
       await expectError(
@@ -504,8 +504,8 @@ describe('FinalizeServicesService', () => {
     it('should throw ConflictException when the schedule is already closed', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: FINALIZED_STATUS,
+        workId: WORK_ID,
+        statusId: FINALIZED_STATUS,
       });
 
       await expectError(
@@ -789,8 +789,8 @@ describe('FinalizeServicesService', () => {
     it('should throw ConflictException when the schedule is already finalized', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: FINALIZED_STATUS,
+        workId: WORK_ID,
+        statusId: FINALIZED_STATUS,
       });
 
       await expectError(

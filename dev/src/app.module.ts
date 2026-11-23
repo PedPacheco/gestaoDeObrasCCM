@@ -11,6 +11,7 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
+import { ContingencyModule } from './interface/modules/contingency.module';
 import { CapexModule } from './interface/modules/capex.module';
 
 import { D5NotesModule } from './interface/modules/d5Notes.module';
@@ -58,6 +59,7 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,
+    ContingencyModule,
     LoggerModule,
     D5NotesModule,
     JwtModule.registerAsync({

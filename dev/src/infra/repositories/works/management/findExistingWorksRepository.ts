@@ -6,6 +6,7 @@ import {
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable } from '@nestjs/common';
+import { ExistingNoteResponse } from 'src/domain/types';
 
 @Injectable()
 export class FindExistingWorksRepository implements IFindExistingWorksRepository {
@@ -65,16 +66,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
     }
   }
 
-  async findExistingNotes(filters: any[]): Promise<
-    {
-      id: number;
-      ovnota: string;
-      ordemDci: string;
-      ordemDcd: string;
-      ordemDca: string;
-      ordemDcim: string;
-    }[]
-  > {
+  async findExistingNotes(filters: any[]): Promise<ExistingNoteResponse[]> {
     try {
       if (filters.length === 0) return [];
 
@@ -87,6 +79,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
           ordem_dca: true,
           ordem_dcd: true,
           ordem_dcim: true,
+          ordem_dcdm: true,
         },
       });
 
@@ -97,6 +90,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
         ordemDcd: work.ordem_dcd,
         ordemDca: work.ordem_dca,
         ordemDcim: work.ordem_dcim,
+        ordemDcdm: work.ordem_dcdm,
       }));
     } catch (error: any) {
       this.logger.error(`Erro ao buscar notas:`, error.stack);
@@ -113,6 +107,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
         'ordem_dcd',
         'ordem_dca',
         'ordem_dcim',
+        'ordem_dcdm',
       ] as const;
 
       const uniqueValues = orderFields.reduce(
@@ -138,6 +133,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
           ordem_dcd: true,
           ordem_dca: true,
           ordem_dcim: true,
+          ordem_dcdm: true,
         },
       });
 
@@ -147,6 +143,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
           ord.ordem_dcd,
           ord.ordem_dca,
           ord.ordem_dcim,
+          ord.ordem_dcdm,
         ])
         .filter(Boolean);
     } catch (error: any) {

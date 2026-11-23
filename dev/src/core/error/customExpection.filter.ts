@@ -5,7 +5,48 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
+import {
+  ConflictError,
+  DomainError,
+  NotFoundError,
+  ValidationError,
+} from 'src/domain/errors/domain.error';
+import {
+  DEFAULT_NEST_MESSAGES,
+  DOMAIN_FALLBACK_MESSAGE,
+  FRIENDLY_MESSAGES,
+  INTERNAL_ERROR_MESSAGE,
+} from '../constants/error.constants';
+
+function domainErrorStatus(error: DomainError): number {
+  if (error instanceof ValidationError) return HttpStatus.BAD_REQUEST;
+  if (error instanceof NotFoundError) return HttpStatus.NOT_FOUND;
+  if (error instanceof ConflictError) return HttpStatus.CONFLICT;
+  return HttpStatus.UNPROCESSABLE_ENTITY;
+}
+
+function formatValidationMessages(messages: string[]): string[] {
+  return messages.map((msg) => {
+    const match = msg.match(/(?:\w+\.)?(\w+)\s(.+)/);
+    if (match) {
+      const [, field, errorMsg] = match;
+      return `O campo ${field} ${errorMsg}`;
+    }
+    return msg;
+  });
+}
+
+function isEmptyOrDefault(message: unknown): boolean {
+  return (
+    message === undefined ||
+    message === null ||
+    (typeof message === 'string' && DEFAULT_NEST_MESSAGES.includes(message)) ||
+    (typeof message === 'object' &&
+      !Array.isArray(message) &&
+      Object.keys(message).length === 0)
+  );
+}
 
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
@@ -15,15 +56,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status: number;
-    let message: string | object;
-
-    const defaultNestMessages = [
-      'Bad Request',
-      'Unauthorized',
-      'Forbidden',
-      'Not Found',
-      'Conflict',
-    ];
+    let message: string | object | undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -34,61 +67,26 @@ export class CustomExceptionFilter implements ExceptionFilter {
         exceptionResponse !== null &&
         'message' in exceptionResponse
       ) {
-        const rawMessage = (exceptionResponse as any).message;
-
-        if (Array.isArray(rawMessage)) {
-          message = rawMessage.map((msg: string) => {
-            const match = msg.match(/(?:\w+\.)?(\w+)\s(.+)/);
-
-            if (match) {
-              const [, field, errorMsg] = match;
-              return `O campo ${field} ${errorMsg}`;
-            }
-
-            return msg;
-          });
-        } else {
-          message = rawMessage;
-        }
+        const rawMessage = (exceptionResponse as { message?: unknown }).message;
+        message = Array.isArray(rawMessage)
+          ? formatValidationMessages(rawMessage as string[])
+          : (rawMessage as string | object | undefined);
       } else {
         message = exception.message;
       }
 
-      const isMessageEmptyOrDefault =
-        message === undefined ||
-        message === null ||
-        (typeof message === 'string' &&
-          defaultNestMessages.includes(message)) ||
-        (typeof message === 'object' &&
-          !Array.isArray(message) &&
-          Object.keys(message).length === 0);
-
-      if (isMessageEmptyOrDefault) {
-        switch (status) {
-          case HttpStatus.BAD_REQUEST:
-            message =
-              'Os dados enviados são inválidos. Verifique e tente novamente';
-            break;
-          case HttpStatus.UNAUTHORIZED:
-            message = 'Você não está autorizado a acessar este recurso';
-            break;
-          case HttpStatus.FORBIDDEN:
-            message = 'Você não tem permissão para realizar esta ação';
-            break;
-          case HttpStatus.NOT_FOUND:
-            message = 'O recurso solicitado não foi encontrado';
-            break;
-          case HttpStatus.CONFLICT:
-            message = 'Dados já existentes';
-            break;
-          default:
-            message = exception.message;
-            break;
-        }
+      if (isEmptyOrDefault(message)) {
+        message = FRIENDLY_MESSAGES[status] ?? exception.message;
       }
+    } else if (exception instanceof DomainError) {
+      status = domainErrorStatus(exception);
+      message =
+        exception.message ||
+        FRIENDLY_MESSAGES[status] ||
+        DOMAIN_FALLBACK_MESSAGE;
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Erro interno no servidor. Tente novamente mais tarde';
+      message = INTERNAL_ERROR_MESSAGE;
     }
 
     if (
@@ -96,7 +94,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       typeof message === 'string' &&
       message.includes('Cannot')
     ) {
-      message = 'O recurso solicitado não foi encontrado';
+      message = FRIENDLY_MESSAGES[HttpStatus.NOT_FOUND];
     }
 
     if (
@@ -104,7 +102,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       typeof message === 'string' &&
       message.includes('Validation failed')
     ) {
-      message = 'Os dados enviados são inválidos. Verifique e tente novamente';
+      message = FRIENDLY_MESSAGES[HttpStatus.BAD_REQUEST];
     }
 
     response.status(status).json({

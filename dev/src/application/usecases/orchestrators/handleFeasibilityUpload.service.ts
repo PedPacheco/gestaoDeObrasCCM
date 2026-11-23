@@ -1,6 +1,12 @@
 import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import {
+  FeasibleItemInput,
   RejectFeasibilityInput,
-  StatusFeasibility,
 } from 'src/application/types';
 import {
   FEASIBILITY_REPOSITORY,
@@ -10,24 +16,20 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { countBusinessDays } from 'src/utils/parseTimeToDate';
-
-import {
-  BadGatewayException,
-  BadRequestException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
-
 import {
   FILE_STORAGE,
   IFileStorage,
 } from 'src/domain/contracts/storage/IFileStorage';
-import { StorageKind } from 'src/domain/types';
+import {
+  FeasibilityFileType,
+  StatusFeasibility,
+  StorageKind,
+} from 'src/domain/types';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { uploadedPaths } from 'src/shared/upload/storedFileName';
+import { countBusinessDays } from 'src/utils/parseTimeToDate';
+
+type ResolvedFiles = { paths: string[]; removedFiles: string[] };
 
 @Injectable()
 export class HandleFeasibilityService {
@@ -38,7 +40,7 @@ export class HandleFeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
     @Inject(FILE_STORAGE)
     private readonly storage: IFileStorage,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService, // sai na 5D (IUnitOfWork)
   ) {}
 
   async upload(
@@ -47,54 +49,45 @@ export class HandleFeasibilityService {
     pointByPoint: boolean,
     files: Express.Multer.File[],
     existingFiles: string[],
-    items?: ServiceMaterialItemDto[],
-  ) {
+    items?: FeasibleItemInput[],
+  ): Promise<void> {
     const filesToRemove = await this.withUploadCleanup(files, async () => {
       if (!idWork) {
-        throw new BadGatewayException('Obra não foi encontrada');
+        throw new BadGatewayException('Obra não foi encontrada'); // ver secção 5
       }
-
-      if ((!items || items.length === 0) && pointByPoint) {
+      if (!items?.length && pointByPoint) {
         throw new BadRequestException('Nenhum item foi enviado.');
       }
 
-      let feasibilityTimeframeStatus: StatusFeasibility;
+      const status = await this.resolveTimeframeStatus(idWork);
+      const { paths, removedFiles } = await this.resolveFiles(
+        idWork,
+        'technical',
+        files,
+        existingFiles,
+      );
 
-      const { data_empreitamento } =
-        await this.feasibilityRepository.getProjectDate(idWork);
-
-      if (!data_empreitamento) {
-        throw new BadRequestException('Obra sem data de empreitamento');
-      }
-
-      const todayDate = new Date();
-
-      const businessDays = countBusinessDays(data_empreitamento, todayDate);
-
-      if (businessDays > 5) {
-        feasibilityTimeframeStatus = 'FORA DO PRAZO';
-      } else {
-        feasibilityTimeframeStatus = 'DENTRO DO PRAZO';
-      }
-
-      return this.prisma.$transaction(async (tx) => {
-        const removedFiles = await this.syncFiles(
+      await this.prisma.$transaction(async (tx) => {
+        await this.feasibilityRepository.saveFiles(
           idWork,
           idUser,
-          files,
-          existingFiles,
-          'tecnhical',
+          status,
+          paths,
           tx,
-          feasibilityTimeframeStatus,
         );
-
-        if (pointByPoint)
-          await this.feasibilityRepository.makeItemsFeasible(items, tx);
-
-        await this.statusFlowRepository.updateStatusWorks(46, idWork, tx);
-
-        return removedFiles;
+        if (pointByPoint) {
+          await this.feasibilityRepository.makeItemsFeasible(
+            (items ?? []).map((i) => ({
+              id: i.id,
+              feasibleQuantity: i.viabilizado,
+            })),
+            tx,
+          );
+        }
+        await this.statusFlowRepository.updateStatusWorks(46, idWork, tx); // 6d: WorkStatus
       });
+
+      return removedFiles;
     });
 
     await this.storage.deleteStored(StorageKind.VIABILIDADE, filesToRemove);
@@ -105,84 +98,85 @@ export class HandleFeasibilityService {
     idUser: number,
     files: Express.Multer.File[],
     existingFiles: string[],
-  ) {
+  ): Promise<void> {
     const filesToRemove = await this.withUploadCleanup(files, async () => {
       if (!idWork) {
-        throw new BadGatewayException('Obra não foi encontrada');
+        throw new BadGatewayException('Obra não foi encontrada'); // ver secção 5
       }
 
-      return this.prisma.$transaction(async (tx) => {
-        return await this.syncFiles(
+      const { paths, removedFiles } = await this.resolveFiles(
+        idWork,
+        'complementary',
+        files,
+        existingFiles,
+      );
+
+      await this.prisma.$transaction((tx) =>
+        this.feasibilityRepository.updateFiles(
           idWork,
-          idUser,
-          files,
-          existingFiles,
+          paths,
           'complementary',
           tx,
-        );
-      });
+        ),
+      );
+
+      return removedFiles;
     });
 
     await this.storage.deleteStored(StorageKind.VIABILIDADE, filesToRemove);
   }
 
-  async reject(data: RejectFeasibilityInput) {
+  async reject(data: RejectFeasibilityInput): Promise<void> {
+    const { workId, ...rejection } = data;
     await this.prisma.$transaction(async (tx) => {
-      await this.feasibilityRepository.reject(data, tx);
-
-      await this.statusFlowRepository.updateStatusWorks(45, data.workId, tx);
+      await this.feasibilityRepository.reject(rejection, tx);
+      await this.statusFlowRepository.updateStatusWorks(45, workId, tx); // 6d: WorkStatus
     });
   }
 
-  async approve(workId: number, userId: number) {
+  async approve(workId: number, userId: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await this.feasibilityRepository.approve(workId, userId, tx);
-
-      await this.statusFlowRepository.updateStatusWorks(1, workId, tx);
+      await this.statusFlowRepository.updateStatusWorks(1, workId, tx); // 6d: WorkStatus
     });
   }
 
-  private async syncFiles(
-    idWork: number,
-    idUser: number,
-    uploadedFiles: Express.Multer.File[],
-    existingFiles: string[],
-    type: 'complementary' | 'tecnhical',
-    tx: Prisma.TransactionClient,
-    status?: StatusFeasibility,
-  ) {
-    const currentRecord = await this.feasibilityRepository.findFiles(idWork);
+  // ─── Privados ───────────────────────────────────────────────────────
 
+  /** 6d: a regra dos 5 dias úteis passa para domain/rules/feasibilityDeadline.rules.ts */
+  private async resolveTimeframeStatus(
+    idWork: number,
+  ): Promise<StatusFeasibility> {
+    const projectDate = await this.feasibilityRepository.getProjectDate(idWork);
+    if (!projectDate) {
+      throw new BadRequestException('Obra sem data de empreitamento');
+    }
+    return countBusinessDays(projectDate, new Date()) > 5
+      ? 'FORA DO PRAZO'
+      : 'DENTRO DO PRAZO';
+  }
+
+  /** Calcula a lista final de ficheiros e os que deixam de ser usados. Não grava nada. */
+  private async resolveFiles(
+    idWork: number,
+    type: FeasibilityFileType,
+    uploadedFiles: Express.Multer.File[] | undefined,
+    existingFiles: string[] | undefined,
+  ): Promise<ResolvedFiles> {
+    const current = await this.feasibilityRepository.findFiles(idWork);
     const currentFiles =
-      type === 'tecnhical'
-        ? (currentRecord?.caminhos_arquivos ?? [])
-        : (currentRecord?.arquivos_complementares ?? []);
+      type === 'technical'
+        ? (current?.technicalFiles ?? [])
+        : (current?.complementaryFiles ?? []);
 
     // Só são mantidos nomes que JÁ pertencem a esta obra (o existingFiles vem do cliente)
-    const keptFiles = (existingFiles ?? []).filter((file) =>
-      currentFiles.includes(file),
+    const keptFiles = (existingFiles ?? []).filter((f) =>
+      currentFiles.includes(f),
     );
-    const removedFiles = currentFiles.filter(
-      (file) => !keptFiles.includes(file),
-    );
-    const newFiles = (uploadedFiles ?? []).map((file) => file.filename);
-    const paths = [...new Set([...keptFiles, ...newFiles])];
+    const removedFiles = currentFiles.filter((f) => !keptFiles.includes(f));
+    const newFiles = (uploadedFiles ?? []).map((f) => f.filename);
 
-    if (type === 'tecnhical') {
-      await this.feasibilityRepository.saveFiles(
-        idWork,
-        idUser,
-        status,
-        paths,
-        tx,
-      );
-
-      return removedFiles;
-    }
-
-    await this.feasibilityRepository.updateFiles(idWork, paths, type, tx);
-
-    return removedFiles;
+    return { paths: [...new Set([...keptFiles, ...newFiles])], removedFiles };
   }
 
   /** Corre fn e, se falhar, apaga os uploads deste pedido antes de relançar o erro. */

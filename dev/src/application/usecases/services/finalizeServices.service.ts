@@ -107,15 +107,13 @@ export class FinalizeServicesService {
           );
         }
 
-        if (schedule.id_obra !== workId) {
+        if (schedule.workId !== workId) {
           throw new BadRequestException(
             'A programação informada não pertence a esta obra.',
           );
         }
 
-        if (
-          FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)
-        ) {
+        if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId)) {
           throw new ConflictException('Esta programação já foi encerrada.');
         }
 
@@ -136,7 +134,7 @@ export class FinalizeServicesService {
 
         await this.progress.recomputeAll(
           plan.affectedServiceIds,
-          schedule.id_obra,
+          schedule.workId,
           tx,
         );
 
@@ -356,7 +354,7 @@ export class FinalizeServicesService {
       throw new NotFoundException(`Programação ${scheduleId} não encontrada.`);
     }
 
-    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)) {
+    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId)) {
       throw new ConflictException(
         'Programação já finalizada. Desfaça a finalização para finalizar novamente.',
       );

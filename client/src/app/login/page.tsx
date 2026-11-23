@@ -2,7 +2,7 @@ import { FormLogin } from "@/components/login/FormLogin";
 
 export default function Login() {
   return (
-    <div className="flex min-h-screen min-h-[100dvh] w-full">
+    <div className="flex min-h-screen w-full">
       {/* Lado esquerdo — fundo escuro com espiral EDP apagada + logo SIGO */}
       <div className="hidden md:flex md:w-1/2 relative items-center justify-center overflow-hidden px-8 lg:px-12 py-10 bg-[#212e3e]">
         <div
@@ -34,7 +34,9 @@ export default function Login() {
               className="mx-auto w-[180px] h-auto object-contain"
             />
           </div>
-          <h2 className="text-3xl lg:text-4xl font-black text-slate-800 mb-2">Entrar</h2>
+          <h2 className="text-3xl lg:text-4xl font-black text-slate-800 mb-2">
+            Entrar
+          </h2>
           <p className="text-base text-slate-500 mb-10">
             Use suas credenciais corporativas para acessar o sistema.
           </p>

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { programacoes } from 'src/infra/generated/prisma/client';
+import { Prisma, programacoes } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryRepository';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
@@ -84,7 +84,17 @@ describe('GetMonthlySummary', () => {
     },
   ];
 
-  const mockContractValueResponse = [
+  const mockContractValueRows = [
+    {
+      id: 1,
+      meses: 60,
+      id_turma: 2,
+      valor_contrato: new Prisma.Decimal('12423543.9'),
+    },
+  ];
+
+  // O que o repositório devolve depois do mapper: valor_contrato em number
+  const expectedContractValues = [
     { id: 1, meses: 60, id_turma: 2, valor_contrato: 12423543.9 },
   ];
 
@@ -321,12 +331,12 @@ describe('GetMonthlySummary', () => {
     it('should return contract values summary without filters', async () => {
       const spyPrisma = vi
         .spyOn(prisma.valores_contratos, 'findMany')
-        .mockResolvedValue(mockContractValueResponse as any);
+        .mockResolvedValue(mockContractValueRows as any);
 
       const result =
         await getMonthlySummaryRepository.getContractValue(filtersNotDefined);
 
-      expect(result).toEqual(mockContractValueResponse);
+      expect(result).toEqual(expectedContractValues);
 
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {
@@ -339,12 +349,12 @@ describe('GetMonthlySummary', () => {
     it('should apply all filters correctly in contract values query', async () => {
       const spyPrisma = vi
         .spyOn(prisma.valores_contratos, 'findMany')
-        .mockResolvedValue(mockContractValueResponse as any);
+        .mockResolvedValue(mockContractValueRows as any);
 
       const result =
         await getMonthlySummaryRepository.getContractValue(filters);
 
-      expect(result).toEqual(mockContractValueResponse);
+      expect(result).toEqual(expectedContractValues);
 
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {

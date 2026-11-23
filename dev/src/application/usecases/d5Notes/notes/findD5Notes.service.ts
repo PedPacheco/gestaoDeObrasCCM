@@ -6,13 +6,31 @@ import {
 } from '@nestjs/common';
 import moment from 'moment';
 import {
+  toD5NoteDetailOutput,
+  toD5NoteListItemOutput,
+} from 'src/application/mappers/d5Notes/d5NotesMapper';
+
+import type {
+  D5NoteDetailOutput,
+  D5NoteListItemOutput,
+  D5NoteScheduleTotals,
+  D5NotesFilterInput,
+  D5NotesListOutput,
+} from 'src/application/types/usecases/d5Notes/d5Notes.types';
+import {
   D5_NOTES_REPOSITORY,
-  D5NotePagination,
   ID5NotesRepository,
 } from 'src/domain/contracts/d5Notes/ID5notesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
-import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+import type {
+  D5NoteDetail,
+  D5NoteFilter,
+  D5NoteListItem,
+  DateRange,
+  Pagination,
+} from 'src/domain/types';
+
+const PAGE_SIZE = 200;
 
 @Injectable()
 export class FindD5NotesService {
@@ -22,210 +40,111 @@ export class FindD5NotesService {
     private readonly timeMetrics: TimeMetricsService,
   ) {}
 
-  async get(filters: D5NotesFiltersDTO) {
-    const where = this.buildWhereClause(filters);
-    const pagination = this.buildPagination(filters.page);
+  async get(input: D5NotesFilterInput): Promise<D5NotesListOutput> {
+    const filter = this.toFilter(input);
 
-    const [rows, totals] = await Promise.all([
-      this.d5NotesRepository.get(where, pagination),
-      this.d5NotesRepository.getTotals(where),
+    const [notes, totals] = await Promise.all([
+      this.d5NotesRepository.get(filter, this.buildPagination(input.page)),
+      this.d5NotesRepository.getTotals(filter),
     ]);
 
-    const d5NotesFormatted = rows.map(
-      ({
-        obras,
-        municipios,
-        tipos,
-        turmas,
-        status,
-        novo_tabela_usuarios,
-        ...rest
-      }) => {
-        const { tmAberto, tmExecucao } = this.timeMetrics.getDeadlineInfo(
-          rest.criado_em,
-          rest.conclusao_nota,
-        );
-
-        return {
-          ...rest,
-          moRetida: Number(rest.mo_planejada ?? 0),
-          ordemDiagrama: resolveOrdemDiagrama(obras),
-          obra: obras?.ovnota ?? null,
-          municipio: municipios?.mun_minusculo ?? null,
-          regional: municipios?.regionais?.regional ?? null,
-          parceira: turmas?.turma ?? null,
-          tipoObra: tipos?.tipo_obra ?? null,
-          status: status?.status ?? null,
-          tmAberto,
-          tmExecucao,
-          statusPrazo: this.timeMetrics.calculateStatus(tmAberto),
-          usuarioModificador: novo_tabela_usuarios?.nome ?? null,
-        };
-      },
-    );
-
-    return { d5Notes: d5NotesFormatted, totals };
+    return {
+      d5Notes: notes.map((note) => this.toListItem(note)),
+      totals,
+    };
   }
 
-  async getById(id: number) {
+  async getById(id: number): Promise<D5NoteDetailOutput> {
     if (!id) {
       throw new BadRequestException('Obra não foi enviada');
     }
 
-    const response = await this.d5NotesRepository.getById(id);
-
-    if (!response) {
+    const note = await this.d5NotesRepository.getById(id);
+    if (!note) {
       throw new NotFoundException('Obra não encontrada');
     }
 
-    const {
-      obras,
-      municipios,
-      tipos,
-      turmas,
-      status,
-      novo_tabela_usuarios,
-      programacoes_d5,
-      ...rest
-    } = response;
+    return toD5NoteDetailOutput(note, this.sumSchedules(note.schedules));
+  }
 
-    const { totalExecutado, totalProgramado } =
-      this.calculateCostPointByPointSchedule(programacoes_d5);
+  // ─── Output ─────────────────────────────────────────────────────────
 
+  private toListItem(note: D5NoteListItem): D5NoteListItemOutput {
+    const { tmAberto, tmExecucao } = this.timeMetrics.getDeadlineInfo(
+      note.createdAt,
+      note.completedAt,
+    );
+    return toD5NoteListItemOutput(note, {
+      tmAberto,
+      tmExecucao,
+      statusPrazo: this.timeMetrics.calculateStatus(tmAberto),
+    });
+  }
+
+  /** 6e: cálculo passa para domain/rules. */
+  private sumSchedules(
+    schedules: D5NoteDetail['schedules'],
+  ): D5NoteScheduleTotals {
+    return schedules.reduce(
+      (acc, s) => ({
+        totalProgramado: acc.totalProgramado + s.planned,
+        totalExecutado: acc.totalExecutado + s.executed,
+      }),
+      { totalProgramado: 0, totalExecutado: 0 },
+    );
+  }
+
+  // ─── Filtros (antigo buildWhereClause) ──────────────────────────────
+
+  private toFilter(input: D5NotesFilterInput): D5NoteFilter {
     return {
-      ...rest,
-      obra: obras?.ovnota ?? null,
-      ordemDiagrama: resolveOrdemDiagrama(obras),
-      municipio: municipios.mun_minusculo,
-      regional: municipios.regionais.regional,
-      parceira: turmas.turma,
-      tipoObra: tipos.tipo_obra,
-      status: status.status,
-      moRetida: rest.mo_planejada,
-      usuarioModificador: novo_tabela_usuarios?.nome ?? null,
-      totalProgramado,
-      totalExecutado,
-      observacao: rest.descricao,
-      prazo: moment(rest.criado_em).add(7, 'days').toDate(),
+      regionIds: input.idRegional,
+      statusIds: input.idStatus,
+      municipalityIds: input.idMunicipio,
+      groupIds: input.idGrupo,
+      typeIds: input.idTipo,
+      partnerIds: input.idParceira,
+      workIds: input.idOvnota,
+      noteIds: input.idNotaD5,
+      sapStatus: input.statusD5Sap,
+      createdAt: this.buildDateRange(
+        'criação',
+        input.dataCriacaoInicial,
+        input.dataCriacaoFinal,
+      ),
+      completedAt: this.buildDateRange(
+        'conclusão',
+        input.dataConclusaoInicial,
+        input.dataConclusaoFinal,
+      ),
     };
   }
 
-  /* ---------------- Funções auxiliares ---------------- */
-
-  private calculateCostPointByPointSchedule(
-    data: { prog: number; exec: number }[],
-  ) {
-    return data.reduce(
-      (acc, item) => {
-        acc.totalProgramado += item.prog;
-        acc.totalExecutado += item.exec;
-
-        return acc;
-      },
-      {
-        totalProgramado: 0,
-        totalExecutado: 0,
-      },
-    );
-  }
-
-  /* ---------------- Funções para orquestração dos filtros ---------------- */
-
-  private buildWhereClause(filters: D5NotesFiltersDTO) {
-    const where: any = {};
-
-    if (filters.idRegional?.length) {
-      where.municipios = {
-        ...where.municipios,
-        id_regional: { in: filters.idRegional },
-      };
-    }
-
-    if (filters.idStatus?.length) {
-      where.id_status = { in: filters.idStatus };
-    }
-
-    if (filters.idMunicipio?.length) {
-      where.id_municipio = { in: filters.idMunicipio };
-    }
-
-    if (filters.idGrupo?.length) {
-      where.tipos = { id_grupo: { in: filters.idGrupo } };
-    }
-
-    if (filters.idTipo?.length) {
-      where.id_tipo = { in: filters.idTipo };
-    }
-
-    if (filters.idParceira?.length) {
-      where.id_parceira = { in: filters.idParceira };
-    }
-
-    if (filters.idOvnota?.length) {
-      where.id_obra = { in: filters.idOvnota };
-    }
-
-    if (filters.idNotaD5?.length) {
-      where.id = { in: filters.idNotaD5 };
-    }
-
-    if (filters.statusD5Sap) {
-      where.status_sap = filters.statusD5Sap;
-    }
-
-    // --- Período da data de criação ---
-    const criadoEm = this.buildDateRange(
-      'criação',
-      filters.dataCriacaoInicial,
-      filters.dataCriacaoFinal,
-    );
-    if (criadoEm) {
-      where.criado_em = criadoEm;
-    }
-
-    // --- Período da data de conclusão ---
-    const conclusaoNota = this.buildDateRange(
-      'conclusão',
-      filters.dataConclusaoInicial,
-      filters.dataConclusaoFinal,
-    );
-
-    if (conclusaoNota) {
-      where.conclusao_nota = conclusaoNota;
-    }
-
-    return where;
-  }
-
-  private buildPagination(page?: number): D5NotePagination {
+  private buildPagination(page?: number): Pagination | undefined {
     if (page === undefined) return undefined;
-
-    return {
-      skip: page * 200,
-      take: 200,
-    };
+    return { skip: page * PAGE_SIZE, take: PAGE_SIZE };
   }
 
-  private buildDateRange(label: string, inicio?: string, fim?: string) {
-    if (!inicio && !fim) return undefined;
+  private buildDateRange(
+    label: string,
+    start?: string,
+    end?: string,
+  ): DateRange | undefined {
+    if (!start && !end) return undefined;
 
-    const range: { gte?: Date; lt?: Date } = {};
-
-    if (inicio) {
-      range.gte = moment(inicio).startOf('day').toDate();
+    const range: DateRange = {};
+    if (start) {
+      range.from = moment(start).startOf('day').toDate();
     }
-
-    if (fim) {
-      // lt no dia seguinte garante que o dia final é incluído por inteiro
-      range.lt = moment(fim).startOf('day').add(1, 'day').toDate();
+    if (end) {
+      // dia seguinte, exclusivo: garante que o dia final é incluído por inteiro
+      range.toExclusive = moment(end).startOf('day').add(1, 'day').toDate();
     }
-
-    if (range.gte && range.lt && range.gte >= range.lt) {
+    if (range.from && range.toExclusive && range.from >= range.toExclusive) {
       throw new BadRequestException(
         `A data inicial de ${label} não pode ser posterior à data final`,
       );
     }
-
     return range;
   }
 }

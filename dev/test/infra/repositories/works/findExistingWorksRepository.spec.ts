@@ -186,6 +186,7 @@ describe('FindExistingWorksRepository', () => {
           ordem_dcd: true,
           ordem_dca: true,
           ordem_dcim: true,
+          ordem_dcdm: true,
         },
       });
       expect(result).toEqual(mockExistingNotes);
@@ -222,6 +223,7 @@ describe('FindExistingWorksRepository', () => {
           ordem_dcd: '245425',
           ordem_dca: '143454',
           ordem_dcim: '2454543',
+          ordem_dcdm: '2345678',
         },
       ]);
 
@@ -231,6 +233,7 @@ describe('FindExistingWorksRepository', () => {
           ordem_dcd: '245425',
           ordem_dca: '143454',
           ordem_dcim: '2454543',
+          ordem_dcdm: '2345678',
         },
       ]);
 
@@ -241,6 +244,7 @@ describe('FindExistingWorksRepository', () => {
             { ordem_dcd: { in: ['245425'] } },
             { ordem_dca: { in: ['143454'] } },
             { ordem_dcim: { in: ['2454543'] } },
+            { ordem_dcdm: { in: ['2345678'] } },
           ],
         },
         select: {
@@ -248,9 +252,16 @@ describe('FindExistingWorksRepository', () => {
           ordem_dcd: true,
           ordem_dca: true,
           ordem_dcim: true,
+          ordem_dcdm: true,
         },
       });
-      expect(result).toEqual(['123534', '245425', '143454', '2454543']);
+      expect(result).toEqual([
+        '123534',
+        '245425',
+        '143454',
+        '2454543',
+        '2345678',
+      ]);
     });
 
     it('Should return empty array if no sent data to the repository', async () => {
@@ -269,6 +280,7 @@ describe('FindExistingWorksRepository', () => {
           ordem_dcd: null,
           ordem_dca: null,
           ordem_dcim: null,
+          ordem_dcdm: null,
         },
       ]);
 
@@ -282,7 +294,13 @@ describe('FindExistingWorksRepository', () => {
       mockPrisma.obras.findMany.mockRejectedValue(error);
       await expect(
         repository.findExistingOrders([
-          { ordem_dca: '', ordem_dcd: '', ordem_dci: '', ordem_dcim: '321423' },
+          {
+            ordem_dca: '',
+            ordem_dcd: '',
+            ordem_dci: '',
+            ordem_dcim: '321423',
+            ordem_dcdm: null,
+          },
         ]),
       ).rejects.toThrow(error);
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { SuspensionWorkRequestInterface } from 'src/interface/types/works/suspensionInterface';
+import { SuspensionWorkRequestInterface } from 'src/interface/types/controllers/works/suspensionInterface';
 import { ISuspensionWorkRepository } from '../../../../domain/contracts/works/management/ISuspensionWorkRepository';
 
 @Injectable()

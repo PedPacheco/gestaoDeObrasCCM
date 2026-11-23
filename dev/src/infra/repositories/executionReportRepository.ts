@@ -1,137 +1,76 @@
 import { Injectable } from '@nestjs/common';
 
 import { IExecutionReportRepository } from 'src/domain/contracts/IExecutionReportRepository';
-import {
-  FindByIdResponse,
-  FindByScheduleResponse,
-  FindByWorkIdResponse,
-} from 'src/domain/types';
+
+import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import { Prisma } from '../generated/prisma/client';
+
+import {
+  toExecutionReportDetail,
+  toExecutionReportFiles,
+  toExecutionReportPersistence,
+  toScheduleWorkMode,
+} from '../mappers/executionReport.mapper';
 import { PrismaService } from '../prisma/prisma.service';
+import { workIdentifierWhere } from '../shared/workIdentifierWhere';
+import {
+  EXECUTION_REPORT_DETAIL_SELECT,
+  EXECUTION_REPORT_FILES_SELECT,
+  SCHEDULE_WORK_MODE_SELECT,
+} from '../types';
 
 @Injectable()
 export class ExecutionReportRepository implements IExecutionReportRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async update(
-    idExecutionReport: number,
-    data: Prisma.relatorio_execucaoUpdateInput,
-  ): Promise<void> {
-    await this.prisma.relatorio_execucao.update({
-      where: { id: idExecutionReport },
-      data,
-    });
-  }
-
   async create(
-    data: Prisma.relatorio_execucaoUncheckedCreateInput,
+    report: ExecutionReport,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    await tx.relatorio_execucao.create({ data });
-  }
-
-  async findByScheduleId(
-    idSchedule: number,
-    tx: Prisma.TransactionClient,
-  ): Promise<FindByScheduleResponse> {
-    return await tx.relatorio_execucao.findFirst({
-      where: { id_programacao: idSchedule },
+    await tx.relatorio_execucao.create({
+      data: toExecutionReportPersistence(report),
     });
   }
 
-  async findByWorkId(idWork: number): Promise<FindByWorkIdResponse[]> {
-    const value = idWork.toString();
+  async update(id: number, report: ExecutionReport): Promise<void> {
+    await this.prisma.relatorio_execucao.update({
+      where: { id },
+      data: toExecutionReportPersistence(report),
+    });
+  }
 
-    return await this.prisma.relatorio_execucao.findMany({
+  async findById(id: number) {
+    const row = await this.prisma.relatorio_execucao.findFirst({
+      where: { id },
+      select: EXECUTION_REPORT_FILES_SELECT,
+    });
+    return row && toExecutionReportFiles(row);
+  }
+
+  async findByScheduleId(scheduleId: number, tx: Prisma.TransactionClient) {
+    const row = await tx.relatorio_execucao.findFirst({
+      where: { id_programacao: scheduleId },
+      select: EXECUTION_REPORT_FILES_SELECT,
+    });
+    return row && toExecutionReportFiles(row);
+  }
+
+  async findByWorkIdentifier(id: number) {
+    const rows = await this.prisma.relatorio_execucao.findMany({
       where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : idWork },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(id),
       },
-      select: {
-        id: true,
-        criado_em: true,
-        id_usuario: true,
-        supervisor: true,
-        liberado_ligacao_parcial: true,
-        hora_inicio: true,
-        hora_conclusao: true,
-        contato_inicio: true,
-        contato_termino: true,
-        atraso: true,
-        justificativa_atraso: true,
-        possui_equipamentos_instalados: true,
-        equipamentos_aplicados: true,
-        potencia_equipamento_aplicado: true,
-        patrimonio_equipamento_aplicado: true,
-        instalacao_equipamento_aplicado: true,
-        possui_equipamentos_retirados: true,
-        equipamentos_retirados: true,
-        potencia_equipamento_retirado: true,
-        patrimonio_equipamento_retirado: true,
-        instalacao_equipamento_retirado: true,
-        alteracoes_execucao: true,
-        observacoes_gerais: true,
-        chave_provisoria_instalada: true,
-        referencia_chave_provisoria: true,
-        chave_provisoria_retirada: true,
-        referencia_chave_provisoria_retirada: true,
-        motivo: true,
-        caminho_arquivo: true,
-        caminhos_arquivos: true,
-        usuario: { select: { nome: true } },
-        obras: {
-          select: {
-            ovnota: true,
-            ordem_dci: true,
-            tipos: { select: { tipo_obra: true } },
-            status: { select: { status: true } },
-          },
-        },
-        programacoes: {
-          select: {
-            data_prog: true,
-            prog: true,
-            exec: true,
-            num_dp: true,
-            hora_ini: true,
-            hora_ter: true,
-            chave_provisoria: true,
-          },
-        },
-      },
+      select: EXECUTION_REPORT_DETAIL_SELECT,
     });
+    return rows.map(toExecutionReportDetail);
   }
 
-  async findById(idExecutionReport: number): Promise<FindByIdResponse> {
-    return await this.prisma.relatorio_execucao.findFirst({
-      select: {
-        id: true,
-        id_obra: true,
-        id_programacao: true,
-        caminho_arquivo: true,
-        caminhos_arquivos: true,
-      },
-      where: { id: idExecutionReport },
+  async findScheduleWorkMode(scheduleId: number, tx: Prisma.TransactionClient) {
+    const row = await tx.programacoes.findUnique({
+      where: { id: scheduleId },
+      select: SCHEDULE_WORK_MODE_SELECT,
     });
-  }
-
-  findScheduleWorkMode(idSchedule: number, tx: Prisma.TransactionClient) {
-    return tx.programacoes.findUnique({
-      where: { id: idSchedule },
-      select: {
-        id_obra: true,
-        obras: { select: { programacao_ponto_a_ponto: true } },
-      },
-    });
+    return row && toScheduleWorkMode(row);
   }
 
   async findScheduledServiceIds(

@@ -76,9 +76,11 @@ export class InsertWorksService {
           item.dci === work.dci &&
           item.dcd === work.dcd &&
           item.dca === work.dca &&
-          item.dcim === work.dcim
+          item.dcim === work.dcim &&
+          item.dcdm === work.dcdm
         );
       });
+
       const group = groups.find((group) => group.id === dataEntries.aux_tipo);
 
       const entity = NoteWorks.create({
@@ -95,6 +97,7 @@ export class InsertWorksService {
         dcd: work.dcd,
         dca: work.dca,
         dcim: work.dcim,
+        dcdm: work.dcdm,
         qtdePlanejada: work.qtde_plan,
         moPlanejada: work.mo_plan,
         idEmpreendimento: dataEntries.aux_empreendimento,

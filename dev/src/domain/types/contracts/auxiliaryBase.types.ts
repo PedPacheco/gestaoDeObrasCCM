@@ -23,6 +23,7 @@ export type GetAuxiliaryBaseNotesResponse = {
   dcd: string;
   dca: string;
   dcim: string;
+  dcdm: string;
   entrada: Date;
   prazo: string;
   referencia: string;

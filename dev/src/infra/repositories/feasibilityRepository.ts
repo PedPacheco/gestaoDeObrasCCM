@@ -1,112 +1,86 @@
 import moment from 'moment';
-import { StatusFeasibility } from 'src/application/types';
 import { IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
-import { ExistsResponse, GetRejectionsResponse } from 'src/domain/types';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 
 import { Injectable } from '@nestjs/common';
 
+import {
+  FeasibilityExportWork,
+  FeasibilityFiles,
+  FeasibilityFileType,
+  FeasibilityRejection,
+  FeasibilityReport,
+  FeasibleItemUpdate,
+  RejectFeasibilityData,
+  StatusFeasibility,
+} from 'src/domain/types';
 import { Prisma } from '../generated/prisma/client';
+import {
+  toFeasibilityExportWork,
+  toFeasibilityFiles,
+  toFeasibilityRejection,
+  toFeasibilityReport,
+} from '../mappers/feasibility.mapper';
 import { PrismaService } from '../prisma/prisma.service';
+import { workIdentifierWhere } from '../shared/workIdentifierWhere';
+import {
+  FEASIBILITY_EXPORT_SELECT,
+  FEASIBILITY_FILES_SELECT,
+  FEASIBILITY_MISSING_STATUS,
+  FEASIBILITY_REJECTION_SELECT,
+} from '../types/repositories/feasibility.types';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async exists(idWork: number): Promise<ExistsResponse> {
-    const value = idWork.toString();
-
-    return await this.prisma.relatorio_viabilidade.findFirst({
-      where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : idWork },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
-      },
+  async findById(id: number): Promise<FeasibilityReport | null> {
+    const row = await this.prisma.relatorio_viabilidade.findFirst({
+      where: { obras: workIdentifierWhere(id) },
     });
+
+    return row && toFeasibilityReport(row);
   }
 
-  async getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }> {
-    return await this.prisma.obras.findUnique({
+  async getProjectDate(workId: number): Promise<Date | null> {
+    const row = await this.prisma.obras.findUnique({
+      where: { id: workId },
       select: { data_empreitamento: true },
-      where: { id: idWork },
     });
+    return row?.data_empreitamento ?? null;
   }
 
-  async getRejections(workId: number): Promise<GetRejectionsResponse[]> {
-    return await this.prisma.reprovacoes_viabilidade.findMany({
+  async getRejections(workId: number): Promise<FeasibilityRejection[]> {
+    const rows = await this.prisma.reprovacoes_viabilidade.findMany({
       where: { relatorio_viabilidade: { id_obra: workId } },
-      select: {
-        descricao: true,
-        motivo: true,
-        criado_em: true,
-        novo_tabela_usuarios: { select: { nome: true } },
-      },
+      select: FEASIBILITY_REJECTION_SELECT,
     });
+    return rows.map(toFeasibilityRejection);
   }
 
   async exportFeasibility(
-    idStatus: number,
-    idPartner?: number[],
-  ): Promise<any[]> {
-    return this.prisma.obras.findMany({
+    statusId: number,
+    partnerIds: number[] = [],
+  ): Promise<FeasibilityExportWork[]> {
+    const rows = await this.prisma.obras.findMany({
       where: {
         programacao_ponto_a_ponto: true,
-        id_status: idStatus,
-        ...(idPartner.length > 0 ? { id_turma: { in: idPartner } } : {}),
+        id_status: statusId,
+        ...(partnerIds.length ? { id_turma: { in: partnerIds } } : {}),
       },
-      select: {
-        ovnota: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dca: true,
-        ordem_dcd: true,
-        ordem_dcim: true,
-        relatorio_viabilidade: { select: { data_envio: true } },
-        servicos: {
-          select: {
-            operacao: true,
-            ponto: true,
-            qtde_plan: true,
-            viabilizado: true,
-            descricao_operacao: true,
-            numero_operacao: true,
-            materiais: {
-              select: {
-                codigo: true,
-                descricao: true,
-                preco: true,
-              },
-            },
-            servicos_contratos: {
-              select: {
-                material: true,
-                texto_breve: true,
-                preco: true,
-              },
-            },
-          },
-        },
-      },
+      select: FEASIBILITY_EXPORT_SELECT,
     });
+    return rows.map(toFeasibilityExportWork);
   }
 
   async makeItemsFeasible(
-    items: ServiceMaterialItemDto[],
+    items: FeasibleItemUpdate[],
     tx: Prisma.TransactionClient,
-  ) {
-    const cases = items.map(
-      (item) => Prisma.sql`WHEN id = ${item.id} THEN ${item.viabilizado}`,
-    );
+  ): Promise<void> {
+    if (!items.length) return; // evita "IN ()", que dá erro de SQL
 
+    const cases = items.map(
+      (item) => Prisma.sql`WHEN id = ${item.id} THEN ${item.feasibleQuantity}`,
+    );
     const ids = items.map((item) => item.id);
 
     await tx.$executeRaw`
@@ -120,34 +94,30 @@ export class FeasibilityRepository implements IFeasibilityRepository {
   }
 
   async saveFiles(
-    idWork: number,
-    idUser: number,
+    workId: number,
+    userId: number,
     status: StatusFeasibility,
     paths: string[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
+    const data = {
+      caminhos_arquivos: paths,
+      id_usuario: userId,
+      data_envio: moment.utc().toDate(),
+      prazo_viabilidade: status,
+    };
+
     await tx.relatorio_viabilidade.upsert({
-      where: { id_obra: idWork },
-      create: {
-        id_obra: idWork,
-        caminhos_arquivos: paths,
-        id_usuario: idUser,
-        data_envio: moment.utc().toDate(),
-        prazo_viabilidade: status,
-      },
-      update: {
-        caminhos_arquivos: paths,
-        id_usuario: idUser,
-        data_envio: moment.utc().toDate(),
-        prazo_viabilidade: status,
-      },
+      where: { id_obra: workId },
+      create: { id_obra: workId, ...data },
+      update: data,
     });
   }
 
   async updateFiles(
     workId: number,
     paths: string[],
-    type: 'technical' | 'complementary',
+    type: FeasibilityFileType,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const data =
@@ -156,50 +126,37 @@ export class FeasibilityRepository implements IFeasibilityRepository {
         : { arquivos_complementares: paths };
 
     await tx.relatorio_viabilidade.update({
-      where: {
-        id_obra: workId,
-      },
+      where: { id_obra: workId },
       data,
     });
   }
 
-  async findFiles(idWork: number): Promise<{
-    id: number;
-    caminhos_arquivos: string[];
-    arquivos_complementares: string[];
-  }> {
-    return await this.prisma.relatorio_viabilidade.findUnique({
-      where: {
-        id_obra: idWork,
-      },
-      select: {
-        id: true,
-        caminhos_arquivos: true,
-        arquivos_complementares: true,
-      },
+  async findFiles(workId: number): Promise<FeasibilityFiles | null> {
+    const row = await this.prisma.relatorio_viabilidade.findUnique({
+      where: { id_obra: workId },
+      select: FEASIBILITY_FILES_SELECT,
     });
+    return row && toFeasibilityFiles(row);
   }
 
   async reject(
-    data: RejectFeasibilityDTO,
+    data: RejectFeasibilityData,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { description, feasibilityReportId, reason, userId } = data;
-
     await tx.reprovacoes_viabilidade.create({
       data: {
-        descricao: description,
-        motivo: reason,
-        id_relatorio_viabilidade: feasibilityReportId,
-        id_usuario: userId,
+        descricao: data.description,
+        motivo: data.reason,
+        id_relatorio_viabilidade: data.feasibilityReportId,
+        id_usuario: data.userId,
       },
     });
 
     await tx.relatorio_viabilidade.update({
-      where: { id: feasibilityReportId },
+      where: { id: data.feasibilityReportId },
       data: {
         data_envio: null,
-        prazo_viabilidade: 'FALTA VIABILIDADE',
+        prazo_viabilidade: FEASIBILITY_MISSING_STATUS,
       },
     });
   }

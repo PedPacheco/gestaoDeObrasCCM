@@ -1,96 +1,115 @@
-export type FindByScheduleResponse = {
-  id: number;
-  id_usuario: number;
-  id_obra: number;
-  id_programacao: number;
-  supervisor: string | null;
-  liberado_ligacao_parcial: boolean | null;
-  hora_inicio: Date | null;
-  hora_conclusao: Date | null;
-  contato_inicio: string | null;
-  contato_termino: string | null;
-  atraso: boolean | null;
-  justificativa_atraso: string | null;
-  possui_equipamentos_instalados: boolean | null;
-  equipamentos_aplicados: string | null;
-  possui_equipamentos_retirados: boolean | null;
-  equipamentos_retirados: string | null;
-  alteracoes_execucao: boolean | null;
-  observacoes_gerais: string | null;
-  referencia_chave_provisoria: string | null;
-  chave_provisoria_retirada: boolean | null;
-  motivo: string | null;
-  chave_provisoria_instalada: boolean | null;
-  potencia_equipamento_aplicado: string | null;
-  patrimonio_equipamento_aplicado: string | null;
-  potencia_equipamento_retirado: string | null;
-  patrimonio_equipamento_retirado: string | null;
-  instalacao_equipamento_aplicado: string | null;
-  instalacao_equipamento_retirado: string | null;
-  referencia_chave_provisoria_retirada: string | null;
-  caminho_arquivo: string | null;
-  caminhos_arquivos: string[];
-  criado_em: Date | null;
-  modificado_por: number | null;
-  modificado_em: Date | null;
+export type EquipmentItem = {
+  equipment: string;
+  power: string;
+  patrimony: string;
+  installation: string;
 };
 
-export type FindByWorkIdResponse = {
-  id: number;
-  criado_em: Date;
-  supervisor: string | null;
-  liberado_ligacao_parcial: boolean | null;
-  hora_inicio: Date | null;
-  hora_conclusao: Date | null;
-  contato_inicio: string | null;
-  contato_termino: string | null;
-  atraso: boolean | null;
-  justificativa_atraso: string | null;
-  possui_equipamentos_instalados: boolean | null;
-  equipamentos_aplicados: string | null;
-  potencia_equipamento_aplicado: string | null;
-  patrimonio_equipamento_aplicado: string | null;
-  instalacao_equipamento_aplicado: string | null;
-  possui_equipamentos_retirados: boolean | null;
-  equipamentos_retirados: string | null;
-  potencia_equipamento_retirado: string | null;
-  patrimonio_equipamento_retirado: string | null;
-  instalacao_equipamento_retirado: string | null;
-  alteracoes_execucao: boolean;
-  observacoes_gerais: string | null;
-  chave_provisoria_instalada: boolean | null;
-  referencia_chave_provisoria: string | null;
-  chave_provisoria_retirada: boolean | null;
-  referencia_chave_provisoria_retirada: string | null;
-  motivo: string | null;
-  usuario: {
-    nome: string;
-  };
-  obras: {
-    ovnota: string;
-    ordem_dci: string | null;
-    tipos: {
-      tipo_obra: string;
-    };
-    status: {
-      status: string;
-    };
-  };
-  programacoes: {
-    data_prog: Date;
-    prog: number | null;
-    exec: number | null;
-    num_dp: string | null;
-    hora_ini: Date | null;
-    hora_ter: Date | null;
-    chave_provisoria: boolean | null;
-  };
+/** Entrada de ExecutionReport.create: horas em string (HH:mm), ficheiros por normalizar. */
+export type ExecutionReportProps = {
+  idSchedule: number;
+  idWork: number;
+  userId: number;
+  supervisor: string;
+  partialConnectionReleased: boolean;
+  startTime: string;
+  finishTime: string;
+  startContact: string;
+  endContact: string;
+  delayJustification: string;
+  hasEquipmentInstalled: boolean;
+  appliedEquipment: EquipmentItem[];
+  hasEquipmentRemoved: boolean;
+  equipmentRemoved: EquipmentItem[];
+  changesExecution: boolean;
+  generalObservation: string;
+  reason: string;
+  provisionalKeyInstalled: boolean;
+  provisionalKeyReference: string;
+  provisionalKeyWithdrawn?: boolean;
+  provisionalKeyReferenceWithdrawn?: string;
+  files?: string[] | null;
 };
 
-export type FindByIdResponse = {
-  id: number;
-  id_obra: number;
-  id_programacao: number;
-  caminho_arquivo: string;
-  caminhos_arquivos: string[];
+/** Estado da entidade depois de criada e validada. */
+export type ExecutionReportSnapshot = Omit<
+  ExecutionReportProps,
+  'startTime' | 'finishTime' | 'files'
+> & {
+  startTime: Date;
+  finishTime: Date;
+  files: string[];
+  delayed: boolean;
 };
+
+/** Leitura usada no update e no delete (ficheiros e ligações). */
+export interface ExecutionReportFiles {
+  id: number;
+  workId: number;
+  scheduleId: number;
+  filePaths: string[]; // caminhos_arquivos, com fallback para caminho_arquivo
+}
+
+export interface ExecutionReportWork {
+  orderNumber: string | null; // ovnota
+  dciOrder: string | null; // ordem_dci
+  type: string | null; // tipos.tipo_obra
+  status: string | null; // status.status
+}
+
+export interface ExecutionReportSchedule {
+  date: Date | null; // data_prog
+  planned: number | null; // prog
+  executed: number | null; // exec
+  dpNumber: string | null; // num_dp
+  startTime: Date | null; // hora_ini
+  endTime: Date | null; // hora_ter
+  provisionalKey: boolean | null; // chave_provisoria
+}
+
+/** Leitura do findByWorkId: as colunas guardadas, em camelCase. */
+export interface ExecutionReportDetail {
+  id: number;
+  createdAt: Date;
+  userId: number | null;
+  supervisor: string | null;
+  partialConnectionReleased: boolean | null;
+  startTime: Date | null;
+  finishTime: Date | null;
+  startContact: string | null;
+  endContact: string | null;
+  delay: boolean | null;
+  delayJustification: string | null;
+  hasEquipmentInstalled: boolean | null;
+  appliedEquipment: string | null;
+  appliedEquipmentPower: string | null;
+  appliedEquipmentPatrimony: string | null;
+  appliedEquipmentInstallation: string | null;
+  hasEquipmentRemoved: boolean | null;
+  removedEquipment: string | null;
+  removedEquipmentPower: string | null;
+  removedEquipmentPatrimony: string | null;
+  removedEquipmentInstallation: string | null;
+  changesExecution: boolean | null;
+  generalObservation: string | null;
+  provisionalKeyInstalled: boolean | null;
+  provisionalKeyReference: string | null;
+  provisionalKeyWithdrawn: boolean | null;
+  provisionalKeyReferenceWithdrawn: string | null;
+  reason: string | null;
+  legacyFilePath: string | null; // caminho_arquivo (sai no fim do Passo 2.5)
+  filePaths: string[]; // caminhos_arquivos, tal como está na BD
+  userName: string | null;
+  work: ExecutionReportWork | null;
+  schedule: ExecutionReportSchedule | null;
+}
+
+export interface ScheduleWorkMode {
+  workId: number;
+  pointToPoint: boolean | null;
+}
+
+export interface WorkStatusResetData {
+  status: number;
+  executed?: number;
+}

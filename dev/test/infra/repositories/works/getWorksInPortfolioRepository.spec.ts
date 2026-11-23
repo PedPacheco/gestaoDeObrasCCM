@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
+import { WorkFiltersInput } from 'src/application/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/management/getWorksInPortfolioRepository';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 describe('GetWorksInPortfolioRepository', () => {
   let repository: GetWorksInPortfolioRepository;
@@ -40,7 +40,7 @@ describe('GetWorksInPortfolioRepository', () => {
         .mockResolvedValueOnce(mockWorks)
         .mockResolvedValueOnce(mockCountQuery);
 
-      await repository.getWorksInPortfolio({} as GetWorksDTO);
+      await repository.getWorksInPortfolio({} as WorkFiltersInput);
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
       const sql = normalizeSQL(querySent.strings.join(''));
@@ -54,7 +54,7 @@ describe('GetWorksInPortfolioRepository', () => {
         .mockResolvedValueOnce(mockWorks)
         .mockResolvedValueOnce(mockCountQuery);
 
-      await repository.getWorksInPortfolio({} as GetWorksDTO);
+      await repository.getWorksInPortfolio({} as WorkFiltersInput);
 
       const countQuerySent = mockPrisma.$queryRaw.mock.calls[1][0];
       const sql = normalizeSQL(countQuerySent.strings.join(''));
@@ -67,7 +67,7 @@ describe('GetWorksInPortfolioRepository', () => {
         .mockResolvedValueOnce(mockWorks)
         .mockResolvedValueOnce(mockCountQuery);
 
-      await repository.getWorksInPortfolio({} as GetWorksDTO);
+      await repository.getWorksInPortfolio({} as WorkFiltersInput);
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
       const sql = normalizeSQL(querySent.strings.join(''));
@@ -78,7 +78,7 @@ describe('GetWorksInPortfolioRepository', () => {
     });
 
     it('should apply filters correctly', async () => {
-      const filters: GetWorksDTO = {
+      const filters: WorkFiltersInput = {
         idRegional: [1],
         idTipo: [2],
         idCircuito: [1],
@@ -117,7 +117,7 @@ describe('GetWorksInPortfolioRepository', () => {
     });
 
     it('should apply pagination correctly', async () => {
-      const filters: GetWorksDTO = {
+      const filters: WorkFiltersInput = {
         page: 1,
       } as any;
 
