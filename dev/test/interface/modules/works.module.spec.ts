@@ -5,6 +5,8 @@ import { WorksModule } from 'src/interface/modules/works.module';
 import 'dotenv/config';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 import { LoggerModule } from 'src/interface/modules/logger.module';
 import { beforeEach } from 'vitest';
 
@@ -18,6 +20,11 @@ describe('WorksModule', () => {
     })
       .overrideProvider(UsersService)
       .useValue({})
+      .overrideProvider(DbSchema)
+      .useValue({
+        table: (name: string) => Prisma.raw(`schema_teste.${name}`),
+      })
+
       .compile();
   });
 

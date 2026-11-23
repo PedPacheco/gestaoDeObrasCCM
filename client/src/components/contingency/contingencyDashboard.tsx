@@ -4,7 +4,6 @@ import {
   ContingencyDashboardData,
   CountItem,
 } from "@/app/(dashboard)/programacao/recursos-contingencia/page";
-import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
 
 import {
@@ -87,7 +86,7 @@ export function ContingencyDashboard({
           />
           <div className="pl-3">
             <span className="text-white/60 text-sm uppercase tracking-widest font-medium">
-              Respostas mais recentes
+              Últimos Lançamentos
             </span>
             <div className="flex flex-col gap-1 pt-2 overflow-y-auto h-[80px]">
               {recentAnswers.length ? (
@@ -114,27 +113,18 @@ export function ContingencyDashboard({
           </div>
         </div>
 
-        <KpiCard
-          label="Impacto no CCM"
-          value={FormatCurrency(monthlyCapacityValue - emergencyTeamsValue)}
-          gradient={CONTINGENCY_KPI_GRADIENT}
-          accent={CONTINGENCY_KPI_ACCENT}
-          sub={[
-            {
-              subLabel: "Capacidade Mês",
-              subValue: FormatCurrency(monthlyCapacityValue),
-            },
-            {
-              subLabel: "Emergência",
-              subValue: FormatCurrency(emergencyTeamsValue),
-            },
-          ]}
+        <RingCard
+          label="Impacto Financeiro na Capacidade CCM"
+          subLabel="Capacidade Mês / Qtd. Acionamentos"
+          value={(emergencyTeamsValue / monthlyCapacityValue) * 100}
+          color={CONTINGENCY_KPI_ACCENT}
+          sub={`${FormatCurrency(monthlyCapacityValue)} / ${FormatCurrency(emergencyTeamsValue)}`}
         />
 
         <RingCard
-          label="Disponibilidade Recurso"
+          label="Impacto Quantitativo de Equipes na Capacidade CCM"
           subLabel="Capacidade Mês / Qtd. Acionamentos"
-          value={100 - data.allocatedPercentage}
+          value={data.allocatedPercentage}
           color={CONTINGENCY_KPI_ACCENT}
           sub={`${monthlyCapacityCount} / ${emergencyTeamsCount}`}
         />

@@ -23,6 +23,13 @@ interface EditableColumnProps {
   EditSuspension?: ReactNode;
 }
 
+const STATUS = {
+  EXECUTADA: 2,
+  EM_EMPREITAMENTO: 42,
+  AGUARDANDO_VIABILIDADE: 45,
+  VIABILIDADE_EM_APROVACAO: 46,
+} as const;
+
 const statusOrder = [
   "EM EMPREITAMENTO",
   "AGUARDANDO VIABILIDADE",
@@ -60,7 +67,7 @@ export const EditableColumn = ({
 
     const filtered = allowedIds
       ? options.status.filter((item) => allowedIds.includes(item.id))
-      : options.status.filter((item) => item.id !== 42);
+      : options.status.filter((item) => item.id !== STATUS.EM_EMPREITAMENTO);
 
     return filtered.sort(
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
@@ -70,11 +77,15 @@ export const EditableColumn = ({
   const havePermission =
     permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
 
+  // Obra executada: todos os campos ficam só de leitura
+  const isExecuted = Number(data.id_status) === STATUS.EXECUTADA;
+
   const disableWhenStatusisAwaitingFeasibility =
-    !feasibilitySubmissionDate && data.id_status === 45;
+    !feasibilitySubmissionDate &&
+    data.id_status === STATUS.AGUARDANDO_VIABILIDADE;
 
   const disableWhenStatusIsPendingApproval =
-    data.id_status === 46 &&
+    data.id_status === STATUS.VIABILIDADE_EM_APROVACAO &&
     Boolean(feasibilitySubmissionDate) &&
     !feasibilityApprove;
 
@@ -87,7 +98,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
-        disabled={havePermission}
+        disabled={havePermission || isExecuted}
       />
 
       <SelectComponent
@@ -99,10 +110,11 @@ export const EditableColumn = ({
         displayKey="status"
         disabled={
           havePermission ||
+          isExecuted ||
           disableWhenStatusisAwaitingFeasibility ||
           disableWhenStatusIsPendingApproval
         }
-        editButton={EditSuspension}
+        editButton={isExecuted ? undefined : EditSuspension}
       />
 
       <DataItem
@@ -110,7 +122,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={data.id_status !== 42}
+        disabled={isExecuted || data.id_status !== STATUS.EM_EMPREITAMENTO}
       />
     </>
   );

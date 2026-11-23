@@ -5,11 +5,19 @@ import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
 import { GetGoalsResponse } from 'src/domain/types';
 import { Prisma } from '../generated/prisma/client';
+import { DbSchema } from '../prisma/dbSchema.provider';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class GoalsRepository implements IGoalsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
+
+  private readonly btzeroTipos = [48, 25, 50];
+  private readonly rdaTipos = [54, 55, 35];
+  private readonly excludedTipos = [48, 49, 54, 55, 35, 25, 50];
 
   async getGoals(filters: GoalsDTO): Promise<GetGoalsResponse[]> {
     const {
@@ -23,6 +31,7 @@ export class GoalsRepository implements IGoalsRepository {
       rda,
     } = filters;
 
+    const t = (name: string) => this.schema.table(name);
     const anoPlanIsNull = anoPlan ? Prisma.sql`${anoPlan}::integer` : null;
 
     let query = Prisma.sql`SELECT
@@ -71,30 +80,23 @@ export class GoalsRepository implements IGoalsRepository {
       SUM(novfisreal) AS novfisreal,
       SUM(dezfisreal) AS dezfisreal,
       SUM(carteira) AS carteira
-      FROM construcao_sp.get_view_data(${anoPlanIsNull}) AS metas_anuais
-      INNER JOIN tipos ON tipos.id = metas_anuais.id_tipo
-      INNER JOIN turmas ON turmas.id = metas_anuais.id_turma
-      INNER JOIN regionais ON regionais.id = metas_anuais.id_regional
-      LEFT JOIN empreendimento ON empreendimento.id = metas_anuais.id_empreendimento
+      FROM ${t('get_view_data')}(${anoPlanIsNull}) AS metas_anuais
+      INNER JOIN ${t('tipos')} ON tipos.id = metas_anuais.id_tipo
+      INNER JOIN ${t('turmas')} ON turmas.id = metas_anuais.id_turma
+      INNER JOIN ${t('regionais')} ON regionais.id = metas_anuais.id_regional
+      LEFT JOIN ${t('empreendimento')} ON empreendimento.id = metas_anuais.id_empreendimento
       WHERE anocalc IN (${Prisma.join(ano)})`;
 
     if (btzero) {
-      query = Prisma.sql`${query} AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)`;
+      query = Prisma.sql`${query} AND metas_anuais.id_tipo IN (${Prisma.join(this.btzeroTipos)})`;
     }
 
     if (rda) {
-      query = Prisma.sql`${query} AND (id_tipo = 54 OR id_tipo = 55 OR id_tipo = 35) AND empreendimento IS NOT NULL`;
+      query = Prisma.sql`${query} AND metas_anuais.id_tipo IN (${Prisma.join(this.rdaTipos)}) AND empreendimento IS NOT NULL`;
     }
 
     if (!rda && !btzero) {
-      query = Prisma.sql`${query} 
-      AND (metas_anuais.id_tipo != 48 
-      AND metas_anuais.id_tipo != 49 
-      AND metas_anuais.id_tipo != 54 
-      AND metas_anuais.id_tipo != 55 
-      AND metas_anuais.id_tipo != 35
-      AND metas_anuais.id_tipo != 25
-      AND metas_anuais.id_tipo != 50)`;
+      query = Prisma.sql`${query} AND metas_anuais.id_tipo NOT IN (${Prisma.join(this.excludedTipos)})`;
     }
 
     if (regional && regional.length > 0) {

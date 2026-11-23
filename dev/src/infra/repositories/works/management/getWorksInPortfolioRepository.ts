@@ -9,33 +9,41 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 
 @Injectable()
 export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
+
+  private table(name: string) {
+    return this.schema.table(name);
+  }
 
   private buildBaseQuery() {
     return Prisma.sql`
-      FROM construcao_sp.obras 
-      INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
-      INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
-      INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
-      INNER JOIN construcao_sp.status ON status.id = obras.id_status 
-      INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-      INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
-      INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-      INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-      LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+      FROM ${this.table('obras')} 
+      INNER JOIN ${this.table('turmas')} ON turmas.id = obras.id_turma 
+      INNER JOIN ${this.table('municipios')} ON municipios.id = obras.id_gpm 
+      INNER JOIN ${this.table('tipos')} ON tipos.id = obras.id_tipo 
+      INNER JOIN ${this.table('status')} ON status.id = obras.id_status 
+      INNER JOIN ${this.table('circuitos')} ON obras.id_circuito = circuitos.id
+      INNER JOIN ${this.table('empreendimento')} ON obras.id_empreendimento = empreendimento.id
+      INNER JOIN ${this.table('conjuntos')} ON circuitos.id_conjunto = conjuntos.id
+      INNER JOIN ${this.table('regionais')} ON municipios.id_regional = regionais.id
+      LEFT JOIN ${this.table('relatorio')} ON relatorio.id_obra = obras.id
     `;
   }
 
   private withProgramacoes(base: Prisma.Sql) {
     return Prisma.sql`
       ${base}
-      LEFT JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
+      LEFT JOIN ${this.table('programacoes')} ON programacoes.id_obra = obras.id
       LEFT JOIN (
         SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias
-        FROM construcao_sp.programacoes
+        FROM ${this.table('programacoes')} 
         WHERE data_prog > current_date
         GROUP BY id_obra
       ) AS prog_count ON prog_count.id_obra = obras.id

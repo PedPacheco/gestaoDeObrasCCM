@@ -1,4 +1,7 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetAllWorksRepository } from 'src/infra/repositories/works/management/getAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
@@ -6,12 +9,19 @@ import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 describe('GetAllWorksRepository', () => {
   let repository: GetAllWorksRepository;
 
+  // Schema "falso": garante que o repositório não tem construcao_sp fixo
+  const SCHEMA = 'schema_teste';
+
   function normalizeSQL(sql: string): string {
     return sql.replace(/\s+/g, ' ').trim();
   }
 
   const mockPrisma = {
     $queryRaw: vi.fn(),
+  };
+
+  const mockConfigService = {
+    getOrThrow: vi.fn().mockReturnValue(SCHEMA),
   };
 
   const mockWorks = [
@@ -53,30 +63,28 @@ describe('GetAllWorksRepository', () => {
     },
   ];
 
-  const mockQuery = [
-    {
-      total_obras: 1,
-    },
-  ];
+  const mockQuery = [{ total_obras: 1 }];
 
-  const baseQuery = `FROM construcao_sp.obras 
-        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
-        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
-        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
-        INNER JOIN construcao_sp.status ON status.id = obras.id_status 
-        WHERE 1=1`;
+  const baseQuery = `FROM ${SCHEMA}.obras
+    INNER JOIN ${SCHEMA}.turmas ON turmas.id = obras.id_turma
+    INNER JOIN ${SCHEMA}.municipios ON municipios.id = obras.id_gpm
+    INNER JOIN ${SCHEMA}.tipos ON tipos.id = obras.id_tipo
+    INNER JOIN ${SCHEMA}.status ON status.id = obras.id_status
+    WHERE 1=1`;
 
-  let query = `SELECT
-        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, status_ov_sap, pep, status_pep, diagrama, status_diagrama, ordem_dci, status_170, 
-        status_usuario_170, ordem_dcd, status_190, status_usuario_190, ordem_dca, status_150, status_usuario_150, ordem_dcim, status_180, status_usuario_180, mun, tipo_obra, entrada, 
-        entrada + prazo AS prazo_fim, qtde_planejada, mo_planejada, mo_final, turma, executado, data_conclusao, status, observ_obra, referencia 
-        ${baseQuery}`;
+  const query = `SELECT
+    obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, status_ov_sap, pep, status_pep, diagrama, status_diagrama, ordem_dci, status_170,
+    status_usuario_170, ordem_dcd, status_190, status_usuario_190, ordem_dca, status_150, status_usuario_150, ordem_dcim, status_180, status_usuario_180, mun, tipo_obra, entrada,
+    entrada + prazo AS prazo_fim, qtde_planejada, mo_planejada, mo_final, turma, executado, data_conclusao, status, observ_obra, referencia
+    ${baseQuery}`;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetAllWorksRepository,
+        DbSchema,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -84,11 +92,31 @@ describe('GetAllWorksRepository', () => {
   });
 
   afterEach(() => {
+    // clearAllMocks mantém o mockReturnValue do getOrThrow
     vi.clearAllMocks();
   });
 
   describe('GetAllWorks', () => {
-    it('should query database with filters and return data ', async () => {
+    it('should use the schema from DB_SCHEMA and never the hardcoded one', async () => {
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockQuery);
+
+      await repository.getAllWorks({
+        insufficientPermission: false,
+      } as GetAllWorksDTO);
+
+      const [querySent] = mockPrisma.$queryRaw.mock.calls[0];
+      const [countSent] = mockPrisma.$queryRaw.mock.calls[1];
+
+      for (const sql of [querySent, countSent]) {
+        const text = sql.strings.join('');
+        expect(text).toContain(`${SCHEMA}.obras`);
+        expect(text).not.toContain('construcao_sp.');
+      }
+    });
+
+    it('should query database with filters and return data', async () => {
       const filters: GetAllWorksDTO = {
         idGrupo: [1],
         idMunicipio: [1],
@@ -101,13 +129,13 @@ describe('GetAllWorksRepository', () => {
       };
 
       const expectedQuery = `${query} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-      AND status.id IN () ORDER BY entrada DESC LIMIT 200 OFFSET`;
+        AND status.id IN () ORDER BY entrada DESC LIMIT 200 OFFSET`;
 
-      mockPrisma.$queryRaw.mockResolvedValueOnce(mockWorks);
-      mockPrisma.$queryRaw.mockResolvedValueOnce(mockQuery);
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockQuery);
 
       const result = await repository.getAllWorks(filters);
-
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
       expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
@@ -117,34 +145,34 @@ describe('GetAllWorksRepository', () => {
       expect(querySent.values).toEqual([1, 1, 1, 1, 1, 1, 0]);
       expect(result).toEqual({ works: mockWorks, total: mockQuery });
     });
-  });
 
-  it('should query database without filters and return data ', async () => {
-    const filters: GetAllWorksDTO = {
-      idGrupo: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
-      idRegional: undefined,
-      idStatus: undefined,
-      idTipo: undefined,
-      page: null,
-      insufficientPermission: false,
-    };
+    it('should query database without filters and return data', async () => {
+      const filters: GetAllWorksDTO = {
+        idGrupo: undefined,
+        idMunicipio: undefined,
+        idParceira: undefined,
+        idRegional: undefined,
+        idStatus: undefined,
+        idTipo: undefined,
+        page: null,
+        insufficientPermission: false,
+      };
 
-    const expectedQuery = `${query} ORDER BY entrada DESC`;
+      const expectedQuery = `${query} ORDER BY entrada DESC`;
 
-    mockPrisma.$queryRaw.mockResolvedValueOnce(mockWorks);
-    mockPrisma.$queryRaw.mockResolvedValueOnce(mockQuery);
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockQuery);
 
-    const result = await repository.getAllWorks(filters);
+      const result = await repository.getAllWorks(filters);
+      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
-    const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
-
-    expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
-    expect(normalizeSQL(querySent.strings.join(''))).toContain(
-      normalizeSQL(expectedQuery),
-    );
-    expect(querySent.values).toEqual([]);
-    expect(result).toEqual({ works: mockWorks, total: mockQuery });
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
+      expect(normalizeSQL(querySent.strings.join(''))).toContain(
+        normalizeSQL(expectedQuery),
+      );
+      expect(querySent.values).toEqual([]);
+      expect(result).toEqual({ works: mockWorks, total: mockQuery });
+    });
   });
 });
