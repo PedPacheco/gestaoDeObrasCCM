@@ -3,8 +3,8 @@ import { FeasibilityController } from 'src/interface/controllers/feasibility.con
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 
 describe('FeasibilityController', () => {
@@ -182,7 +182,7 @@ describe('FeasibilityController', () => {
 
       const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      const mockIdWork = 123;
+      const mockWorkId = 123;
       const mockResponse = {
         statusCode: HttpStatus.OK,
         message: 'Viabilidade realizada com sucesso',
@@ -192,7 +192,7 @@ describe('FeasibilityController', () => {
 
       const result = await controller.upload(
         mockFiles,
-        mockIdWork,
+        mockWorkId,
         false,
         mockExistingFiles,
         mockReq,
@@ -201,7 +201,7 @@ describe('FeasibilityController', () => {
 
       expect(result).toEqual(mockResponse);
       expect(handleFeasibility.upload).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         false,
         mockFiles,
@@ -229,7 +229,7 @@ describe('FeasibilityController', () => {
 
       const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      const mockIdWork = 456;
+      const mockWorkId = 456;
       const mockResponse = {
         statusCode: HttpStatus.OK,
         message: 'Viabilidade realizada com sucesso',
@@ -239,7 +239,7 @@ describe('FeasibilityController', () => {
 
       const result = await controller.upload(
         mockFile,
-        mockIdWork,
+        mockWorkId,
         false,
         mockExistingFiles,
         mockReq,
@@ -248,7 +248,7 @@ describe('FeasibilityController', () => {
 
       expect(result).toEqual(mockResponse);
       expect(handleFeasibility.upload).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         false,
         mockFile,
@@ -258,18 +258,18 @@ describe('FeasibilityController', () => {
     });
 
     it('deve lançar erro quando upload falhar', async () => {
-      const mockIdWork = 123;
+      const mockWorkId = 123;
       const mockError = new Error('Upload failed');
 
       mockHandleFeasibility.upload.mockRejectedValue(mockError);
 
       await expect(
-        controller.upload(undefined, mockIdWork, false, '', mockReq, [
+        controller.upload(undefined, mockWorkId, false, '', mockReq, [
           { id: 1, viabilizado: 1 },
         ]),
       ).rejects.toThrow('Upload failed');
       expect(handleFeasibility.upload).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         false,
         [],
@@ -280,7 +280,7 @@ describe('FeasibilityController', () => {
 
     it('deve converter idObra string para número', async () => {
       const mockFiles: Express.Multer.File[] = [];
-      const mockIdWork = 999;
+      const mockWorkId = 999;
 
       mockHandleFeasibility.upload.mockResolvedValue({});
 
@@ -288,7 +288,7 @@ describe('FeasibilityController', () => {
 
       await controller.upload(
         mockFiles,
-        mockIdWork,
+        mockWorkId,
         false,
         mockExistingFiles,
         mockReq,
@@ -303,7 +303,7 @@ describe('FeasibilityController', () => {
         JSON.parse(mockExistingFiles),
         [{ id: 1, viabilizado: 1 }],
       );
-      expect(typeof mockIdWork).toBe('number');
+      expect(typeof mockWorkId).toBe('number');
     });
   });
 
@@ -338,7 +338,7 @@ describe('FeasibilityController', () => {
 
       const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      const mockIdWork = 123;
+      const mockWorkId = 123;
       const mockResponse = {
         statusCode: HttpStatus.OK,
         message: 'Arquivos complementares inseridos com sucesso',
@@ -350,14 +350,14 @@ describe('FeasibilityController', () => {
 
       const result = await controller.uploadComplementaryFiles(
         mockFiles,
-        mockIdWork,
+        mockWorkId,
         mockExistingFiles,
         mockReq,
       );
 
       expect(result).toEqual(mockResponse);
       expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         mockFiles,
         JSON.parse(mockExistingFiles),
@@ -385,7 +385,7 @@ describe('FeasibilityController', () => {
 
       const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      const mockIdWork = 456;
+      const mockWorkId = 456;
       const mockResponse = {
         statusCode: HttpStatus.OK,
         message: 'Arquivos complementares inseridos com sucesso',
@@ -397,14 +397,14 @@ describe('FeasibilityController', () => {
 
       const result = await controller.uploadComplementaryFiles(
         mockFile,
-        mockIdWork,
+        mockWorkId,
         mockExistingFiles,
         mockReq,
       );
 
       expect(result).toEqual(mockResponse);
       expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         mockFile,
         JSON.parse(mockExistingFiles),
@@ -412,7 +412,7 @@ describe('FeasibilityController', () => {
     });
 
     it('deve lançar erro quando upload falhar', async () => {
-      const mockIdWork = 123;
+      const mockWorkId = 123;
       const mockError = new Error('Upload failed');
 
       mockHandleFeasibility.uploadComplementaryFiles.mockRejectedValue(
@@ -420,10 +420,10 @@ describe('FeasibilityController', () => {
       );
 
       await expect(
-        controller.uploadComplementaryFiles(undefined, mockIdWork, '', mockReq),
+        controller.uploadComplementaryFiles(undefined, mockWorkId, '', mockReq),
       ).rejects.toThrow('Upload failed');
       expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
-        mockIdWork,
+        mockWorkId,
         '2345',
         [],
         [],
@@ -432,7 +432,7 @@ describe('FeasibilityController', () => {
 
     it('deve converter idObra string para número', async () => {
       const mockFiles: Express.Multer.File[] = [];
-      const mockIdWork = 999;
+      const mockWorkId = 999;
 
       mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue({});
 
@@ -440,7 +440,7 @@ describe('FeasibilityController', () => {
 
       await controller.uploadComplementaryFiles(
         mockFiles,
-        mockIdWork,
+        mockWorkId,
         mockExistingFiles,
         mockReq,
       );
@@ -451,7 +451,7 @@ describe('FeasibilityController', () => {
         mockFiles,
         JSON.parse(mockExistingFiles),
       );
-      expect(typeof mockIdWork).toBe('number');
+      expect(typeof mockWorkId).toBe('number');
     });
   });
 

@@ -282,7 +282,7 @@ describe('QueriesServicesService', () => {
 
   // ======================================================
   describe('getSelectedServices', () => {
-    const params = { idWork: 1, ids: [7] } as any;
+    const params = { workId: 1, ids: [7] } as any;
 
     it('should throw NotFoundException when the repository returns null', async () => {
       mockQueryRepository.getSelectedServices.mockResolvedValue(null);

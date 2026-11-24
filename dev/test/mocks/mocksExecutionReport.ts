@@ -1,10 +1,11 @@
 import { UpdateExecutionReportInput } from 'src/application/types';
+import { EquipmentItem } from 'src/domain/types';
 import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {
   idSchedule: 1,
   userId: 1,
-  idWork: 1,
+  workId: 1,
   supervisor: 'Erick',
   partialConnectionReleased: false,
   startTime: '08:00',

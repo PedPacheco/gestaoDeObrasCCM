@@ -1,19 +1,19 @@
 "use client";
 
 import { useUser } from "@/contexts/userContext";
+import { useOldScheduleForm } from "@/hooks/details/useOldScheduleForm";
+import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
+import { Suspense, useEffect, useRef, useState } from "react";
 import OldModalsManager, {
   OldModalsManagerRef,
 } from "../modals/oldModalsManager";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { useOldScheduleForm } from "@/hooks/details/useOldScheduleForm";
-import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
-import TabActions from "./tabsActions";
-import WorkCostPanelItem from "../panelItems/workCostPanelItem";
-import SchedulePanelItem from "../panelItems/schedulePanelItem";
-import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
 import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
+import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
+import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import { ServicesPanelItem } from "../panelItems/servicesPanelItem";
+import WorkCostPanelItem from "../panelItems/workCostPanelItem";
+import TabActions from "./tabsActions";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -98,7 +98,7 @@ export default function OldTabPanel({
     setRejectedSchedule,
   } = useScheduleHandlers({
     data,
-    idWork: id,
+    workId: id,
   });
 
   useEffect(() => {
@@ -233,7 +233,7 @@ export default function OldTabPanel({
 
       <OldModalsManager
         ref={modalsRef}
-        idWork={data?.id}
+        workId={data?.id}
         totalExec={data.executado}
         statusWork={data.id_status}
         options={options}

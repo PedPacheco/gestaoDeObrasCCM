@@ -13,8 +13,8 @@ export class RejectionsOfSchedulesService {
     private readonly rejectionOfSchedulesRepository: IRejectionOfSchedulesRepository,
   ) {}
 
-  async get(idWork: number): Promise<RejectionOfSchedulesGetOutput[]> {
-    const response = await this.rejectionOfSchedulesRepository.get(idWork);
+  async get(workId: number): Promise<RejectionOfSchedulesGetOutput[]> {
+    const response = await this.rejectionOfSchedulesRepository.get(workId);
 
     const formattedData = response.map(({ restricoes, ...item }) => ({
       ...item,

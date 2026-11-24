@@ -57,7 +57,7 @@ describe('WorkServicesExeutionRepository', () => {
   describe('finalizeServices', () => {
     const data: FinalizationData = {
       id: 3,
-      idWork: 2,
+      workId: 2,
       dataProg: new Date('2026-10-13'),
       prog: 100,
       exec: 80,

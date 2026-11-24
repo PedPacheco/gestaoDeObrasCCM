@@ -42,7 +42,6 @@ export class ContingencyRepository implements IContingencyRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateContingencyData): Promise<void> {
-    console.log(toCreateContingencyInput(data));
     await this.prisma.recursos_contingencia.create({
       data: toCreateContingencyInput(data),
     });

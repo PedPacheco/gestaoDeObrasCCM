@@ -1,6 +1,6 @@
 import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
-import { ButtonComponent } from "../common/Button";
 import { useRouter } from "next/navigation";
+import { ButtonComponent } from "../common/Button";
 
 interface FeasibilityActionsFooterProps {
   workflowStatus: FeasibilityWorkflowStatus;
@@ -8,7 +8,7 @@ interface FeasibilityActionsFooterProps {
   onOpenSubmit: () => void;
   onOpenReject: () => void;
   onOpenApprove: () => void;
-  idWork: string;
+  workId: string;
   isApprover?: boolean;
 }
 
@@ -19,7 +19,7 @@ export function FeasibilityActionsFooter({
   onOpenApprove,
   onOpenReject,
   onOpenSubmit,
-  idWork,
+  workId,
 }: FeasibilityActionsFooterProps) {
   const router = useRouter();
 
@@ -41,7 +41,7 @@ export function FeasibilityActionsFooter({
           {/* Cancelar — sempre visível */}
           <ButtonComponent
             text="Cancelar"
-            onClick={() => router.push(`/detalhes/${idWork}`)}
+            onClick={() => router.push(`/detalhes/${workId}`)}
             disabled={isPending}
             styled="min-w-56"
           />

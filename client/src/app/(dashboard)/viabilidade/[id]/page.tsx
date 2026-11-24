@@ -92,7 +92,7 @@ export default async function Page({ params, searchParams }: Props) {
 
   return (
     <FeasibiltyUpload
-      idWork={id}
+      workId={id}
       servicesData={servicesData?.data ?? null}
       contracts={contracts?.data ?? null}
       materials={materials?.data ?? null}

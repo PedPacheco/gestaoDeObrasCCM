@@ -10,7 +10,7 @@ export const staticValidationSchema = schedulesSchema();
 export type FormData = z.infer<typeof staticValidationSchema>;
 
 export const INITIAL_FORM_DATA: FormData = {
-  idWork: 1,
+  workId: 1,
   dataProg: new Date().toISOString().split("T")[0],
   startTime: "08:00",
   finishTime: "17:00",
@@ -44,7 +44,7 @@ interface UseScheduleFormProps {
     tecnico: Array<{ id: number; tecnico: string }>;
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
-  idWork: number;
+  workId: number;
 }
 
 export interface UseScheduleFormReturn {
@@ -63,7 +63,7 @@ export interface UseScheduleFormReturn {
 export const useScheduleForm = ({
   data,
   options,
-  idWork,
+  workId,
 }: UseScheduleFormProps) => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -76,21 +76,21 @@ export const useScheduleForm = ({
     if (!data) return;
     if (initializedRef.current) return;
 
-    const dataWithIdWork = { ...data, idWork };
+    const dataWithworkId = { ...data, workId };
 
-    const mapped = mapScheduleToForm(dataWithIdWork, options);
+    const mapped = mapScheduleToForm(dataWithworkId, options);
     setFormData(mapped);
 
     initializedRef.current = true;
-  }, [data, idWork, options]);
+  }, [data, workId, options]);
 
-  // Atualiza apenas o idWork sempre que ele mudar
+  // Atualiza apenas o workId sempre que ele mudar
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      idWork,
+      workId,
     }));
-  }, [idWork]);
+  }, [workId]);
 
   const handleInputChange = useCallback(
     (field: keyof FormData) => (value: any) => {

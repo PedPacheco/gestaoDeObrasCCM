@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
 
-import ErrorModal from "@/components/common/ErrorModal";
 import { useUser } from "@/contexts/userContext";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { useExecutionServicesSubmit } from "@/hooks/useExecutionServicesSubmit";
@@ -19,13 +18,13 @@ import {
   Typography,
 } from "@mui/material";
 
+import { useFeedback } from "@/hooks/useFeedback";
+import { ButtonComponent } from "../common/Button";
+import { AccordionPanel } from "./accordionPanel";
 import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { AsBuiltImport } from "./asBuiltImport";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";
 import { ExecutionBasicPanel } from "./executionBasicPanel";
-import { useFeedback } from "@/hooks/useFeedback";
-import { AccordionPanel } from "./accordionPanel";
-import { ButtonComponent } from "../common/Button";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -182,7 +181,7 @@ export function ExecutionReportDialog({
 
               const formDataWithUser = {
                 ...formData,
-                idUser: user?.id,
+                userId: user?.id,
               };
 
               const validationSchema =

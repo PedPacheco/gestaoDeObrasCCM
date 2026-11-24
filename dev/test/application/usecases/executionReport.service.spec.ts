@@ -48,7 +48,7 @@ const NEW_PATHS = NEW_FILES.map((f) => f.path);
 
 const createInput = {
   idSchedule: SCHEDULE_ID,
-  idWork: WORK_ID,
+  workId: WORK_ID,
   userId: 9,
   supervisor: 'Ana',
 } as unknown as CreateExecutionReportInput;
@@ -116,7 +116,8 @@ describe('ExecutionReportService', () => {
         id: SCHEDULE_ID,
         workId: WORK_ID,
         statusId: 2,
-        scheduledFinishTime: FINISH_TIME,
+        finishTime: FINISH_TIME,
+        rejected: false,
       }),
     } as unknown as Mocked<IFindScheduleByIdRepository>;
 
@@ -315,7 +316,7 @@ describe('ExecutionReportService', () => {
 
       expect(ExecutionReport.create).toHaveBeenCalledWith(
         {
-          idWork: WORK_ID,
+          workId: WORK_ID,
           idSchedule: SCHEDULE_ID,
           ...updateInput,
           files: ['new-1.pdf', 'new-2.pdf'],

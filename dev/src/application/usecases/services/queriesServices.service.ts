@@ -137,6 +137,7 @@ export class QueriesServicesService {
       );
 
       return {
+        id: service.id,
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
@@ -247,8 +248,8 @@ export class QueriesServicesService {
     });
   }
 
-  async getServiceContracts(idWork: number) {
-    const work = await this.getWorksDetailsRepository.get(idWork);
+  async getServiceContracts(workId: number) {
+    const work = await this.getWorksDetailsRepository.get(workId);
 
     const idParceira = work?.id_turma;
 
@@ -262,8 +263,8 @@ export class QueriesServicesService {
     return await this.workServicesQueryRepository.getMaterialsContract();
   }
 
-  async getTeamsServices(idWork: number) {
-    const work = await this.getWorksDetailsRepository.get(idWork);
+  async getTeamsServices(workId: number) {
+    const work = await this.getWorksDetailsRepository.get(workId);
 
     const idParceira = work?.id_turma;
 

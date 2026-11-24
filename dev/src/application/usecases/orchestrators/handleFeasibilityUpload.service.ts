@@ -44,24 +44,24 @@ export class HandleFeasibilityService {
   ) {}
 
   async upload(
-    idWork: number,
-    idUser: number,
+    workId: number,
+    userId: number,
     pointByPoint: boolean,
     files: Express.Multer.File[],
     existingFiles: string[],
     items?: FeasibleItemInput[],
   ): Promise<void> {
     const filesToRemove = await this.withUploadCleanup(files, async () => {
-      if (!idWork) {
+      if (!workId) {
         throw new BadGatewayException('Obra não foi encontrada'); // ver secção 5
       }
       if (!items?.length && pointByPoint) {
         throw new BadRequestException('Nenhum item foi enviado.');
       }
 
-      const status = await this.resolveTimeframeStatus(idWork);
+      const status = await this.resolveTimeframeStatus(workId);
       const { paths, removedFiles } = await this.resolveFiles(
-        idWork,
+        workId,
         'technical',
         files,
         existingFiles,
@@ -69,8 +69,8 @@ export class HandleFeasibilityService {
 
       await this.prisma.$transaction(async (tx) => {
         await this.feasibilityRepository.saveFiles(
-          idWork,
-          idUser,
+          workId,
+          userId,
           status,
           paths,
           tx,
@@ -84,7 +84,7 @@ export class HandleFeasibilityService {
             tx,
           );
         }
-        await this.statusFlowRepository.updateStatusWorks(46, idWork, tx); // 6d: WorkStatus
+        await this.statusFlowRepository.updateStatusWorks(46, workId, tx); // 6d: WorkStatus
       });
 
       return removedFiles;
@@ -94,18 +94,18 @@ export class HandleFeasibilityService {
   }
 
   async uploadComplementaryFiles(
-    idWork: number,
-    idUser: number,
+    workId: number,
+    userId: number,
     files: Express.Multer.File[],
     existingFiles: string[],
   ): Promise<void> {
     const filesToRemove = await this.withUploadCleanup(files, async () => {
-      if (!idWork) {
+      if (!workId) {
         throw new BadGatewayException('Obra não foi encontrada'); // ver secção 5
       }
 
       const { paths, removedFiles } = await this.resolveFiles(
-        idWork,
+        workId,
         'complementary',
         files,
         existingFiles,
@@ -113,7 +113,7 @@ export class HandleFeasibilityService {
 
       await this.prisma.$transaction((tx) =>
         this.feasibilityRepository.updateFiles(
-          idWork,
+          workId,
           paths,
           'complementary',
           tx,
@@ -145,9 +145,9 @@ export class HandleFeasibilityService {
 
   /** 6d: a regra dos 5 dias úteis passa para domain/rules/feasibilityDeadline.rules.ts */
   private async resolveTimeframeStatus(
-    idWork: number,
+    workId: number,
   ): Promise<StatusFeasibility> {
-    const projectDate = await this.feasibilityRepository.getProjectDate(idWork);
+    const projectDate = await this.feasibilityRepository.getProjectDate(workId);
     if (!projectDate) {
       throw new BadRequestException('Obra sem data de empreitamento');
     }
@@ -158,12 +158,12 @@ export class HandleFeasibilityService {
 
   /** Calcula a lista final de ficheiros e os que deixam de ser usados. Não grava nada. */
   private async resolveFiles(
-    idWork: number,
+    workId: number,
     type: FeasibilityFileType,
     uploadedFiles: Express.Multer.File[] | undefined,
     existingFiles: string[] | undefined,
   ): Promise<ResolvedFiles> {
-    const current = await this.feasibilityRepository.findFiles(idWork);
+    const current = await this.feasibilityRepository.findFiles(workId);
     const currentFiles =
       type === 'technical'
         ? (current?.technicalFiles ?? [])

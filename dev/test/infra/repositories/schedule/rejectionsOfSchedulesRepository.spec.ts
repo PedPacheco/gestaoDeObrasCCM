@@ -49,9 +49,9 @@ describe('RejectionsOfSchedulesRepository', () => {
         },
       ]);
 
-      const idWork = 1;
+      const workId = 1;
 
-      const result = await repository.get(idWork);
+      const result = await repository.get(workId);
 
       expect(result).toEqual([
         {
@@ -121,9 +121,9 @@ describe('RejectionsOfSchedulesRepository', () => {
         },
       ]);
 
-      const idWork = 1234567890;
+      const workId = 1234567890;
 
-      const result = await repository.get(idWork);
+      const result = await repository.get(workId);
 
       expect(result).toEqual([
         {

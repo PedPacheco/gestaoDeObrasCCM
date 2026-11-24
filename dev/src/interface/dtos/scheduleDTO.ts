@@ -10,10 +10,10 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { convertParameterValue } from 'src/utils/convertParameterValue';
-import { ScheduleServicesDTO } from './workServicesDTO';
-import { ExecutionReportDataDTO } from './executionReportDTO';
 import { DisableWhitelist } from 'src/shared/costants';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
+import { ExecutionReportDataDTO } from './executionReportDTO';
+import { ScheduleServicesDTO } from './workServicesDTO';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
@@ -224,7 +224,7 @@ export class RejectScheduleDTO {
 
 export class NewSchedulesDataDTO {
   @IsNumber()
-  idWork: number;
+  workId: number;
 
   @IsDate()
   @Type(() => Date)
@@ -344,7 +344,7 @@ export class NewSchedulesDataDTO {
 
 export class SchedulesDataDTO {
   @IsNumber()
-  idWork: number;
+  workId: number;
 
   @IsDate()
   @Type(() => Date)

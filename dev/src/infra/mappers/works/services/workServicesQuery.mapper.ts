@@ -19,7 +19,10 @@ import {
 export function toServiceByWorkId(
   row: BaseServiceRow,
 ): GetServicesByWorkIdResponse {
-  return { ...row, materiais: toNumberPreco(row.materiais) };
+  return {
+    ...row,
+    materiais: row.materiais ? toNumberPreco(row.materiais) : null,
+  };
 }
 
 export function toSelectedService(

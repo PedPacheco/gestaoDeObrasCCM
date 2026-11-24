@@ -9,6 +9,8 @@ import { useFeedback } from "@/hooks/useFeedback";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { Transform } from "@/utils/transform";
 
+import { exportExcel } from "@/actions/generateExcel.action";
+import { mountUrl } from "@/utils/mountUrl";
 import D5NotesSchedulesFilters from "./d5NotesSchedulesFilters";
 
 interface MainPortfolioWorksProps {
@@ -37,6 +39,37 @@ export default function D5NotesSchedulesMain({
   const [page, setPage] = useState(0);
 
   const [isPending, startTransition] = useTransition();
+
+  const generateExcel = useCallback(
+    async (params: Record<string, string | string[] | boolean>) => {
+      const exportUrl = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/programacao/notas-d5`,
+        params,
+      );
+
+      try {
+        const response = await exportExcel(exportUrl, token);
+
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação Programações Notas D5";
+
+        document.body.append(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        showError(`Erro ao gerar a planilha: ${error.message}`);
+      }
+    },
+    [showError, token],
+  );
 
   const fetchWorks = useCallback(
     (params: Record<string, string | string[] | boolean | null>) => {
@@ -77,6 +110,7 @@ export default function D5NotesSchedulesMain({
           data={filtersData}
           url={cookie}
           searchFilteredData={fetchWorks}
+          generateExcel={generateExcel}
           isPending={isPending}
         />
       </div>

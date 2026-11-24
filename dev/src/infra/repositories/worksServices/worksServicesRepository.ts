@@ -137,7 +137,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   ): Promise<void> {
     const {
       idService,
-      idWork,
+      workId,
       operation,
       point,
       operationDescription,
@@ -145,7 +145,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     } = data;
     await tx.servicos.create({
       data: {
-        id_obra: idWork,
+        id_obra: workId,
         id_contrato_servico: type === 'service' ? idService : null,
         id_material: type === 'material' ? idService : null,
         operacao: operation,

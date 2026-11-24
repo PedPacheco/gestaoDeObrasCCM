@@ -23,7 +23,7 @@ export const makeExecutionReportProps = (
   overrides: Partial<ExecutionReportProps> = {},
 ): ExecutionReportProps => ({
   idSchedule: 101,
-  idWork: 202,
+  workId: 202,
   userId: 42,
   supervisor: 'Supervisor de teste',
   partialConnectionReleased: true,

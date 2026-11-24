@@ -46,6 +46,6 @@ import { UsersModule } from './users.module';
       useClass: D5NotesSchedulesRepository,
     },
   ],
-  exports: [FindD5NotesService],
+  exports: [FindD5NotesService, FindD5SchedulesService],
 })
 export class D5NotesModule {}

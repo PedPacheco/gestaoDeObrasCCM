@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 export async function editExecutionReport(
   data: any,
   id: number,
-  files?: File[]
+  files?: File[],
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -40,7 +40,7 @@ export async function editExecutionReport(
         method: "PATCH",
         headers,
         body,
-      }
+      },
     );
 
     const res = await result.json();
@@ -52,7 +52,7 @@ export async function editExecutionReport(
       };
     }
 
-    revalidatePath(`/detalhes/${data.idWork}`);
+    revalidatePath(`/detalhes/${data.workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {
@@ -60,7 +60,7 @@ export async function editExecutionReport(
   }
 }
 
-export async function deleteExecutionReport(id: number, idWork: number) {
+export async function deleteExecutionReport(id: number, workId: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -73,7 +73,7 @@ export async function deleteExecutionReport(id: number, idWork: number) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const res = await result.json();
@@ -85,7 +85,7 @@ export async function deleteExecutionReport(id: number, idWork: number) {
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {

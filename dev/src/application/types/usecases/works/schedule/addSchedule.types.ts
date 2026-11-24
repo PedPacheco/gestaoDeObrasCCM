@@ -1,5 +1,5 @@
 export type AddScheduleInput = {
-  idWork: number;
+  workId: number;
   dataProg: Date;
   startTime: string;
   finishTime: string;
@@ -32,5 +32,5 @@ export type AddScheduleInput = {
   resolutionDate2?: Date;
   validated?: boolean;
   confirmed?: boolean;
-  idUser?: number;
+  userId?: number;
 };

@@ -24,7 +24,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import {
   FINALIZED_SCHEDULE_STATUSES,
@@ -65,10 +64,10 @@ export class ValidateConfirmAndRejectSchedulesService {
         await this.validateAndConfirmSchedulesRepository.validate(data, tx);
 
         // Todas as obras envolvidas acompanham (antes só a da 1ª programação).
-        for (const idWork of this.distinctWorkIds(schedules)) {
+        for (const workId of this.distinctWorkIds(schedules)) {
           await this.statusFlowRepository.updateStatusWorks(
             WorkStatus.VALIDADA,
-            idWork,
+            workId,
             tx,
           );
         }
@@ -85,21 +84,11 @@ export class ValidateConfirmAndRejectSchedulesService {
       throw new BadRequestException('Nenhuma programação para ser confirmada');
     }
 
-    const works = await this.loadSchedules(
+    const schedules = await this.loadSchedules(
       confirmedSchedules.map((item) => item.id),
     );
 
-    await this.assertPointByPointTransitionAllowed(works, true);
-
-    let schedules: WorkSchedule[];
-
-    try {
-      schedules = works.map((work) => WorkScheduleMapper.toDomain(work));
-    } catch (error: any) {
-      throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
-      );
-    }
+    await this.assertPointByPointTransitionAllowed(schedules, true);
 
     for (const schedule of schedules) {
       schedule.requireDpNumber();
@@ -112,10 +101,10 @@ export class ValidateConfirmAndRejectSchedulesService {
           tx,
         );
 
-        for (const idWork of this.distinctWorkIds(works)) {
+        for (const workId of this.distinctWorkIds(schedules)) {
           await this.statusFlowRepository.updateStatusWorks(
             WorkStatus.CONFIRMADA,
-            idWork,
+            workId,
             tx,
           );
         }
@@ -175,7 +164,7 @@ export class ValidateConfirmAndRejectSchedulesService {
     return schedules;
   }
 
-  private distinctWorkIds(schedules: { workId: number }[]): number[] {
+  private distinctWorkIds(schedules: WorkSchedule[]): number[] {
     return [...new Set(schedules.map((schedule) => schedule.workId))];
   }
 
@@ -186,7 +175,7 @@ export class ValidateConfirmAndRejectSchedulesService {
    *  - validar/confirmar exige ao menos um item programado.
    */
   private async assertPointByPointTransitionAllowed(
-    schedules: { id: number; workId: number; statusId: number }[],
+    schedules: WorkSchedule[],
     requireServices: boolean,
   ): Promise<void> {
     const works = await this.prisma.obras.findMany({

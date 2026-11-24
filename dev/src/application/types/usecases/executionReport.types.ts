@@ -6,7 +6,7 @@ export type CreateExecutionReportInput = Omit<ExecutionReportProps, 'files'> & {
 
 export type UpdateExecutionReportInput = Omit<
   ExecutionReportProps,
-  'idSchedule' | 'idWork' | 'files'
+  'idSchedule' | 'workId' | 'files'
 >;
 
 /** Formato atual da API (snake_case). Não mudar sem alinhar com o front. */

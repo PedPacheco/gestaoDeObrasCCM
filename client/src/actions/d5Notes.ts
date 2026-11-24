@@ -170,7 +170,7 @@ function getUserIdFromToken(token: string): number | null {
 }
 
 export async function RejectedD5Schedules(
-  idWork: number,
+  workId: number,
   data: {
     id: number;
     restrictionId: number;
@@ -182,7 +182,7 @@ export async function RejectedD5Schedules(
 
   try {
     const result = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/reprovar/${idWork}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/reprovar/${workId}`,
       {
         method: "PATCH",
         headers: {
@@ -202,7 +202,7 @@ export async function RejectedD5Schedules(
       };
     }
 
-    revalidatePath(`/notas-d5/${idWork}`);
+    revalidatePath(`/notas-d5/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {

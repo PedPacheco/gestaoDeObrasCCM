@@ -116,7 +116,7 @@ export const mockInsertPublicationRestrictions: InsertPublicationRestrictionsDTO
       responsibility: 'ENGENHARIA',
       responsibleName: 'Carlos Oliveira',
       restrictionStatus: 'ABERTA',
-      idUser: 1,
+      userId: 1,
     },
     {
       id: 2,
@@ -124,7 +124,7 @@ export const mockInsertPublicationRestrictions: InsertPublicationRestrictionsDTO
       responsibility: null,
       responsibleName: null,
       restrictionStatus: 'RESOLVIDA',
-      idUser: 1,
+      userId: 1,
     },
   ];
 
@@ -135,7 +135,7 @@ export const mockUpdatePublicationRestrictions: UpdatePublicationRestrictionsDTO
     responsibility: 'ENGENHARIA',
     responsibleName: 'Carlos Oliveira',
     restrictionStatus: 'ABERTA',
-    idUser: 1,
+    userId: 1,
   };
 
 export const mockUpdatePublicationRestrictionsWithResoltuionDate: UpdatePublicationRestrictionsDTO =
@@ -146,7 +146,7 @@ export const mockUpdatePublicationRestrictionsWithResoltuionDate: UpdatePublicat
     responsibleName: 'Carlos Oliveira',
     restrictionStatus: 'ABERTA',
     resolutionDate: '17-12-2025',
-    idUser: 1,
+    userId: 1,
   };
 
 export const mockGetRestrictionsFilters: GetRestrictionsDTO = {

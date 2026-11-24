@@ -1,15 +1,15 @@
 // components/services/AddServiceAccordion.tsx
 "use client";
 
-import { useState, useTransition } from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
-import { useFeedback } from "@/hooks/useFeedback";
-import { AddServiceForm } from "@/components/addServiceAccordion/addServiceForm";
 import { AddMaterialForm } from "@/components/addServiceAccordion/addMaterialForm";
-import { AddFamilyForm } from "./addFamilyForm";
+import { AddServiceForm } from "@/components/addServiceAccordion/addServiceForm";
 import { SERVICE_AND_MATERIAL_FAMILIES } from "@/constants/services/services";
+import { useFeedback } from "@/hooks/useFeedback";
+import { AddFamilyForm } from "./addFamilyForm";
 
 type MaterialOrService = "material" | "serviço" | "familia";
 
@@ -32,7 +32,7 @@ export type MaterialData = {
 };
 
 interface AddServiceAccordionProps {
-  idWork: number;
+  workId: number;
   title: string;
   services?: ServiceContract[];
   materials?: MaterialData[];
@@ -53,7 +53,7 @@ export type AddMaterialOrServiceFormState = {
 };
 
 export function AddServiceAccordion({
-  idWork,
+  workId,
   title,
   services,
   materials,
@@ -128,7 +128,7 @@ export function AddServiceAccordion({
         >
           {type === "serviço" ? (
             <AddServiceForm
-              idWork={idWork}
+              workId={workId}
               serviceContractData={services ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
@@ -148,7 +148,7 @@ export function AddServiceAccordion({
             />
           ) : type === "material" ? (
             <AddMaterialForm
-              idWork={idWork}
+              workId={workId}
               materialData={materials ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
@@ -167,7 +167,7 @@ export function AddServiceAccordion({
             />
           ) : (
             <AddFamilyForm
-              idWork={idWork}
+              workId={workId}
               serviceContractData={services ?? []}
               materialData={materials ?? []}
               points={options.points}

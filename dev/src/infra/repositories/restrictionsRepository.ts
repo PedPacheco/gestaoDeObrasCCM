@@ -187,7 +187,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     filters: ProcessedRestrictionsFilters,
   ): Promise<GetPublicationRestricionResponse> {
     const baseQuery = Prisma.sql`
-      FROM ${this.t('restricoes')} 
+      FROM ${this.t('obras')} 
       INNER JOIN ${this.t('municipios')}  
         ON municipios.id = obras.id_gpm
       INNER JOIN ${this.t('regionais')} 
@@ -278,7 +278,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
           status_restricao: item.restrictionStatus,
           observacao: item.observation,
           observacao_construcao: item.constructionObservation,
-          criado_por: item.idUser,
+          criado_por: item.userId,
         })),
       });
     });

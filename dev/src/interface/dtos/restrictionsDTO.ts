@@ -91,7 +91,7 @@ export class InsertPublicationRestrictionsDTO {
   constructionObservation?: string;
 
   @IsNumber()
-  idUser: number;
+  userId: number;
 }
 
 export class GetRestrictionsAdvancePartnerDTO {
@@ -152,5 +152,5 @@ export class UpdatePublicationRestrictionsDTO {
   constructionObservation?: string;
 
   @IsNumber()
-  idUser: number;
+  userId: number;
 }

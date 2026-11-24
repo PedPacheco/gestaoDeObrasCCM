@@ -62,7 +62,7 @@ export class ScheduleServicesDTO {
 export class AddServicesDTO {
   @IsNumber()
   @Type(() => Number)
-  idWork: number;
+  workId: number;
 
   @IsNumber()
   @Type(() => Number)

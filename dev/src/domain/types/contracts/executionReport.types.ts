@@ -8,7 +8,7 @@ export type EquipmentItem = {
 /** Entrada de ExecutionReport.create: horas em string (HH:mm), ficheiros por normalizar. */
 export type ExecutionReportProps = {
   idSchedule: number;
-  idWork: number;
+  workId: number;
   userId: number;
   supervisor: string;
   partialConnectionReleased: boolean;

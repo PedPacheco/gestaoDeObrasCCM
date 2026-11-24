@@ -15,7 +15,7 @@ export type ApplyAdditionalInput = {
 };
 
 export type AddServiceInput = {
-  idWork: number;
+  workId: number;
   idService: number;
   type?: 'M' | 'S';
   point: string;

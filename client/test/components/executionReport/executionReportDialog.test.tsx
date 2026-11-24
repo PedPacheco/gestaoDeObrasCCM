@@ -1,15 +1,15 @@
 // ExecutionReportDialog.test.tsx
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
+import { INITIAL_EXECUTION_REPORT } from "@/hooks/useExecutionServicesForm";
 import {
   executionReportSchema,
   validationExecutionService,
 } from "@/validations/validationExecutionServices";
-import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
-import { INITIAL_EXECUTION_REPORT } from "@/hooks/useExecutionServicesForm";
 
 // ─── Module Mocks ─────────────────────────────────────────────────────────────
 
@@ -94,7 +94,7 @@ function buildForm(overrides = {}) {
     },
     executionReportData: {
       id: 1,
-      idUser: 1,
+      userId: 1,
       supervisor: "Supervisor Teste",
       partialConnectionReleased: false,
       startTime: "08:00",
@@ -307,7 +307,7 @@ describe("ExecutionReportDialog", () => {
     it("chama handleSubmit quando o formulário parcial é válido", async () => {
       const form = buildForm();
 
-      const parsedData = { ...form.buildPayload(), idUser: "user-123" };
+      const parsedData = { ...form.buildPayload(), userId: "user-123" };
 
       const mockSchema = {
         safeParse: vi.fn(() => ({ success: true, data: parsedData })),
@@ -340,7 +340,7 @@ describe("ExecutionReportDialog", () => {
       await userEvent.click(screen.getByText("Salvar Execução"));
 
       expect(mockSchema.safeParse).toHaveBeenCalledWith(
-        expect.objectContaining({ idUser: "user-123" }),
+        expect.objectContaining({ userId: "user-123" }),
       );
     });
 

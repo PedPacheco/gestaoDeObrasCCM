@@ -1,16 +1,15 @@
 "use client";
 
-import React from "react";
-import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import { Breadcrumbs, Link, Typography } from "@mui/material";
 
 interface ScheduleTopbarProps {
   title: string;
-  idWork: number;
+  workId: number;
   date?: string;
 }
 
-export function ScheduleTopbar({ title, idWork, date }: ScheduleTopbarProps) {
+export function ScheduleTopbar({ title, workId, date }: ScheduleTopbarProps) {
   const today =
     date ??
     new Date().toLocaleDateString("pt-BR", {
@@ -29,7 +28,7 @@ export function ScheduleTopbar({ title, idWork, date }: ScheduleTopbarProps) {
           <Link
             underline="hover"
             color="text.secondary"
-            href={`/detalhes/${idWork}`}
+            href={`/detalhes/${workId}`}
             className="text-xs"
           >
             Detalhes da obra
@@ -37,7 +36,7 @@ export function ScheduleTopbar({ title, idWork, date }: ScheduleTopbarProps) {
           <Link
             underline="hover"
             color="text.secondary"
-            href={`/detalhes/${idWork}`}
+            href={`/detalhes/${workId}`}
             className="text-xs"
           >
             Programações

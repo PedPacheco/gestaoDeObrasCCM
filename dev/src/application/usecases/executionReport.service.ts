@@ -51,10 +51,10 @@ export class ExecutionReportService {
     private readonly logger: AppLogger,
   ) {}
 
-  async findByWorkId(idWork: number): Promise<ExecutionReportListItemOutput[]> {
-    if (!idWork) throw new BadRequestException('Id da obra não enviado');
+  async findByWorkId(workId: number): Promise<ExecutionReportListItemOutput[]> {
+    if (!workId) throw new BadRequestException('Id da obra não enviado');
     const reports =
-      await this.executionReportRepository.findByWorkIdentifier(idWork);
+      await this.executionReportRepository.findByWorkIdentifier(workId);
     return reports.map(toExecutionReportListItemOutput);
   }
 
@@ -129,12 +129,12 @@ export class ExecutionReportService {
       const executionReport = this.buildForUpdate(
         idExecutionReport,
         {
-          idWork: existing.workId,
+          workId: existing.workId,
           idSchedule: existing.scheduleId,
           ...data,
           files: newFiles ?? currentFiles, // depois do spread, para não ser sobreposto
         },
-        schedule.scheduledFinishTime, // ⚠ muda quando o IFindScheduleByIdRepository for refatorado
+        schedule.finishTime, // ⚠ muda quando o IFindScheduleByIdRepository for refatorado
       );
 
       await this.executionReportRepository.update(

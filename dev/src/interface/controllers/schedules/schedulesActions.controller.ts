@@ -44,9 +44,9 @@ export class SchedulesActionsController {
   @Post()
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async addSchedules(@Body() schedulesData: SchedulesDataDTO, @Req() req: any) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
-    const data = { ...schedulesData, idUser };
+    const data = { ...schedulesData, userId };
 
     const id = await this.handleAddScheduleService.add(data);
 
@@ -63,13 +63,13 @@ export class SchedulesActionsController {
     @Body() schedulesData: CreateScheduleWithServicesDTO,
     @Req() req: any,
   ) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
     const data = {
       ...schedulesData,
       schedule: {
         ...schedulesData.schedule,
-        idUser,
+        userId,
       },
     };
 
@@ -139,9 +139,9 @@ export class SchedulesActionsController {
       permission = req.insufficientPermission;
     }
 
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
-    const data = { id, idUser, ...schedulesData };
+    const data = { id, userId, ...schedulesData };
 
     await this.handleSchedulesUpdateService.newUpdate(data, permission);
 

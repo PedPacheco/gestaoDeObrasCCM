@@ -16,14 +16,14 @@ import {
 } from '@nestjs/common';
 
 import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
+import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from '../dtos/restrictionsDTO';
-import {
-  AreaEditGuard,
-  AreaViewGuard,
-} from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;

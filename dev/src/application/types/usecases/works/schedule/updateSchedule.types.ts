@@ -1,6 +1,6 @@
 export type UpdateSchedulesInput = {
   id: number;
-  idWork: number;
+  workId: number;
   dataProg: Date;
   startTime: string;
   finishTime: string;

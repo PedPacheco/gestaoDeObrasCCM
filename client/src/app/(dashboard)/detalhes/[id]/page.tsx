@@ -6,10 +6,10 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import NewTabPanel from "@/components/details/workDetails/tabPanel/newTabPanel";
+import OldTabPanel from "@/components/details/workDetails/tabPanel/oldTabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { formatPercentage } from "@/utils/formatValue";
-import OldTabPanel from "@/components/details/workDetails/tabPanel/oldTabPanel";
 
 dayjs.extend(utc);
 
@@ -149,7 +149,7 @@ export default async function Details({ params }: DetailsParams) {
         <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
-            idWork={data.id}
+            workId={data.id}
             formattedData={formattedData}
             options={options}
           />

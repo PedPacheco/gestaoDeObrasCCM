@@ -18,6 +18,7 @@ const EXPECTED_ROUTES = [
   'GET /exportacao/metas',
 
   'GET /exportacao/notas-d5',
+
   'GET /exportacao/obras-carteira',
   'GET /exportacao/obras-carteira-bi',
   'GET /exportacao/obras-executadas',
@@ -25,6 +26,7 @@ const EXPECTED_ROUTES = [
   'GET /exportacao/obras-multas',
   'GET /exportacao/ordens',
   'GET /exportacao/programacao',
+  'GET /exportacao/programacao/notas-d5',
   'GET /exportacao/programacoes-bi',
   'GET /exportacao/publicacoes',
   'GET /exportacao/relatorio-execucao',

@@ -4,7 +4,7 @@ import {
 } from 'src/interface/dtos/scheduleDTO';
 
 export const mockNewUpdateSchedulesService: NewSchedulesDataDTO = {
-  idWork: 3146044,
+  workId: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
   equipment: undefined,
@@ -31,8 +31,8 @@ export const mockNewUpdateSchedulesService: NewSchedulesDataDTO = {
 
 export const mockUpdateSchedulesService = {
   id: 1,
-  idUser: 1,
-  idWork: 3146044,
+  userId: 1,
+  workId: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
   exec: undefined,
@@ -64,10 +64,10 @@ export const mockUpdateSchedulesService = {
   resolutionDate2: null,
 };
 
-export const mockUpdateSchedulesServiceWithoutIdWork = {
+export const mockUpdateSchedulesServiceWithoutWorkId = {
   id: 1,
-  idUser: 1,
-  idWork: undefined,
+  userId: 1,
+  workId: undefined,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
   exec: undefined,
@@ -115,7 +115,7 @@ export const mockUpdateSchedulesServiceFormattedData = {
 
 export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
   updateData: {
-    idWork: 20283,
+    workId: 20283,
     chi: 32324,
     dataProg: new Date('2025-06-13'),
     equipment: 'gdsgsfgsd',

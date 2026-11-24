@@ -53,7 +53,7 @@ export const toExecutionReportPersistence = (report: ExecutionReport) => {
   return {
     id_usuario: s.userId,
     modificado_por: s.userId,
-    id_obra: s.idWork,
+    id_obra: s.workId,
     id_programacao: s.idSchedule,
     supervisor: s.supervisor,
     liberado_ligacao_parcial: s.partialConnectionReleased,

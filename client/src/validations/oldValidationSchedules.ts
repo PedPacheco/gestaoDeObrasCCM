@@ -205,7 +205,7 @@ export const OldEquipmentItemSchema = z.object({
 export const OldExecutionReportSchema = z
   .object({
     id: z.number(),
-    idUser: z.number(),
+    userId: z.number(),
     supervisor: z.string().min(1, "Supervisor obrigatório"),
     partialConnectionReleased: z.boolean(),
     startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato HH:mm"),

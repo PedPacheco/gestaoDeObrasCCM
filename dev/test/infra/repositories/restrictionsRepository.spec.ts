@@ -331,7 +331,7 @@ describe('RestrictionsRepository', () => {
           responsibility: 'Test Company',
           responsibleName: 'Test User',
           restrictionStatus: 'Active',
-          idUser: 1,
+          userId: 1,
         },
       ];
 
@@ -432,7 +432,7 @@ describe('RestrictionsRepository', () => {
         responsibility: 'Company',
         responsibleName: 'User',
         restrictionStatus: 'Pendente',
-        idUser: 1,
+        userId: 1,
       };
 
       const error = new Error('Record not found');

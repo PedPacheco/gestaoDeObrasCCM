@@ -2,16 +2,16 @@ import { ValidationError } from 'src/domain/errors/domain.error';
 import { BaseSchedule, BaseScheduleProps } from './baseSchedule.entity';
 
 export interface WorkScheduleProps extends BaseScheduleProps {
-  idWork: number;
+  workId: number;
 
   // Estreitados: obrigatórios em obras
   startTime: Date;
   finishTime: Date;
 
   equipment?: string;
-  idScheduleStatus?: number;
+  statusId?: number;
   observationRestriction?: string;
-  idUser?: number;
+  userId?: number;
 
   // Restrição de programação 1
   idProgRestriction1?: number;
@@ -35,11 +35,11 @@ export class WorkSchedule extends BaseSchedule {
   declare readonly startTime: Date;
   declare readonly finishTime: Date;
 
-  readonly idWork: number;
+  readonly workId: number;
   readonly equipment?: string;
-  readonly idScheduleStatus: number;
+  readonly statusId: number;
   readonly observationRestriction?: string;
-  readonly idUser?: number;
+  readonly userId?: number;
 
   readonly idProgRestriction1: number;
   readonly responsibilityProg?: string;
@@ -58,12 +58,12 @@ export class WorkSchedule extends BaseSchedule {
   constructor(props: WorkScheduleProps) {
     super(props);
 
-    this.idWork = props.idWork;
+    this.workId = props.workId;
     this.equipment = props.equipment;
-    this.idScheduleStatus = props.idScheduleStatus ?? 1;
+    this.statusId = props.statusId ?? 1;
 
     this.observationRestriction = props.observationRestriction;
-    this.idUser = props.idUser;
+    this.userId = props.userId;
 
     this.idProgRestriction1 = props.idProgRestriction1 ?? 1;
     this.responsibilityProg = props.responsibilityProg;
@@ -83,7 +83,7 @@ export class WorkSchedule extends BaseSchedule {
   }
 
   protected validateSpecific(): void {
-    if (!this.idWork || this.idWork <= 0) {
+    if (!this.workId || this.workId <= 0) {
       throw new ValidationError('ID da obra é obrigatório');
     }
 
@@ -91,7 +91,7 @@ export class WorkSchedule extends BaseSchedule {
       throw new ValidationError('Horário de início e fim são obrigatórios');
     }
 
-    if (this.idScheduleStatus <= 0) {
+    if (this.statusId <= 0) {
       throw new ValidationError('Status da programação inválido');
     }
   }
@@ -114,12 +114,12 @@ export class WorkSchedule extends BaseSchedule {
       startTime: this.startTime,
       finishTime: this.finishTime,
 
-      idWork: this.idWork,
+      workId: this.workId,
       equipment: this.equipment,
-      idScheduleStatus: this.idScheduleStatus,
+      statusId: this.statusId,
       rejected: this.rejected,
       observationRestriction: this.observationRestriction,
-      idUser: this.idUser,
+      userId: this.userId,
 
       idProgRestriction1: this.idProgRestriction1,
       responsibilityProg: this.responsibilityProg,

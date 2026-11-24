@@ -30,7 +30,7 @@ interface ManageScheduleProps {
   scheduledServicesHistory: any[];
   isInsert: boolean;
   options: any;
-  idWork: number;
+  workId: number;
   idStatusWork: number;
   idSchedule: number | null;
   statusSchedule: string;
@@ -51,7 +51,7 @@ export function NewManageSchedule({
   scheduledServicesHistory,
   isInsert,
   options,
-  idWork,
+  workId,
   idStatusWork,
   idSchedule,
   statusSchedule,
@@ -72,14 +72,14 @@ export function NewManageSchedule({
 
   const [isPending, startTransition] = useTransition();
 
-  const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
+  const scheduleForm = useScheduleForm({ data: scheduleData, options, workId });
 
   const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
 
   const handleCancel = useCallback(() => {
-    router.replace(`/detalhes/${idWork}`);
+    router.replace(`/detalhes/${workId}`);
     router.refresh();
-  }, [router, idWork]);
+  }, [router, workId]);
 
   const handleSaveSchedule = useCallback(async () => {
     const validationResult = schedulesSchema().safeParse(scheduleForm.formData);
@@ -118,7 +118,7 @@ export function NewManageSchedule({
           return;
         }
 
-        showSuccess(response.message, () => router.push(`/detalhes/${idWork}`));
+        showSuccess(response.message, () => router.push(`/detalhes/${workId}`));
       } catch {
         showError("Erro inesperado ao salvar a programação");
       }
@@ -129,7 +129,7 @@ export function NewManageSchedule({
     showError,
     showSuccess,
     router,
-    idWork,
+    workId,
   ]);
 
   const clearScheduledServices = () => {
@@ -150,7 +150,7 @@ export function NewManageSchedule({
         serviceTeams={serviceTeams}
         scheduledServicesHistory={scheduledServicesHistory}
         options={options}
-        idWork={idWork}
+        workId={workId}
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
         statusSchedule={statusSchedule}
@@ -165,7 +165,7 @@ export function NewManageSchedule({
   return (
     <div className="h-screen w-full overflow-hidden bg-gray-50">
       <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
-        <ScheduleTopbar title="Adicionar programação" idWork={idWork} />
+        <ScheduleTopbar title="Adicionar programação" workId={workId} />
 
         <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-[1fr_30%]">
           <main className="flex flex-col items-center gap-5 overflow-y-auto py-4">
@@ -188,7 +188,7 @@ export function NewManageSchedule({
                   statusSchedule={statusSchedule}
                   onError={showError}
                   onSuccess={showSuccess}
-                  workId={idWork}
+                  workId={workId}
                   hasOrdemDcim={hasOrdemDcim}
                 />
               </div>
@@ -198,7 +198,7 @@ export function NewManageSchedule({
           <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-2">
             <div className="grid grid-cols-1 px-2 gap-2 mb-2">
               <AddServiceAccordion
-                idWork={Number(idWork)}
+                workId={Number(workId)}
                 title="Adicionar novo serviço"
                 services={serviceContractData}
                 type="serviço"
@@ -207,7 +207,7 @@ export function NewManageSchedule({
               />
 
               <AddServiceAccordion
-                idWork={Number(idWork)}
+                workId={Number(workId)}
                 title="Adicionar novo material"
                 materials={materialsData}
                 type="material"
@@ -216,7 +216,7 @@ export function NewManageSchedule({
               />
 
               <AddServiceAccordion
-                idWork={Number(idWork)}
+                workId={Number(workId)}
                 title="Adicionar nova família"
                 services={serviceContractData}
                 materials={materialsData}

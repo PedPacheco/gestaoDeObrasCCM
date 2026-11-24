@@ -967,7 +967,7 @@ describe('WorksServicesService', () => {
     const buildDto = (overrides: Partial<AddServicesDTO> = {}) =>
       ({
         idService: 70,
-        idWork: WORK_ID,
+        workId: WORK_ID,
         operation: 'OP-1',
         point: 'P1',
         operationDescription: 'Instalação',

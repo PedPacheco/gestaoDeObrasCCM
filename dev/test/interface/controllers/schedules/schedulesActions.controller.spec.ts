@@ -3,21 +3,21 @@ import { validate } from 'class-validator';
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
 import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
-import { UsersService } from 'src/application/usecases/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 import {
   mockNewUpdateSchedulesService,
   mockUpdateSchedulesController,
 } from '../../../mocks/schedules/mockUpdateSchedules';
-import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
   let scheduleActionsController: SchedulesActionsController;
@@ -96,7 +96,7 @@ describe('ScheduleActionsController', () => {
     const result = await scheduleActionsController.newAddSchedules(
       {
         schedule: {
-          idWork: 3146044,
+          workId: 3146044,
           dataProg: date,
           startTime: '08:00',
           finishTime: '07:00',
@@ -126,7 +126,7 @@ describe('ScheduleActionsController', () => {
     });
     expect(handleAddScheduleService.newAdd).toHaveBeenCalledWith({
       schedule: {
-        idWork: 3146044,
+        workId: 3146044,
         dataProg: date,
         startTime: '08:00',
         finishTime: '07:00',
@@ -134,7 +134,7 @@ describe('ScheduleActionsController', () => {
         prog: 100,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
-        idUser: 1,
+        userId: 1,
       },
       services: [
         {
@@ -156,7 +156,7 @@ describe('ScheduleActionsController', () => {
 
     const result = await scheduleActionsController.addSchedules(
       {
-        idWork: 3146044,
+        workId: 3146044,
         dataProg: date,
         startTime: '08:00',
         finishTime: '07:00',
@@ -173,7 +173,7 @@ describe('ScheduleActionsController', () => {
       message: 'Programação inserida com sucesso',
     });
     expect(handleAddScheduleService.add).toHaveBeenCalledWith({
-      idWork: 3146044,
+      workId: 3146044,
       dataProg: date,
       startTime: '08:00',
       finishTime: '07:00',
@@ -181,7 +181,7 @@ describe('ScheduleActionsController', () => {
       prog: 100,
       idProgRestriction1: 1,
       idProgRestriction2: 1,
-      idUser: 1,
+      userId: 1,
     });
   });
 
@@ -266,7 +266,7 @@ describe('ScheduleActionsController', () => {
       expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
         {
           id: 1,
-          idUser: 1,
+          userId: 1,
           ...mockNewUpdateSchedulesService,
         },
         true,
@@ -289,7 +289,7 @@ describe('ScheduleActionsController', () => {
       expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
         {
           id: 1,
-          idUser: 1,
+          userId: 1,
           ...mockNewUpdateSchedulesService,
         },
         undefined,
@@ -310,9 +310,10 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call validate and return message', async () => {
-    vi
-      .spyOn(validateConfirmAndRejectSchedulesService, 'validate')
-      .mockResolvedValue();
+    vi.spyOn(
+      validateConfirmAndRejectSchedulesService,
+      'validate',
+    ).mockResolvedValue();
 
     const result = await scheduleActionsController.validateSchedules([
       { id: 2, validate: true },
@@ -328,9 +329,10 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call confirm and return message', async () => {
-    vi
-      .spyOn(validateConfirmAndRejectSchedulesService, 'confirm')
-      .mockResolvedValue();
+    vi.spyOn(
+      validateConfirmAndRejectSchedulesService,
+      'confirm',
+    ).mockResolvedValue();
 
     const result = await scheduleActionsController.confirmSchedules([
       { id: 2, confirm: true },
@@ -346,9 +348,10 @@ describe('ScheduleActionsController', () => {
   });
 
   it('should call reject and return message', async () => {
-    vi
-      .spyOn(validateConfirmAndRejectSchedulesService, 'reject')
-      .mockResolvedValue();
+    vi.spyOn(
+      validateConfirmAndRejectSchedulesService,
+      'reject',
+    ).mockResolvedValue();
 
     const result = await scheduleActionsController.rejectSchedules([
       {
@@ -371,14 +374,14 @@ describe('ScheduleActionsController', () => {
   describe('DTO Validation', () => {
     it('should pass validation with correct values', async () => {
       const payload = {
-        idWork: 1,
+        workId: 1,
         dataProg: new Date(),
         startTime: '08:00',
         finishTime: '10:00',
         prog: 50,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
-        idUser: 1,
+        userId: 1,
       };
 
       const dto = plainToInstance(SchedulesDataDTO, payload);
@@ -389,7 +392,7 @@ describe('ScheduleActionsController', () => {
 
     it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
       const input = {
-        idWork: 1,
+        workId: 1,
         dataProg: '2025-06-10',
         startTime: '08:00',
         finishTime: '09:00',
@@ -397,7 +400,7 @@ describe('ScheduleActionsController', () => {
         prog: 1,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
-        idUser: 1,
+        userId: 1,
       };
 
       const dtoAdd = plainToInstance(SchedulesDataDTO, input);

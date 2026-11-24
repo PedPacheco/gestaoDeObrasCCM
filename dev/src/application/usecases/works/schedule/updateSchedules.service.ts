@@ -39,7 +39,7 @@ export class UpdateSchedulesService {
       const executionValues =
         await this.updateSchedulesRepository.findExecutionOfSchedules(
           data.id,
-          data.idWork,
+          data.workId,
         );
 
       const executed = executionValues.reduce(
@@ -75,14 +75,14 @@ export class UpdateSchedulesService {
 
       if (statusId === 7) {
         await this.statusFlowRepository.updateScheduleStatus(1, data.id, tx);
-        await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+        await this.statusFlowRepository.updateStatusWorks(43, data.workId, tx);
       }
 
       return {
         success: true,
         scheduleId: schedule.id,
         scheduleFinishTime: schedule.finishTime,
-        idWork: schedule.idWork,
+        workId: schedule.workId,
       };
     } catch (error: unknown) {
       const err = error as { message: string };

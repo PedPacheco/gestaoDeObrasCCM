@@ -149,10 +149,10 @@ export class WorksServicesService {
     data: AddServiceInput,
     type: 'service' | 'material',
   ): Promise<void> {
-    const { idService, operationDescription, point, idWork } = data;
+    const { idService, operationDescription, point, workId } = data;
 
     const items =
-      await this.workServicesQueryRepository.getAllServicesOfWork(idWork);
+      await this.workServicesQueryRepository.getAllServicesOfWork(workId);
 
     const itemsMap = new Map(
       items.map((item) => [
@@ -170,7 +170,7 @@ export class WorksServicesService {
     await this.prisma.$transaction(async (tx) => {
       try {
         await this.workServicesRepository.addItem(data, type, tx);
-        await this.progress.recomputeWorkProgress(idWork, tx); // ALTERADO
+        await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
       } catch (error) {
         this.logger.error(error);
         throw error;

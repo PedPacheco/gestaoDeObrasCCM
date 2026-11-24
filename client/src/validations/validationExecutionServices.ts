@@ -95,7 +95,7 @@ function checkRemovedEquipment(ctx: any) {
 export const schedulesSchemaV2 = (isPartial?: boolean) =>
   z
     .object({
-      idWork: z.number(),
+      workId: z.number(),
       idSchedule: z.number().nullable(),
       idExecutionRestriction: z.preprocess(
         (val) => Number(val),
@@ -149,7 +149,7 @@ export const equipmentItemSchemaV2 = z.object({
 export const executionReportSchema = z
   .object({
     id: z.number(),
-    idUser: z.number(),
+    userId: z.number(),
     supervisor: z.string().min(1, "Supervisor obrigatório"),
     partialConnectionReleased: z.boolean(),
     startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato HH:mm"),

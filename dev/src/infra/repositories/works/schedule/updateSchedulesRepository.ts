@@ -35,12 +35,12 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
 
   async findExecutionOfSchedules(
     id: number,
-    idWork: number,
+    workId: number,
   ): Promise<ScheduleExecutionData[]> {
     try {
       const executed = await this.prisma.programacoes.findMany({
         where: {
-          id_obra: idWork,
+          id_obra: workId,
           id: {
             not: id,
           },

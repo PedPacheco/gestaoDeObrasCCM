@@ -11,7 +11,7 @@ export interface IUpdateSchedulesRepository {
   ): Promise<void>;
   findExecutionOfSchedules(
     id: number,
-    idWork: number,
+    workId: number,
   ): Promise<ScheduleExecutionData[]>;
 }
 

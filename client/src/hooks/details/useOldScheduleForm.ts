@@ -3,21 +3,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { EquipmentData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/EquipmentPanel";
+import { OldExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { ScheduleFormDialogProps } from "@/components/details/workDetails/modals/scheduleDialog/dialog";
 import {
   OldMapScheduleToForm,
   transformExecutionReport,
 } from "@/utils/transform";
-import { OldExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { OldValidationSchedulesSchema } from "@/validations/oldValidationSchedules";
-import { EquipmentData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/EquipmentPanel";
 
 export const staticValidationSchema = OldValidationSchedulesSchema(null, true);
 export type FormData = z.infer<typeof staticValidationSchema>;
 
 export const INITIAL_EXECUTION_REPORT: OldExecutionReportData = {
   id: 0,
-  idUser: 0,
+  userId: 0,
   supervisor: "",
   partialConnectionReleased: false,
   startTime: "00:00",

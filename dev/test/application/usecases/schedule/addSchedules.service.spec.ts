@@ -9,7 +9,7 @@ import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockAddSchedulesServiceData,
   mockAddSchedulesServiceDataNotTimeValid,
-  mockAddSchedulesServiceDataWithoutIdWork,
+  mockAddSchedulesServiceDataWithoutWorkId,
   mockAddSchedulesServiceDataWithWrongProg,
   mockAddSchedulesServiceFormattedData,
 } from '../../../mocks/schedules/mockAddScheduleService';
@@ -64,14 +64,14 @@ describe('AddSchedulesService', () => {
     it('Should call method add and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
       ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
       ).rejects.toThrow('ID da obra é obrigatório');

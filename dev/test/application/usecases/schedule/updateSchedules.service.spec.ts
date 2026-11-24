@@ -12,7 +12,7 @@ import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
-  mockUpdateSchedulesServiceWithoutIdWork,
+  mockUpdateSchedulesServiceWithoutWorkId,
 } from '../../../mocks/schedules/mockUpdateSchedules';
 
 describe('UpdateSchedulesService', () => {
@@ -149,14 +149,14 @@ describe('UpdateSchedulesService', () => {
     it('Should call method update and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
       ).rejects.toThrow(ValidationError);
 
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
       ).rejects.toThrow('ID da obra é obrigatório');

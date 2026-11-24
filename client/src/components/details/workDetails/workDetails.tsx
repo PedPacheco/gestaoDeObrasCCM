@@ -52,7 +52,7 @@ const RestrictionDrawer = dynamic(
 interface WorkDetailsProps {
   data: WorkData;
   formattedData: FormattedData;
-  idWork: number;
+  workId: number;
   options: any;
 }
 
@@ -166,7 +166,7 @@ function hasRestrictedAccess(statusId: number, permission?: string): boolean {
 
 export function WorkDetails({
   data,
-  idWork,
+  workId,
   formattedData,
   options,
 }: WorkDetailsProps) {
@@ -273,7 +273,7 @@ export function WorkDetails({
           }),
         };
 
-        const response = await UpdateWork(payload, idWork);
+        const response = await UpdateWork(payload, workId);
 
         if (!response.success) {
           showError(response.error || "Erro ao salvar alterações");
@@ -291,7 +291,7 @@ export function WorkDetails({
     changedFields,
     editableData.id_status,
     suspensionReason,
-    idWork,
+    workId,
     modals,
     showError,
     showSuccess,
@@ -346,7 +346,7 @@ export function WorkDetails({
                 styled={FEASIBILITY_ACTION_COLOR[workflowStatus]}
                 onClick={() =>
                   router.push(
-                    `/viabilidade/${idWork}?status=${workflowStatus}&ponto_a_ponto=${programacao_ponto_a_ponto}`,
+                    `/viabilidade/${workId}?status=${workflowStatus}&ponto_a_ponto=${programacao_ponto_a_ponto}`,
                   )
                 }
                 disabled={
@@ -505,7 +505,7 @@ export function WorkDetails({
         data={null}
         onSave={handleSavePublicationRestriction}
         restrictionsValues={publicationRestrictions}
-        idWork={Number(data.id)}
+        workId={Number(data.id)}
         idParceira={Number(data.id_turma)}
         isInsert={true}
       />

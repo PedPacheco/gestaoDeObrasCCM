@@ -10,10 +10,10 @@ import { workIdentifierWhere } from 'src/infra/shared/workIdentifierWhere';
 export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(idWork: number): Promise<RejectionOfSchedulesGetResponse[]> {
+  async get(workId: number): Promise<RejectionOfSchedulesGetResponse[]> {
     return await this.prisma.programacoes_reprovacoes.findMany({
       where: {
-        obras: workIdentifierWhere(idWork),
+        obras: workIdentifierWhere(workId),
       },
       select: {
         data_prog: true,

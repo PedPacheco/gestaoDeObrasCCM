@@ -383,7 +383,7 @@ export class FinalizeServicesService {
   ): FinalizeServicesData {
     return {
       id: scheduleId,
-      idWork: workId,
+      workId,
       dataProg: scheduleDate,
       prog: scheduleTotals.prog,
       exec: scheduleTotals.exec,
@@ -409,7 +409,7 @@ export class FinalizeServicesService {
       await this.executionReportService.create(
         {
           idSchedule: finalizationData.id,
-          idWork: workId,
+          workId: workId,
           ...executionReportData,
         },
         finalizationData.dataProg,

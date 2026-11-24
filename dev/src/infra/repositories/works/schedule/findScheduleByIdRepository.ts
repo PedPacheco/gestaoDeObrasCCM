@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 
 import { IFindScheduleByIdRepository } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
-import { ScheduleState } from 'src/domain/types';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 
 import { Prisma } from 'src/infra/generated/prisma/client';
-import { toScheduleSnapshot } from 'src/infra/mappers/works/schedule/findById.mapper';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SCHEDULE_SNAPSHOT_SELECT } from 'src/infra/types/repositories/schedule/findScheduleById.types';
 
@@ -15,12 +15,12 @@ export class FindScheduleByIdRepository implements IFindScheduleByIdRepository {
   async findById(
     scheduleId: number,
     tx?: Prisma.TransactionClient,
-  ): Promise<ScheduleState | null> {
+  ): Promise<WorkSchedule | null> {
     const client = tx ?? this.prisma;
     const row = await client.programacoes.findUnique({
       where: { id: scheduleId },
       select: SCHEDULE_SNAPSHOT_SELECT,
     });
-    return row && toScheduleSnapshot(row);
+    return row && WorkScheduleMapper.toConfirmation(row);
   }
 }

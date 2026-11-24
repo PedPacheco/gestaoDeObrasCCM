@@ -31,8 +31,8 @@ export class ExecutionReportController {
 
   @Get(':id')
   @UseGuards(AreaViewGuard())
-  async findByWorkId(@Param('id', ParseIntPipe) idWork: number): Promise<any> {
-    const response = await this.executionReportService.findByWorkId(idWork);
+  async findByWorkId(@Param('id', ParseIntPipe) workId: number): Promise<any> {
+    const response = await this.executionReportService.findByWorkId(workId);
 
     return {
       statusCode: HttpStatus.OK,

@@ -134,8 +134,8 @@ export class ScheduleController {
 
   @Get('reprovacoes/:id')
   @UseGuards(AreaViewGuard())
-  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
-    const response = await this.rejectionsOfSchedulesService.get(idWork);
+  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) workId: number) {
+    const response = await this.rejectionsOfSchedulesService.get(workId);
 
     return {
       statusCode: HttpStatus.OK,

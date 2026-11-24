@@ -248,7 +248,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       Prisma.sql`WHERE data_prog >= DATE_TRUNC('year', CURRENT_DATE)::date
       AND (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
       AND ${this.excludedPartnersFilter()}`,
-      filters,
+      { ...filters, dataFinal: undefined, dataInicial: undefined },
     );
 
     const query = Prisma.sql`
@@ -282,7 +282,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
           SUM(COALESCE(ce."out", 0)) * 5 AS cap_10,
           SUM(COALESCE(ce.nov, 0)) * 5   AS cap_11,
           SUM(COALESCE(ce.dez, 0)) * 5   AS cap_12
-        FROM ${this.executionCapacity}
+        FROM ${this.executionCapacity} AS ce
         JOIN ${this.partners} t ON t.id = ce.id_turma
         WHERE ce.ano = TO_CHAR(CURRENT_DATE, 'YYYY')
         GROUP BY t.turma

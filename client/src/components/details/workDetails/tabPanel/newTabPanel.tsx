@@ -6,17 +6,17 @@ import { storeScheduleDataAction } from "@/actions/services";
 import NewModalsManager, {
   NewModalsManagerRef,
 } from "@/components/services/modalsManager";
-import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
+import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
+import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
 import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
+import { ServicesPanelItem } from "../panelItems/servicesPanelItem";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import TabActions from "./tabsActions";
-import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
-import { ServicesPanelItem } from "../panelItems/servicesPanelItem";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -94,7 +94,7 @@ export default function NewTabPanel({
     setRejectedSchedule,
   } = useScheduleHandlers({
     data,
-    idWork: id,
+    workId: id,
   });
 
   useEffect(() => {

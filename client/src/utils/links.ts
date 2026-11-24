@@ -220,6 +220,7 @@ export const links: Link[] = [
         name: "Equipes para Contingência",
         href: "/programacao/recursos-contingencia",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8],
       },
     ],
   },

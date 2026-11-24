@@ -1,639 +1,569 @@
-import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
-import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IValidateSchedulesRepository';
-import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  FINALIZED_SCHEDULE_STATUSES,
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
-import type { Mock, MockInstance } from 'vitest';
-
 import {
   BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from 'src/infra/generated/prisma/client';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
+import type {
+  ConfirmSchedulesDTO,
+  RejectScheduleDTO,
+  ValidateSchedulesDTO,
+} from 'src/interface/dtos/scheduleDTO';
+import { WorkStatus } from 'src/utils/pointByPoint/serviceType.utils';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+// ajuste o caminho
 
-// ─── Constantes e helpers ────────────────────────────────────────────
-const OPEN_STATUS = ScheduleStatus.CONFIRMADA; // qualquer status NÃO finalizado
-const FINALIZED_STATUS = FINALIZED_SCHEDULE_STATUSES[0];
+// ---------------------------------------------------------------------------
+// Module mocks
+// ---------------------------------------------------------------------------
 
-const order = (fn: Mock) => fn.mock.invocationCallOrder[0];
+const { FINALIZED_STATUS, ACTIVE_STATUS } = vi.hoisted(() => ({
+  FINALIZED_STATUS: 99,
+  ACTIVE_STATUS: 1,
+}));
 
-const expectError = async (
-  promise: Promise<unknown>,
-  ErrorClass: new (...args: any[]) => Error,
-  message?: string,
-) => {
-  const error = await promise.then(
-    () => {
-      throw new Error('Expected promise to reject');
-    },
-    (e) => e,
-  );
-  expect(error).toBeInstanceOf(ErrorClass);
-  if (message) expect(error.message).toBe(message);
-};
+vi.mock('src/utils/pointByPoint/serviceType.utils', () => ({
+  WorkStatus: {
+    VALIDADA: 'VALIDADA',
+    CONFIRMADA: 'CONFIRMADA',
+    SERVICOS_REAGENDADOS: 'SERVICOS_REAGENDADOS',
+  },
+  FINALIZED_SCHEDULE_STATUSES: [FINALIZED_STATUS],
+}));
 
-type ScheduleRow = {
+vi.mock('src/infra/prisma/prisma.service', () => ({
+  PrismaService: class {},
+}));
+
+vi.mock(
+  'src/infra/repositories/works/schedule/findScheduleByIdRepository',
+  () => ({ FindScheduleByIdRepository: class {} }),
+);
+
+// ---------------------------------------------------------------------------
+// Test doubles & helpers
+// ---------------------------------------------------------------------------
+
+interface ScheduleStub {
   id: number;
   workId: number;
   statusId: number;
-};
+  requireDpNumber: Mock;
+}
 
-const buildSchedule = (
-  id: number,
-  workId: number,
-  statusId = OPEN_STATUS,
-): ScheduleRow => ({
-  id,
-  workId,
-  statusId,
+const tx = { __tx: 'transaction-client' };
+
+let validateRepo: { validate: Mock; confirm: Mock; reject: Mock };
+let statusFlowRepo: { updateStatusWorks: Mock };
+let findRepo: { findById: Mock };
+let prisma: {
+  $transaction: Mock;
+  obras: { findMany: Mock };
+  programacoes_servicos: { findMany: Mock };
+};
+let service: ValidateConfirmAndRejectSchedulesService;
+
+function makeSchedule(
+  overrides: Partial<ScheduleStub> & { id: number },
+): ScheduleStub {
+  return {
+    workId: 10,
+    statusId: ACTIVE_STATUS,
+    requireDpNumber: vi.fn(),
+    ...overrides,
+  };
+}
+
+const validateItem = (id: number, validate = true) =>
+  ({ id, validate }) as unknown as ValidateSchedulesDTO;
+
+const confirmItem = (id: number, confirm = true) =>
+  ({ id, confirm }) as unknown as ConfirmSchedulesDTO;
+
+const rejectItem = (id: number, extra: Record<string, unknown> = {}) =>
+  ({ id, ...extra }) as unknown as RejectScheduleDTO;
+
+/** Makes findById resolve the given schedules and null for any other id. */
+function givenSchedules(...schedules: ScheduleStub[]) {
+  const byId = new Map(schedules.map((s) => [s.id, s]));
+  findRepo.findById.mockImplementation(
+    async (id: number) => byId.get(id) ?? null,
+  );
+}
+
+/** Flags the given work ids as point-by-point; every other work is traditional. */
+function givenPointByPointWorks(...workIds: number[]) {
+  prisma.obras.findMany.mockImplementation(
+    async ({ where }: { where: { id: { in: number[] } } }) =>
+      where.id.in.map((id) => ({
+        id,
+        programacao_ponto_a_ponto: workIds.includes(id),
+      })),
+  );
+}
+
+function givenSchedulesWithServices(...scheduleIds: number[]) {
+  prisma.programacoes_servicos.findMany.mockResolvedValue(
+    scheduleIds.map((id) => ({ id_programacao: id })),
+  );
+}
+
+async function catchError(promise: Promise<unknown>): Promise<Error> {
+  try {
+    await promise;
+  } catch (error) {
+    return error as Error;
+  }
+  throw new Error('Expected the promise to reject, but it resolved');
+}
+
+beforeEach(() => {
+  validateRepo = {
+    validate: vi.fn().mockResolvedValue(undefined),
+    confirm: vi.fn().mockResolvedValue(undefined),
+    reject: vi.fn().mockResolvedValue(undefined),
+  };
+  statusFlowRepo = { updateStatusWorks: vi.fn().mockResolvedValue(undefined) };
+  findRepo = { findById: vi.fn().mockResolvedValue(null) };
+  prisma = {
+    $transaction: vi.fn(async (cb: (client: unknown) => Promise<unknown>) =>
+      cb(tx),
+    ),
+    obras: { findMany: vi.fn().mockResolvedValue([]) },
+    programacoes_servicos: { findMany: vi.fn().mockResolvedValue([]) },
+  };
+
+  service = new ValidateConfirmAndRejectSchedulesService(
+    validateRepo as never,
+    statusFlowRepo as never,
+    findRepo as never,
+    prisma as never,
+  );
 });
 
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
 describe('ValidateConfirmAndRejectSchedulesService', () => {
-  let service: ValidateConfirmAndRejectSchedulesService;
+  describe('validate', () => {
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+      ['an empty array', []],
+    ])(
+      'throws BadRequestException when the payload is %s',
+      async (_, payload) => {
+        const error = await catchError(service.validate(payload as never));
 
-  const mockTx = { __tx: true } as unknown as Prisma.TransactionClient;
+        expect(error).toBeInstanceOf(BadRequestException);
+        expect(error.message).toBe(
+          'Nenhuma programação foi enviada para ser validada',
+        );
+        expect(findRepo.findById).not.toHaveBeenCalled();
+      },
+    );
 
-  const mockPrisma = {
-    $transaction: vi.fn((cb: (tx: Prisma.TransactionClient) => unknown) =>
-      cb(mockTx),
-    ),
-    obras: { findMany: vi.fn() },
-    programacoes_servicos: { findMany: vi.fn() },
-  };
+    it('throws BadRequestException when at least one schedule is not flagged as validated', async () => {
+      const error = await catchError(
+        service.validate([validateItem(1), validateItem(2, false)]),
+      );
 
-  const mockRepository = {
-    validate: vi.fn(),
-    confirm: vi.fn(),
-    reject: vi.fn(),
-  };
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Existe programações não validadas');
+      expect(findRepo.findById).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
 
-  const mockStatusFlowRepository = {
-    updateScheduleStatus: vi.fn(),
-    updateStatusWorks: vi.fn(),
-  };
+    it('throws NotFoundException listing every schedule id that does not exist', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
 
-  const mockFindScheduleByIdRepository = { findById: vi.fn() };
+      const error = await catchError(
+        service.validate([validateItem(1), validateItem(2), validateItem(3)]),
+      );
 
-  // ─── "Base de dados" em memória (reposta em cada teste) ────────────
-  // Programações 1 e 2 → obra 10; programação 3 → obra 20
-  let schedulesDb: Record<number, ScheduleRow>;
-  let pointByPointWorkIds: Set<number>;
-  let schedulesWithServices: Set<number>;
+      expect(error).toBeInstanceOf(NotFoundException);
+      expect(error.message).toBe('Programação não encontrada: 2, 3.');
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
 
-  // ─── Mapper de domínio ─────────────────────────────────────────────
-  let toDomainSpy: MockInstance;
-  let requireDpNumber: Mock;
+    it('validates the schedules and moves each distinct work to VALIDADA within a single transaction', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 2, workId: 10 }),
+        makeSchedule({ id: 3, workId: 20 }),
+      );
+      const payload = [validateItem(1), validateItem(2), validateItem(3)];
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ValidateConfirmAndRejectSchedulesService,
-        { provide: PrismaService, useValue: mockPrisma },
-        {
-          provide: VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
-          useValue: mockRepository,
-        },
-        { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
-        {
-          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
-          useValue: mockFindScheduleByIdRepository,
-        },
+      await expect(service.validate(payload)).resolves.toBeUndefined();
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(validateRepo.validate).toHaveBeenCalledWith(payload, tx);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenCalledTimes(2);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenNthCalledWith(
+        1,
+        WorkStatus.VALIDADA,
+        10,
+        tx,
+      );
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenNthCalledWith(
+        2,
+        WorkStatus.VALIDADA,
+        20,
+        tx,
+      );
+    });
+
+    it('skips the point-by-point guards when none of the works use point-by-point scheduling', async () => {
+      givenSchedules(makeSchedule({ id: 1, statusId: FINALIZED_STATUS }));
+      givenPointByPointWorks();
+
+      await expect(
+        service.validate([validateItem(1)]),
+      ).resolves.toBeUndefined();
+
+      expect(prisma.obras.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [10] } },
+        select: { id: true, programacao_ponto_a_ponto: true },
+      });
+      expect(prisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
+    });
+
+    it('does not open a transaction when a point-by-point guard fails', async () => {
+      givenSchedules(makeSchedule({ id: 1, statusId: FINALIZED_STATUS }));
+      givenPointByPointWorks(10);
+
+      const error = await catchError(service.validate([validateItem(1)]));
+
+      expect(error).toBeInstanceOf(ConflictException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('wraps repository failures inside the transaction in InternalServerErrorException', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+      validateRepo.validate.mockRejectedValue(new Error('db down'));
+
+      const error = await catchError(service.validate([validateItem(1)]));
+
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+      expect(statusFlowRepo.updateStatusWorks).not.toHaveBeenCalled();
+    });
+
+    it('wraps status flow failures in InternalServerErrorException', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+      statusFlowRepo.updateStatusWorks.mockRejectedValue(
+        new Error('status flow failed'),
+      );
+
+      const error = await catchError(service.validate([validateItem(1)]));
+
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  describe('confirm', () => {
+    it.each([
+      ['the payload is empty', []],
+      [
+        'no schedule is flagged with confirm=true',
+        [confirmItem(1, false), confirmItem(2, false)],
       ],
-    }).compile();
+    ])('throws BadRequestException when %s', async (_, payload) => {
+      const error = await catchError(service.confirm(payload));
 
-    service = module.get(ValidateConfirmAndRejectSchedulesService);
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Nenhuma programação para ser confirmada');
+      expect(findRepo.findById).not.toHaveBeenCalled();
+    });
 
-    schedulesDb = {
-      1: buildSchedule(1, 10),
-      2: buildSchedule(2, 10),
-      3: buildSchedule(3, 20),
-    };
-    pointByPointWorkIds = new Set(); // por omissão: tudo tradicional
-    schedulesWithServices = new Set([1, 2, 3]);
-
-    mockFindScheduleByIdRepository.findById.mockImplementation(
-      async (id: number) => schedulesDb[id] ?? null,
-    );
-
-    mockPrisma.obras.findMany.mockImplementation(async ({ where }: any) =>
-      where.id.in.map((id: number) => ({
-        id,
-        programacao_ponto_a_ponto: pointByPointWorkIds.has(id),
-      })),
-    );
-
-    mockPrisma.programacoes_servicos.findMany.mockImplementation(
-      async ({ where }: any) =>
-        where.id_programacao.in
-          .filter((id: number) => schedulesWithServices.has(id))
-          .map((id: number) => ({ id_programacao: id })),
-    );
-
-    requireDpNumber = vi.fn();
-    toDomainSpy = vi
-      .spyOn(WorkScheduleMapper, 'toDomain')
-      .mockImplementation(
-        (row: any) =>
-          ({ id: row.id, requireDpNumber }) as unknown as WorkSchedule,
+    it('only loads and confirms the schedules flagged with confirm=true', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 3, workId: 20 }),
       );
+      const confirmed = [confirmItem(1), confirmItem(3)];
+
+      await service.confirm([
+        confirmed[0],
+        confirmItem(2, false),
+        confirmed[1],
+      ]);
+
+      expect(findRepo.findById).toHaveBeenCalledTimes(2);
+      expect(findRepo.findById).toHaveBeenCalledWith(1);
+      expect(findRepo.findById).toHaveBeenCalledWith(3);
+      expect(validateRepo.confirm).toHaveBeenCalledWith(confirmed, tx);
+    });
+
+    it('moves each distinct work to CONFIRMADA within a single transaction', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 2, workId: 10 }),
+        makeSchedule({ id: 3, workId: 20 }),
+      );
+
+      await service.confirm([confirmItem(1), confirmItem(2), confirmItem(3)]);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenCalledTimes(2);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenCalledWith(
+        WorkStatus.CONFIRMADA,
+        10,
+        tx,
+      );
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenCalledWith(
+        WorkStatus.CONFIRMADA,
+        20,
+        tx,
+      );
+    });
+
+    it('requires a DP number on every confirmed schedule before persisting', async () => {
+      const first = makeSchedule({ id: 1 });
+      const second = makeSchedule({ id: 2 });
+      givenSchedules(first, second);
+
+      await service.confirm([confirmItem(1), confirmItem(2)]);
+
+      expect(first.requireDpNumber).toHaveBeenCalledTimes(1);
+      expect(second.requireDpNumber).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates the domain error unwrapped and skips persistence when a schedule has no DP number', async () => {
+      const domainError = new BadRequestException('Número de DP obrigatório');
+      givenSchedules(
+        makeSchedule({
+          id: 1,
+          requireDpNumber: vi.fn(() => {
+            throw domainError;
+          }),
+        }),
+      );
+
+      const error = await catchError(service.confirm([confirmItem(1)]));
+
+      expect(error).toBe(domainError);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when a confirmed schedule does not exist', async () => {
+      givenSchedules();
+
+      const error = await catchError(service.confirm([confirmItem(7)]));
+
+      expect(error).toBeInstanceOf(NotFoundException);
+      expect(error.message).toBe('Programação não encontrada: 7.');
+    });
+
+    it('wraps transaction failures in InternalServerErrorException', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+      validateRepo.confirm.mockRejectedValue(new Error('db down'));
+
+      const error = await catchError(service.confirm([confirmItem(1)]));
+
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+      expect(statusFlowRepo.updateStatusWorks).not.toHaveBeenCalled();
+    });
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
-    toDomainSpy.mockRestore();
+  describe('reject', () => {
+    it('returns early without touching the database when no schedules are sent', async () => {
+      await expect(service.reject([])).resolves.toBeUndefined();
+
+      expect(findRepo.findById).not.toHaveBeenCalled();
+      expect(prisma.obras.findMany).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('rejects each schedule merging the request payload with the stored schedule data', async () => {
+      givenSchedules(makeSchedule({ id: 1, workId: 10 }));
+
+      await service.reject([rejectItem(1, { reason: 'Falta de material' })]);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(validateRepo.reject).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 1,
+          reason: 'Falta de material',
+          workId: 10,
+          statusId: ACTIVE_STATUS,
+        }),
+        tx,
+      );
+    });
+
+    it('lets stored schedule fields override payload fields with the same name', async () => {
+      givenSchedules(makeSchedule({ id: 1, workId: 10 }));
+
+      await service.reject([rejectItem(1, { workId: 999 })]);
+
+      expect(validateRepo.reject).toHaveBeenCalledWith(
+        expect.objectContaining({ workId: 10 }),
+        tx,
+      );
+    });
+
+    it('moves the work to SERVICOS_REAGENDADOS once per rejected schedule', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 2, workId: 10 }),
+        makeSchedule({ id: 3, workId: 20 }),
+      );
+
+      await service.reject([rejectItem(1), rejectItem(2), rejectItem(3)]);
+
+      expect(validateRepo.reject).toHaveBeenCalledTimes(3);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenCalledTimes(3);
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenNthCalledWith(
+        1,
+        WorkStatus.SERVICOS_REAGENDADOS,
+        10,
+        tx,
+      );
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenNthCalledWith(
+        2,
+        WorkStatus.SERVICOS_REAGENDADOS,
+        10,
+        tx,
+      );
+      expect(statusFlowRepo.updateStatusWorks).toHaveBeenNthCalledWith(
+        3,
+        WorkStatus.SERVICOS_REAGENDADOS,
+        20,
+        tx,
+      );
+    });
+
+    it('throws NotFoundException when a schedule to reject does not exist', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+
+      const error = await catchError(
+        service.reject([rejectItem(1), rejectItem(5)]),
+      );
+
+      expect(error).toBeInstanceOf(NotFoundException);
+      expect(error.message).toBe('Programação não encontrada: 5.');
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('throws ConflictException when rejecting a finalized point-by-point schedule', async () => {
+      givenSchedules(makeSchedule({ id: 1, statusId: FINALIZED_STATUS }));
+      givenPointByPointWorks(10);
+
+      const error = await catchError(service.reject([rejectItem(1)]));
+
+      expect(error).toBeInstanceOf(ConflictException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('does not require programmed services to reject a point-by-point schedule', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+      givenPointByPointWorks(10);
+
+      await expect(service.reject([rejectItem(1)])).resolves.toBeUndefined();
+
+      expect(prisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
+      expect(validateRepo.reject).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates transaction errors without wrapping them', async () => {
+      givenSchedules(makeSchedule({ id: 1 }));
+      validateRepo.reject.mockRejectedValue(new Error('boom'));
+
+      const error = await catchError(service.reject([rejectItem(1)]));
+
+      expect(error).not.toBeInstanceOf(InternalServerErrorException);
+      expect(error.message).toBe('boom');
+    });
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  it('sanity: OPEN_STATUS is not a finalized status', () => {
-    expect(FINALIZED_SCHEDULE_STATUSES).not.toContain(OPEN_STATUS);
-  });
-
-  // ════════════════════════════════════════════════════════════════════
-  // Guardas comuns (loadSchedules + assertPointByPointTransitionAllowed)
-  // ════════════════════════════════════════════════════════════════════
   describe.each([
-    {
-      method: 'validate',
-      run: (ids: number[]) =>
-        service.validate(ids.map((id) => ({ id, validate: true })) as any),
-      write: () => mockRepository.validate,
-    },
-    {
-      method: 'confirm',
-      run: (ids: number[]) =>
-        service.confirm(ids.map((id) => ({ id, confirm: true })) as any),
-      write: () => mockRepository.confirm,
-    },
-  ])('$method: shared guards', ({ run, write }) => {
-    it('should load every schedule without tx', async () => {
+    [
+      'validate',
+      (ids: number[]) => service.validate(ids.map((id) => validateItem(id))),
+    ],
+    [
+      'confirm',
+      (ids: number[]) => service.confirm(ids.map((id) => confirmItem(id))),
+    ],
+  ] as const)('point-by-point guards on %s', (_, run) => {
+    it('queries the point-by-point flag only for the distinct work ids involved', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 2, workId: 10 }),
+        makeSchedule({ id: 3, workId: 20 }),
+      );
+
       await run([1, 2, 3]);
 
-      expect(mockFindScheduleByIdRepository.findById).toHaveBeenCalledTimes(3);
-      mockFindScheduleByIdRepository.findById.mock.calls.forEach((call) =>
-        expect(call).toHaveLength(1),
-      );
-    });
-
-    it('should throw NotFoundException listing every missing schedule', async () => {
-      await expectError(
-        run([1, 4, 5]),
-        NotFoundException,
-        'Programação não encontrada: 4, 5.',
-      );
-      expect(mockPrisma.obras.findMany).not.toHaveBeenCalled();
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
-
-    it('should query the distinct works of the schedules', async () => {
-      await run([1, 2, 3]);
-
-      expect(mockPrisma.obras.findMany).toHaveBeenCalledWith({
+      expect(prisma.obras.findMany).toHaveBeenCalledWith({
         where: { id: { in: [10, 20] } },
         select: { id: true, programacao_ponto_a_ponto: true },
       });
     });
 
-    it('should skip point-by-point checks for traditional works (even finalized)', async () => {
-      schedulesDb[1] = buildSchedule(1, 10, FINALIZED_STATUS);
-      schedulesWithServices.clear();
+    it('throws ConflictException listing every finalized point-by-point schedule', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, statusId: FINALIZED_STATUS }),
+        makeSchedule({ id: 2, statusId: FINALIZED_STATUS }),
+        makeSchedule({ id: 3 }),
+      );
+      givenPointByPointWorks(10);
 
-      await run([1, 2, 3]);
+      const error = await catchError(run([1, 2, 3]));
 
-      expect(mockPrisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
-      expect(write()).toHaveBeenCalled();
-    });
-
-    it('should throw ConflictException listing finalized point-by-point schedules', async () => {
-      pointByPointWorkIds.add(10);
-      schedulesDb[1] = buildSchedule(1, 10, FINALIZED_STATUS);
-      schedulesDb[2] = buildSchedule(2, 10, FINALIZED_STATUS);
-
-      await expectError(
-        run([1, 2, 3]),
-        ConflictException,
+      expect(error).toBeInstanceOf(ConflictException);
+      expect(error.message).toBe(
         'Programação já finalizada não pode mudar de etapa: 1, 2.',
       );
-      expect(mockPrisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+      expect(prisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
     });
 
-    it('should only check finalization on point-by-point works', async () => {
-      pointByPointWorkIds.add(10);
-      schedulesDb[3] = buildSchedule(3, 20, FINALIZED_STATUS); // obra 20 é tradicional
+    it('throws BadRequestException listing point-by-point schedules without programmed services', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1 }),
+        makeSchedule({ id: 2 }),
+        makeSchedule({ id: 3 }),
+      );
+      givenPointByPointWorks(10);
+      givenSchedulesWithServices(2);
 
-      await run([1, 3]);
+      const error = await catchError(run([1, 2, 3]));
 
-      expect(write()).toHaveBeenCalled();
-    });
-
-    it('should check services only for point-by-point schedules', async () => {
-      pointByPointWorkIds.add(10);
-
-      await run([1, 2, 3]);
-
-      expect(mockPrisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
-        where: { id_programacao: { in: [1, 2] } },
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Programação sem serviços programados: 1, 3.');
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        where: { id_programacao: { in: [1, 2, 3] } },
         select: { id_programacao: true },
         distinct: ['id_programacao'],
       });
+      expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException listing point-by-point schedules without services', async () => {
-      pointByPointWorkIds.add(10);
-      schedulesWithServices = new Set([1, 3]);
+    it('allows the transition when every point-by-point schedule has programmed services', async () => {
+      givenSchedules(makeSchedule({ id: 1 }), makeSchedule({ id: 2 }));
+      givenPointByPointWorks(10);
+      givenSchedulesWithServices(1, 2);
 
-      await expectError(
-        run([1, 2, 3]),
-        BadRequestException,
-        'Programação sem serviços programados: 2.',
+      await expect(run([1, 2])).resolves.toBeUndefined();
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores schedules that belong to traditional works, even when finalized or without services', async () => {
+      givenSchedules(
+        makeSchedule({ id: 1, workId: 10 }),
+        makeSchedule({ id: 2, workId: 20, statusId: FINALIZED_STATUS }),
       );
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
+      givenPointByPointWorks(10);
+      givenSchedulesWithServices(1);
 
-    it('should run the guards before opening the transaction', async () => {
-      pointByPointWorkIds.add(10);
+      await expect(run([1, 2])).resolves.toBeUndefined();
 
-      await run([1]);
-
-      expect(order(mockPrisma.obras.findMany)).toBeLessThan(
-        order(mockPrisma.$transaction),
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id_programacao: { in: [1] } } }),
       );
-      expect(order(mockPrisma.programacoes_servicos.findMany)).toBeLessThan(
-        order(mockPrisma.$transaction),
-      );
-    });
-  });
-
-  // ════════════════════════════════════════════════════════════════════
-  // validate
-  // ════════════════════════════════════════════════════════════════════
-  describe('validate', () => {
-    const DATA = [
-      { id: 1, validate: true },
-      { id: 2, validate: true },
-      { id: 3, validate: true },
-    ] as any[];
-
-    it.each([[undefined], [null], [[]]])(
-      'should throw BadRequestException when data = %p',
-      async (data) => {
-        await expectError(
-          service.validate(data as any),
-          BadRequestException,
-          'Nenhuma programação foi enviada para ser validada',
-        );
-        expect(mockFindScheduleByIdRepository.findById).not.toHaveBeenCalled();
-      },
-    );
-
-    it.each([[false], [undefined], [null]])(
-      'should reject when any item has validate = %p',
-      async (validate) => {
-        await expectError(
-          service.validate([
-            { id: 1, validate: true },
-            { id: 2, validate },
-          ] as any),
-          BadRequestException,
-          'Existe programações não validadas',
-        );
-        expect(mockFindScheduleByIdRepository.findById).not.toHaveBeenCalled();
-        expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-      },
-    );
-
-    it('should run inside a transaction without options', async () => {
-      await service.validate(DATA);
-
-      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.$transaction).toHaveBeenCalledWith(
-        expect.any(Function),
-      );
-    });
-
-    it('should validate the schedules with the full payload', async () => {
-      await service.validate(DATA);
-
-      expect(mockRepository.validate).toHaveBeenCalledWith(DATA, mockTx);
-    });
-
-    it('should set every distinct work as VALIDADA, once each', async () => {
-      await service.validate(DATA);
-
-      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledTimes(
-        2,
-      );
-      expect(
-        mockStatusFlowRepository.updateStatusWorks,
-      ).toHaveBeenNthCalledWith(1, WorkStatus.VALIDADA, 10, mockTx);
-      expect(
-        mockStatusFlowRepository.updateStatusWorks,
-      ).toHaveBeenNthCalledWith(2, WorkStatus.VALIDADA, 20, mockTx);
-      expect(order(mockRepository.validate)).toBeLessThan(
-        order(mockStatusFlowRepository.updateStatusWorks),
-      );
-    });
-
-    it('should wrap repository errors in InternalServerErrorException', async () => {
-      mockRepository.validate.mockRejectedValueOnce(new Error('db down'));
-
-      await expectError(service.validate(DATA), InternalServerErrorException);
-      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-    });
-
-    it('should also wrap HttpExceptions thrown inside the transaction (current behaviour)', async () => {
-      mockStatusFlowRepository.updateStatusWorks.mockRejectedValueOnce(
-        new NotFoundException('Obra não encontrada'),
-      );
-
-      await expectError(service.validate(DATA), InternalServerErrorException);
-    });
-
-    it('should NOT wrap guard errors (they run outside the try)', async () => {
-      await expectError(
-        service.validate([{ id: 99, validate: true }] as any),
-        NotFoundException,
-      );
-    });
-  });
-
-  // ════════════════════════════════════════════════════════════════════
-  // confirm
-  // ════════════════════════════════════════════════════════════════════
-  describe('confirm', () => {
-    const DATA = [
-      { id: 1, confirm: true },
-      { id: 2, confirm: false },
-      { id: 3, confirm: true },
-    ] as any[];
-    const CONFIRMED = [DATA[0], DATA[2]];
-
-    it.each([
-      ['empty list', []],
-      ['no item with confirm = true', [{ id: 1, confirm: false }, { id: 2 }]],
-    ])('should throw BadRequestException when %s', async (_, data) => {
-      await expectError(
-        service.confirm(data as any),
-        BadRequestException,
-        'Nenhuma programação para ser confirmada',
-      );
-      expect(mockFindScheduleByIdRepository.findById).not.toHaveBeenCalled();
-    });
-
-    it('should throw TypeError when data is undefined (current behaviour)', async () => {
-      await expect(service.confirm(undefined as any)).rejects.toThrow(
-        TypeError,
-      );
-    });
-
-    it('should load only the confirmed schedules', async () => {
-      await service.confirm(DATA);
-
-      const loadedIds = mockFindScheduleByIdRepository.findById.mock.calls.map(
-        ([id]) => id,
-      );
-      expect(loadedIds).toEqual([1, 3]);
-    });
-
-    it('should map every loaded schedule to the domain and require the DP number', async () => {
-      await service.confirm(DATA);
-
-      expect(toDomainSpy).toHaveBeenCalledTimes(2);
-      expect(toDomainSpy).toHaveBeenNthCalledWith(1, schedulesDb[1]);
-      expect(toDomainSpy).toHaveBeenNthCalledWith(2, schedulesDb[3]);
-      expect(requireDpNumber).toHaveBeenCalledTimes(2);
-      expect(order(requireDpNumber)).toBeLessThan(
-        order(mockPrisma.$transaction),
-      );
-    });
-
-    it('should throw BadRequestException when the mapper fails', async () => {
-      toDomainSpy.mockImplementationOnce(() => {
-        throw new Error('Data de programação inválida');
-      });
-
-      await expectError(
-        service.confirm(DATA),
-        BadRequestException,
-        'Erro ao criar programação: Data de programação inválida',
-      );
-      expect(requireDpNumber).not.toHaveBeenCalled();
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
-
-    it('should propagate the requireDpNumber error as-is and not open the transaction', async () => {
-      const error = new BadRequestException('Número de DP obrigatório');
-      requireDpNumber.mockImplementationOnce(() => {
-        throw error;
-      });
-
-      await expect(service.confirm(DATA)).rejects.toBe(error);
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-      expect(mockRepository.confirm).not.toHaveBeenCalled();
-    });
-
-    it('should run inside a transaction without options', async () => {
-      await service.confirm(DATA);
-
-      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.$transaction).toHaveBeenCalledWith(
-        expect.any(Function),
-      );
-    });
-
-    it('should confirm only the confirmed items', async () => {
-      await service.confirm(DATA);
-
-      expect(mockRepository.confirm).toHaveBeenCalledWith(CONFIRMED, mockTx);
-    });
-
-    it('should set every distinct work as CONFIRMADA, once each', async () => {
-      await service.confirm([
-        { id: 1, confirm: true },
-        { id: 2, confirm: true },
-        { id: 3, confirm: true },
-      ] as any);
-
-      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledTimes(
-        2,
-      );
-      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-        WorkStatus.CONFIRMADA,
-        10,
-        mockTx,
-      );
-      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-        WorkStatus.CONFIRMADA,
-        20,
-        mockTx,
-      );
-      expect(order(mockRepository.confirm)).toBeLessThan(
-        order(mockStatusFlowRepository.updateStatusWorks),
-      );
-    });
-
-    it('should wrap transaction errors in InternalServerErrorException', async () => {
-      mockRepository.confirm.mockRejectedValueOnce(new Error('db down'));
-
-      await expectError(service.confirm(DATA), InternalServerErrorException);
-      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-    });
-  });
-
-  // ════════════════════════════════════════════════════════════════════
-  // reject
-  // ════════════════════════════════════════════════════════════════════
-  describe('reject', () => {
-    const DATA = [
-      { id: 1, reason: 'Falta equipa' },
-      { id: 3, reason: 'Material indisponível' },
-    ] as any[];
-
-    it('should do nothing when data is empty', async () => {
-      await expect(service.reject([])).resolves.toBeUndefined();
-
-      expect(mockFindScheduleByIdRepository.findById).not.toHaveBeenCalled();
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException when a schedule does not exist', async () => {
-      await expectError(
-        service.reject([{ id: 1 }, { id: 9 }] as any),
-        NotFoundException,
-        'Programação não encontrada: 9.',
-      );
-      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
-    });
-
-    it('should throw ConflictException for finalized point-by-point schedules', async () => {
-      pointByPointWorkIds.add(10);
-      schedulesDb[1] = buildSchedule(1, 10, FINALIZED_STATUS);
-
-      await expectError(
-        service.reject(DATA),
-        ConflictException,
-        'Programação já finalizada não pode mudar de etapa: 1.',
-      );
-      expect(mockRepository.reject).not.toHaveBeenCalled();
-    });
-
-    it('should allow rejecting point-by-point schedules without services', async () => {
-      pointByPointWorkIds.add(10);
-      schedulesWithServices.clear();
-
-      await service.reject(DATA);
-
-      expect(mockPrisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
-      expect(mockRepository.reject).toHaveBeenCalledTimes(2);
-    });
-
-    it('should run inside a transaction without options', async () => {
-      await service.reject(DATA);
-
-      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.$transaction).toHaveBeenCalledWith(
-        expect.any(Function),
-      );
-    });
-
-    it('should reload each schedule inside the loop, without tx (current behaviour)', async () => {
-      await service.reject(DATA);
-
-      // 2 no loadSchedules + 2 dentro da transação
-      expect(mockFindScheduleByIdRepository.findById).toHaveBeenCalledTimes(4);
-      mockFindScheduleByIdRepository.findById.mock.calls.forEach((call) =>
-        expect(call).toHaveLength(1),
-      );
-    });
-
-    it('should reject each schedule with the item merged with the schedule data', async () => {
-      await service.reject(DATA);
-
-      expect(mockRepository.reject).toHaveBeenNthCalledWith(
-        1,
-        { ...DATA[0], ...schedulesDb[1] },
-        mockTx,
-      );
-      expect(mockRepository.reject).toHaveBeenNthCalledWith(
-        2,
-        { ...DATA[1], ...schedulesDb[3] },
-        mockTx,
-      );
-    });
-
-    it('should let schedule fields override item fields with the same name (current behaviour)', async () => {
-      await service.reject([{ id: 1, id_obra: 999, reason: 'x' }] as any);
-
-      const [merged] = mockRepository.reject.mock.calls[0];
-      expect(merged.workId).toBe(10);
-      expect(merged.reason).toBe('x');
-    });
-
-    it('should set the work of each schedule as SERVICOS_REAGENDADOS', async () => {
-      await service.reject(DATA);
-
-      expect(
-        mockStatusFlowRepository.updateStatusWorks,
-      ).toHaveBeenNthCalledWith(1, WorkStatus.SERVICOS_REAGENDADOS, 10, mockTx);
-      expect(
-        mockStatusFlowRepository.updateStatusWorks,
-      ).toHaveBeenNthCalledWith(2, WorkStatus.SERVICOS_REAGENDADOS, 20, mockTx);
-    });
-
-    it('should update the work status once per item, not per distinct work (current behaviour)', async () => {
-      await service.reject([{ id: 1 }, { id: 2 }] as any); // ambas da obra 10
-
-      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledTimes(
-        2,
-      );
-      expect(
-        mockStatusFlowRepository.updateStatusWorks,
-      ).toHaveBeenNthCalledWith(2, WorkStatus.SERVICOS_REAGENDADOS, 10, mockTx);
-    });
-
-    it('should process items sequentially: reject → status, item by item', async () => {
-      await service.reject(DATA);
-
-      const [reject1, reject2] = mockRepository.reject.mock.invocationCallOrder;
-      const [status1, status2] =
-        mockStatusFlowRepository.updateStatusWorks.mock.invocationCallOrder;
-
-      expect(reject1).toBeLessThan(status1);
-      expect(status1).toBeLessThan(reject2);
-      expect(reject2).toBeLessThan(status2);
-    });
-
-    it('should propagate errors as-is (not wrapped) and stop processing', async () => {
-      const error = new Error('db down');
-      mockRepository.reject.mockRejectedValueOnce(error);
-
-      await expect(service.reject(DATA)).rejects.toBe(error);
-      expect(mockRepository.reject).toHaveBeenCalledTimes(1);
-      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
-    });
-
-    it('should throw TypeError when the schedule disappears between load and transaction (current behaviour)', async () => {
-      mockFindScheduleByIdRepository.findById
-        .mockResolvedValueOnce(schedulesDb[1]) // loadSchedules
-        .mockResolvedValueOnce(null); // dentro da transação
-
-      await expect(service.reject([{ id: 1 }] as any)).rejects.toThrow(
-        TypeError,
-      );
-      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
     });
   });
 });

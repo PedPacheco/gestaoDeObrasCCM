@@ -698,7 +698,7 @@ describe('FinalizeServicesService', () => {
 
     const EXPECTED_FINALIZATION = {
       id: SCHEDULE_ID,
-      idWork: WORK_ID,
+      workId: WORK_ID,
       dataProg: DATA_PROG,
       prog: SCHEDULE_TOTALS.prog,
       exec: SCHEDULE_TOTALS.exec,
@@ -906,7 +906,7 @@ describe('FinalizeServicesService', () => {
         FINALIZE_TX_OPTIONS,
       );
       expect(mockExecutionReportService.create).toHaveBeenCalledWith(
-        { idSchedule: SCHEDULE_ID, idWork: WORK_ID, ...REPORT_DATA },
+        { idSchedule: SCHEDULE_ID, workId: WORK_ID, ...REPORT_DATA },
         DATA_PROG,
         FILES,
         mockTx,

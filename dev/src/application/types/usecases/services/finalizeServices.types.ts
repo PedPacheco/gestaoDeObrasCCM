@@ -46,7 +46,7 @@ export type FinalizeServicesInput = {
 
 export type FinalizeServicesData = {
   id: number;
-  idWork: number;
+  workId: number;
   dataProg: Date;
   prog: number;
   exec: number;

@@ -42,7 +42,7 @@ describe('ScheduleExecutionValidatorService', () => {
     overrides: Partial<ValidatorData> = {},
   ): ValidatorData => ({
     id: SCHEDULE_ID,
-    idWork: WORK_ID,
+    workId: WORK_ID,
     dataProg: DATA_PROG,
     prog: 20,
     exec: 20,

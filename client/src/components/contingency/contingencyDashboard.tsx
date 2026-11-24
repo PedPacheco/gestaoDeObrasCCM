@@ -115,7 +115,7 @@ export function ContingencyDashboard({
 
         <RingCard
           label="Impacto Financeiro na Capacidade CCM"
-          subLabel="Capacidade Mês / Qtd. Acionamentos"
+          subLabel="Capacidade Mês / Impacto Mês (Emergência)"
           value={(emergencyTeamsValue / monthlyCapacityValue) * 100}
           color={CONTINGENCY_KPI_ACCENT}
           sub={`${FormatCurrency(monthlyCapacityValue)} / ${FormatCurrency(emergencyTeamsValue)}`}
@@ -123,7 +123,7 @@ export function ContingencyDashboard({
 
         <RingCard
           label="Impacto Quantitativo de Equipes na Capacidade CCM"
-          subLabel="Capacidade Mês / Qtd. Acionamentos"
+          subLabel="Capacidade Mês / Impacto Mês(Emergência)"
           value={data.allocatedPercentage}
           color={CONTINGENCY_KPI_ACCENT}
           sub={`${monthlyCapacityCount} / ${emergencyTeamsCount}`}

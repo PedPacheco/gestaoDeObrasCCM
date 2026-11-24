@@ -298,7 +298,7 @@ describe('WorkServicesRepository', () => {
   describe('addItem', () => {
     const dto = {
       idService: 50,
-      idWork: 10,
+      workId: 10,
       operation: 'OP-1',
       point: 'P1',
       operationDescription: 'Instalação',
