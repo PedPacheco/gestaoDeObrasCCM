@@ -4,9 +4,8 @@ import { CapexGateway } from '../gateway/capex/capex.gateway';
 /**
  * Módulo compartilhado responsável apenas pelo gateway de CAPEX.
  *
- * Importado tanto por AuxiliaryBaseModule quanto por WorksModule,
- * evitando duplicação de providers e garantindo que ambos os fluxos
- * compartilhem a mesma instância do gateway (e portanto do servidor WS).
+ * Importado pelo CapexModule. Requer um JwtService disponível (o JwtModule é
+ * global no AppModule); em testes de módulo, registre-o com global: true.
  */
 @Module({
   providers: [CapexGateway],

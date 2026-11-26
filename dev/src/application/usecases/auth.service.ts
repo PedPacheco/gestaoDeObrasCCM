@@ -1,53 +1,36 @@
-import { compare } from 'bcrypt';
-
-import { loginInterfaceService } from 'src/interface/types/userInterface';
-
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
+import { compare } from 'bcrypt';
+import type {
+  AuthLoginInput,
+  AuthLoginOutput,
+  RegisterUserInput,
+} from 'src/application/types';
+import type { UserRecord } from 'src/domain/types';
 import { UsersService } from './users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async login(
-    username: string,
-    password: string,
-  ): Promise<loginInterfaceService> {
+  async login({
+    username,
+    password,
+  }: AuthLoginInput): Promise<AuthLoginOutput> {
     const user = await this.usersService.findUser(username);
 
-    const invalidCredentialsException = new UnauthorizedException(
-      'Usuário ou senha inválidos',
-    );
-
-    if (!user) {
-      throw invalidCredentialsException;
+    // Mesma mensagem para utilizador inexistente ou palavra-passe errada
+    if (!user || !(await compare(password, user.senha))) {
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    user.ensureCanLogin();
+    // Só depois de validar a palavra-passe, para não revelar contas inativas
+    user.assertCanAuthenticate();
 
-    const isMatch = await compare(password, user.senha);
-
-    if (!isMatch) {
-      throw invalidCredentialsException;
-    }
-
-    if (user.exceededInactivityLimit()) {
-      throw new BadRequestException(
-        'Conta desativada por falta de acesso há mais de 60 dias. Procure um administrador.',
-      );
-    }
-    await this.usersService.registerLoginAccess(user);
-
-    const payload = {
+    const access_token = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
       tipo_usuario: user.tipo_usuario,
@@ -55,21 +38,25 @@ export class AuthService {
       permissao_edicao: user.permissao_edicao,
       id_turma: user.id_turma,
       id_area: user.id_area,
-      ultimo_acesso: user.ultimo_acesso,
-    };
+    });
 
+    // Montado campo a campo: a senha nunca entra no retorno
     return {
-      id: user.id,
+      id: user.id!,
       username: user.username,
+      id_regional: user.id_regional,
       nome_usuario: user.nome,
       email: user.email,
-      tipo_usuario: user.tipo_usuario,
+      access_token,
       is_admin: user.is_admin,
       permissao_edicao: user.permissao_edicao,
-      id_regional: user.id_regional,
       id_turma: user.id_turma,
-      id_area: user.id_area,
-      access_token: await this.jwtService.signAsync(payload),
+      id_area: user.id_area, // ver nota abaixo
+      tipo_usuario: user.tipo_usuario,
     };
+  }
+
+  async register(input: RegisterUserInput): Promise<UserRecord> {
+    return this.usersService.createUser(input);
   }
 }

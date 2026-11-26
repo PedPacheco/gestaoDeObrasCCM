@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { useFeasibilityNavigation } from "@/hooks/feasibility/useFeasibilityNavigation";
-import { useTechnicalFilesUpload } from "@/hooks/feasibility/useTechnicalFilesUpload";
 import { useFeasibilityWorkflowActions } from "@/hooks/feasibility/useFeasibilityWorkflowActions";
+import { useTechnicalFilesUpload } from "@/hooks/feasibility/useTechnicalFilesUpload";
 import { FeasibilityDataInterface } from "@/types/feasibility";
 import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
 import {
@@ -28,11 +28,11 @@ import { FeasibilityRejectionsHistory } from "./feasibilityRejectionsHistory";
 import { RejectFeasibilityModal } from "./feasibilityRejectModal";
 
 import { useComplementaryFilesUpload } from "@/hooks/feasibility/useComplementaryFilesUpload";
+import { getStorageKey } from "@/hooks/feasibility/useReviewStorage";
 import {
   FeasibilityServiceItem,
   FeasibilityServicesReviewStep,
 } from "./feasbilityServices/feasibilityServicesReviewStep";
-import { getStorageKey } from "@/hooks/feasibility/useReviewStorage";
 
 export interface FeasibilityRejection {
   motivo: string;
@@ -42,7 +42,7 @@ export interface FeasibilityRejection {
 }
 
 interface UploadViabilidadeProps {
-  idWork: string;
+  workId: string;
   servicesData: FeasibilityServiceItem[];
   feasibilityData: FeasibilityDataInterface;
   feasibilityRejectionsHistoryData: FeasibilityRejection[];
@@ -62,7 +62,7 @@ export type SectionStatus = "complete" | "pending" | "attention";
 type FeasibilityModalKind = "reject" | "approve" | "submit" | null;
 
 export function FeasibiltyUpload({
-  idWork,
+  workId,
   servicesData,
   contracts,
   materials,
@@ -81,7 +81,7 @@ export function FeasibiltyUpload({
     }
 
     const stored = JSON.parse(
-      localStorage.getItem(getStorageKey(Number(idWork))) ?? "{}",
+      localStorage.getItem(getStorageKey(Number(workId))) ?? "{}",
     );
 
     return servicesData.map((item) => ({
@@ -95,12 +95,12 @@ export function FeasibiltyUpload({
   const [openModal, setOpenModal] = useState<FeasibilityModalKind>(null);
 
   const technicalUpload = useTechnicalFilesUpload({
-    idWork,
+    workId,
     existingFiles: feasibilityData?.caminhos_arquivos ?? [],
   });
 
   const complementaryUpload = useComplementaryFilesUpload({
-    idWork,
+    workId,
     existingFiles: feasibilityData?.arquivos_complementares ?? [],
   });
 
@@ -134,7 +134,7 @@ export function FeasibiltyUpload({
 
   const { isPending, handleApprove, handleReject, handleSubmitForApproval } =
     useFeasibilityWorkflowActions({
-      idWork,
+      workId,
       feasibilityReportId: Number(feasibilityData.id),
       hasFiles: technicalUpload.displayFiles.length > 0,
       pointByPoint,
@@ -222,7 +222,7 @@ export function FeasibiltyUpload({
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar novo serviço"
                     services={contracts}
                     options={options}
@@ -230,7 +230,7 @@ export function FeasibiltyUpload({
                   />
 
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar novo material"
                     materials={materials}
                     options={options}
@@ -238,7 +238,7 @@ export function FeasibiltyUpload({
                   />
 
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar nova família"
                     services={contracts}
                     materials={materials}
@@ -265,7 +265,7 @@ export function FeasibiltyUpload({
                   reviewData={reviewData}
                   onChangeReviewData={setReviewData}
                   readOnly={!isEditable}
-                  workId={Number(idWork)}
+                  workId={Number(workId)}
                 />
               </CardSection>
             )}
@@ -293,7 +293,7 @@ export function FeasibiltyUpload({
         onOpenSubmit={() => setOpenModal("submit")}
         onOpenReject={() => setOpenModal("reject")}
         onOpenApprove={() => setOpenModal("approve")}
-        idWork={idWork}
+        workId={workId}
       />
 
       <RejectFeasibilityModal

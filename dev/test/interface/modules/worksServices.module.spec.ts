@@ -3,9 +3,12 @@ import { WorksServicesModule } from 'src/interface/modules/worksServices.module'
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from 'src/application/usecases/users.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+import { LoggerModule } from 'src/interface/modules/logger.module';
 
-jest.mock('src/shared/multer/multer.config', () => ({
-  createMulterConfig: jest.fn().mockReturnValue({
+vi.mock('src/shared/multer/multer.config', () => ({
+  createMulterConfig: vi.fn().mockReturnValue({
     storage: { mock: true },
   }),
 }));
@@ -14,10 +17,15 @@ describe('WorksModule', () => {
   let module: TestingModule;
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [WorksServicesModule, PrismaModule],
+      imports: [WorksServicesModule, PrismaModule, LoggerModule],
     })
       .overrideProvider(UsersService)
       .useValue({})
+      .overrideProvider(DbSchema)
+      .useValue({
+        table: (name: string) => Prisma.raw(`schema_teste.${name}`),
+      })
+
       .compile();
   });
 

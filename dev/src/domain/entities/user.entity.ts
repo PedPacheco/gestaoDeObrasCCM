@@ -1,28 +1,14 @@
-import { BadRequestException } from '@nestjs/common';
-import moment from 'moment';
+import { ValidationError } from '../errors/domain.error';
 
 export enum TipoUsuario {
   INTERNO = 'INTERNO',
   PARCEIRA = 'PARCEIRA',
 }
 
-export interface EditableUserData {
-  nome: string;
-  email: string;
-  tipo_usuario: TipoUsuario;
-  is_admin: boolean;
-  permissao_edicao: boolean;
-  id_regional: number;
-  id_turma: number;
-  id_area?: number | null;
-}
-
-export class User {
-  static readonly INACTIVITY_LIMIT_DAYS = 60;
-
+export interface UserProps {
   id?: number;
   username: string;
-  senha: string;
+  senha: string; // hash bcrypt
   nome: string;
   email: string;
   tipo_usuario: TipoUsuario;
@@ -30,69 +16,86 @@ export class User {
   permissao_edicao: boolean;
   id_regional: number;
   id_turma: number;
-  id_area?: number | null;
+  id_area: number | null;
   ativo: boolean;
-  ultimo_acesso: Date;
+}
 
-  constructor(data: Partial<User>) {
-    Object.assign(this, data);
+export type CreateUserProps = Omit<
+  UserProps,
+  'id' | 'ativo' | 'is_admin' | 'permissao_edicao' | 'id_area'
+> & {
+  is_admin?: boolean;
+  permissao_edicao?: boolean;
+  id_area?: number | null;
+};
 
-    this.ativo = data.ativo ?? true;
+export class User {
+  readonly id?: number;
+  readonly username: string;
+  readonly senha: string;
+  readonly nome: string;
+  readonly email: string;
+  readonly tipo_usuario: TipoUsuario;
+  readonly is_admin: boolean;
+  readonly permissao_edicao: boolean;
+  readonly id_regional: number;
+  readonly id_turma: number;
+  readonly id_area: number | null;
+  readonly ativo: boolean;
+  readonly ultimo_acesso: Date;
+
+  private constructor(props: UserProps) {
+    this.id = props.id;
+    this.username = props.username;
+    this.senha = props.senha;
+    this.nome = props.nome;
+    this.email = props.email;
+    this.tipo_usuario = props.tipo_usuario;
+    this.is_admin = props.is_admin;
+    this.permissao_edicao = props.permissao_edicao;
+    this.id_regional = props.id_regional;
+    this.id_turma = props.id_turma;
+    this.ativo = props.ativo;
+    this.id_area =
+      props.tipo_usuario === TipoUsuario.PARCEIRA ? null : props.id_area;
 
     this.validateInternalUserArea();
   }
 
-  private validateInternalUserArea(): void {
-    if (this.tipo_usuario === TipoUsuario.INTERNO && !this.id_area) {
-      throw new BadRequestException(
-        'Usuários internos devem possuir uma área vinculada.',
-      );
-    }
-
-    if (this.tipo_usuario === TipoUsuario.PARCEIRA) {
-      this.id_area = null;
-    }
-  }
-
-  static inactivityCutoffDate(): Date {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - User.INACTIVITY_LIMIT_DAYS);
-    return cutoff;
-  }
-
-  applyUpdate(data: EditableUserData): User {
+  /** Novo utilizador: aplica valores por omissão e começa ativo. */
+  static create(props: CreateUserProps): User {
     return new User({
-      ...this,
-      nome: data.nome,
-      email: data.email,
-      tipo_usuario: data.tipo_usuario,
-      is_admin: data.is_admin,
-      permissao_edicao: data.permissao_edicao,
-      id_regional: data.id_regional,
-      id_turma: data.id_turma,
-      id_area: data.id_area,
+      username: props.username,
+      senha: props.senha,
+      nome: props.nome,
+      email: props.email,
+      tipo_usuario: props.tipo_usuario,
+      id_regional: props.id_regional,
+      id_turma: props.id_turma,
+      id_area: props.id_area ?? null,
+      is_admin: props.is_admin ?? false,
+      permissao_edicao: props.permissao_edicao ?? false,
+      ativo: true,
     });
   }
 
-  ensureCanLogin(): void {
+  /** Reconstrói um utilizador vindo da persistência. Aceita utilizadores inativos. */
+  static restore(props: UserProps): User {
+    return new User(props);
+  }
+
+  /** Regra de autenticação: chamar no login. */
+  assertCanAuthenticate(): void {
     if (!this.ativo) {
-      throw new BadRequestException('Usuário está inativo no sistema');
+      throw new ValidationError('Usuário está inativo no sistema');
     }
   }
 
-  registerAccess(): void {
-    this.ultimo_acesso = moment.utc().toDate();
-  }
-
-  exceededInactivityLimit(): boolean {
-    if (!this.ultimo_acesso) {
-      return false;
+  private validateInternalUserArea(): void {
+    if (this.tipo_usuario === TipoUsuario.INTERNO && !this.id_area) {
+      throw new ValidationError(
+        'Usuários internos devem possuir uma área vinculada.',
+      );
     }
-
-    return this.ultimo_acesso < User.inactivityCutoffDate();
-  }
-
-  deactivateForInactivity(): void {
-    this.ativo = false;
   }
 }

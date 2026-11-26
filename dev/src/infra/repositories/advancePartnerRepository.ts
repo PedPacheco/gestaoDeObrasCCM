@@ -1,36 +1,83 @@
+import { GetRestrictionsAdvancePartnerInput } from 'src/application/types';
+import { IAdvancePartnerRepository } from 'src/domain/contracts/IAdvancePartnerRepository';
 import {
-  IAdvancePartnerRepository,
-  ProcessedEliminacaoFilters,
-} from 'src/domain/repositories/IAdvancePartnerRepository';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+  GetGripPartnerResponse,
+  GetReaschedulingReasonsResponse,
+  GetRestrictionsAdvancePartnerResponse,
+  GetSparklinesByPartnerAderenciaResponse,
+  GetSparklinesByPartnerEliminacaoResponse,
+  GetWeeksByPartnerResponse,
+} from 'src/domain/types';
+
 import { Injectable } from '@nestjs/common';
+
+import { Prisma } from '../generated/prisma/client';
+import { DbSchema } from '../prisma/dbSchema.provider';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
 
   private readonly excludedPartners = [1, 6, 10, 11, 14, 15, 16];
 
-  async getRestrictionsAdvancePartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]> {
+  // Referências de tabelas/views resolvidas pelo schema do ambiente
+  private get programacoesView() {
+    return this.schema.table('exportacao_programacoes_obras');
+  }
+
+  private get executionCapacity() {
+    return this.schema.table('capacidade_execucao');
+  }
+
+  private get partners() {
+    return this.schema.table('turmas');
+  }
+
+  private get regionais() {
+    return this.schema.table('regionais');
+  }
+
+  /** Exclui as parceiras que não devem entrar nos indicadores */
+  private excludedPartnersFilter(): Prisma.Sql {
+    return Prisma.sql`parceira NOT IN (SELECT turma FROM ${this.partners} WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
+  }
+
+  private applyCommonFilters(
+    where: Prisma.Sql,
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Prisma.Sql {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
-    // Filtro base: exclui REPROVADO e REPROG. PREVISTA — validado contra BI em 05/05/2026
-    let where = Prisma.sql`WHERE 
-    (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA')) 
-    AND parceira NOT IN (SELECT turmaFROM construcao_sp.turmasWHERE id IN (${Prisma.join(this.excludedPartners)}))`;
-
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
+
     if (idRegional?.length)
-      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM ${this.regionais} WHERE id IN (${Prisma.join(idRegional)}))`;
+
     if (idParceira?.length)
-      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM ${this.partners} WHERE id IN (${Prisma.join(idParceira)}))`;
+
     if (responsabilidade)
       where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
+
+    return where;
+  }
+
+  async getRestrictionsAdvancePartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetRestrictionsAdvancePartnerResponse[]> {
+    // Filtro base: exclui REPROVADO e REPROG. PREVISTA — validado contra BI em 05/05/2026
+    const where = this.applyCommonFilters(
+      Prisma.sql`WHERE
+        (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
+        AND ${this.excludedPartnersFilter()}`,
+      filters,
+    );
 
     // Conta linhas de programação (sem GROUP BY ovnota) para alinhar com resumo-mensal.
     // Regra por linha: sem restrição = restricao_programacao vazia/nula OU status resolvido/concluído.
@@ -44,34 +91,28 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
             OR UPPER(TRIM(status_restricao)) IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA')
           THEN 1 ELSE 0
         END) AS sem_restricao
-      FROM construcao_sp.exportacao_programacoes_obras
+      FROM ${this.programacoesView}
       ${where}
       GROUP BY TO_CHAR(data_prog, 'MM/YYYY')
       ORDER BY MIN(data_prog)
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetRestrictionsAdvancePartnerResponse[]>(
+      query,
+    );
   }
 
-  async getGripPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
-    const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
-      filters;
-
-    // Usa a view exportacao_programacoes_obras (mesma fonte do BI via Access).
-    // Exclui: REPROVADO (admin), REPROG. PREVISTA (execução), "Obra não programada executada" (prog=0).
-    let where = Prisma.sql`WHERE
-      UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
-      AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
-      AND prog IS NOT NULL AND prog > 0 AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
-
-    if (dataInicial && dataFinal)
-      where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
-    if (idRegional?.length)
-      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
-    if (idParceira?.length)
-      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
-    if (responsabilidade)
-      where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
+  async getGripPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetGripPartnerResponse[]> {
+    const where = this.applyCommonFilters(
+      Prisma.sql`WHERE
+        UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
+        AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
+        AND prog IS NOT NULL AND prog > 0
+        AND ${this.excludedPartnersFilter()}`,
+      filters,
+    );
 
     const query = Prisma.sql`
       SELECT
@@ -91,75 +132,57 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
             WHEN exec < prog   THEN 'executada_parcial'
             ELSE                    'executada'
           END AS cat
-        FROM construcao_sp.exportacao_programacoes_obras
+        FROM ${this.programacoesView}
         ${where}
       ) sub
       GROUP BY semana
       ORDER BY MIN(data_ref)
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetGripPartnerResponse[]>(query);
   }
 
   async getReaschedulingReasons(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]> {
-    const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
-      filters;
-
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetReaschedulingReasonsResponse[]> {
     // Motivos = restricao_execucao (razão pela qual a obra não foi executada).
     // Exclui REPROVADO, REPROG. PREVISTA e valores nulos/vazios.
-    // JOIN em programacoes + restricoes para obter tipo_restricao (EDP/PARCEIRA/TERCEIRO).
-    let where = Prisma.sql`WHERE
-      (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
-      AND restricao_execucao IS NOT NULL
-      AND TRIM(restricao_execucao) != ''
-      AND UPPER(TRIM(restricao_execucao)) NOT IN ('REPROG. PREVISTA', 'REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA')
-      AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))
-    `;
-
-    if (dataInicial && dataFinal)
-      where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
-    if (idRegional?.length)
-      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
-    if (idParceira?.length)
-      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
-    if (responsabilidade)
-      where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
+    const where = this.applyCommonFilters(
+      Prisma.sql`WHERE
+        (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
+        AND restricao_execucao IS NOT NULL
+        AND TRIM(restricao_execucao) != ''
+        AND UPPER(TRIM(restricao_execucao)) NOT IN ('REPROG. PREVISTA', 'REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA')
+        AND ${this.excludedPartnersFilter()}`,
+      filters,
+    );
 
     const query = Prisma.sql`
       SELECT ovnota, restricao_execucao AS motivo, observacao_execucao, data_prog, id_obra,
       nome_do_responsavel_execucao AS responsavel, mo_planejada * (GREATEST(prog - COALESCE(exec, 0), 0)::numeric / 100) AS mo_nao_executada
-      FROM construcao_sp.exportacao_programacoes_obras
+      FROM ${this.programacoesView}
       ${where}
       ORDER BY ovnota
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetReaschedulingReasonsResponse[]>(query);
   }
 
   async getSparklinesByPartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<{ aderencia: any[]; eliminacao: any[] }> {
-    const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
-      filters;
-
-    // ── Base WHERE: usa a view exportacao_programacoes_obras (mesma fonte do BI via Access) ──
-    // Exclui REPROVADO (status admin), REPROG. PREVISTA (restrição execução) e "Obra não programada executada" (prog = 0).
-    let where = Prisma.sql`WHERE
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<{
+    aderencia: GetSparklinesByPartnerAderenciaResponse[];
+    eliminacao: GetSparklinesByPartnerEliminacaoResponse[];
+  }> {
+    // Motivos = restricao_execucao (razão pela qual a obra não foi executada).
+    // Exclui REPROVADO, REPROG. PREVISTA e valores nulos/vazios.
+    const where = this.applyCommonFilters(
+      Prisma.sql`WHERE
       UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
       AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
-      AND prog IS NOT NULL AND prog > 0 AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
-
-    if (dataInicial && dataFinal)
-      where = Prisma.sql`${where}
-        AND data_prog BETWEEN ${dataInicial}::date AND ${dataFinal}::date`;
-    if (idRegional?.length)
-      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
-    if (idParceira?.length)
-      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
-    if (responsabilidade)
-      where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
+      AND ${this.excludedPartnersFilter()}`,
+      filters,
+    );
 
     // ── Aderência: agrupado por parceira + domingo da semana (Dom-Sáb = WEEKNUM padrão DAX) ──
     const adQuery = Prisma.sql`
@@ -173,7 +196,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
           WHEN exec < prog   THEN 0
           ELSE 1
         END) AS executada
-      FROM construcao_sp.exportacao_programacoes_obras
+      FROM ${this.programacoesView}
       ${where}
       GROUP BY parceira, (data_prog - EXTRACT(DOW FROM data_prog)::integer)
       ORDER BY parceira
@@ -198,7 +221,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
                    OR UPPER(TRIM(status_restricao)) NOT IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA'))
             THEN 1 ELSE 0
           END) AS has_restricao
-        FROM construcao_sp.exportacao_programacoes_obras
+        FROM ${this.programacoesView}
         ${where}
         GROUP BY parceira, (data_prog - EXTRACT(DOW FROM data_prog)::integer), ovnota
       ) sub
@@ -207,26 +230,26 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     `;
 
     const [aderencia, eliminacao] = await Promise.all([
-      this.prisma.$queryRaw<any[]>(adQuery),
-      this.prisma.$queryRaw<any[]>(elQuery),
+      this.prisma.$queryRaw<GetSparklinesByPartnerAderenciaResponse[]>(adQuery),
+      this.prisma.$queryRaw<GetSparklinesByPartnerEliminacaoResponse[]>(
+        elQuery,
+      ),
     ]);
 
     return { aderencia, eliminacao };
   }
 
-  async getWeeksByPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
-    const { idRegional, idParceira } = filters;
-
-    // Replica DAX: SEMANA PROGRAMADA = equipes_alocadas / (capacidade_mes * 5) >= 0.7
-    // SEMANA PROGRAMADA AJUSTADA = apenas semanas >= semana_atual - 1 (forward-looking)
-    let where = Prisma.sql`WHERE data_prog >= DATE_TRUNC('year', CURRENT_DATE)::date
+  async getWeeksByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetWeeksByPartnerResponse[]> {
+    // Motivos = restricao_execucao (razão pela qual a obra não foi executada).
+    // Exclui REPROVADO, REPROG. PREVISTA e valores nulos/vazios.
+    const where = this.applyCommonFilters(
+      Prisma.sql`WHERE data_prog >= DATE_TRUNC('year', CURRENT_DATE)::date
       AND (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
-      AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
-
-    if (idRegional?.length)
-      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
-    if (idParceira?.length)
-      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+      AND ${this.excludedPartnersFilter()}`,
+      { ...filters, dataFinal: undefined, dataInicial: undefined },
+    );
 
     const query = Prisma.sql`
       WITH semana_equipes AS (
@@ -238,7 +261,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
             COALESCE(equipe_linha_viva, 0) +
             COALESCE(equipe_regularizacao, 0)
           ) AS equipes_alocadas
-        FROM construcao_sp.exportacao_programacoes_obras
+        FROM ${this.programacoesView}
         ${where}
         GROUP BY
           parceira,
@@ -259,8 +282,8 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
           SUM(COALESCE(ce."out", 0)) * 5 AS cap_10,
           SUM(COALESCE(ce.nov, 0)) * 5   AS cap_11,
           SUM(COALESCE(ce.dez, 0)) * 5   AS cap_12
-        FROM construcao_sp.capacidade_execucao ce
-        JOIN construcao_sp.turmas t ON t.id = ce.id_turma
+        FROM ${this.executionCapacity} AS ce
+        JOIN ${this.partners} t ON t.id = ce.id_turma
         WHERE ce.ano = TO_CHAR(CURRENT_DATE, 'YYYY')
         GROUP BY t.turma
       ),
@@ -302,6 +325,6 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY parceira
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetWeeksByPartnerResponse[]>(query);
   }
 }

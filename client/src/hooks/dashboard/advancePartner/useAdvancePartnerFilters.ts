@@ -5,18 +5,17 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { Transform } from "@/utils/transform";
-import { findCurrentWeek, WEEKS } from "@/utils/weeks";
 import {
   AderenciaRow,
   EliminacaoRow,
   MotivoRow,
   pctExact,
 } from "@/components/dashboard/advancePartner/advancePartner";
-import dayjs, { Dayjs } from "dayjs";
 import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
-import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { Transform } from "@/utils/transform";
+import { findCurrentWeek, WEEKS } from "@/utils/weeks";
+import dayjs, { Dayjs } from "dayjs";
 
 interface UseAdvancePartnerFiltersProps {
   token: string;
@@ -52,7 +51,7 @@ export function useAdvancePartnerFilters({
 
   const currentWeek = useMemo(() => findCurrentWeek(), []);
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "MoveForwardPartnerFilters",
     data: filtersData,
   });

@@ -1,44 +1,45 @@
-import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
-  mockUpdateSchedulesServiceWithoutIdWork,
+  mockUpdateSchedulesServiceWithoutWorkId,
 } from '../../../mocks/schedules/mockUpdateSchedules';
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
 
   const mockTransaction = {
     programacoes: {
-      update: jest.fn(),
+      update: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
   const mockRepository = {
-    update: jest.fn(),
-    findExecutionOfSchedules: jest.fn(),
+    update: vi.fn(),
+    findExecutionOfSchedules: vi.fn(),
   };
 
   const mockScheduleExecutionValidatorService = {
-    validateExecutionAndUpdateStatus: jest.fn(),
+    validateExecutionAndUpdateStatus: vi.fn(),
   };
 
   const mockStatusFlowRepository = {
-    updateStatusWorks: jest.fn(),
-    updateScheduleStatus: jest.fn(),
+    updateStatusWorks: vi.fn(),
+    updateScheduleStatus: vi.fn(),
   };
 
   const mockFindScheduleByIdRepository = {
-    findById: jest.fn(),
+    findById: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -64,7 +65,7 @@ describe('UpdateSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should call method update and throw BadRequestExpection', async () => {
@@ -96,8 +97,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       await updateSchedulesService.update(
@@ -123,8 +124,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 80]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       const mockData = { ...mockUpdateSchedulesService, prog: 20, exec: 20 };
@@ -148,17 +149,17 @@ describe('UpdateSchedulesService', () => {
     it('Should call method update and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
-      ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
+      ).rejects.toThrow('ID da obra é obrigatório');
     });
 
     it('should throw BadRequestException if repository.update fails', async () => {

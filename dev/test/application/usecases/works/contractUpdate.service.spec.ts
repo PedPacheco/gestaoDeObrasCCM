@@ -1,5 +1,5 @@
-import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
-import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
+import { ContractUpdateService } from 'src/application/usecases/works/management/contractUpdate.service';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/contracts/works/management/IContractUpdateRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -7,7 +7,7 @@ describe('ContractUpdateService', () => {
   let contractUpdateService: ContractUpdateService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -22,7 +22,7 @@ describe('ContractUpdateService', () => {
       ContractUpdateService,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Deve mapear ordemDiagrama começando com 170 para ordem_dci', async () => {

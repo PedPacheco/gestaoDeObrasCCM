@@ -1,485 +1,436 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import type {
+  FeasibilityFileType,
+  FeasibleItemUpdate,
+  RejectFeasibilityData,
+  StatusFeasibility,
+} from 'src/domain/types';
+import type { Prisma } from 'src/infra/generated/prisma/client';
+import {
+  toFeasibilityExportWork,
+  toFeasibilityFiles,
+  toFeasibilityRejection,
+  toFeasibilityReport,
+} from 'src/infra/mappers/feasibility.mapper';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { workIdentifierWhere } from 'src/infra/shared/workIdentifierWhere';
+
+import {
+  FEASIBILITY_EXPORT_SELECT,
+  FEASIBILITY_FILES_SELECT,
+  FEASIBILITY_MISSING_STATUS,
+  FEASIBILITY_REJECTION_SELECT,
+} from 'src/infra/types/repositories/feasibility.types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// ─── Module mocks ─────────────────────────────────────────────────────
+
+vi.mock('src/infra/shared/workIdentifierWhere', () => ({
+  workIdentifierWhere: vi.fn(() => ({ id: 41 })),
+}));
+
+vi.mock('src/infra/mappers/feasibility.mapper', () => ({
+  FEASIBILITY_MISSING_STATUS: 'FALTA VIABILIDADE',
+  toFeasibilityReport: vi.fn((row) => ({ workId: row.id_obra })),
+  toFeasibilityFiles: vi.fn((row) => ({
+    id: row.id,
+    technicalFiles: row.caminhos_arquivos,
+  })),
+  toFeasibilityRejection: vi.fn((row) => ({ reason: row.motivo })),
+  toFeasibilityExportWork: vi.fn((row) => ({ work: { ovnota: row.ovnota } })),
+}));
+
+// ─── Fixtures ─────────────────────────────────────────────────────────
+
+const WORK_ID = 41;
+const USER_ID = 9;
+const PATHS = ['technical.pdf'];
+const TX_WHERE = { id: 41 };
+
+const makeClient = () => ({
+  $executeRaw: vi.fn().mockResolvedValue(1),
+  relatorio_viabilidade: {
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    upsert: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+    create: vi.fn().mockResolvedValue(undefined),
+  },
+  obras: {
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+  },
+  reprovacoes_viabilidade: {
+    findMany: vi.fn(),
+    create: vi.fn().mockResolvedValue(undefined),
+  },
+});
+
+type Client = ReturnType<typeof makeClient>;
+
+// ─── Suite ────────────────────────────────────────────────────────────
 
 describe('FeasibilityRepository', () => {
+  let prisma: Client;
+  let tx: Client;
   let repository: FeasibilityRepository;
 
-  const prismaMock = {
-    relatorio_viabilidade: {
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      createMany: jest.fn(),
-      deleteMany: jest.fn(),
-      update: jest.fn(),
-    },
-    reprovacoes_viabilidade: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
-    obras: {
-      update: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-    },
-  };
-
-  const mockTx = {
-    $executeRaw: jest.fn(),
-    reprovacoes_viabilidade: {
-      create: jest.fn(),
-    },
-    relatorio_viabilidade: { update: jest.fn(), upsert: jest.fn() },
-  } as unknown as Prisma.TransactionClient;
-
-  const FIXED_DATE = new Date('2025-07-01T12:00:00Z');
-
-  beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-07-01T12:00:00Z'));
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        FeasibilityRepository,
-        {
-          provide: PrismaService,
-          useValue: prismaMock,
-        },
-      ],
-    }).compile();
-
-    repository = module.get<FeasibilityRepository>(FeasibilityRepository);
-
-    jest.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prisma = makeClient();
+    tx = makeClient();
+    repository = new FeasibilityRepository(prisma as unknown as PrismaService);
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
+  // ═══ findById ═══════════════════════════════════════════════════════
 
-  describe('exists', () => {
-    it('deve retornar registros encontrados por idWork', async () => {
-      const mockResult = [{ id: 1 }, { id: 2 }];
+  describe('findById', () => {
+    it('finds the feasibility report using the work identifier and maps the row', async () => {
+      const row = { id: 5, id_obra: WORK_ID };
+      prisma.relatorio_viabilidade.findFirst.mockResolvedValue(row);
 
-      prismaMock.relatorio_viabilidade.findFirst.mockResolvedValue(mockResult);
+      const result = await repository.findById(WORK_ID);
 
-      const result = await repository.exists(10);
-
-      expect(prismaMock.relatorio_viabilidade.findFirst).toHaveBeenCalledWith({
-        where: {
-          obras: {
-            OR: [
-              { id: 10 },
-              { ovnota: '10' },
-              { ordem_dci: '10' },
-              { ordem_dcd: '10' },
-              { ordem_dca: '10' },
-              { ordem_dcim: '10' },
-              { diagrama: '10' },
-            ],
-          },
-        },
+      expect(workIdentifierWhere).toHaveBeenCalledWith(WORK_ID);
+      expect(prisma.relatorio_viabilidade.findFirst).toHaveBeenCalledWith({
+        where: { obras: TX_WHERE },
       });
-
-      expect(result).toEqual(mockResult);
+      expect(toFeasibilityReport).toHaveBeenCalledWith(row);
+      expect(result).toEqual({ workId: WORK_ID });
     });
 
-    it('deve retornar registros encontrados por ordens', async () => {
-      const mockResult = [{ id: 1 }, { id: 2 }];
+    it('returns null without mapping when no report is found', async () => {
+      prisma.relatorio_viabilidade.findFirst.mockResolvedValue(null);
 
-      prismaMock.relatorio_viabilidade.findFirst.mockResolvedValue(mockResult);
+      const result = await repository.findById(WORK_ID);
 
-      const result = await repository.exists(100000000000000);
-
-      expect(prismaMock.relatorio_viabilidade.findFirst).toHaveBeenCalledWith({
-        where: {
-          obras: {
-            OR: [
-              { id: undefined },
-              { ovnota: '100000000000000' },
-              { ordem_dci: '100000000000000' },
-              { ordem_dcd: '100000000000000' },
-              { ordem_dca: '100000000000000' },
-              { ordem_dcim: '100000000000000' },
-              { diagrama: '100000000000000' },
-            ],
-          },
-        },
-      });
-
-      expect(result).toEqual(mockResult);
+      expect(result).toBeNull();
+      expect(toFeasibilityReport).not.toHaveBeenCalled();
     });
   });
 
-  describe('saveFiles', () => {
-    it('deve salvar arquivos corretamente', async () => {
-      const files = ['a.pdf', 'b.pdf'];
-
-      await repository.saveFiles(5, 1, 'DENTRO DO PRAZO', files, mockTx);
-
-      expect(mockTx.relatorio_viabilidade.upsert).toHaveBeenCalledWith({
-        where: { id_obra: 5 },
-        create: {
-          id_obra: 5,
-          caminhos_arquivos: files,
-          id_usuario: 1,
-          data_envio: FIXED_DATE,
-          prazo_viabilidade: 'DENTRO DO PRAZO',
-        },
-        update: {
-          caminhos_arquivos: files,
-          id_usuario: 1,
-          data_envio: FIXED_DATE,
-          prazo_viabilidade: 'DENTRO DO PRAZO',
-        },
-      });
-    });
-  });
-
-  describe('findFiles', () => {
-    it('deve buscar arquivos por idWork', async () => {
-      const mockFiles = [
-        { id: 1, caminho_arquivo: 'x.pdf' },
-        { id: 2, caminho_arquivo: 'y.pdf' },
-      ];
-
-      prismaMock.relatorio_viabilidade.findUnique.mockResolvedValue(mockFiles);
-
-      const result = await repository.findFiles(3);
-
-      expect(prismaMock.relatorio_viabilidade.findUnique).toHaveBeenCalledWith({
-        where: {
-          id_obra: 3,
-        },
-        select: {
-          id: true,
-          caminhos_arquivos: true,
-          arquivos_complementares: true,
-        },
-      });
-      expect(result).toEqual(mockFiles);
-    });
-  });
-
-  describe('getRejections', () => {
-    it('should call findMany method of reprovacoes_viabilidade table and return data', async () => {
-      const idWorkMock = 1;
-
-      const responseMock = [
-        {
-          descricao: 'Material pendente',
-          motivo: 'Poste em falta',
-          criado_em: new Date('2026-06-05'),
-          novo_tabela_usuarios: { nome: 'PEdro' },
-        },
-      ];
-
-      prismaMock.reprovacoes_viabilidade.findMany.mockResolvedValue(
-        responseMock,
-      );
-
-      const response = await repository.getRejections(idWorkMock);
-
-      expect(response).toEqual(responseMock);
-      expect(prismaMock.reprovacoes_viabilidade.findMany).toHaveBeenCalledWith({
-        where: { relatorio_viabilidade: { id_obra: 1 } },
-        select: {
-          descricao: true,
-          motivo: true,
-          criado_em: true,
-          novo_tabela_usuarios: { select: { nome: true } },
-        },
-      });
-    });
-  });
+  // ═══ getProjectDate ═════════════════════════════════════════════════
 
   describe('getProjectDate', () => {
-    it('should call findUnique method of obras table and return data', async () => {
-      const responseMock = { data_empreitamento: new Date('2026-06-06') };
+    it('returns the project inception date', async () => {
+      const date = new Date('2026-11-01T00:00:00.000Z');
+      prisma.obras.findUnique.mockResolvedValue({ data_empreitamento: date });
 
-      prismaMock.obras.findUnique.mockResolvedValue(responseMock);
-
-      const response = await repository.getProjectDate(1);
-
-      expect(response).toEqual(responseMock);
-      expect(prismaMock.obras.findUnique).toHaveBeenCalledWith({
+      expect(await repository.getProjectDate(WORK_ID)).toBe(date);
+      expect(prisma.obras.findUnique).toHaveBeenCalledWith({
+        where: { id: WORK_ID },
         select: { data_empreitamento: true },
-        where: { id: 1 },
       });
     });
+
+    it('returns null when the work does not exist', async () => {
+      prisma.obras.findUnique.mockResolvedValue(null);
+
+      expect(await repository.getProjectDate(WORK_ID)).toBeNull();
+    });
+
+    it('returns null when the work has no inception date', async () => {
+      prisma.obras.findUnique.mockResolvedValue({ data_empreitamento: null });
+
+      expect(await repository.getProjectDate(WORK_ID)).toBeNull();
+    });
   });
+
+  // ═══ getRejections ══════════════════════════════════════════════════
+
+  describe('getRejections', () => {
+    it('loads and maps the work rejections', async () => {
+      const rows = [
+        { id: 1, motivo: 'Missing document' },
+        { id: 2, motivo: 'Incorrect data' },
+      ];
+      prisma.reprovacoes_viabilidade.findMany.mockResolvedValue(rows);
+
+      const result = await repository.getRejections(WORK_ID);
+
+      expect(prisma.reprovacoes_viabilidade.findMany).toHaveBeenCalledWith({
+        where: { relatorio_viabilidade: { id_obra: WORK_ID } },
+        select: FEASIBILITY_REJECTION_SELECT,
+      });
+      expect(toFeasibilityRejection).toHaveBeenCalledTimes(2);
+      expect(result).toEqual([
+        { reason: 'Missing document' },
+        { reason: 'Incorrect data' },
+      ]);
+    });
+
+    it('returns an empty list when there are no rejections', async () => {
+      prisma.reprovacoes_viabilidade.findMany.mockResolvedValue([]);
+
+      expect(await repository.getRejections(WORK_ID)).toEqual([]);
+      expect(toFeasibilityRejection).not.toHaveBeenCalled();
+    });
+  });
+
+  // ═══ exportFeasibility ══════════════════════════════════════════════
 
   describe('exportFeasibility', () => {
-    it('should export feasibility data without partner filter', async () => {
-      const responseMock = [
-        {
-          ovnota: 'OV001',
-          diagrama: 'DG001',
-        },
-      ];
+    it('exports all matching works when no partner filter is provided', async () => {
+      const rows = [{ ovnota: 'OV-1' }, { ovnota: 'OV-2' }];
+      prisma.obras.findMany.mockResolvedValue(rows);
 
-      prismaMock.obras.findMany.mockResolvedValue(responseMock);
+      const result = await repository.exportFeasibility(46);
 
-      const result = await repository.exportFeasibility(45, []);
-
-      expect(result).toEqual(responseMock);
-
-      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+      expect(prisma.obras.findMany).toHaveBeenCalledWith({
         where: {
-          id_status: 45,
           programacao_ponto_a_ponto: true,
-        },
-        select: {
-          ovnota: true,
-          diagrama: true,
-          ordem_dci: true,
-          ordem_dca: true,
-          ordem_dcd: true,
-          ordem_dcim: true,
-          relatorio_viabilidade: {
-            select: {
-              data_envio: true,
-            },
-          },
-          servicos: {
-            select: {
-              operacao: true,
-              ponto: true,
-              qtde_plan: true,
-              viabilizado: true,
-              descricao_operacao: true,
-              numero_operacao: true,
-              materiais: {
-                select: {
-                  codigo: true,
-                  descricao: true,
-                  preco: true,
-                },
-              },
-              servicos_contratos: {
-                select: {
-                  material: true,
-                  texto_breve: true,
-                  preco: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    });
-
-    it('should export feasibility data filtering partners', async () => {
-      prismaMock.obras.findMany.mockResolvedValue([]);
-
-      await repository.exportFeasibility(46, [1, 2, 3]);
-
-      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
-        where: {
           id_status: 46,
+        },
+        select: FEASIBILITY_EXPORT_SELECT,
+      });
+      expect(toFeasibilityExportWork).toHaveBeenCalledTimes(2);
+      expect(result).toEqual([
+        { work: { ovnota: 'OV-1' } },
+        { work: { ovnota: 'OV-2' } },
+      ]);
+    });
+
+    it('filters works by the requested partners', async () => {
+      prisma.obras.findMany.mockResolvedValue([{ ovnota: 'OV-3' }]);
+
+      await repository.exportFeasibility(45, [2, 7]);
+
+      expect(prisma.obras.findMany).toHaveBeenCalledWith({
+        where: {
           programacao_ponto_a_ponto: true,
-          id_turma: {
-            in: [1, 2, 3],
-          },
+          id_status: 45,
+          id_turma: { in: [2, 7] },
         },
-        select: {
-          ovnota: true,
-          diagrama: true,
-          ordem_dci: true,
-          ordem_dca: true,
-          ordem_dcd: true,
-          ordem_dcim: true,
-          relatorio_viabilidade: {
-            select: {
-              data_envio: true,
-            },
-          },
-          servicos: {
-            select: {
-              operacao: true,
-              ponto: true,
-              qtde_plan: true,
-              viabilizado: true,
-              descricao_operacao: true,
-              numero_operacao: true,
-              materiais: {
-                select: {
-                  codigo: true,
-                  descricao: true,
-                  preco: true,
-                },
-              },
-              servicos_contratos: {
-                select: {
-                  material: true,
-                  texto_breve: true,
-                  preco: true,
-                },
-              },
-            },
-          },
-        },
+        select: FEASIBILITY_EXPORT_SELECT,
       });
     });
 
-    it('should return empty array when no feasibility records are found', async () => {
-      prismaMock.obras.findMany.mockResolvedValue([]);
+    it('does not add a partner condition for an empty partner list', async () => {
+      prisma.obras.findMany.mockResolvedValue([]);
 
-      const result = await repository.exportFeasibility(45, []);
+      await repository.exportFeasibility(45, []);
 
-      expect(result).toEqual([]);
+      expect(prisma.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          programacao_ponto_a_ponto: true,
+          id_status: 45,
+        },
+        select: FEASIBILITY_EXPORT_SELECT,
+      });
     });
 
-    it('should propagate prisma errors', async () => {
-      prismaMock.obras.findMany.mockRejectedValueOnce(
-        new Error('Database error'),
-      );
+    it('returns an empty list when no work matches', async () => {
+      prisma.obras.findMany.mockResolvedValue([]);
 
-      await expect(repository.exportFeasibility(45, [])).rejects.toThrow(
-        'Database error',
-      );
+      expect(await repository.exportFeasibility(45)).toEqual([]);
+      expect(toFeasibilityExportWork).not.toHaveBeenCalled();
     });
   });
+
+  // ═══ makeItemsFeasible ══════════════════════════════════════════════
 
   describe('makeItemsFeasible', () => {
-    it('should execute a raw UPDATE query using the transaction client', async () => {
-      const itemMock = [
-        {
-          id: 1,
-          viabilizado: 5,
-        },
-      ];
-
-      await repository.makeItemsFeasible(itemMock, mockTx);
-
-      expect(mockTx.$executeRaw).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle multiple items with different feasibility values', async () => {
-      const itemMock = [
-        { id: 1, viabilizado: 5 },
-        { id: 2, viabilizado: 10 },
-        { id: 3, viabilizado: 0 },
-      ];
-
-      await repository.makeItemsFeasible(itemMock, mockTx);
-
-      expect(mockTx.$executeRaw).toHaveBeenCalledTimes(1);
-    });
-
-    it('should propagate the error when tx.$executeRaw fails', async () => {
-      const itemMock = [{ id: 1, viabilizado: 5 }];
-
-      (mockTx.$executeRaw as jest.Mock).mockRejectedValueOnce(
-        new Error('DB connection lost'),
+    it('does not execute SQL when the item list is empty', async () => {
+      await repository.makeItemsFeasible(
+        [],
+        tx as unknown as Prisma.TransactionClient,
       );
 
-      await expect(
-        repository.makeItemsFeasible(itemMock, mockTx),
-      ).rejects.toThrow('DB connection lost');
-    });
-  });
-
-  describe('reject', () => {
-    it('should create a rejection record using the transaction client', async () => {
-      const dataMock: RejectFeasibilityDTO = {
-        workId: 1,
-        userId: 5,
-        reason: 'Material em falta',
-        description: 'Sem poste',
-        feasibilityReportId: 2,
-      };
-
-      await repository.reject(dataMock, mockTx);
-
-      expect(mockTx.reprovacoes_viabilidade.create).toHaveBeenCalledWith({
-        data: {
-          descricao: dataMock.description,
-          motivo: dataMock.reason,
-          id_relatorio_viabilidade: dataMock.feasibilityReportId,
-          id_usuario: dataMock.userId,
-        },
-      });
-      expect(mockTx.reprovacoes_viabilidade.create).toHaveBeenCalledTimes(1);
-
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
-        where: { id: dataMock.feasibilityReportId },
-        data: {
-          data_envio: null,
-          prazo_viabilidade: 'FALTA VIABILIDADE',
-        },
-      });
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
+      expect(tx.$executeRaw).not.toHaveBeenCalled();
     });
 
-    it('should propagate the error when the transaction fails', async () => {
-      const data: RejectFeasibilityDTO = {
-        description: 'Any description',
-        reason: 'Any reason',
-        workId: 1,
-        userId: 1,
-        feasibilityReportId: 2,
-      } as RejectFeasibilityDTO;
+    it('executes a parameterized update for the provided items', async () => {
+      const items: FeasibleItemUpdate[] = [
+        { id: 101, feasibleQuantity: 4 },
+        { id: 102, feasibleQuantity: 8 },
+      ];
 
-      (
-        mockTx.reprovacoes_viabilidade.create as jest.Mock
-      ).mockRejectedValueOnce(new Error('FK constraint violation'));
-
-      await expect(repository.reject(data, mockTx)).rejects.toThrow(
-        'FK constraint violation',
+      await repository.makeItemsFeasible(
+        items,
+        tx as unknown as Prisma.TransactionClient,
       );
+
+      expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+
+      const [template, casesSql, idsSql] = tx.$executeRaw.mock
+        .calls[0] as unknown as [
+        TemplateStringsArray,
+        { sql: string; values: unknown[] },
+        { sql: string; values: unknown[] },
+      ];
+
+      expect(Array.isArray(template)).toBe(true);
+      expect(template.join('?')).toContain('UPDATE servicos');
+      expect(template.join('?')).toContain('SET viabilizado = CASE');
+
+      // Os valores são passados como parâmetros, não interpolados no texto SQL.
+      expect(casesSql.values).toEqual([101, 4, 102, 8]);
+      expect(idsSql.values).toEqual([101, 102]);
+    });
+
+    it('uses the supplied transaction client instead of the default client', async () => {
+      await repository.makeItemsFeasible(
+        [{ id: 101, feasibleQuantity: 4 }],
+        tx as unknown as Prisma.TransactionClient,
+      );
+
+      expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+      expect(prisma.$executeRaw).not.toHaveBeenCalled();
     });
   });
 
-  describe('approve', () => {
-    it('should call approve method and approve the work correctly', async () => {
-      await repository.approve(1, 2, mockTx);
+  // ═══ saveFiles ══════════════════════════════════════════════════════
 
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
-        data: {
-          data_aprovacao: FIXED_DATE,
-          aprovada: true,
-          id_usuario_aprovador: 2,
-        },
+  describe('saveFiles', () => {
+    it('upserts technical files and metadata inside the transaction', async () => {
+      const status: StatusFeasibility = 'DENTRO DO PRAZO';
+
+      await repository.saveFiles(
+        WORK_ID,
+        USER_ID,
+        status,
+        PATHS,
+        tx as unknown as Prisma.TransactionClient,
+      );
+
+      expect(tx.relatorio_viabilidade.upsert).toHaveBeenCalledTimes(1);
+      const call = tx.relatorio_viabilidade.upsert.mock.calls[0][0];
+
+      expect(call.where).toEqual({ id_obra: WORK_ID });
+      expect(call.create).toMatchObject({
+        id_obra: WORK_ID,
+        caminhos_arquivos: PATHS,
+        id_usuario: USER_ID,
+        prazo_viabilidade: status,
       });
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
+      expect(call.update).toMatchObject({
+        caminhos_arquivos: PATHS,
+        id_usuario: USER_ID,
+        prazo_viabilidade: status,
+      });
+      expect(call.create.data_envio).toBeInstanceOf(Date);
+      expect(call.update.data_envio).toBeInstanceOf(Date);
+      expect(prisma.relatorio_viabilidade.upsert).not.toHaveBeenCalled();
     });
   });
+
+  // ═══ updateFiles ════════════════════════════════════════════════════
 
   describe('updateFiles', () => {
-    it('Should call the file update method and update the `relatorio_viabilidade` table with the new paths.', async () => {
+    it('updates technical files when the type is technical', async () => {
       await repository.updateFiles(
-        1,
-        ['doc.pdf', 'word.pdf'],
+        WORK_ID,
+        PATHS,
         'technical',
-        mockTx,
+        tx as unknown as Prisma.TransactionClient,
       );
 
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
-        data: {
-          caminhos_arquivos: ['doc.pdf', 'word.pdf'],
-        },
+      expect(tx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: WORK_ID },
+        data: { caminhos_arquivos: PATHS },
       });
     });
 
-    it('Should call the file update method and update the `relatorio_viabilidade` table with the new complementary paths.', async () => {
+    it('updates complementary files when the type is complementary', async () => {
+      const type: FeasibilityFileType = 'complementary';
+
       await repository.updateFiles(
-        1,
-        ['doc.pdf', 'word.pdf'],
-        'complementary',
-        mockTx,
+        WORK_ID,
+        PATHS,
+        type,
+        tx as unknown as Prisma.TransactionClient,
       );
 
-      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
+      expect(tx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: WORK_ID },
+        data: { arquivos_complementares: PATHS },
+      });
+    });
+  });
+
+  // ═══ findFiles ══════════════════════════════════════════════════════
+
+  describe('findFiles', () => {
+    it('loads and maps the file columns', async () => {
+      const row = {
+        id: 3,
+        caminhos_arquivos: ['a.pdf'],
+        arquivos_complementares: ['b.pdf'],
+      };
+      prisma.relatorio_viabilidade.findUnique.mockResolvedValue(row);
+
+      const result = await repository.findFiles(WORK_ID);
+
+      expect(prisma.relatorio_viabilidade.findUnique).toHaveBeenCalledWith({
+        where: { id_obra: WORK_ID },
+        select: FEASIBILITY_FILES_SELECT,
+      });
+      expect(toFeasibilityFiles).toHaveBeenCalledWith(row);
+      expect(result).toEqual({ id: 3, technicalFiles: ['a.pdf'] });
+    });
+
+    it('returns null without mapping when the report does not exist', async () => {
+      prisma.relatorio_viabilidade.findUnique.mockResolvedValue(null);
+
+      expect(await repository.findFiles(WORK_ID)).toBeNull();
+      expect(toFeasibilityFiles).not.toHaveBeenCalled();
+    });
+  });
+
+  // ═══ reject ═════════════════════════════════════════════════════════
+
+  describe('reject', () => {
+    it('creates a rejection and clears the report submission status', async () => {
+      const data: RejectFeasibilityData = {
+        feasibilityReportId: 77,
+        userId: USER_ID,
+        reason: 'Missing information',
+        description: 'Attach the required document',
+      };
+
+      await repository.reject(data, tx as unknown as Prisma.TransactionClient);
+
+      expect(tx.reprovacoes_viabilidade.create).toHaveBeenCalledWith({
         data: {
-          arquivos_complementares: ['doc.pdf', 'word.pdf'],
+          descricao: data.description,
+          motivo: data.reason,
+          id_relatorio_viabilidade: data.feasibilityReportId,
+          id_usuario: data.userId,
         },
       });
+      expect(tx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id: data.feasibilityReportId },
+        data: {
+          data_envio: null,
+          prazo_viabilidade: FEASIBILITY_MISSING_STATUS,
+        },
+      });
+      expect(prisma.reprovacoes_viabilidade.create).not.toHaveBeenCalled();
+      expect(prisma.relatorio_viabilidade.update).not.toHaveBeenCalled();
+    });
+  });
+
+  // ═══ approve ════════════════════════════════════════════════════════
+
+  describe('approve', () => {
+    it('approves the report inside the transaction', async () => {
+      await repository.approve(
+        WORK_ID,
+        USER_ID,
+        tx as unknown as Prisma.TransactionClient,
+      );
+
+      expect(tx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
+      expect(tx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: WORK_ID },
+        data: {
+          data_aprovacao: expect.any(Date),
+          aprovada: true,
+          id_usuario_aprovador: USER_ID,
+        },
+      });
+      expect(prisma.relatorio_viabilidade.update).not.toHaveBeenCalled();
     });
   });
 });

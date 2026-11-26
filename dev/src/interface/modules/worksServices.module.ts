@@ -1,34 +1,34 @@
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
+import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
-import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
+import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
-import { ServicesController } from '../controllers/services/worksServices.controller';
-import { ExecutionReportModule } from './executionReport.module';
-import { UsersModule } from './users.module';
-import { WorksModule } from './works.module';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
-import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
+import { DOCUMENT_AND_SPREADSHEET_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
-import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ServicesController } from '../controllers/services/worksServices.controller';
+import { ExecutionReportModule } from './executionReport.module';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 import { ScheduleModule } from './schedule.module';
+import { UsersModule } from './users.module';
+import { WorksModule } from './works.module';
 
 @Module({
   imports: [
@@ -36,40 +36,15 @@ import { ScheduleModule } from './schedule.module';
     forwardRef(() => WorksModule),
     forwardRef(() => ScheduleModule),
     forwardRef(() => ExecutionReportModule),
+    ProgressRecalculationModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const multerCfg = createMulterConfig({
-          destination: config.get<string>('UPLOAD_AS_BUILD'),
-          allowedMimeTypes: [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/tiff',
-            'image/png',
-            'image/heic',
-            'image/heif',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel',
-          ],
-          allowedExtensions: [
-            '.pdf',
-            '.jpg',
-            '.jpeg',
-            '.png',
-            '.tiff',
-            '.heic',
-            '.heif',
-            '.xlsx',
-            '.xls',
-          ],
-          maxSize: 5 * 1024 * 1024,
-          maxFiles: 3,
-        });
-
-        return multerCfg; // ← AGORA SIM está no formato esperado
-      },
+      useFactory: (config: ConfigService) =>
+        createMulterConfig({
+          destination: config.getOrThrow<string>('UPLOAD_AS_BUILD'),
+          ...DOCUMENT_AND_SPREADSHEET_UPLOAD_PRESET, // ← AGORA SIM está no formato esperado
+        }),
     }),
   ],
   controllers: [
@@ -82,17 +57,12 @@ import { ScheduleModule } from './schedule.module';
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
-    ScheduleProgressCalculatorService,
     ImportServicesSpreadsheetService,
     SpreadsheetParserService,
     ExportServicesService,
     {
       provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
       useClass: FindScheduleByIdRepository,
-    },
-    {
-      provide: WORK_SERVICES_REPOSITORY,
-      useClass: WorkServicesRepository,
     },
     {
       provide: WORK_SERVICES_QUERY_REPOSITORY,

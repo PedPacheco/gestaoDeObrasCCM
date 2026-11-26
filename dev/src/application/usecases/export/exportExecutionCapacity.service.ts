@@ -5,7 +5,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 
 @Injectable()
 export class ExportExecutionCapacityService {

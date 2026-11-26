@@ -1,17 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
-import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/works/schedule/validateAndConfirmSchedulesRepository';
+import type { Mock } from 'vitest';
 
 describe('ValidateAndConfirmSchedulesRepository', () => {
   let repository: ValidateAndConfirmSchedulesRepository;
 
   const mockTransaction = {
     programacoes: {
-      updateMany: jest.fn(),
-      update: jest.fn(),
+      updateMany: vi.fn(),
+      update: vi.fn(),
     },
     programacoes_reprovacoes: {
-      create: jest.fn(),
+      create: vi.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -25,7 +26,7 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('validate', () => {
     it('Should call method validate and correctly update the schedules that have been validated', async () => {
@@ -92,17 +93,17 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
         reject: true,
         reason: '',
         description: '',
-        id_obra: 2,
-        data_prog: new Date('17/05/2025'),
+        workId: 2,
+        dataProg: new Date('17/05/2025'),
         prog: 100,
-        equip_desligado: '',
-        hora_ini: '15:00',
-        hora_ter: '17:00',
-        equipe_linha_viva: 1,
-        equipe_linha_morta: 2,
-        equipe_regularizacao: 3,
-        tipo_servico: 'DP',
-        observacao_programacao: '',
+        equipment: '',
+        startTime: '15:00',
+        finishTime: '17:00',
+        lvTeam: 1,
+        lmTeam: 2,
+        regulTeam: 3,
+        serviceType: 'DP',
+        observation: '',
       };
 
       await repository.reject(data, mockTransaction);
@@ -111,19 +112,19 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
         mockTransaction.programacoes_reprovacoes.create,
       ).toHaveBeenCalledWith({
         data: {
-          id_obra: data.id_obra,
+          id_obra: data.workId,
           motivo: data.reason,
           descricao: data.description,
-          data_prog: data.data_prog,
+          data_prog: data.dataProg,
           prog: data.prog,
-          equip_desligado: data.equip_desligado,
-          hora_ini: data.hora_ini,
-          hora_ter: data.hora_ter,
-          equipe_linha_viva: data.equipe_linha_viva,
-          equipe_linha_morta: data.equipe_linha_morta,
-          equipe_regularizacao: data.equipe_regularizacao,
-          tipo_servico: data.tipo_servico,
-          observacao_programacao: data.observacao_programacao,
+          equip_desligado: data.equipment,
+          hora_ini: data.startTime,
+          hora_ter: data.finishTime,
+          equipe_linha_viva: data.lvTeam,
+          equipe_linha_morta: data.lmTeam,
+          equipe_regularizacao: data.regulTeam,
+          tipo_servico: data.serviceType,
+          observacao_programacao: data.observation,
         },
       });
       expect(mockTransaction.programacoes.update).toHaveBeenCalledWith({
@@ -148,7 +149,7 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
       const error = new Error('DB connection failed');
 
       (
-        mockTransaction.programacoes_reprovacoes.create as jest.Mock
+        mockTransaction.programacoes_reprovacoes.create as Mock
       ).mockRejectedValue(error);
 
       await expect(repository.reject(data, mockTransaction)).rejects.toThrow(

@@ -7,8 +7,8 @@ describe('ExecutionCapacityRepository', () => {
   let repository: ExecutionCapacityRepository;
 
   const mockPrisma = {
-    capacidade_execucao: { findMany: jest.fn(), updateMany: jest.fn() },
-    $transaction: jest.fn(),
+    capacidade_execucao: { findMany: vi.fn(), updateMany: vi.fn() },
+    $transaction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('ExecutionCapacityRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('get', () => {
     it('should call findMany method of the capacidade_execucao table from prisma with filters', async () => {

@@ -7,17 +7,17 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
+import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useMapFilter } from "@/contexts/mapFilterContext";
 
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 
-import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { MainInterface } from "@/types/mainInterface";
-import { FiltersInterface } from "@/types/filtersInterfaces";
+import ScheduleForDayFilters from "./ScheduleForDayFilters";
 
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
@@ -150,17 +150,22 @@ export default function MainSchduleForDay({
 
       <TableWithPagination
         columns={columns}
-        totals={filteredData.totals}
-        data={filteredData.works}
-        sliceEndIndex={4}
+        totals={filteredData.totals || null}
+        data={filteredData.works || []}
+        sliceEndIndex={9}
         page={page}
         handleChangePage={handleChangePage}
       />
 
-      <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
-        <div className="flex flex-col items-center justify-center xl:flex-row w-full">
+      <ModalComponent
+        open={open}
+        onClose={toggleModal}
+        title="Valores totais"
+        className="w-[95vw] max-w-[95vw]"
+      >
+        <div className="flex flex-wrap justify-center gap-3 w-full">
           {Object.entries(columns)
-            .slice(30)
+            .slice(36)
             .map(([column, value]) => {
               const item = filteredData.totals;
               let valueFormatted = item[column];
@@ -170,24 +175,23 @@ export default function MainSchduleForDay({
                   "total_mo_planejada",
                   "total_mo_exec",
                   "total_mo_suspensa",
+                  "total_ponto_a_ponto_programado",
+                  "total_ponto_a_ponto_executado",
                 ].includes(column)
               ) {
                 valueFormatted = FormatCurrency(item[column]);
               }
 
               return (
-                <div
-                  key={column}
-                  className="flex flex-row py-2 xl:py-0 xl:mx-2"
-                >
-                  <span className="p-1 bg-[#212E3E] text-zinc-200 flex items-center">
+                <div key={column} className="flex flex-row shrink-0">
+                  <span className="px-2 py-1 bg-[#212E3E] text-zinc-200 flex items-center whitespace-nowrap">
                     <p>{value}</p>
                   </span>
-                  <div className="p-2 border border-solid flex justify-center items-center">
+                  <div className="px-3 py-2 border border-solid flex justify-center items-center whitespace-nowrap">
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(2)).toLocaleString(
-                            "pt-br",
+                            "pt-BR",
                           )
                         : valueFormatted}
                     </p>

@@ -1,15 +1,71 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
 import moment from 'moment';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { GetScheduleValuesRepository } from 'src/infra/repositories/works/schedule/getScheduleValuesRepository';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('GetScheduleValuesRepository', () => {
   let repository: GetScheduleValuesRepository;
 
+  // Schema "falso": garante que o repositório não tem construcao_sp fixo
+  const SCHEMA = 'schema_teste';
+
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
+
+  const mockConfigService = {
+    getOrThrow: vi.fn().mockReturnValue(SCHEMA),
+  };
+
+  const baseQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcdm, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
+  turma, status_ov_sap, executado, data_prog, prog, exec,
+  CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*prog/100 END AS mo_prog,
+  CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*COALESCE(exec, 0)/100 END AS mo_exec,
+  capex_mat_pend, capex_mo_pend, tipo_obra,
+  id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, eq.equipe_linha_morta, eq.equipe_linha_viva, eq.equipe_regularizacao, tecnico, conjunto, circuito,
+  status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
+  FROM ${SCHEMA}.obras
+  INNER JOIN ${SCHEMA}.circuitos ON circuitos.id = obras.id_circuito
+  INNER JOIN ${SCHEMA}.conjuntos ON conjuntos.id = circuitos.id_conjunto
+  INNER JOIN ${SCHEMA}.programacoes ON programacoes.id_obra = obras.id
+  INNER JOIN ${SCHEMA}.status ON status.id = obras.id_status
+  INNER JOIN ${SCHEMA}.municipios ON municipios.id = obras.id_gpm
+  INNER JOIN ${SCHEMA}.regionais ON regionais.id = municipios.id_regional
+  INNER JOIN ${SCHEMA}.tipos ON tipos.id = obras.id_tipo
+  INNER JOIN ${SCHEMA}.turmas ON turmas.id = obras.id_turma
+  INNER JOIN ${SCHEMA}.tecnicos ON tecnicos.id = programacoes.id_tecnico
+  INNER JOIN ${SCHEMA}.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+  LEFT JOIN ${SCHEMA}.relatorio ON relatorio.id_obra = obras.id
+  LEFT JOIN LATERAL (
+    SELECT
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'LM')
+           ELSE COALESCE(programacoes.equipe_linha_morta, 0)
+      END::int AS equipe_linha_morta,
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'LV')
+           ELSE COALESCE(programacoes.equipe_linha_viva, 0)
+      END::int AS equipe_linha_viva,
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'NR')
+           ELSE COALESCE(programacoes.equipe_regularizacao, 0)
+      END::int AS equipe_regularizacao
+    FROM ${SCHEMA}.programacoes_servicos ps
+    JOIN ${SCHEMA}.equipes e ON e.id = ps.id_equipe
+    CROSS JOIN LATERAL (
+      SELECT CASE
+               WHEN UPPER(e.equipe) LIKE '%LM%' THEN 'LM'
+               WHEN UPPER(e.equipe) LIKE '%LV%' THEN 'LV'
+               WHEN UPPER(e.equipe) LIKE '%NR%' THEN 'NR'
+             END AS tipo
+    ) t
+    WHERE ps.id_programacao = programacoes.id
+      AND obras.programacao_ponto_a_ponto -- não lê os serviços das obras que não são ponto a ponto
+  ) eq ON TRUE`;
 
   function normalizeSQL(sql: string): string {
     return sql.replace(/\s+/g, ' ').trim();
@@ -58,7 +114,9 @@ describe('GetScheduleValuesRepository', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetScheduleValuesRepository,
+        DbSchema,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -68,7 +126,25 @@ describe('GetScheduleValuesRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // clearAllMocks limpa chamadas, mas mantém o mockReturnValue do getOrThrow
+    vi.clearAllMocks();
+  });
+
+  it('should use the schema from DB_SCHEMA and never the hardcoded one', async () => {
+    mockPrisma.$queryRaw
+      .mockResolvedValueOnce(mockQueryResponse)
+      .mockResolvedValueOnce(mockCount);
+
+    await repository.getValues({ executado: false, pendente: false });
+
+    const [querySent] = mockPrisma.$queryRaw.mock.calls[0];
+    const [countSent] = mockPrisma.$queryRaw.mock.calls[1];
+
+    for (const sql of [querySent, countSent]) {
+      const text = sql.strings.join('');
+      expect(text).toContain(`${SCHEMA}.obras`);
+      expect(text).not.toContain('construcao_sp.');
+    }
   });
 
   it('should return the correct values without filters', async () => {
@@ -85,6 +161,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
+      idTecnico: undefined,
       ovnota: undefined,
     };
 
@@ -92,26 +169,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-    turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
-    qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.status ON status.id = obras.id_status
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-    INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
-    WHERE status.id NOT IN (3, 4) AND exec IS NULL ORDER BY data_prog, ovnota`;
+    const expectedQuery = `${baseQuery} WHERE status.id NOT IN (3, 4) AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
-
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
     expect(result).toEqual({
@@ -137,6 +197,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       idStatusSap: [51],
       ovnota: '1324',
     };
@@ -145,39 +206,24 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-      turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
-      qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-      id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
-      FROM construcao_sp.obras
-      INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-      INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-      INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-      INNER JOIN construcao_sp.status ON status.id = obras.id_status
-      INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-      INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-      INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-      INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-      INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-      LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
-      WHERE status.id NOT IN (3, 4) AND programacoes.data_prog BETWEEN AND 
-      AND municipios.id_regional IN () 
-      AND municipios.id IN () 
-      AND id_tipo IN () 
-      AND id_turma IN () 
-      AND tipos.id_grupo IN () 
-      AND status.id IN () 
-      AND status_programacao.id IN () 
-      AND obras.ovnota = 
+    const expectedQuery = `${baseQuery}
+      WHERE status.id NOT IN (3, 4) AND programacoes.data_prog BETWEEN AND
+      AND municipios.id_regional IN ()
+      AND municipios.id IN ()
+      AND id_tipo IN ()
+      AND id_turma IN ()
+      AND tipos.id_grupo IN ()
+      AND status.id IN ()
+      AND status_programacao.id IN ()
+      AND tecnicos.id IN ()
+      AND obras.ovnota =
       AND obras.status_ov_sap IN () AND tipos.id_grupo = 1
-      AND exec IS NOT NULL 
-      ORDER BY data_prog, ovnota 
+      AND exec IS NOT NULL
+      ORDER BY data_prog, ovnota
       LIMIT 200 OFFSET
-      `;
+    `;
 
     const result = await repository.getValues(filters);
-
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
     const expectedInitialDate = moment(
@@ -185,7 +231,6 @@ describe('GetScheduleValuesRepository', () => {
       'DD/MM/YYYY',
       true,
     ).toDate();
-
     const expectedEndDate = moment('02/10/2024', 'DD/MM/YYYY', true).toDate();
 
     expect(result).toEqual({
@@ -198,6 +243,7 @@ describe('GetScheduleValuesRepository', () => {
     expect(querySent.values).toEqual([
       expectedInitialDate,
       expectedEndDate,
+      1,
       1,
       1,
       1,
@@ -225,6 +271,7 @@ describe('GetScheduleValuesRepository', () => {
       idTipo: undefined,
       ovnota: undefined,
       idStatus: undefined,
+      idTecnico: undefined,
       idStatusProgramacao: undefined,
     };
 
@@ -232,26 +279,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-    turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
-    qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.status ON status.id = obras.id_status
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-    INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
-    WHERE status.id NOT IN (3, 4) AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
+    const expectedQuery = `${baseQuery} WHERE status.id NOT IN (3, 4) AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
 
     const result = await repository.getValues(filters);
-
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
     expect(result).toEqual({

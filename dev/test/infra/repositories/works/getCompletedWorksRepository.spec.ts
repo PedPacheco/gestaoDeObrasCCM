@@ -1,19 +1,29 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import moment from 'moment';
+import { CompletedWorkTotals } from 'src/domain/types';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { GetCompletedWorksRepository } from 'src/infra/repositories/works/management/getCompletedWorksRepository';
+import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
+
+  // Schema "falso": garante que o repositório não tem construcao_sp fixo
+  const SCHEMA = 'schema_teste';
 
   function normalizeSQL(sql: string): string {
     return sql.replace(/\s+/g, ' ').trim();
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
+  };
+
+  const mockConfigService = {
+    getOrThrow: vi.fn().mockReturnValue(SCHEMA),
   };
 
   const mockWorks = [
@@ -55,35 +65,36 @@ describe('GetCompletedWorksRepository', () => {
     },
   ];
 
-  const mockCountQuery: totalsWorksInPortfolio[] = [
+  const mockCountQuery: CompletedWorkTotals[] = [
     {
       total_obras: 1,
       total_mo_planejada: 91105.824,
       total_mo_exec: 91105.824,
-      total_mo_pend: 0,
       total_qtde_planejada: 0,
       total_qtde_pend: 0,
     },
   ];
 
-  const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
-        mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-        circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra, ano_plan
-        FROM construcao_sp.obras
-        INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
-        INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-        INNER JOIN construcao_sp.status ON obras.id_status = status.id
-        INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
-        INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-        INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        WHERE ((id_status = 2 AND executado = 100) OR id_status IN (2, 3))`;
+  const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, ordem_dcdm, status_ov_sap, pep, executado,
+    mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
+    circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra, ano_plan
+    FROM ${SCHEMA}.obras
+    INNER JOIN ${SCHEMA}.municipios ON obras.id_gpm = municipios.id
+    INNER JOIN ${SCHEMA}.circuitos ON obras.id_circuito = circuitos.id
+    INNER JOIN ${SCHEMA}.status ON obras.id_status = status.id
+    INNER JOIN ${SCHEMA}.tipos ON obras.id_tipo = tipos.id
+    INNER JOIN ${SCHEMA}.conjuntos ON circuitos.id_conjunto = conjuntos.id
+    INNER JOIN ${SCHEMA}.regionais ON municipios.id_regional = regionais.id
+    INNER JOIN ${SCHEMA}.turmas ON obras.id_turma = turmas.id
+    WHERE ((id_status = 2 AND executado = 100) OR id_status IN (2, 3))`;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetCompletedWorksRepository,
+        DbSchema,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -93,10 +104,30 @@ describe('GetCompletedWorksRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // clearAllMocks mantém o mockReturnValue do getOrThrow
+    vi.clearAllMocks();
   });
 
   describe('GetCompletedWorks', () => {
+    it('should use the schema from DB_SCHEMA and never the hardcoded one', async () => {
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockCountQuery);
+
+      await repository.getCompletedWorks({
+        insufficientPermission: false,
+      } as GetWorksDTO);
+
+      const [querySent] = mockPrisma.$queryRaw.mock.calls[0];
+      const [countSent] = mockPrisma.$queryRaw.mock.calls[1];
+
+      for (const sql of [querySent, countSent]) {
+        const text = sql.strings.join('');
+        expect(text).toContain(`${SCHEMA}.obras`);
+        expect(text).not.toContain('construcao_sp.');
+      }
+    });
+
     it('should apply multiple filters correctly and day filter', async () => {
       const filters: GetWorksDTO = {
         idGrupo: [4],
@@ -130,7 +161,7 @@ describe('GetCompletedWorksRepository', () => {
         AND id_circuito IN ()
         AND circuitos.id_conjunto IN ()
         AND id_empreendimento IN ()
-        AND obras.ovnota =  
+        AND obras.ovnota =
         AND data_conclusao BETWEEN AND ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
@@ -140,7 +171,6 @@ describe('GetCompletedWorksRepository', () => {
         'DD/MM/YYYY',
         true,
       ).toDate();
-
       const expectedEndDate = moment('02/10/2024', 'DD/MM/YYYY', true).toDate();
 
       expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
@@ -189,7 +219,6 @@ describe('GetCompletedWorksRepository', () => {
       const result = await repository.getCompletedWorks(filters);
 
       const expectedQuery = `${baseQuery} ORDER BY data_conclusao DESC`;
-
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
       expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });

@@ -1,7 +1,7 @@
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import {
@@ -11,9 +11,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
-import { UpdateWorkService } from '../works/updateWork.service';
-import { SuspensionWorkService } from '../works/suspensionWork.service';
+import { GetWorkDetailsService } from '../works/management/getWorkDetails.service';
+import { SuspensionWorkService } from '../works/management/suspensionWork.service';
+import { UpdateWorkService } from '../works/management/updateWork.service';
 
 import moment from 'moment';
 
@@ -49,21 +49,23 @@ export class HandleWorkUpdateService {
       data.data_empreitamento = moment.utc().startOf('day').toDate();
     }
 
-    const { data_empreitamento } = data;
-
-    await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       if (data.id_status === 4) {
         await this.suspensionWorkService.createSuspension(
           work.id,
           data.reasonSuspension,
         );
+
+        return this.updateWorkService.update(data, work.id, tx);
       }
 
-      await this.updateWorkService.update(data, work.id, tx);
-
-      if (work.id_status === 42 && data_empreitamento) {
+      if (work.id_status === 42 && data.data_empreitamento) {
         await this.statusFlowRepository.updateStatusWorks(45, work.id, tx);
+
+        return this.updateWorkService.update(data, work.id, tx);
       }
+
+      return this.updateWorkService.update(data, work.id, tx);
     });
   }
 }

@@ -30,23 +30,11 @@ export function ButtonForBILink({
         href={path}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-9 h-9 rounded-md flex items-center justify-center bg-[#212E3E] text-[#E4E4E7] hover:bg-[#394658] hover:text-[#53FF75] transition-colors shrink-0"
+        className="group block py-3 -mx-2 px-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width={13}
-          height={13}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-          <polyline points="15 3 21 3 21 9" />
-          <line x1="10" y1="14" x2="21" y2="3" />
-        </svg>
+        <span className="text-lg font-bold text-zinc-200 leading-tight group-hover:text-[#53FF75] transition-colors">
+          {text}
+        </span>
       </Link>
     );
   }

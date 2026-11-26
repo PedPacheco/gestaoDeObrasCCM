@@ -1,35 +1,27 @@
-import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/application/usecases/users.service';
-import {
-  userChangePasswordController,
-  userListInterfaceController,
-  userAdminCreateInterfaceController,
-  userStatusChangeInterfaceController,
-} from 'src/interface/types/userInterface';
-
 import {
   Body,
   Controller,
   Get,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
-  Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-
-import {
-  ChangePasswordDTO,
-  changePasswordResponseDTO,
-} from '../dtos/changePasswordDto';
+import { plainToInstance } from 'class-transformer';
+import { UsersService } from 'src/application/usecases/users.service';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-import { RegisterUserDTO } from '../dtos/registerUserDto';
-import { UpdateUserDTO, UserSafeResponseDTO } from '../dtos/userDTO';
+import { RegisterUserDTO, UserSafeResponseDTO } from '../dtos/userDTO';
+
+import {
+  UserAdminCreateResponse,
+  UserDeactivateResponse,
+  UserListResponse,
+} from '../types';
 
 @Controller('user')
 export class UsersController {
@@ -37,7 +29,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(AreaViewGuard({ adminOnly: true }))
-  async list(): Promise<userListInterfaceController> {
+  async list(): Promise<UserListResponse> {
     const users = await this.usersService.listUsers();
 
     return {
@@ -53,9 +45,7 @@ export class UsersController {
 
   @Post()
   @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async create(
-    @Body() dto: RegisterUserDTO,
-  ): Promise<userAdminCreateInterfaceController> {
+  async create(@Body() dto: RegisterUserDTO): Promise<UserAdminCreateResponse> {
     const user = await this.usersService.createUser(dto);
 
     return {
@@ -67,26 +57,27 @@ export class UsersController {
     };
   }
 
-  @Put('/change-password')
-  @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async changePassword(
-    @Body() { token, newPassword }: ChangePasswordDTO,
-  ): Promise<userChangePasswordController> {
-    const user = await this.usersService.updatePassword(token, newPassword);
+  // @Put('/change-password')
+  // @UseGuards(AreaEditGuard({ adminOnly: true }))
+  // async changePassword(
+  //   @Body() { token, newPassword }: ChangePasswordDTO,
+  // ): Promise<userChangePasswordController> {
+  //   const user = await this.usersService.updatePassword(token, newPassword);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Senha alterada com sucesso',
-      data: plainToInstance(changePasswordResponseDTO, user),
-    };
-  }
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Senha alterada com sucesso',
+  //     data: plainToInstance(changePasswordResponseDTO, user),
+  //   };
+  // }
 
   @Patch('/:id/ativar')
   @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async updateStatus(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<userStatusChangeInterfaceController> {
-    const user = await this.usersService.updateStatus(id);
+  async deactivate(
+    @Param('id') id: string,
+    @Req() req: any,
+  ): Promise<UserDeactivateResponse> {
+    const user = await this.usersService.deactivateUser(+id, req.user.sub);
 
     return {
       statusCode: HttpStatus.OK,
@@ -97,20 +88,20 @@ export class UsersController {
     };
   }
 
-  @Patch('/:id')
-  @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async updateUser(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdateUserDTO,
-  ): Promise<userStatusChangeInterfaceController> {
-    const user = await this.usersService.updateUser(id, data);
+  // @Patch('/:id')
+  // @UseGuards(AreaEditGuard({ adminOnly: true }))
+  // async updateUser(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() data: UpdateUserDTO,
+  // ): Promise<userStatusChangeInterfaceController> {
+  //   const user = await this.usersService.updateUserPermissions(id, data);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Permissão do usuário atualizada com sucesso',
-      data: plainToInstance(UserSafeResponseDTO, user, {
-        excludeExtraneousValues: true,
-      }),
-    };
-  }
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Permissão do usuário atualizada com sucesso',
+  //     data: plainToInstance(UserSafeResponseDTO, user, {
+  //       excludeExtraneousValues: true,
+  //     }),
+  //   };
+  // }
 }

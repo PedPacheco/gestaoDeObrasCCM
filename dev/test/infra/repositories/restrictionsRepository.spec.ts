@@ -1,10 +1,13 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
+import type { Mocked } from 'vitest';
 import {
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
@@ -18,17 +21,19 @@ const getSqlString = (query: any): string => {
   return String(query);
 };
 
+const SCHEMA = 'schema_teste';
+
 describe('RestrictionsRepository', () => {
   let repository: RestrictionsRepository;
-  let prismaService: jest.Mocked<PrismaService>;
+  let prismaService: Mocked<PrismaService>;
 
   const mockPrismaService = {
-    $queryRaw: jest.fn(),
-    $transaction: jest.fn(),
+    $queryRaw: vi.fn(),
+    $transaction: vi.fn(),
     restricoes_publicacoes: {
-      update: jest.fn(),
-      delete: jest.fn(),
-      findMany: jest.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findMany: vi.fn(),
     },
   };
 
@@ -36,20 +41,34 @@ describe('RestrictionsRepository', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RestrictionsRepository,
+        DbSchema,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: ConfigService,
+          // Função normal (não vi.fn) para não ser apagada pelo vi.resetAllMocks()
+          useValue: { getOrThrow: () => SCHEMA },
         },
       ],
     }).compile();
 
     repository = module.get<RestrictionsRepository>(RestrictionsRepository);
     prismaService = module.get(PrismaService);
+
+    prismaService.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        total_obras: 0,
+        total_restricoes: 0,
+        percentual_restricoes: 0,
+      },
+    ]);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('getScheduleRestrictions', () => {
@@ -286,10 +305,10 @@ describe('RestrictionsRepository', () => {
 
   describe('insertPublicationRestriction', () => {
     it('should insert multiple publication restrictions', async () => {
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockResolvedValue({ count: 2 }),
+            createMany: vi.fn().mockResolvedValue({ count: 2 }),
           },
         });
       });
@@ -312,15 +331,15 @@ describe('RestrictionsRepository', () => {
           responsibility: 'Test Company',
           responsibleName: 'Test User',
           restrictionStatus: 'Active',
-          idUser: 1,
+          userId: 1,
         },
       ];
 
       let capturedData: any;
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockImplementation((params) => {
+            createMany: vi.fn().mockImplementation((params) => {
               capturedData = params.data;
               return Promise.resolve({ count: 1 });
             }),
@@ -347,10 +366,10 @@ describe('RestrictionsRepository', () => {
     it('should handle empty array', async () => {
       const data: InsertPublicationRestrictionsDTO[] = [];
 
-      const mockTransaction = jest.fn().mockImplementation(async (callback) => {
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
         return callback({
           restricoes_publicacoes: {
-            createMany: jest.fn().mockResolvedValue({ count: 0 }),
+            createMany: vi.fn().mockResolvedValue({ count: 0 }),
           },
         });
       });
@@ -413,7 +432,7 @@ describe('RestrictionsRepository', () => {
         responsibility: 'Company',
         responsibleName: 'User',
         restrictionStatus: 'Pendente',
-        idUser: 1,
+        userId: 1,
       };
 
       const error = new Error('Record not found');

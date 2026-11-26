@@ -84,7 +84,7 @@ export async function editSchedule(data: any, id: number, files?: File[]) {
       };
     }
 
-    revalidatePath(`/detalhes/${data.idWork}`);
+    revalidatePath(`/detalhes/${data.workId}`);
     return { success: true, message: res.message };
   } catch (error: any) {
     return { success: false, message: error.message };
@@ -149,7 +149,7 @@ export async function newEditSchedule(data: any, id: number) {
       };
     }
 
-    revalidatePath(`/detalhes/${data.idWork}`);
+    revalidatePath(`/detalhes/${data.workId}`);
 
     return { success: true, message: res.message, id: data.id };
   } catch (error: any) {
@@ -157,7 +157,7 @@ export async function newEditSchedule(data: any, id: number) {
   }
 }
 
-export async function deleteSchedule(id: number, idWork: number) {
+export async function deleteSchedule(id: number, workId: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -182,7 +182,7 @@ export async function deleteSchedule(id: number, idWork: number) {
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {
@@ -192,7 +192,7 @@ export async function deleteSchedule(id: number, idWork: number) {
 
 export async function ValidatedSchedule(
   data: { id: number; validate: boolean }[],
-  idWork: string,
+  workId: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -219,7 +219,7 @@ export async function ValidatedSchedule(
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {
@@ -229,7 +229,7 @@ export async function ValidatedSchedule(
 
 export async function ConfirmedSchedule(
   data: { id: number; confirm: boolean }[],
-  idWork: string,
+  workId: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -256,7 +256,7 @@ export async function ConfirmedSchedule(
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {
@@ -271,7 +271,7 @@ export async function RejectedSchedule(
     reason: string;
     description: string;
   }[],
-  idWork: string,
+  workId: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -298,7 +298,7 @@ export async function RejectedSchedule(
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {

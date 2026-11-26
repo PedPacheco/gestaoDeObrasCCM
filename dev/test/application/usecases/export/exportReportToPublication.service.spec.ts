@@ -2,27 +2,30 @@ import * as ExcelJS from 'exceljs';
 import moment from 'moment';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
 import { buildEquipamentosFormatados } from 'src/utils/buildFormattedEquipments';
+import type { Mock } from 'vitest';
 
-jest.mock('src/utils/buildFormattedEquipments', () => ({
-  buildEquipamentosFormatados: jest.fn(),
+vi.mock('src/utils/buildFormattedEquipments', () => ({
+  buildEquipamentosFormatados: vi.fn(),
 }));
 
-jest.mock('exceljs', () => {
-  const addRowsMock = jest.fn();
-  const addWorksheetMock = jest.fn(() => ({
+vi.mock('exceljs', () => {
+  const addRowsMock = vi.fn();
+  const addWorksheetMock = vi.fn(() => ({
     columns: [],
     addRows: addRowsMock,
   }));
 
-  const writeMock = jest.fn();
+  const writeMock = vi.fn();
 
   return {
-    Workbook: jest.fn().mockImplementation(() => ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    })),
+    Workbook: vi.fn().mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    }),
   };
 });
 
@@ -30,34 +33,36 @@ describe('ExportReportToPubliationService', () => {
   let service: ExportReportToPubliationService;
 
   const mockRepository = {
-    exportExecutionReport: jest.fn(),
+    exportExecutionReport: vi.fn(),
   };
 
   const mockResponse = {} as any;
 
-  let addRowsMock: jest.Mock;
-  let addWorksheetMock: jest.Mock;
-  let writeMock: jest.Mock;
+  let addRowsMock: Mock;
+  let addWorksheetMock: Mock;
+  let writeMock: Mock;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
-    addRowsMock = jest.fn();
-    writeMock = jest.fn().mockResolvedValue(undefined);
+    addRowsMock = vi.fn();
+    writeMock = vi.fn().mockResolvedValue(undefined);
 
-    addWorksheetMock = jest.fn().mockReturnValue({
+    addWorksheetMock = vi.fn().mockReturnValue({
       columns: [],
       addRows: addRowsMock,
     });
 
-    (ExcelJS.Workbook as jest.Mock).mockImplementation(() => ({
-      addWorksheet: addWorksheetMock,
-      xlsx: {
-        write: writeMock,
-      },
-    }));
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return {
+        addWorksheet: addWorksheetMock,
+        xlsx: {
+          write: writeMock,
+        },
+      };
+    });
 
-    (buildEquipamentosFormatados as jest.Mock).mockReturnValue('EQUIP_FORMAT');
+    (buildEquipamentosFormatados as Mock).mockReturnValue('EQUIP_FORMAT');
 
     service = new ExportReportToPubliationService(mockRepository as any);
   });
@@ -71,7 +76,7 @@ describe('ExportReportToPubliationService', () => {
       {
         id: 1,
         criado_em: '2026-04-17T12:00:00Z',
-        usuario: { nome_usuario: 'Pedro' },
+        usuario: { nome: 'Pedro' },
         obras: {
           ovnota: '123',
           diagrama: 'D1',

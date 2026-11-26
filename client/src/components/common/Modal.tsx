@@ -10,16 +10,18 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   closeButton?: boolean;
-  width?: string;
+  className?: string;
 }
+
+const DEFAULT_WIDTH = "w-80 xl:w-8/12";
 
 export default function ModalComponent({
   open,
   onClose,
   title,
   children,
+  className,
   closeButton = false,
-  width = "w-80 xl:w-8/12",
 }: ModalProps) {
   return (
     <Modal
@@ -30,7 +32,9 @@ export default function ModalComponent({
       closeAfterTransition
     >
       <Box
-        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg max-h-[90vh] overflow-y-auto ${width}`}
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg max-h-[90vh] overflow-y-auto ${
+          className ?? DEFAULT_WIDTH
+        }`}
       >
         {title && (
           <Typography

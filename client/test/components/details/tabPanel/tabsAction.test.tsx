@@ -32,7 +32,7 @@ vi.mock("@/components/common/Button", () => ({
 // IMPORT (após os mocks)
 // ============================================================
 
-import TabActions from "@/components/details/tabPanel/tabsActions";
+import TabActions from "@/components/details/workDetails/tabPanel/tabsActions";
 
 // ============================================================
 // HELPERS

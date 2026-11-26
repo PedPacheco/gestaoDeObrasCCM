@@ -1,9 +1,10 @@
 import { Dayjs } from "dayjs";
 
-import { DateFilter } from "@/components/common/DateFilter";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { ButtonComponent } from "@/components/common/Button";
+import { DateFilter } from "@/components/common/filter/DateFilter";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;
@@ -93,6 +94,7 @@ export function LaborDashboardFilters({
             displayKey="regional"
             backgroundColor="#0f1e2e"
             textColor="#a1a1aa"
+            marginBottom="0rem"
           />
         </div>
 
@@ -111,6 +113,7 @@ export function LaborDashboardFilters({
             displayKey="turma"
             backgroundColor="#0f1e2e"
             textColor="#a1a1aa"
+            marginBottom="0rem"
           />
         </div>
 
@@ -126,6 +129,7 @@ export function LaborDashboardFilters({
             displayKey="tipo_obra"
             backgroundColor="#0f1e2e"
             textColor="#a1a1aa"
+            marginBottom="0rem"
           />
         </div>
 
@@ -139,27 +143,54 @@ export function LaborDashboardFilters({
             displayKey="grupo"
             backgroundColor="#0f1e2e"
             textColor="#a1a1aa"
+            marginBottom="0rem"
           />
         </div>
 
-        <div className=" flex items-center gap-3">
-          <button
-            type="button"
+        <div className="flex flex-row items-center gap-2 shrink-0">
+          <ButtonComponent
             onClick={onApply}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isPending ? "Carregando..." : "Aplicar"}
-          </button>
+            text={isPending ? "Carregando..." : "Aplicar"}
+            styled="flex-1 lg:flex-none w-44 rounded-xl px-6 py-2 shadow-lg transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#0f1a26",
+              backgroundColor: "#53FF75",
+              "&:hover": {
+                color: "#0f1a26",
+                backgroundColor: "#2ED158",
+              },
+              "&.Mui-disabled": {
+                color: "#0f1a26",
+                backgroundColor: "#53FF75",
+                opacity: 0.5,
+              },
+            }}
+          />
 
-          <button
+          <ButtonComponent
             type="button"
             onClick={clearFilters}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isPending ? "Carregando..." : "Limpar"}
-          </button>
+            text="Limpar"
+            styled="flex-1 lg:flex-none w-44 rounded-xl px-6 py-2 transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#D4D4D8", // zinc-300
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              "&:hover": {
+                color: "#FFFFFF",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                borderColor: "#FFFFFF",
+              },
+              "&.Mui-disabled": {
+                color: "#71717A", // zinc-500
+                backgroundColor: "transparent",
+                borderColor: "rgba(255, 255, 255, 0.3)",
+                opacity: 0.5,
+              },
+            }}
+          />
         </div>
       </div>
 

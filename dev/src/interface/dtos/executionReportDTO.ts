@@ -8,6 +8,7 @@ import {
   Matches,
   ValidateNested,
 } from 'class-validator';
+import { DisableWhitelist } from 'src/shared/costants';
 
 export class EquipmentItem {
   @IsString()
@@ -91,6 +92,7 @@ export class ExecutionReportDataDTO {
   provisionalKeyReferenceWithdrawn?: string;
 }
 
+@DisableWhitelist()
 export class UpdateExecutionReportDTO {
   @Transform(({ value }) => {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;

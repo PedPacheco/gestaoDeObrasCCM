@@ -7,16 +7,21 @@ import {
   Patch,
   Req,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
+import { CleanupUploadsOnErrorInterceptor } from 'src/core/interceptors/cleanupUploadsOnError.interceptor';
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
 
 import {
   FinalizeServicesDTO,
   PerformServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
+import { DOCUMENT_UPLOAD_PRESET } from 'src/shared/upload/uploadPresets';
 
 @Controller('servicos')
 export class ServicesExecutionController {
@@ -25,6 +30,7 @@ export class ServicesExecutionController {
   ) {}
 
   @Patch('reprogramar/:id/:scheduleId')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async reascheduleServices(
     @Param('id', ParseIntPipe) id: number,
     @Param('scheduleId', ParseIntPipe) scheduleId: number,
@@ -38,11 +44,15 @@ export class ServicesExecutionController {
   }
 
   @Patch('finalizar/:id')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  @UseInterceptors(
+    FilesInterceptor('files', DOCUMENT_UPLOAD_PRESET.maxFiles),
+    CleanupUploadsOnErrorInterceptor,
+  )
   async finalizeServices(
     @Param('id', ParseIntPipe) id: number,
     @Body() executionData: FinalizeServicesDTO,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles(UploadSignaturePipe) files: Express.Multer.File[],
     @Req() req: any,
   ) {
     const userId = req.user.sub;
@@ -67,6 +77,7 @@ export class ServicesExecutionController {
   }
 
   @Patch('realizar')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async performServices(@Body() data: PerformServicesDTO[]) {
     await this.finalizeServicesService.performServices(data);
 

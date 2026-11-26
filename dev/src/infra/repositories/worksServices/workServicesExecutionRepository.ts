@@ -1,139 +1,130 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
 
-import { IWorkServicesExecutionRepository } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  FinalizationData,
+  IWorkServicesExecutionRepository,
+} from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+import {
+  deriveExecutionStatus,
+  ScheduleExecutionRow,
+  ServiceExecutionStatus,
+} from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {
-  constructor(private readonly prisma: PrismaService) {}
-
+  // ─── Finalização ────────────────────────────────────────────────────
   async finalizeServices(
-    data: any,
+    data: FinalizationData,
     tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    const { id, prog, exec, idExecutionRestriction, responsibility, userId } =
-      data;
+  ): Promise<boolean> {
+    const {
+      id,
+      prog,
+      exec,
+      idExecutionRestriction,
+      responsibility,
+      executionObservation,
+      userId,
+    } = data;
 
     try {
       await tx.programacoes.update({
         where: { id },
         data: {
-          prog: prog,
-          exec: exec,
+          prog,
+          exec,
           id_restricao_execucao: idExecutionRestriction,
-          nome_responsavel: responsibility,
+          // O responsável e a observação da EXECUÇÃO têm colunas próprias;
+          // `nome_responsavel` é o da restrição de programação.
+          nome_responsavel_execucao: responsibility,
+          observacao_execucao: executionObservation,
           id_usuario_ultima_atualizacao: userId,
         },
       });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
-      }
 
+      return true;
+    } catch (error: any) {
+      if (error.code === 'P2025') return false;
       throw error;
     }
   }
 
-  // Recebe `tx`: precisa participar da mesma transação orquestrada pelo
-  // FinalizeServicesService (junto com a atualização de status de obra/
-  // programação), senão um erro nos passos seguintes deixaria o
-  // zeramento de real/exec já commitado e os status desatualizados.
-  async reascheduleServices(
-    data: { id_servico: number }[],
+  // ─── Reagendamento / finalização ────────────────────────────────────
+  findScheduleItems(
     scheduleId: number,
     tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    if (data.length === 0) return;
-
-    const serviceIds = data.map((item) => item.id_servico);
-
-    await tx.programacoes_servicos.updateMany({
-      where: { id_servico: { in: serviceIds }, id_programacao: scheduleId },
-      data: { real: 0 },
-    });
-
-    await tx.programacoes.update({
-      where: { id: scheduleId },
-      data: { exec: 0 },
+  ): Promise<ScheduleExecutionRow[]> {
+    return tx.programacoes_servicos.findMany({
+      where: { id_programacao: scheduleId },
+      select: {
+        id: true,
+        id_servico: true,
+        prog: true,
+        real: true,
+        status: true,
+      },
     });
   }
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
-    const BATCH_SIZE = 50;
+  /**
+   * Marca como REPROGRAMADO as linhas sem apontamento e as parciais.
+   * Não altera prog nem real. Os filtros evitam marcar linhas que mudaram
+   * entretanto (o serviço compara o count devolvido).
+   */
+  async markScheduleItemsAsRescheduled(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<number> {
+    if (ids.length === 0) return 0;
 
-    await this.prisma.$transaction(
-      async (tx) => {
-        for (let i = 0; i < data.length; i += BATCH_SIZE) {
-          const batch = data.slice(i, i + BATCH_SIZE);
-
-          // 1. Atualiza o realizado em programacoes_servicos
-          await Promise.all(
-            batch.map(({ id, qtdeRealizada, idSchedule }) =>
-              tx.programacoes_servicos.updateMany({
-                data: { real: qtdeRealizada },
-                where: {
-                  id_servico: id,
-                  id_programacao: idSchedule,
-                },
-              }),
-            ),
-          );
-
-          // 2. Recalcula os totalizadores dos serviços afetados
-          const uniqueServiceIds = [...new Set(batch.map(({ id }) => id))];
-
-          // Mapear cada serviço aos seus idSchedules neste batch
-          const schedulesByService = batch.reduce((acc, { id, idSchedule }) => {
-            if (!acc.has(id)) acc.set(id, new Set());
-            acc.get(id).add(idSchedule);
-            return acc;
-          }, new Map<number, Set<number>>());
-
-          await Promise.all(
-            uniqueServiceIds.map(async (idServico) => {
-              const currentScheduleIds = [...schedulesByService.get(idServico)];
-
-              // Real da programação atual — soma dos DTOs deste serviço
-              const realAtual = batch
-                .filter((item) => item.id === idServico)
-                .reduce((acc, item) => acc + (item.qtdeRealizada ?? 0), 0);
-
-              // Buscar TODOS os registos — para qtde_real
-              const totalAgg = await tx.programacoes_servicos.aggregate({
-                where: { id_servico: idServico },
-                _sum: { real: true },
-              });
-
-              // Buscar prog das outras programações
-              const outrasProgramacoes =
-                await tx.programacoes_servicos.aggregate({
-                  where: {
-                    id_servico: idServico,
-                    id_programacao: { notIn: currentScheduleIds },
-                  },
-                  _sum: { prog: true },
-                });
-
-              // qtde_prog = real da atual (do DTO) + prog das outras
-              const qtdeProg = realAtual + (outrasProgramacoes._sum.prog ?? 0);
-
-              await tx.servicos.update({
-                where: { id: idServico },
-                data: {
-                  qtde_prog: qtdeProg,
-                  qtde_real: totalAgg._sum.real ?? 0,
-                },
-              });
-            }),
-          );
-        }
+    const { count } = await tx.programacoes_servicos.updateMany({
+      where: {
+        id: { in: ids },
+        OR: [
+          { status: null, real: null }, // sem apontamento
+          { status: ServiceExecutionStatus.EXECUTADO }, // parcial
+        ],
       },
-      {
-        maxWait: 10000,
-        timeout: 30000,
+      data: { status: ServiceExecutionStatus.REPROGRAMADO },
+    });
+
+    return count;
+  }
+
+  // ─── Execução ───────────────────────────────────────────────────────
+  /**
+   * Sem filtro de status: enquanto a programação está aberta, o apontamento
+   * pode ser corrigido, incluindo nas linhas REPROGRAMADO. O bloqueio após o
+   * encerramento é feito pelo FINALIZED_SCHEDULE_STATUSES no serviço.
+   */
+  findExecutionTargets(
+    serviceId: number,
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ) {
+    return tx.programacoes_servicos.findMany({
+      where: { id_servico: serviceId, id_programacao: scheduleId },
+      select: {
+        id: true,
+        status: true,
+        programacoes: { select: { id_status_programacao: true } },
       },
+    });
+  }
+
+  /** Grava o real e o status: null → REPROGRAMADO, 0 → NAO_EXECUTADO, > 0 → EXECUTADO. */
+  async updateItemsExecution(
+    items: { rowId: number; real: number | null }[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await Promise.all(
+      items.map(({ rowId, real }) =>
+        tx.programacoes_servicos.update({
+          where: { id: rowId },
+          data: { real, status: deriveExecutionStatus(real) },
+        }),
+      ),
     );
   }
 }

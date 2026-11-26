@@ -1,9 +1,9 @@
 "use client";
 
-import { useUser } from "@/contexts/userContext";
-import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
+import { useUser } from "@/contexts/userContext";
 import { ReactNode, useMemo } from "react";
+import DataItem from "./dataItem";
 
 interface typeData {
   id_turma: string;
@@ -23,6 +23,13 @@ interface EditableColumnProps {
   EditSuspension?: ReactNode;
 }
 
+const STATUS = {
+  EXECUTADA: 2,
+  EM_EMPREITAMENTO: 42,
+  AGUARDANDO_VIABILIDADE: 45,
+  VIABILIDADE_EM_APROVACAO: 46,
+} as const;
+
 const statusOrder = [
   "EM EMPREITAMENTO",
   "AGUARDANDO VIABILIDADE",
@@ -37,6 +44,11 @@ const statusOrder = [
   "REPROGRAMAR",
 ];
 
+const ALLOWED_STATUS_BY_CURRENT: Record<number, number[]> = {
+  4: [42, 45, 4],
+  42: [42, 45, 4, 3],
+};
+
 export const EditableColumn = ({
   data,
   feasibilitySubmissionDate,
@@ -48,24 +60,32 @@ export const EditableColumn = ({
   const { permissions } = useUser();
 
   const getFilteredAndSortedStatus = useMemo(() => {
-    const filtered =
-      data.id_status === 42 && data.data_empreitamento === null
-        ? options.status.filter((item) => [42, 45, 4, 3].includes(item.id))
-        : options.status.filter((item) => item.id !== 42);
+    const allowedIds =
+      data.data_empreitamento === null
+        ? ALLOWED_STATUS_BY_CURRENT[data.id_status]
+        : undefined;
+
+    const filtered = allowedIds
+      ? options.status.filter((item) => allowedIds.includes(item.id))
+      : options.status.filter((item) => item.id !== STATUS.EM_EMPREITAMENTO);
 
     return filtered.sort(
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
     );
-  }, [data.data_empreitamento, options.status]);
+  }, [data.data_empreitamento, data.id_status, options.status]);
 
   const havePermission =
     permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
 
+  // Obra executada: todos os campos ficam só de leitura
+  const isExecuted = Number(data.id_status) === STATUS.EXECUTADA;
+
   const disableWhenStatusisAwaitingFeasibility =
-    !feasibilitySubmissionDate && data.id_status === 45;
+    !feasibilitySubmissionDate &&
+    data.id_status === STATUS.AGUARDANDO_VIABILIDADE;
 
   const disableWhenStatusIsPendingApproval =
-    data.id_status === 46 &&
+    data.id_status === STATUS.VIABILIDADE_EM_APROVACAO &&
     Boolean(feasibilitySubmissionDate) &&
     !feasibilityApprove;
 
@@ -78,7 +98,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
-        disabled={havePermission}
+        disabled={havePermission || isExecuted}
       />
 
       <SelectComponent
@@ -90,10 +110,11 @@ export const EditableColumn = ({
         displayKey="status"
         disabled={
           havePermission ||
+          isExecuted ||
           disableWhenStatusisAwaitingFeasibility ||
           disableWhenStatusIsPendingApproval
         }
-        editButton={EditSuspension}
+        editButton={isExecuted ? undefined : EditSuspension}
       />
 
       <DataItem
@@ -101,7 +122,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={data.id_status !== 42}
+        disabled={isExecuted || data.id_status !== STATUS.EM_EMPREITAMENTO}
       />
     </>
   );

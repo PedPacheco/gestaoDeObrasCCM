@@ -1,22 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
-import {
-  mockGetAuxiliaryBaseMarket,
-  mockGetAuxiliaryBaseMarket2,
-} from '../../../mocks/mockAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { InsertWorksRepository } from 'src/infra/repositories/works/management/InsertWorksRepository';
 import {
   mockInsertNotesRepository,
   mockInsertNotesWithDefaultIdRepository,
 } from '../../../../test/mocks/mockInsertWorksRepository';
+import {
+  mockGetAuxiliaryBaseMarket,
+  mockGetAuxiliaryBaseMarket2,
+} from '../../../mocks/mockAuxiliaryBaseRepository';
 
 describe('InserWorksRepository', () => {
   let repository: InsertWorksRepository;
 
   const mockPrisma = {
-    obras: { createMany: jest.fn() },
-    tipos: { findMany: jest.fn() },
+    obras: { createMany: vi.fn() },
+    tipos: { findMany: vi.fn() },
   };
 
   beforeEach(async () => {
@@ -30,7 +30,7 @@ describe('InserWorksRepository', () => {
     repository = module.get<InsertWorksRepository>(InsertWorksRepository);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('insertMarketWorks', () => {
     it('should call prisma.obras.createMany with mapped market works', async () => {
@@ -127,7 +127,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertMarketWorks([])).rejects.toThrow(
@@ -154,6 +154,7 @@ describe('InserWorksRepository', () => {
             ordem_dcd: '190000025094',
             ordem_dca: '150000003441',
             ordem_dcim: null,
+            ordem_dcdm: null,
             entrada: new Date('2025-06-09T00:00:00.000Z'),
             prazo: 90,
             referencia: '195ET005120739',
@@ -184,6 +185,7 @@ describe('InserWorksRepository', () => {
             ordem_dcd: '190000025094',
             ordem_dca: '150000003441',
             ordem_dcim: null,
+            ordem_dcdm: null,
             entrada: new Date('2025-06-09T00:00:00.000Z'),
             prazo: 90,
             referencia: '195ET005120739',
@@ -203,7 +205,7 @@ describe('InserWorksRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
       await expect(repository.insertNotes([])).rejects.toThrow('DB error');
@@ -229,16 +231,15 @@ describe('InserWorksRepository', () => {
       });
     });
 
-    it('should log error if findMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
-      mockPrisma.tipos.findMany.mockRejectedValueOnce(new Error('DB error'));
+    it('should log and rethrow if findMany fails', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = new Error('DB error');
+      mockPrisma.tipos.findMany.mockRejectedValueOnce(error);
 
-      await repository.getGroup();
+      await expect(repository.getGroup()).rejects.toThrow('DB error'); // ✅ espera a rejeição
 
-      expect(spy).toHaveBeenCalledWith(
-        'Erro ao procurar grupos:',
-        expect.any(Error),
-      );
+      expect(spy).toHaveBeenCalledWith('Erro ao procurar grupos:', error);
+      spy.mockRestore();
     });
   });
 });

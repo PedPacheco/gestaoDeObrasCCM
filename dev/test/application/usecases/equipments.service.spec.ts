@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EquipmentService } from 'src/application/usecases/equipment.service';
-import { EQUIPMENT_REPOSITORY } from 'src/domain/repositories/IEquipmentRepository';
+import { EQUIPMENT_REPOSITORY } from 'src/domain/contracts/IEquipmentRepository';
 
 describe('EquipmentService', () => {
   let service: EquipmentService;
 
   const mockRepository = {
-    findWorks: jest.fn(),
-    countWorks: jest.fn(),
-    findEquipmentByCode: jest.fn(),
-    findWithoutLocationRaw: jest.fn(),
+    findWorks: vi.fn(),
+    countWorks: vi.fn(),
+    findEquipmentByCode: vi.fn(),
+    findWithoutLocationRaw: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -25,8 +25,8 @@ describe('EquipmentService', () => {
 
     service = module.get<EquipmentService>(EquipmentService);
 
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   /**
@@ -74,6 +74,7 @@ describe('EquipmentService', () => {
       {
         id: 1,
         ovnota: '123',
+        ordem_dci: '212412',
         referencia: 'EQ1',
         tipos: { tipo_obra: 'POSTE' },
         status: { status: 'Pendente' },
@@ -103,6 +104,7 @@ describe('EquipmentService', () => {
         {
           id: 1,
           ovnota: '123',
+          ordemDiagrama: '212412',
           referencia: 'EQ1',
           tipo_obra: 'POSTE',
           status: 'Pendente',
@@ -281,7 +283,7 @@ describe('EquipmentService', () => {
         circuito: '',
         empreiteira: '',
         tipo_obra: '',
-        executado: '',
+        executado: 0,
         empreendimento: '',
       },
     ]);

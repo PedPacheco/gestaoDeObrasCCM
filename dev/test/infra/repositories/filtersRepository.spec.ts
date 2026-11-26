@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FiltersRepository } from 'src/infra/repositories/filtersRepository';
@@ -13,16 +14,16 @@ describe('FiltersRepository', () => {
         {
           provide: PrismaService,
           useValue: {
-            regionais: { findMany: jest.fn() },
-            turmas: { findMany: jest.fn() },
-            tipos: { findMany: jest.fn() },
-            municipios: { findMany: jest.fn() },
-            grupos: { findMany: jest.fn() },
-            circuitos: { findMany: jest.fn() },
-            status: { findMany: jest.fn() },
-            conjuntos: { findMany: jest.fn() },
-            obras: { findMany: jest.fn() },
-            empreendimento: { findMany: jest.fn() },
+            regionais: { findMany: vi.fn() },
+            turmas: { findMany: vi.fn() },
+            tipos: { findMany: vi.fn() },
+            municipios: { findMany: vi.fn() },
+            grupos: { findMany: vi.fn() },
+            circuitos: { findMany: vi.fn() },
+            status: { findMany: vi.fn() },
+            conjuntos: { findMany: vi.fn() },
+            obras: { findMany: vi.fn() },
+            empreendimento: { findMany: vi.fn() },
           },
         },
       ],
@@ -33,7 +34,7 @@ describe('FiltersRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const testCases = [
@@ -108,7 +109,7 @@ describe('FiltersRepository', () => {
   testCases.forEach(({ fields, table, data, condition }) => {
     describe('GetData', () => {
       it(`should fetch ${table} data from database `, async () => {
-        const findManyMock = prisma[table].findMany as jest.Mock;
+        const findManyMock = prisma[table].findMany as Mock;
         findManyMock.mockResolvedValue(data);
         const orderField = fields[1];
 

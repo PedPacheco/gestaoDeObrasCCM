@@ -15,12 +15,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
-import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/works/schedule/rejectionOfSchedules.service';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('programacao')
@@ -134,8 +134,8 @@ export class ScheduleController {
 
   @Get('reprovacoes/:id')
   @UseGuards(AreaViewGuard())
-  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
-    const response = await this.rejectionsOfSchedulesService.get(idWork);
+  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) workId: number) {
+    const response = await this.rejectionsOfSchedulesService.get(workId);
 
     return {
       statusCode: HttpStatus.OK,

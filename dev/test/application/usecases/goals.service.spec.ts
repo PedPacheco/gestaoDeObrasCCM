@@ -1,5 +1,5 @@
 import { GoalsService } from 'src/application/usecases/goals.service';
-import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
+import { GOALS_REPOSITORY } from 'src/domain/contracts/IGoalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -9,13 +9,13 @@ describe('GoalsService', () => {
   let service: GoalsService;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
   };
 
   const mockRepository = {
-    getGoals: jest.fn(),
+    getGoals: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('GoalsService', () => {
 
     service = module.get<GoalsService>(GoalsService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

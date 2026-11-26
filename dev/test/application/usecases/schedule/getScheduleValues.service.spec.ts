@@ -1,11 +1,13 @@
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/works/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
+import { obras } from 'src/infra/generated/prisma/client';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -90,7 +92,7 @@ describe('GetScheduleValues', () => {
           codigo: 'MAT001',
           descricao: 'Cabo de Alumínio',
           preco: {
-            toNumber: jest.fn().mockReturnValue(45.9),
+            toNumber: vi.fn().mockReturnValue(45.9),
           },
         },
       },
@@ -112,11 +114,11 @@ describe('GetScheduleValues', () => {
   };
 
   const mockRepository = {
-    getValues: jest.fn(),
+    getValues: vi.fn(),
   };
 
   const mockQueriesServicesService = {
-    getServiceScheduleHistoryByIdSchedule: jest.fn(),
+    getServiceScheduleHistoryByIdSchedule: vi.fn(),
   };
 
   /**
@@ -137,6 +139,7 @@ describe('GetScheduleValues', () => {
       providers: [
         GetScheduleValuesService,
         DeadlineStatusService,
+        PointByPointCostService,
         {
           provide: QueriesServicesService,
           useValue: mockQueriesServicesService,
@@ -147,11 +150,11 @@ describe('GetScheduleValues', () => {
 
     service = module.get<GetScheduleValuesService>(GetScheduleValuesService);
 
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {
@@ -168,6 +171,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       ovnota: '1343',
     };
 
@@ -189,6 +193,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 1,
       },
     });
@@ -215,7 +221,12 @@ describe('GetScheduleValues', () => {
         total_exec: 0,
         total_mo_planejada: 0,
         total_mo_exec: 0,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 0,
+        total_equipe_linha_morta: 0,
+        total_equipe_linha_viva: 0,
+        total_equipe_regularizacao: 0,
       },
     });
   });
@@ -240,6 +251,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_programado: 0,
+        total_ponto_a_ponto_executado: 0,
         total_qtde_planejada: 1,
       },
     });

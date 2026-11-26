@@ -1,13 +1,17 @@
 import moment from 'moment';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
-import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
+import { RESTRICTIONS_REPOSITORY } from 'src/domain/contracts/IRestrictionsRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
 import {
+  mockGetPublicationRestrictionByWorkIdResponse,
+  mockGetPublicationRestrictionResponse,
   mockGetRestrictionsFilters,
-  mockGetScheduleRestrictions,
+  mockGetScheduleRestrictionsOutput,
+  MockGetScheduleRestrictionsResponse,
   mockInsertPublicationRestrictions,
+  mockPublicationRestriction,
   mockUpdatePublicationRestrictions,
   mockUpdatePublicationRestrictionsWithResoltuionDate,
 } from '../../mocks/mockRestrictions';
@@ -16,12 +20,12 @@ describe('RestrictionsService', () => {
   let service: RestrictionsService;
 
   const mockRepository = {
-    getScheduleRestrictions: jest.fn(),
-    getPublicationRestricion: jest.fn(),
-    getPublicationRestrictionByWorkId: jest.fn(),
-    insertPublicationRestriction: jest.fn(),
-    updatePublicationRestriction: jest.fn(),
-    deletePublicationRestriction: jest.fn(),
+    getScheduleRestrictions: vi.fn(),
+    getPublicationRestricion: vi.fn(),
+    getPublicationRestrictionByWorkId: vi.fn(),
+    insertPublicationRestriction: vi.fn(),
+    updatePublicationRestriction: vi.fn(),
+    deletePublicationRestriction: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -34,8 +38,8 @@ describe('RestrictionsService', () => {
 
     service = module.get<RestrictionsService>(RestrictionsService);
 
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should be defined', () => {
@@ -44,41 +48,37 @@ describe('RestrictionsService', () => {
 
   describe('GetScheduleRestrictons', () => {
     it('should return schedule restrictions and correctly format totals from repository response', async () => {
-      mockRepository.getScheduleRestrictions.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-        totals: [{ total_obras: 1n }],
-      });
+      mockRepository.getScheduleRestrictions.mockResolvedValue(
+        MockGetScheduleRestrictionsResponse,
+      );
 
       const response = await service.getScheduleRestricion(
         mockGetRestrictionsFilters,
       );
 
-      expect(response).toEqual({
-        works: [mockGetScheduleRestrictions],
-        totals: { total_obras: 1 },
-      });
+      expect(response).toEqual(mockGetScheduleRestrictionsOutput);
     });
   });
 
   describe('GetPublicationRestrictions', () => {
     it('should return publication restrictions with status done and pending and correctly format totals from repository response', async () => {
-      mockRepository.getPublicationRestricion.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-      });
+      mockRepository.getPublicationRestricion.mockResolvedValue(
+        mockGetPublicationRestrictionResponse,
+      );
 
       const response = await service.getPublicationRestriction(
         mockGetRestrictionsFilters,
       );
 
       expect(response).toEqual({
-        works: [mockGetScheduleRestrictions],
+        works: [mockPublicationRestriction],
       });
     });
 
     it('should return publication restrictions with status done and correctly format totals from repository response', async () => {
-      mockRepository.getPublicationRestricion.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-      });
+      mockRepository.getPublicationRestricion.mockResolvedValue(
+        mockGetPublicationRestrictionResponse,
+      );
 
       await service.getPublicationRestriction({
         ...mockGetRestrictionsFilters,
@@ -101,9 +101,9 @@ describe('RestrictionsService', () => {
     });
 
     it('should return publication restrictions with status pending and correctly format totals from repository response', async () => {
-      mockRepository.getPublicationRestricion.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-      });
+      mockRepository.getPublicationRestricion.mockResolvedValue(
+        mockGetPublicationRestrictionResponse,
+      );
 
       await service.getPublicationRestriction({
         ...mockGetRestrictionsFilters,
@@ -126,9 +126,9 @@ describe('RestrictionsService', () => {
     });
 
     it('should return publication restrictions without status and period date and correctly format totals from repository response', async () => {
-      mockRepository.getPublicationRestricion.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-      });
+      mockRepository.getPublicationRestricion.mockResolvedValue(
+        mockGetPublicationRestrictionResponse,
+      );
 
       await service.getPublicationRestriction({
         ...mockGetRestrictionsFilters,
@@ -148,21 +148,25 @@ describe('RestrictionsService', () => {
 
   describe('GetScheduleRestrictonsByWorkId', () => {
     it('should return schedule restrictions and correctly format totals from repository response', async () => {
-      mockRepository.getPublicationRestrictionByWorkId.mockResolvedValue([
-        {
-          restricoes: { restricao: 'Data' },
-          usuario: { nome_usuario: 'Pedro' },
-          status_resolucao: 'Pendente',
-        },
-      ]);
+      mockRepository.getPublicationRestrictionByWorkId.mockResolvedValue(
+        mockGetPublicationRestrictionByWorkIdResponse,
+      );
 
       const response = await service.getPublicationRestrictionsByWorkId(1);
 
       expect(response).toEqual([
         {
-          restricao: 'Data',
-          criado_por: 'Pedro',
-          status_resolucao: 'Pendente',
+          restricao: 'Aguardando licença ambiental',
+          criado_por: 'João Silva',
+          responsabilidade: 'PARCEIRA',
+          nome_responsavel: 'Maria Souza',
+          status_restricao: 'PENDENTE',
+          data_resolucao: null,
+          criado_em: new Date('2026-05-01'),
+          observacao: null,
+          observacao_construcao: null,
+          restricoes: undefined,
+          usuario: undefined,
         },
       ]);
     });
@@ -170,9 +174,9 @@ describe('RestrictionsService', () => {
 
   describe('InsertPublicationRestrictions', () => {
     it('should sent data to inserPublictionRestriction in repository', async () => {
-      mockRepository.insertPublicationRestriction.mockResolvedValue({
-        works: [mockGetScheduleRestrictions],
-      });
+      mockRepository.insertPublicationRestriction.mockResolvedValue(
+        mockGetPublicationRestrictionResponse,
+      );
 
       await service.insertPublicationRestriction(
         mockInsertPublicationRestrictions,

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
 import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
-import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
-import { ForecastSnapshotRepository } from 'src/infra/repositories/schedule/forecastSnapshotRepository';
+import { FORECAST_SNAPSHOT } from 'src/domain/contracts/IForecastSnapshotRepository';
+import { ForecastSnapshotRepository } from 'src/infra/repositories/works/schedule/forecastSnapshotRepository';
 import { ForecastController } from '../controllers/forecast.controller';
 import { UsersModule } from './users.module';
 

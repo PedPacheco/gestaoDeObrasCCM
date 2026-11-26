@@ -2,13 +2,25 @@ import { plainToInstance } from 'class-transformer';
 import { Response } from 'express';
 import { AuthService } from 'src/application/usecases/auth.service';
 
-import { loginInterfaceController } from 'src/interface/types/userInterface';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
-
-import { Public } from '../../shared/costants';
-import { LoginUserDTO, LoginUserResponseDTO } from '../dtos/loginUserDto';
 import { Throttle } from '@nestjs/throttler';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import { Public } from '../../shared/costants';
+import {
+  LoginUserDTO,
+  LoginUserResponseDTO,
+  RegisterUserDTO,
+  RegisterUserResponseDTO,
+} from '../dtos/userDTO';
+import { LoginResponse, UserRegisterResponse } from '../types';
 
 @Controller('auth')
 export class AuthController {
@@ -20,8 +32,8 @@ export class AuthController {
   async login(
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<loginInterfaceController> {
-    const data = await this.authService.login(user, password);
+  ): Promise<LoginResponse> {
+    const data = await this.authService.login({ username: user, password });
 
     res.cookie('token', data.access_token, {
       httpOnly: false,
@@ -34,6 +46,20 @@ export class AuthController {
       statusCode: HttpStatus.OK,
       message: 'Login realizado com sucesso',
       data: plainToInstance(LoginUserResponseDTO, data),
+    };
+  }
+
+  @Post('register')
+  @UseGuards(AreaViewGuard({ adminOnly: true }))
+  async register(
+    @Body() registerDto: RegisterUserDTO,
+  ): Promise<UserRegisterResponse> {
+    const user = await this.authService.register(registerDto);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Usuário cadastrado com sucesso',
+      data: plainToInstance(RegisterUserResponseDTO, user),
     };
   }
 }

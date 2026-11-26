@@ -1,9 +1,11 @@
+import { UpdateExecutionReportInput } from 'src/application/types';
+import { EquipmentItem } from 'src/domain/types';
 import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {
   idSchedule: 1,
   userId: 1,
-  idWork: 1,
+  workId: 1,
   supervisor: 'Erick',
   partialConnectionReleased: false,
   startTime: '08:00',
@@ -94,6 +96,7 @@ export const mockExecutionReportPersistenceObject = {
   chave_provisoria_retirada: false,
   motivo: 'Instalação programada',
   caminho_arquivo: 'teste.pdf',
+  caminhos_arquivos: ['teste.pdf'],
   chave_provisoria_instalada: true,
   referencia_chave_provisoria_retirada: null,
 };
@@ -152,6 +155,7 @@ export const mockExecutionReportRepository = {
   patrimonio_equipamento_retirado: '',
   instalacao_equipamento_retirado: '',
   caminho_arquivo: 'teste.pdf',
+  caminhos_arquivos: ['teste.pdf'],
 };
 
 export const mockFindByWorkIdResponse = [
@@ -179,7 +183,7 @@ export const mockFindByWorkIdResponse = [
     chave_provisoria_retirada: false,
     motivo: 'Instalação programada',
     usuario: {
-      nome_usuario: 'Carlos Oliveira',
+      nome: 'Carlos Oliveira',
     },
     obras: {
       ovnota: '16004316',
@@ -371,3 +375,48 @@ export const mockFindByWorkIdResponseFormattedNull = [
     programacoes: undefined,
   },
 ];
+
+export const mockEquipmentItem = (
+  overrides: Partial<EquipmentItem> = {},
+): EquipmentItem =>
+  ({
+    equipment: 'Transformador',
+    power: '75 kVA',
+    patrimony: 'PAT-000123',
+    installation: 'INST-456789',
+    ...overrides,
+  }) as EquipmentItem;
+
+export const mockUpdateExecutionReportInput = (
+  overrides: Partial<UpdateExecutionReportInput> = {},
+): UpdateExecutionReportInput => ({
+  supervisor: 'João Silva',
+  partialConnectionReleased: false,
+  startTime: '08:00',
+  finishTime: '12:00',
+  startContact: 'COD - Operador 1',
+  endContact: 'COD - Operador 2',
+  delayJustification: '',
+  hasEquipmentInstalled: true,
+  appliedEquipment: [
+    mockEquipmentItem(),
+    mockEquipmentItem({
+      equipment: 'EQ-001',
+    }),
+  ],
+  hasEquipmentRemoved: true,
+  equipmentRemoved: [
+    mockEquipmentItem({
+      equipment: 'EQ-004',
+    }),
+  ],
+  changesExecution: false,
+  generalObservation: 'Execução concluída sem intercorrências.',
+  reason: '',
+  provisionalKeyInstalled: false,
+  provisionalKeyReference: '',
+  provisionalKeyWithdrawn: undefined,
+  provisionalKeyReferenceWithdrawn: undefined,
+  userId: 46,
+  ...overrides,
+});

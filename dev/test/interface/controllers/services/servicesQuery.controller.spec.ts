@@ -9,14 +9,14 @@ describe('ServicesQueryController', () => {
   let queriesService: QueriesServicesService;
 
   const mockQueriesService = {
-    getNotScheduledServices: jest.fn(),
-    getSelectedServices: jest.fn(),
-    getServiceScheduleHistory: jest.fn(),
-    getServiceContracts: jest.fn(),
-    getTeamsServices: jest.fn(),
-    getMaterials: jest.fn(),
-    getAllItems: jest.fn(),
-    getServiceOptions: jest.fn(),
+    getNotScheduledServices: vi.fn(),
+    getSelectedServices: vi.fn(),
+    getServiceScheduleHistory: vi.fn(),
+    getServiceContracts: vi.fn(),
+    getTeamsServices: vi.fn(),
+    getMaterials: vi.fn(),
+    getAllItems: vi.fn(),
+    getServiceOptions: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -30,7 +30,7 @@ describe('ServicesQueryController', () => {
     controller = module.get<ServicesQueryController>(ServicesQueryController);
     queriesService = module.get<QueriesServicesService>(QueriesServicesService);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

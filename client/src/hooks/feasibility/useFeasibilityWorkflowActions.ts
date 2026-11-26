@@ -1,7 +1,7 @@
-import { useTransition } from "react";
-import { useFeedback } from "../useFeedback";
 import { useUser } from "@/contexts/userContext";
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { useFeedback } from "../useFeedback";
 
 import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
 import { FeasibilityServiceItem } from "@/components/feasibility/feasbilityServices/feasibilityServicesReviewStep";
@@ -14,7 +14,7 @@ export function hasInvalidAdditionalQuantities(
 }
 
 interface useFeasibilityWorkflowActionsProps {
-  idWork: string;
+  workId: string;
   feasibilityReportId: number;
   hasFiles: boolean;
   pointByPoint: boolean;
@@ -30,7 +30,7 @@ export function useFeasibilityWorkflowActions({
   handleUpload,
   handleUploadComplementaryFiles,
   hasFiles,
-  idWork,
+  workId,
   onRejectSettled,
   pointByPoint,
   reviewData,
@@ -90,7 +90,7 @@ export function useFeasibilityWorkflowActions({
       try {
         await handleUploadComplementaryFiles();
 
-        const response = await approveFeasibility(idWork);
+        const response = await approveFeasibility(workId);
 
         if (!response.success) {
           showError(response.message);
@@ -98,7 +98,7 @@ export function useFeasibilityWorkflowActions({
         }
 
         showSuccess(response.message);
-        router.push(`/detalhes/${idWork}`);
+        router.push(`/detalhes/${workId}`);
       } catch (err) {
         showError(
           err instanceof Error ? err.message : "Erro ao reprovar viabilidade",
@@ -117,13 +117,13 @@ export function useFeasibilityWorkflowActions({
 
         const formattedData = {
           ...data,
-          workId: Number(idWork),
+          workId: Number(workId),
           feasibilityReportId: feasibilityReportId,
           userId: user.id,
         };
 
         const response = await rejectFeasibility({
-          idWork,
+          workId,
           data: formattedData,
         });
 
@@ -133,7 +133,7 @@ export function useFeasibilityWorkflowActions({
         }
 
         showSuccess(response.message);
-        router.push(`/detalhes/${idWork}`);
+        router.push(`/detalhes/${workId}`);
       } catch (err) {
         showError(
           err instanceof Error ? err.message : "Erro ao reprovar viabilidade",

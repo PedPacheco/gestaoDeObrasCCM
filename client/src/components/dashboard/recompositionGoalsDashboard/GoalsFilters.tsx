@@ -2,9 +2,9 @@
 
 "use client";
 
-import { type Dayjs } from "dayjs";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { type Dayjs } from "dayjs";
 
 import {
   FormControl,
@@ -13,11 +13,11 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 
-import { FiltersData } from "@/types/dashboard/recompositionGoals/goals";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { ButtonComponent } from "@/components/common/Button";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
-
 // ── Estilos reutilizáveis ─────────────────────────────────────────────────────
 
 const DATE_PICKER_SX = {
@@ -72,32 +72,24 @@ const MONTH_OPTIONS = [
 ];
 
 interface GoalsFiltersProps {
-  filtersData: FiltersData;
+  filtersData: FiltersInterface;
   filtersTop: number;
-  tiposRecomp: FiltersData["tipo"];
-
+  tiposRecomp: FiltersInterface["tipo"];
   year: Dayjs;
   yearPlan: Dayjs;
-
   selectedStartMonth: number;
   selectedEndMonth: number;
-
   selRegional: string[];
   selPartner: string[];
   selType: string[];
-
   isPending: boolean;
-
   setYear: (v: Dayjs) => void;
   setYearPlan: (v: Dayjs) => void;
-
   setSelectedStartMonth: (v: number) => void;
   setSelectedEndMonth: (v: number) => void;
-
   setSelRegional: (v: string[]) => void;
   setSelPartner: (v: string[]) => void;
   setSelType: (v: string[]) => void;
-
   onApply: () => void;
   onClear: () => void;
 }
@@ -178,6 +170,7 @@ export function GoalsFilters({
               displayKey="regional"
               backgroundColor="#0f1e2e"
               textColor="#a1a1aa"
+              marginBottom="0rem"
             />
           </div>
 
@@ -196,6 +189,7 @@ export function GoalsFilters({
               displayKey="turma"
               backgroundColor="#0f1e2e"
               textColor="#a1a1aa"
+              marginBottom="0rem"
             />
           </div>
 
@@ -211,59 +205,74 @@ export function GoalsFilters({
               displayKey="tipo_obra"
               backgroundColor="#0f1e2e"
               textColor="#a1a1aa"
+              marginBottom="0rem"
             />
           </div>
         </div>
 
-        {/* Grupo: Botões */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
+        <div className="flex flex-row items-center gap-2 shrink-0">
+          <ButtonComponent
             onClick={onApply}
             disabled={isPending}
-            className="
-              px-4 sm:px-6 py-2 rounded-xl
-              bg-[#3b82f6] hover:bg-[#2563eb]
-              text-white text-xs sm:text-sm font-semibold
-              transition-all shadow-lg
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
-          >
-            {isPending ? "Carregando..." : "Aplicar"}
-          </button>
+            text={isPending ? "Carregando..." : "Aplicar"}
+            styled="flex-1 lg:flex-none w-44 rounded-xl px-6 py-2 shadow-lg transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#0f1a26",
+              backgroundColor: "#53FF75",
+              "&:hover": {
+                color: "#0f1a26",
+                backgroundColor: "#2ED158",
+              },
+              "&.Mui-disabled": {
+                color: "#0f1a26",
+                backgroundColor: "#53FF75",
+                opacity: 0.5,
+              },
+            }}
+          />
 
-          <button
+          <ButtonComponent
+            type="button"
             onClick={onClear}
             disabled={isPending}
-            className="
-              px-4 sm:px-6 py-2 rounded-xl
-              bg-[#3b82f6] hover:bg-[#2563eb]
-              text-white text-xs sm:text-sm font-semibold
-              transition-all shadow-lg
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
-          >
-            Limpar
-          </button>
+            text="Limpar"
+            styled="flex-1 lg:flex-none w-44 rounded-xl px-6 py-2 transition-all disabled:cursor-not-allowed whitespace-nowrap"
+            sx={{
+              color: "#D4D4D8", // zinc-300
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+              "&:hover": {
+                color: "#FFFFFF",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                borderColor: "#FFFFFF",
+              },
+              "&.Mui-disabled": {
+                color: "#71717A", // zinc-500
+                backgroundColor: "transparent",
+                borderColor: "rgba(255, 255, 255, 0.3)",
+                opacity: 0.5,
+              },
+            }}
+          />
         </div>
       </div>
 
-      {/* Tags de filtros ativos */}
       {hasActiveFilters && (
         <div className="flex gap-1.5 flex-wrap pt-2 mt-3 border-t border-white/5">
           {selRegional.map((id) => {
-            const r = filtersData.regional.find((x) => x.id === id);
+            const r = filtersData.regional?.find((x) => x.id === id);
             return r ? (
               <FilterTag key={id} label={r.regional} variant="blue" />
             ) : null;
           })}
 
           {selPartner.map((id) => {
-            const p = filtersData.parceira.find((x) => x.id === id);
+            const p = filtersData.parceira?.find((x) => x.id === id);
             return p ? <FilterTag key={id} label={p.turma} /> : null;
           })}
 
           {selType.map((id) => {
-            const t = tiposRecomp.find((x) => x.id === id);
+            const t = tiposRecomp?.find((x) => x.id === id);
             return t ? <FilterTag key={id} label={t.tipo_obra} /> : null;
           })}
         </div>

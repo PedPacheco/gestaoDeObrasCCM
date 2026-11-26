@@ -1,23 +1,19 @@
 import {
+  InsertNotesOutput,
+  NoteInsertInput,
+  NotesInput,
+  OperationType,
+  SkipItemResult,
+  ValidationResult,
+} from 'src/application/types';
+import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 
-import { FindExistingWorksService } from '../works/findExistingWorks.service';
-
-interface InsertNotesResult {
-  insertedCount: number;
-  skippedNotes: string[];
-}
-
-interface ValidationResult {
-  validatedData: NotesDTO[];
-  skippedNotes: string[];
-}
+import { FindExistingWorksService } from '../works/management/findExistingWorks.service';
 
 @Injectable()
 export class AuxiliaryNotesInsertService {
@@ -28,9 +24,9 @@ export class AuxiliaryNotesInsertService {
   ) {}
 
   async execute(
-    data: NotesDTO[],
+    data: NotesInput[],
     operation: OperationType,
-  ): Promise<InsertNotesResult> {
+  ): Promise<InsertNotesOutput> {
     if (!data?.length) {
       return { insertedCount: 0, skippedNotes: [] };
     }
@@ -49,16 +45,18 @@ export class AuxiliaryNotesInsertService {
       };
     }
 
-    const notesData = validationResult.validatedData.map((item) => {
-      if (item.conjunto === '37') {
-        return {
-          ...item,
-          conjunto: '0',
-          ehRda: true,
-        };
-      }
-      return { ...item, ehRda: false };
-    });
+    const notesData: NoteInsertInput[] = validationResult.validatedData.map(
+      (item) => {
+        if (item.conjunto === '37') {
+          return {
+            ...item,
+            conjunto: '0',
+            ehRda: true,
+          };
+        }
+        return { ...item, ehRda: false };
+      },
+    );
 
     await this.auxiliaryBaseRepository.insertNotes(notesData);
 
@@ -69,10 +67,10 @@ export class AuxiliaryNotesInsertService {
   }
 
   private async validateAndFilterExistingData(
-    data: NotesDTO[],
+    data: NotesInput[],
     operation: OperationType,
   ): Promise<ValidationResult> {
-    const validatedData: NotesDTO[] = [];
+    const validatedData: NotesInput[] = [];
     const skippedNotes: string[] = [];
 
     const orderingFields = data.map((item) => item.campo_ordenacao.toString());
@@ -81,6 +79,7 @@ export class AuxiliaryNotesInsertService {
       ordem_dcd: item.ordem_dcd?.toString(),
       ordem_dca: item.ordem_dca?.toString(),
       ordem_dcim: item.ordem_dcim?.toString(),
+      ordem_dcdm: item.ordem_dcdm?.toString(),
     }));
 
     const [existingNotes, existingOrders] = await Promise.all([
@@ -117,10 +116,10 @@ export class AuxiliaryNotesInsertService {
   }
 
   private shouldSkipItem(
-    notesData: any,
+    notesData: NotesInput,
     existingNotesSet: Set<string>,
     existingOrdersSet: Set<string>,
-  ): { noteExists: boolean; orderExists: boolean } {
+  ): SkipItemResult {
     const noteExists = existingNotesSet.has(notesData.campo_ordenacao);
 
     const orders = [
@@ -128,6 +127,7 @@ export class AuxiliaryNotesInsertService {
       notesData.ordem_dcd,
       notesData.ordem_dca,
       notesData.ordem_dcim,
+      notesData.ordem_dcdm,
     ].filter(Boolean);
 
     const orderExists = orders.some((order) => existingOrdersSet.has(order));

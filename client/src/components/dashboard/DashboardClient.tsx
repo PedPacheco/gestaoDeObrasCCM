@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import { useUser } from "@/contexts/userContext";
+import { LoadingComponent } from "../common/Loading";
 import AdvancePartnerDashboard from "./advancePartner/advancePartner";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
-import { useUser } from "@/contexts/userContext";
-import { LoadingComponent } from "../common/Loading";
 
 // ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
@@ -79,16 +79,6 @@ interface Props {
   filtersData: any;
 }
 
-export const EXCLUDE_PARCEIRAS = new Set([
-  "EDP",
-  "ELETROREDE",
-  "MONTELBRAS",
-  "COMPEL",
-  "ROTARY",
-  "NÃO DEFINIDO",
-  "NAO DEFINIDO",
-]);
-
 type Tab =
   | "geral"
   | "mao-de-obra"
@@ -134,24 +124,19 @@ export default function DashboardClient({
   const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
 
   useEffect(() => {
-    if (isRestricted) {
-      setActiveTab("metas-recomposicao");
-    }
-  }, [isRestricted]);
+    const measure = () => {
+      if (tabSwitcherRef.current) {
+        setTabSwitcherHeight(tabSwitcherRef.current.offsetHeight);
+      }
+    };
 
-  useEffect(() => {
-    if (!tabSwitcherRef.current) return;
+    measure();
 
-    const observer = new ResizeObserver(([entry]) => {
-      setTabSwitcherHeight(entry.contentRect.height);
-    });
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeTab, isLoaded]);
 
-    observer.observe(tabSwitcherRef.current);
-
-    return () => observer.disconnect();
-  }, []);
-
-  const filtersTop = 76 + tabSwitcherHeight;
+  const filtersTop = 64 + tabSwitcherHeight;
 
   const partners = [
     { name: "Engelmig", logo: "/engelmig-logo.png" },

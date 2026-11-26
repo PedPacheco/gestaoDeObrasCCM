@@ -1,7 +1,7 @@
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
 import { AuxiliaryMarketInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertMarket.service';
 import { AuxiliaryNotesInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertNotes.service';
-import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -20,22 +20,22 @@ describe('AuxiliaryBaseService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
 
   const mockRepository = {
-    insertNotes: jest.fn(),
-    insertMarket: jest.fn(),
-    insertCapex: jest.fn(),
-    getFator: jest.fn(),
-    getAuxiliaryBaseNotes: jest.fn(),
-    getAuxiliaryBaseMarket: jest.fn(),
-    getObraIdsByDiagramas: jest.fn(),
-    delete: jest.fn(),
+    insertNotes: vi.fn(),
+    insertMarket: vi.fn(),
+    insertCapex: vi.fn(),
+    getFator: vi.fn(),
+    getAuxiliaryBaseNotes: vi.fn(),
+    getAuxiliaryBaseMarket: vi.fn(),
+    getObraIdsByDiagramas: vi.fn(),
+    delete: vi.fn(),
   };
 
   const mockAuxiliaryNotesInsertService = {
-    execute: jest.fn(),
+    execute: vi.fn(),
   };
 
   const mockAuxiliaryMarketInsertService = {
-    execute: jest.fn(),
+    execute: vi.fn(),
   };
 
   const mockAuxiliaryNotesInsertResult = {

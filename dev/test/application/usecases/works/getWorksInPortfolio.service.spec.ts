@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
+import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/contracts/works/management/IGetWorksInPortfolioRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -12,12 +12,12 @@ describe('GetWorksInPortfolioService', () => {
   let cacheManager: Cache;
 
   const mockRepository = {
-    getWorksInPortfolio: jest.fn(),
+    getWorksInPortfolio: vi.fn(),
   };
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockWorks = [
@@ -89,11 +89,11 @@ describe('GetWorksInPortfolioService', () => {
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
 
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+    vi.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

@@ -1,36 +1,58 @@
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
-
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { GetTotalValueScheduleRepository } from 'src/infra/repositories/works/schedule/getTotalValuesScheduleRepository';
 
 describe('GetTotalValuesSchedule', () => {
   let repository: GetTotalValueScheduleRepository;
-  let expectedQuery: string;
+
+  // Schema "falso": garante que o repositório não tem construcao_sp fixo
+  const SCHEMA = 'schema_teste';
 
   function normalizeSQL(sql: string): string {
     return sql.replace(/\s+/g, ' ').trim();
   }
 
   const mockPrisma = {
-    $queryRaw: jest.fn(),
+    $queryRaw: vi.fn(),
   };
 
-  const initialQuery = `SELECT turma, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS jan_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 1 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS jan_exec, 
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 2 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS fev_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 2 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS fev_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 3 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS mar_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 3 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS mar_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 4 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS abr_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 4 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS abr_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 5 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS mai_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 5 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS mai_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 6 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS jun_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 6 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS jun_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 7 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS jul_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 7 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS jul_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 8 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS ago_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 8 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS ago_exec, 
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 9 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS set_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 9 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS set_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 10 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS out_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 10 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS out_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 11 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS nov_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 11 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS nov_exec,  
-  SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 12 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS dez_prog, SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = 12 THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS dez_exec,  
-  SUM(COALESCE(mo_final, mo_planejada)*prog/100) AS total_prog, SUM(COALESCE(mo_final, mo_planejada)*exec/100) AS total_exec, EXTRACT(YEAR FROM data_prog) AS ano  
-  FROM construcao_sp.obras INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-  INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo INNER JOIN construcao_sp.grupos ON grupos.id = tipos.id_grupo
-  WHERE 1=1`;
+  // Colunas mensais (prog/exec) geradas para os 12 meses
+  const MONTHS = [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+  ];
+
+  const monthColumns = MONTHS.map((month, i) => {
+    const n = i + 1;
+    return (
+      `SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = ${n} THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*prog/100 ELSE mo_planejada*prog/100 END ELSE 0 END) AS ${month}_prog, ` +
+      `SUM(CASE WHEN EXTRACT(MONTH FROM data_prog) = ${n} THEN CASE WHEN mo_final IS NOT NULL THEN mo_final*exec/100 ELSE mo_planejada*exec/100 END ELSE 0 END) AS ${month}_exec`
+    );
+  }).join(', ');
+
+  const initialQuery = `SELECT turma, ${monthColumns},
+    SUM(COALESCE(mo_final, mo_planejada)*prog/100) AS total_prog,
+    SUM(COALESCE(mo_final, mo_planejada)*exec/100) AS total_exec,
+    EXTRACT(YEAR FROM data_prog) AS ano
+    FROM ${SCHEMA}.obras
+    INNER JOIN ${SCHEMA}.programacoes ON programacoes.id_obra = obras.id
+    INNER JOIN ${SCHEMA}.municipios ON municipios.id = obras.id_gpm
+    INNER JOIN ${SCHEMA}.turmas ON turmas.id = obras.id_turma
+    INNER JOIN ${SCHEMA}.tipos ON tipos.id = obras.id_tipo
+    INNER JOIN ${SCHEMA}.grupos ON grupos.id = tipos.id_grupo
+    WHERE 1=1`;
 
   const mockResponseQuery = [
     {
@@ -66,12 +88,13 @@ describe('GetTotalValuesSchedule', () => {
   ];
 
   beforeEach(async () => {
-    expectedQuery = initialQuery;
-
     const module = await Test.createTestingModule({
       providers: [
         GetTotalValueScheduleRepository,
+        DbSchema,
         { provide: PrismaService, useValue: mockPrisma },
+        // Função normal (não vi.fn) para resistir a clear/resetAllMocks
+        { provide: ConfigService, useValue: { getOrThrow: () => SCHEMA } },
       ],
     }).compile();
 
@@ -81,10 +104,20 @@ describe('GetTotalValuesSchedule', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GetTotalValues', () => {
+    it('should use the schema from DB_SCHEMA and never the hardcoded one', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue(mockResponseQuery);
+
+      await repository.getTotalValues({} as any);
+
+      const sql = mockPrisma.$queryRaw.mock.calls[0][0].strings.join('');
+      expect(sql).toContain(`${SCHEMA}.obras`);
+      expect(sql).not.toContain('construcao_sp.');
+    });
+
     it('should return the correct values without filters', async () => {
       const filters = {
         idRegional: undefined,
@@ -93,15 +126,15 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: undefined,
         idCircuito: undefined,
         idGrupo: undefined,
+        idTecnico: undefined,
         ano: undefined,
       };
 
       mockPrisma.$queryRaw.mockResolvedValue(mockResponseQuery);
 
-      expectedQuery = `${expectedQuery} GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
+      const expectedQuery = `${initialQuery} GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
 
       const result = await repository.getTotalValues(filters);
-
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
       expect(result).toEqual(mockResponseQuery);
@@ -119,22 +152,22 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: [1],
         idCircuito: [1],
         idGrupo: [1],
+        idTecnico: [1],
         ano: 2024,
       };
 
       mockPrisma.$queryRaw.mockResolvedValue(mockResponseQuery);
 
-      expectedQuery = `${expectedQuery} AND municipios.id_regional IN () 
-        AND id_tipo IN () 
-        AND id_turma IN () 
-        AND tipos.id_grupo IN () 
-        AND municipios.id IN () 
-        AND id_circuito IN () 
-        AND EXTRACT(YEAR FROM data_prog) = 
+      const expectedQuery = `${initialQuery} AND municipios.id_regional IN ()
+        AND id_tipo IN ()
+        AND id_turma IN ()
+        AND tipos.id_grupo IN ()
+        AND municipios.id IN ()
+        AND id_circuito IN ()
+        AND EXTRACT(YEAR FROM data_prog) =
         GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
 
       const result = await repository.getTotalValues(filters);
-
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
       expect(result).toEqual(mockResponseQuery);

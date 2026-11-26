@@ -1,25 +1,36 @@
 import { Response } from 'express';
+import type { Mock } from 'vitest';
 
 import * as ExcelJS from 'exceljs';
 import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/exportMonthlySummary.service';
 
-jest.mock('exceljs');
+vi.mock('exceljs');
+
+const { WorkbookMock } = vi.hoisted(() => ({
+  WorkbookMock: vi.fn(),
+}));
+
+// Expose Workbook both as named and default export (CJS interop)
+vi.mock('exceljs', () => ({
+  Workbook: WorkbookMock,
+  default: { Workbook: WorkbookMock },
+}));
 
 describe('ExportMonthlyMOSummaryService', () => {
   let service: ExportMonthlyMOSummaryService;
 
-  let mockAddWorksheet: jest.Mock;
-  let mockAddRowsFirst: jest.Mock;
-  let mockAddRowsSecond: jest.Mock;
-  let mockWrite: jest.Mock;
+  let mockAddWorksheet: Mock;
+  let mockAddRowsFirst: Mock;
+  let mockAddRowsSecond: Mock;
+  let mockWrite: Mock;
 
   let response: Partial<Response>;
 
   beforeEach(() => {
-    mockAddRowsFirst = jest.fn();
-    mockAddRowsSecond = jest.fn();
-    mockAddWorksheet = jest.fn();
-    mockWrite = jest.fn().mockResolvedValue(undefined);
+    mockAddRowsFirst = vi.fn();
+    mockAddRowsSecond = vi.fn();
+    mockAddWorksheet = vi.fn();
+    mockWrite = vi.fn().mockResolvedValue(undefined);
 
     const firstWorksheet = {
       columns: [],
@@ -35,12 +46,14 @@ describe('ExportMonthlyMOSummaryService', () => {
       .mockReturnValueOnce(firstWorksheet)
       .mockReturnValueOnce(secondWorksheet);
 
-    (ExcelJS.Workbook as jest.Mock).mockImplementation(() => ({
-      addWorksheet: mockAddWorksheet,
-      xlsx: {
-        write: mockWrite,
-      },
-    }));
+    (ExcelJS.Workbook as Mock).mockImplementation(function () {
+      return {
+        addWorksheet: mockAddWorksheet,
+        xlsx: {
+          write: mockWrite,
+        },
+      };
+    });
 
     response = {} as Response;
 
@@ -48,7 +61,7 @@ describe('ExportMonthlyMOSummaryService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('export', () => {

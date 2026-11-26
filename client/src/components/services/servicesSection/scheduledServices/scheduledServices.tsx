@@ -9,17 +9,17 @@ import {
   performScheduleServices,
   reascheduleServices,
 } from "@/actions/services";
-import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { usePersistentServiceValidation } from "@/hooks/services/usePersistentServiceValidation";
+import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { Paper, Typography } from "@mui/material";
 
-import { ScheduledServicesTable } from "./scheduledServicesTable";
-import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
-import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 import { ButtonComponent } from "@/components/common/Button";
-import { RestrictionsModal } from "./executionRestrictionModal";
+import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 import { ScheduledServicesHistoryData } from "../scheduleHistory";
 import { ConfirmRescheduleModal } from "./confirmReascheduled";
+import { RestrictionsModal } from "./executionRestrictionModal";
+import { ScheduledServicesTable } from "./scheduledServicesTable";
+import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
 
 dayjs.extend(utc);
 
@@ -182,7 +182,7 @@ export function ScheduledServices({
 
     startTransition(async () => {
       const result = await reascheduleServices(
-        formData.idWork,
+        formData.workId,
         formData.idSchedule,
       );
 

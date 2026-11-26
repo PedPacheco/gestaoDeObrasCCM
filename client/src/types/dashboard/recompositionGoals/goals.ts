@@ -51,12 +51,6 @@ export interface FilterOption {
   [key: string]: string | number;
 }
 
-export interface FiltersData {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-}
-
 export interface GroupedRow {
   regional: string;
   meta: number;

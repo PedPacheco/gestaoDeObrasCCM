@@ -1,7 +1,7 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
-import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
@@ -14,19 +14,19 @@ describe('HandleUpdateScheduleService', () => {
   let service: HandleSchedulesUpdateService;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
+    $transaction: vi.fn(),
   };
 
   const mockUpdateSchedulesService = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockExecutionReportService = {
-    create: jest.fn(),
+    create: vi.fn(),
   };
 
   const mockGetDetailsService = {
-    get: jest.fn(),
+    get: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -51,13 +51,13 @@ describe('HandleUpdateScheduleService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   const mockDTO = {
     updateData: {
       id: 1,
-      idWork: 123,
-      idUser: 99,
+      workId: 123,
+      userId: 99,
       dataProg: new Date('2025-06-10'),
       startTime: '08:00',
       finishTime: '17:00',
@@ -68,8 +68,8 @@ describe('HandleUpdateScheduleService', () => {
 
   const mockDTOWithoutExecutionReport = {
     id: 1,
-    idWork: 123,
-    idUser: 99,
+    workId: 123,
+    userId: 99,
     dataProg: new Date('2025-06-10'),
     startTime: '08:00',
     finishTime: '17:00',
@@ -81,8 +81,8 @@ describe('HandleUpdateScheduleService', () => {
   const mockDTOToOldUpdate = {
     updateData: {
       id: 1,
-      idWork: 123,
-      idUser: 99,
+      workId: 123,
+      userId: 99,
       dataProg: new Date('2025-06-10'),
       startTime: '08:00',
       finishTime: '17:00',
@@ -94,8 +94,8 @@ describe('HandleUpdateScheduleService', () => {
   const mockDTOWithoutExecutionReportToOldUpdate = {
     updateData: {
       id: 1,
-      idWork: 123,
-      idUser: 99,
+      workId: 123,
+      userId: 99,
       dataProg: new Date('2025-06-10'),
       startTime: '08:00',
       finishTime: '17:00',
@@ -109,7 +109,7 @@ describe('HandleUpdateScheduleService', () => {
         success: true,
         scheduleId: 1,
         scheduledFinishTime: '17-05-2025',
-        idWork: 123,
+        workId: 123,
       };
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
@@ -166,7 +166,7 @@ describe('HandleUpdateScheduleService', () => {
         success: true,
         scheduleId: 1,
         scheduledFinishTime: '17-05-2025',
-        idWork: 123,
+        workId: 123,
       };
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
@@ -191,7 +191,7 @@ describe('HandleUpdateScheduleService', () => {
         success: true,
         scheduleId: 1,
         scheduleFinishTime: '17-05-2025',
-        idWork: 123,
+        workId: 123,
       };
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
@@ -203,7 +203,7 @@ describe('HandleUpdateScheduleService', () => {
       expect(mockExecutionReportService.create).toHaveBeenCalledWith(
         {
           idSchedule: 1,
-          idWork: 123,
+          workId: 123,
           supervisor: 'Erick',
         },
         '17-05-2025',

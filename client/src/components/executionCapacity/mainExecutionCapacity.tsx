@@ -14,15 +14,16 @@ import {
 
 import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import { fetchData } from "@/actions/fetchData.action";
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 
 import { ButtonComponent } from "../common/Button";
 
+import { EDITABLE_KEYS, toNumberOrNull } from "@/constants/executionCapacity";
+import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
-import { useFeedback } from "@/hooks/useFeedback";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,6 +74,10 @@ export function MainExecutionCapacity({
     Record<string, string | number>[]
   >(data.financialValues);
 
+  const [originalData, setOriginalData] = useState<RowData[]>(
+    data.executionCapacityValues,
+  );
+
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openFinancialModal, setOpenFinancialModal] = useState<boolean>(false); // fix: typo no setter
 
@@ -81,40 +86,30 @@ export function MainExecutionCapacity({
   // Improvement #6: dependências granulares para evitar execuções desnecessárias
   useEffect(() => {
     setTableData(data.executionCapacityValues);
+    setOriginalData(data.executionCapacityValues);
     setFinancialData(data.financialValues);
   }, [data.executionCapacityValues, data.financialValues]);
 
   // Improvement #5: lógica do useMemo separada em funções nomeadas para melhor legibilidade
   const changedData = useMemo(() => {
-    const getOriginal = (id: unknown) =>
-      data.executionCapacityValues.find((d) => d.id === id) ?? {};
+    const originalById = new Map(originalData.map((row) => [row.id, row]));
 
-    const hasChanges = (row: RowData): boolean => {
-      const original = getOriginal(row.id);
-      return (
-        !original ||
-        Object.keys(row).some(
-          (key) => row[key] !== original[key as keyof typeof original],
-        )
-      );
-    };
+    return tableData.reduce<Record<string, number | null>[]>((acc, row) => {
+      const original = originalById.get(row.id);
+      const changes: Record<string, number | null> = {};
 
-    const toChangeset = (row: RowData): Record<string, number | null> => {
-      const original = getOriginal(row.id);
-      const changes: Record<string, number | null> = { id: row.id as number };
-
-      Object.keys(row).forEach((key) => {
-        if (row[key] !== original[key as keyof typeof original]) {
-          const val = row[key];
-          changes[key] = val == null || val === "" ? null : Number(val);
-        }
+      EDITABLE_KEYS.forEach((key) => {
+        const newValue = toNumberOrNull(row[key]);
+        const oldValue = toNumberOrNull(original?.[key]);
+        if (newValue !== oldValue) changes[key] = newValue;
       });
 
-      return changes;
-    };
-
-    return tableData.filter(hasChanges).map(toChangeset);
-  }, [tableData, data.executionCapacityValues]);
+      if (Object.keys(changes).length > 0) {
+        acc.push({ id: Number(row.id), ...changes });
+      }
+      return acc;
+    }, []);
+  }, [tableData, originalData]);
 
   // Improvement #1 e #2: handlers memoizados com useCallback
   const handleDataFetch = useCallback(
@@ -131,6 +126,7 @@ export function MainExecutionCapacity({
           }
 
           setTableData(response.data.executionCapacityValues);
+          setOriginalData(response.data.executionCapacityValues);
           setFinancialData(response.data.financialValues);
         } catch (error) {
           // Improvement #3: sem any no catch
@@ -177,6 +173,7 @@ export function MainExecutionCapacity({
           return;
         }
 
+        setOriginalData(tableData); // novo: os valores guardados passam a ser a base
         showSuccess(response.message);
         setOpenModal(true);
       } catch (error) {
@@ -184,7 +181,7 @@ export function MainExecutionCapacity({
         if (error instanceof Error) showError(error.message);
       }
     });
-  }, [showError, showSuccess, changedData]);
+  }, [changedData, tableData, showSuccess, showError]);
 
   const toggleModal = useCallback(() => setOpenModal((prev) => !prev), []);
 

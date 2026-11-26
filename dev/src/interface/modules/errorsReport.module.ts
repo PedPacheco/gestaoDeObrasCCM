@@ -1,5 +1,5 @@
 import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
-import { ERRORS_REPORT_REPOSITORY } from 'src/domain/repositories/IErrorsReportRepository';
+import { ERRORS_REPORT_REPOSITORY } from 'src/domain/contracts/IErrorsReportRepository';
 import { ErrorsReportRepository } from 'src/infra/repositories/errorsReportRepository';
 
 import { Module } from '@nestjs/common';

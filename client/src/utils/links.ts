@@ -50,18 +50,18 @@ export const links: Link[] = [
     name: "Tela inicial",
     href: "/",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 9],
+    allowedAreas: [8, 1, 9, 10],
   },
   {
     name: "Relatórios",
     href: null,
-    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1, 7],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
-        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
       {
@@ -184,7 +184,7 @@ export const links: Link[] = [
     name: "Programação",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
     submenu: [
       {
         name: "Resumo mensal - Mão de Obra",
@@ -208,7 +208,19 @@ export const links: Link[] = [
         name: "Programação por data",
         href: "/programacao/por-data",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
+      },
+      {
+        name: "Programações notas D5",
+        href: "/programacao/notas-d5",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 9],
+      },
+      {
+        name: "Equipes para Contingência",
+        href: "/programacao/recursos-contingencia",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8],
       },
     ],
   },
@@ -230,13 +242,19 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
+      // {
+      //   name: "Reclamações e Ouvidoria",
+      //   href: "/restricoes/reclamacoes-ouvidoria",
+      //   allowedFor: ["interno_editor", "interno_viewer"],
+      //   allowedAreas: [8, 1, 7],
+      // },
     ],
   },
   {
     name: "Mapa de obras",
     href: "/mapa-obras",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9, 10],
   },
   {
     name: "Obras em carteira",
@@ -249,6 +267,12 @@ export const links: Link[] = [
     href: "/obras-executadas",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1, 9],
+  },
+  {
+    name: "Notas D5",
+    href: "/notas-d5",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
   {
     name: "Capacidade de execução",

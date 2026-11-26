@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -8,7 +9,7 @@ describe('ErrorsReportRepository', () => {
 
   const mockPrisma = {
     obras: {
-      findMany: jest.fn() as jest.Mock,
+      findMany: vi.fn() as Mock,
     },
   };
 
@@ -27,7 +28,7 @@ describe('ErrorsReportRepository', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('findUndefinedItems', () => {

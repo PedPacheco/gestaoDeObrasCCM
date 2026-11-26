@@ -1,6 +1,6 @@
+import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 import dayjs from "dayjs";
 import { formatDateToInput, formatToHHMM } from "./formatValue";
-import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 
 export function Transform(filters: Record<string, string[]>) {
   return Object.fromEntries(
@@ -17,7 +17,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   );
 
   return {
-    idWork: schedule.idWork,
+    workId: schedule.workId,
     dataProg: formatDateToInput(schedule.data_prog) ?? "",
     startTime: formatToHHMM(schedule.hora_ini) ?? "",
     finishTime: formatToHHMM(schedule.hora_ter) ?? "",
@@ -99,6 +99,41 @@ export function OldMapScheduleToForm(
   };
 }
 
+export function mapD5ScheduleToForm(
+  schedule: any,
+  options: Record<string, any>,
+) {
+  const technicianFound = options.tecnico.find(
+    (t: any) => t.id === schedule.idTecnico,
+  );
+
+  const restrictionFound = options.restricao.find(
+    (r: any) => r.id === schedule.idRestricao,
+  );
+
+  return {
+    scheduledDate: formatDateToInput(schedule.data_prog) ?? "",
+    startTime: formatToHHMM(schedule.hora_ini) ?? "",
+    endTime: formatToHHMM(schedule.hora_ter) ?? "",
+    prog: schedule.prog ?? 0,
+    exec: schedule.exec,
+    serviceType: schedule.tipo_servico ?? "",
+    observation: schedule.observacao_programacao ?? "",
+    chi: schedule.chi ?? 0,
+    numDp: schedule.num_dp ?? "",
+    temporaryKey: schedule.chave_provisoria ?? false,
+    lmTeam: schedule.equipe_lm ?? 0,
+    regulTeam: schedule.equipe_reg ?? 0,
+    lvTeam: schedule.equipe_lv ?? 0,
+    technicalId: technicianFound.id ?? 1,
+    restrictionId: restrictionFound.id ?? 1,
+    restrictionResponsible: schedule.responsavel_restricao ?? "",
+    executionObservation: schedule.observacao_execucao ?? "",
+    rejected: schedule.reprovada ?? false,
+    fiscalization: schedule.fiscalizacao ?? false,
+  };
+}
+
 export function transformExecutionReport(data: any): ExecutionReportData {
   const splitEquipamentos = (
     equip: string,
@@ -124,7 +159,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 
   return {
     id: data.id,
-    idUser: data.id_usuario,
+    userId: data.id_usuario,
     supervisor: data.supervisor,
     partialConnectionReleased: data.liberado_ligacao_parcial,
     startTime: dayjs(data.hora_inicio).utc().format("HH:mm"),
@@ -158,7 +193,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 export function buildPublicationRestrictionPayload(
   data: any,
   enginners: any[],
-  idUser: number,
+  userId: number,
 ) {
   const responsibleEnginner = enginners.find(
     (enginner) => enginner.idRegional === data.id_regional,
@@ -176,7 +211,7 @@ export function buildPublicationRestrictionPayload(
         : null,
       observation: data.observacao,
       constructionObservation: data.observacao_construcao,
-      idUser,
+      userId,
     },
   ];
 

@@ -6,6 +6,8 @@ import {
   Type,
   mixin,
 } from '@nestjs/common';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
+
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 interface AreaPermissionOptions {
@@ -90,7 +92,11 @@ export function AreaEditGuard(
       validateBasePermissions(user, options);
 
       // Admin já foi liberado no validateBasePermissions
-      if (!user.is_admin && user.id_area === 8 && !user.permissao_edicao) {
+      if (
+        !user.is_admin &&
+        user.id_area === CONSTRUCTION_AREA_ID &&
+        !user.permissao_edicao
+      ) {
         throw new ForbiddenException(
           'Usuário da área de construção sem permissão de edição',
         );

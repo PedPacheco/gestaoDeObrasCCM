@@ -1,163 +1,64 @@
-import { genSalt, hash } from 'bcrypt';
-import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import {
-  IUserRepository,
-  USER_REPOSITORY,
-  UserWithRelations,
-} from 'src/domain/repositories/IUserRepository';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { UpdateUserDTO } from 'src/interface/dtos/userDTO';
-
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { novo_tabela_usuarios } from '@prisma/client';
-import moment from 'moment';
+import { hash } from 'bcrypt';
+import type { RegisterUserInput } from 'src/application/types';
+import {
+  IUserRepository,
+  USER_REPOSITORY,
+} from 'src/domain/contracts/IUserRepository';
+import { User } from 'src/domain/entities/user.entity';
+import type { UserListItemRecord, UserRecord } from 'src/domain/types';
+
+const BCRYPT_SALT_ROUNDS = 10;
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(USER_REPOSITORY) private userRepository: IUserRepository,
-    private jwtService: JwtService,
+    @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
   ) {}
 
-  private toEntity(raw: novo_tabela_usuarios): User {
-    return new User({
-      ...raw,
-      tipo_usuario: raw.tipo_usuario as TipoUsuario,
-    });
-  }
-
-  private toSafeUser(record: UserWithRelations) {
-    const { turmas, regionais, areas, ...rest } = record;
-
-    return {
-      ...rest,
-      parceira: turmas?.turma ?? null,
-      regional: regionais?.regional ?? null,
-      area: areas?.nome ?? null,
-    };
-  }
-
+  /** Inclui a senha (hash). Só para autenticação. */
   async findUser(username: string): Promise<User | null> {
-    const response = await this.userRepository.findUser(username);
-
-    if (response === null) {
-      return null;
-    }
-
-    return this.toEntity(response);
+    const record =
+      await this.userRepository.findByUsernameWithPassword(username);
+    return record ? User.restore(record) : null;
   }
 
-  async listUsers(): Promise<any[]> {
-    const users = await this.userRepository.findAll();
-
-    return users.map((user) => this.toSafeUser(user));
+  async listUsers(): Promise<UserListItemRecord[]> {
+    return this.userRepository.findAll();
   }
 
-  async createUser(dto: RegisterUserDTO): Promise<any> {
-    const existingUser = await this.userRepository.findUser(dto.username);
-
-    if (existingUser) {
-      throw new BadRequestException('Nome de usuário já está em uso.');
-    }
-
-    if (!dto.senha) {
+  async createUser(input: RegisterUserInput): Promise<UserRecord> {
+    if (!input.senha) {
       throw new BadRequestException('A senha do usuário tem que ser enviada.');
     }
 
-    const salt = await genSalt();
-    const hashedPassword = await hash(dto.senha, salt);
-
-    const user = new User({ ...dto, senha: hashedPassword });
-    user.registerAccess();
-
-    const created = await this.userRepository.create(user);
-
-    return this.toSafeUser(created);
-  }
-
-  async updateStatus(id: number): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
+    if (await this.userRepository.existsByUsername(input.username)) {
+      throw new BadRequestException('Nome de usuário já está em uso.');
     }
 
-    const user = this.toEntity(raw);
-    const isActivating = !user.ativo;
-
-    const updated = await this.userRepository.updateStatus(id, {
-      ativo: isActivating,
-      ultimo_acesso: isActivating ? moment.utc().toDate() : user.ultimo_acesso,
-    });
-
-    return this.toSafeUser(updated);
-  }
-
-  async updateUser(id: number, data: UpdateUserDTO): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const existingUser = this.toEntity(raw);
-    const updatedUser = existingUser.applyUpdate(data);
-
-    await this.userRepository.updateUser(id, updatedUser);
-  }
-
-  async updatePassword(token: string, newPassword: string): Promise<User> {
-    try {
-      const { id } = await this.jwtService.verify(token);
-
-      const numberId: number = +id;
-
-      const raw = await this.userRepository.findByIdRaw(numberId);
-
-      if (!raw) {
-        throw new UnauthorizedException('Token inválido ou expirado');
-      }
-
-      const user = this.toEntity(raw);
-
-      user.ensureCanLogin();
-
-      const saltRounds = await genSalt();
-      const hashedPassword = await hash(newPassword, saltRounds);
-
-      const response = await this.userRepository.updatePassword(
-        numberId,
-        hashedPassword,
-      );
-
-      return this.toEntity(response);
-    } catch (error: any) {
-      console.log(error);
-      throw new UnauthorizedException('Token inválido ou expirado');
-    }
-  }
-
-  async registerLoginAccess(user: User): Promise<void> {
-    user.registerAccess();
-
-    await this.userRepository.registerAccess(
-      user.id as number,
-      user.ultimo_acesso,
+    const senhaHash = await hash(input.senha, BCRYPT_SALT_ROUNDS);
+    return this.userRepository.create(
+      User.create({ ...input, senha: senhaHash }),
     );
   }
 
-  async deactivateUserForInactivity(user: User): Promise<void> {
-    user.deactivateForInactivity();
+  async deactivateUser(id: number, requesterId: number): Promise<UserRecord> {
+    if (id === requesterId) {
+      throw new BadRequestException(
+        'Você não pode desativar sua própria conta',
+      );
+    }
 
-    await this.userRepository.updateStatus(user.id as number, {
-      ativo: user.ativo,
-    });
+    const target = await this.userRepository.findById(id);
+    if (!target) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    return this.userRepository.softDelete(id);
   }
 }

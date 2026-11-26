@@ -2,22 +2,143 @@
 
 import "dayjs/locale/pt-br";
 
-import dayjs, { Dayjs } from "dayjs";
-import { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { capitalize } from "@/utils/formatValue";
-import { getButtonContent } from "@/utils/getButtonContent";
-import { Transform } from "@/utils/transform";
 import {
-  DocumentArrowDownIcon,
-  MagnifyingGlassCircleIcon,
-} from "@heroicons/react/20/solid";
-import { InputAdornment, TextField } from "@mui/material";
-import { DateFilter } from "@/components/common/DateFilter";
+  ExtraFilterValue,
+  FilterFieldConfig,
+  FiltersInterface,
+} from "@/types/genericFilterSchema";
+import { Transform } from "@/utils/transform";
+
+const COMPLETED_WORKS_URL = "completedWorksFilters";
+
+// Antes, os selects eram gerados a partir de TODAS as chaves de `data`.
+// Agora a lista é explícita: mantenha só os arrays que a API retorna nesta tela.
+const BASE_SCHEMA: FilterFieldConfig[] = [
+  {
+    type: "select",
+    dataKey: "regional",
+    filterKey: "idRegional",
+    valueKey: "id",
+    displayKey: "regional",
+  },
+  {
+    type: "select",
+    dataKey: "parceira",
+    filterKey: "idParceira",
+    valueKey: "id",
+    displayKey: "turma",
+  },
+  {
+    type: "select",
+    dataKey: "tipo",
+    filterKey: "idTipo",
+    valueKey: "id",
+    displayKey: "tipo_obra",
+  },
+  {
+    type: "select",
+    dataKey: "municipio",
+    filterKey: "idMunicipio",
+    valueKey: "id",
+    displayKey: "municipio",
+  },
+  {
+    type: "select",
+    dataKey: "grupo",
+    filterKey: "idGrupo",
+    valueKey: "id",
+    displayKey: "grupo",
+  },
+  {
+    type: "select",
+    dataKey: "status",
+    filterKey: "idStatus",
+    valueKey: "id",
+    displayKey: "status",
+  },
+  {
+    type: "select",
+    dataKey: "statusSap",
+    filterKey: "idStatusSap",
+    valueKey: "id",
+    displayKey: "codigo_sap",
+  },
+  {
+    type: "select",
+    dataKey: "circuito",
+    filterKey: "idCircuito",
+    valueKey: "id",
+    displayKey: "circuito",
+  },
+  {
+    type: "select",
+    dataKey: "empreendimento",
+    filterKey: "idEmpreendimento",
+    valueKey: "id",
+    displayKey: "empreendimento",
+  },
+  {
+    type: "select",
+    dataKey: "conjunto",
+    filterKey: "idConjunto",
+    valueKey: "id",
+    displayKey: "conjunto",
+  },
+  { type: "text", key: "ovnota", label: "Ov/nota" },
+];
+
+// Só a tela de obras concluídas tem filtro de data (gera dataInicial/dataFinal).
+const COMPLETED_WORKS_SCHEMA: FilterFieldConfig[] = [
+  { type: "dateRange", key: "data", label: "Data" },
+  ...BASE_SCHEMA,
+];
+
+function deriveWorksOptions(
+  data: Record<string, any[] | undefined>,
+  selectedItems: Record<string, string[]>,
+) {
+  const next = { ...data };
+
+  const idGrupos = selectedItems.idGrupo?.map(Number);
+  if (idGrupos?.length) {
+    next.tipo = next.tipo?.filter((item) => idGrupos.includes(item.id_grupo));
+    next.empreendimento = next.empreendimento?.filter((item) =>
+      idGrupos.includes(item.id_grupo),
+    );
+  }
+
+  const idRegionais = selectedItems.idRegional?.map(Number);
+  if (idRegionais?.length) {
+    next.empreendimento = next.empreendimento?.filter((item) =>
+      idRegionais.includes(item.id_regional),
+    );
+    next.municipio = next.municipio?.filter((item) =>
+      idRegionais.includes(item.id_regional),
+    );
+  }
+
+  return next;
+}
+
+// Função de módulo: referência estável (evita loop no useEffect do useSaveFilters).
+function applyWorksFilters(
+  data: FiltersInterface,
+  filtersObject: Record<string, any>,
+) {
+  return deriveWorksOptions(data, filtersObject.selectedItems ?? {});
+}
+
+const EMPTY_EXTRA_VALUES: Record<string, ExtraFilterValue> = {
+  dataInicial: null,
+  dataFinal: null,
+  ovnota: "",
+};
 
 interface PortfolioWorksFiltersProps {
   data: FiltersInterface;
@@ -38,219 +159,111 @@ export default function PortfolioWorksFilters({
   isPending,
   setPage,
 }: PortfolioWorksFiltersProps) {
-  const applyFilters = useCallback(
-    (data: FiltersInterface, filtersObject: any) => {
-      let newData = { ...data };
-
-      const { selectedItems } = filtersObject;
-
-      if (selectedItems?.idGrupo?.length > 0) {
-        const idGrupos = selectedItems.idGrupo?.map(Number);
-
-        newData.tipo = newData.tipo?.filter((item) =>
-          idGrupos.includes(item.id_grupo),
-        );
-        newData.empreendimento = newData.empreendimento?.filter((item) =>
-          idGrupos.includes(item.id_grupo),
-        );
-      }
-
-      if (selectedItems?.idRegional?.length > 0) {
-        const idRegionais = selectedItems.idRegional?.map(Number);
-
-        newData.empreendimento = newData.empreendimento?.filter((item) =>
-          idRegionais.includes(item.id_regional),
-        );
-        newData.municipio = newData.municipio?.filter((item) =>
-          idRegionais.includes(item.id_regional),
-        );
-      }
-
-      return newData;
-    },
-    [],
-  );
+  const isCompletedWorks = url === COMPLETED_WORKS_URL;
 
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
     pageKey: url,
     data,
-    applyFilters,
+    applyFilters: applyWorksFilters,
   });
 
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
-  const [ovnota, setOvnota] = useState<string>("");
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [extraValues, setExtraValues] =
+    useState<Record<string, ExtraFilterValue>>(EMPTY_EXTRA_VALUES);
 
   useEffect(() => {
     if (!filters) return;
 
     setSelectedItems(filters.selectedItems || {});
-    setOvnota(filters.ovnota || "");
 
-    if (url === "completedWorksFilters") {
-      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
-      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
+    const saved = filters.extraFilters;
+    if (saved) {
+      setExtraValues({
+        dataInicial: saved.dataInicial ? dayjs(saved.dataInicial) : null,
+        dataFinal: saved.dataFinal ? dayjs(saved.dataFinal) : null,
+        ovnota: saved.ovnota ?? "",
+      });
     }
   }, [filters, url]);
 
-  function handleApplyFilters() {
-    const baseFilters: {
-      selectedItems: Record<string, string[]>;
-      ovnota: string;
-      startDate?: Dayjs | null;
-      endDate?: Dayjs | null;
-    } = {
-      selectedItems,
-      ovnota,
+  // Cookie: datas em ISO e todas as chaves presentes (o saveFilters faz merge
+  // com o cookie anterior, então chave omitida manteria o valor antigo).
+  function buildSavedExtras() {
+    const toIso = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid() ? value.format("YYYY-MM-DD") : "";
+
+    return {
+      dataInicial: toIso(extraValues.dataInicial),
+      dataFinal: toIso(extraValues.dataFinal),
+      ovnota: (extraValues.ovnota as string) ?? "",
     };
-
-    if (url === "completedWorksFilters") {
-      baseFilters["startDate"] = startDate;
-      baseFilters["endDate"] = endDate;
-    }
-
-    saveFilters(baseFilters);
-
-    const params: any = {
-      ...Transform(selectedItems),
-      ovnota,
-      page: "0",
-    };
-
-    if (url === "completedWorksFilters") {
-      params.dataInicial = startDate
-        ? dayjs(startDate).format("DD/MM/YYYY")
-        : null;
-      params.dataFinal = endDate ? dayjs(endDate).format("DD/MM/YYYY") : null;
-    }
-
-    setPage(0);
-    searchFilteredData(params);
   }
 
-  function handleCleanigFilters() {
-    setSelectedItems({});
-    setOvnota("");
+  // API: datas em DD/MM/YYYY (null quando vazias), só na tela de concluídas.
+  function buildApiParams() {
+    const toBr = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid()
+        ? value.format("DD/MM/YYYY")
+        : null;
 
-    if (url === "completedWorksFilters") {
-      setStartDate(null);
-      setEndDate(null);
+    const params: Record<string, any> = {
+      ovnota: (extraValues.ovnota as string) ?? "",
+    };
+
+    if (isCompletedWorks) {
+      params.dataInicial = toBr(extraValues.dataInicial);
+      params.dataFinal = toBr(extraValues.dataFinal);
     }
 
+    return params;
+  }
+
+  function handleApplyFilters() {
+    saveFilters(selectedItems, buildSavedExtras());
+
+    setPage(0);
+    searchFilteredData({
+      ...Transform(selectedItems),
+      ...buildApiParams(),
+      page: "0",
+    });
+  }
+
+  function handleClearFilters() {
+    setSelectedItems({});
+    setExtraValues(EMPTY_EXTRA_VALUES);
     clearFilters();
 
     setPage(0);
-
     searchFilteredData({ page: "0" });
   }
 
   function handleGenerateExcel() {
-    const newSelectedItems: any = {
+    generateExcel({
       ...Transform(selectedItems),
-    };
-
-    if (url === "completedWorksFilters") {
-      newSelectedItems.dataInicial = startDate
-        ? dayjs(startDate).format("DD/MM/YYYY")
-        : null;
-      newSelectedItems.dataFinal = endDate
-        ? dayjs(endDate).format("DD/MM/YYYY")
-        : null;
-    }
-
-    generateExcel(newSelectedItems);
+      ...buildApiParams(),
+    });
   }
 
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
-        {url === "completedWorksFilters" && (
-          <DateFilter
-            endDate={endDate}
-            startDate={startDate}
-            setEndDate={setEndDate}
-            setStartDate={setStartDate}
-            size="w-full lg:w-3/4"
-            spacing="mx-auto"
-          />
-        )}
-
-        {Object.entries(filteredData).map(([key, value], index) => {
-          const hasValues = Array.isArray(value) && value.length > 0;
-
-          const valueKey = hasValues ? Object.keys(value[0])[0] : undefined;
-          const displayKey = hasValues ? Object.keys(value[0])[1] : undefined;
-
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1)
-          }`;
-
-          return (
-            <div key={index} className="w-full lg:w-3/4 mx-auto">
-              <MultipleSelectComponent
-                label={capitalize(key)}
-                menuItems={value || []}
-                selectedItem={selectedItems[filterValue]}
-                setSelectedItem={(selectedValue) => {
-                  setSelectedItems((prev) => ({
-                    ...prev,
-                    [filterValue]: selectedValue,
-                  }));
-                }}
-                valueKey={valueKey}
-                displayKey={displayKey}
-              />
-            </div>
-          );
-        })}
-
-        <div className="w-full lg:w-3/4 mx-auto">
-          <TextField
-            className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
-            size="small"
-            label="Ov/nota"
-            value={ovnota}
-            onChange={(event) => setOvnota(event.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MagnifyingGlassCircleIcon height={16} width={16} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-        <ButtonComponent
-          onClick={handleCleanigFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-
-        <ButtonComponent
-          onClick={openModal}
-          text="Ver valores totais"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-        <ButtonComponent
-          onClick={handleGenerateExcel}
-          text="Exportar"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          startIcon={
-            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          }
-        />
-      </div>
-    </>
+    <GenericFilterBar
+      schema={isCompletedWorks ? COMPLETED_WORKS_SCHEMA : BASE_SCHEMA}
+      data={filteredData}
+      deriveOptions={deriveWorksOptions}
+      selectedItems={selectedItems}
+      onSelectedItemsChange={setSelectedItems}
+      extraValues={extraValues}
+      onExtraValuesChange={setExtraValues}
+      isPending={isPending}
+      onApply={handleApplyFilters}
+      onClear={handleClearFilters}
+      hasExport={true}
+      handleGenerateExcel={handleGenerateExcel}
+      extraActions={
+        <ButtonComponent onClick={openModal} text="Ver valores totais" />
+      }
+    />
   );
 }

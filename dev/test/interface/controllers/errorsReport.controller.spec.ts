@@ -8,17 +8,17 @@ describe('UsersControllers', () => {
   let controller: ErrorsReportController;
 
   const mockService = {
-    findUndefinedItems: jest.fn(),
-    findScheduleError: jest.fn(),
-    findZeroCapex: jest.fn(),
-    findExecutionDifferential: jest.fn(),
-    findDivergentConclusion: jest.fn(),
-    findWorksWithoutYearPlan: jest.fn(),
-    findRepeatedWorks: jest.fn(),
+    findUndefinedItems: vi.fn(),
+    findScheduleError: vi.fn(),
+    findZeroCapex: vi.fn(),
+    findExecutionDifferential: vi.fn(),
+    findDivergentConclusion: vi.fn(),
+    findWorksWithoutYearPlan: vi.fn(),
+    findRepeatedWorks: vi.fn(),
   };
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [ErrorsReportController],

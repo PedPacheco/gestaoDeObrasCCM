@@ -1,496 +1,250 @@
-import { FeasibilityService } from 'src/application/usecases/feasibility.service';
-import { FileService } from 'src/application/usecases/file.service';
-import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
-
 import { BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import {
+  toFeasibilityApprovalExport,
+  toFeasibilityPendingExport,
+  toFeasibilityRejectionOutput,
+  toFeasibilityReportOutput,
+} from 'src/application/mappers/feasibilityMapper';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import type { IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
+import type {
+  FeasibilityExportWork,
+  FeasibilityRejection,
+  FeasibilityReport,
+} from 'src/domain/types';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 
-const exportFeasibilityRepositoryResponse = [
-  {
-    ovnota: '123456789',
-    diagrama: 'DG-001',
-    ordem_dci: null,
-    ordem_dca: null,
-    ordem_dcd: null,
-    ordem_dcim: null,
-    relatorio_viabilidade: {
-      data_envio: new Date('2026-05-20'),
-    },
-    servicos: [
-      {
-        operacao: 'OP-01',
-        ponto: 'PT-01',
-        numero_operacao: '001',
-        descricao_operacao: 'Instalação de poste',
-        qtde_plan: 10,
-        qtde_adicional: 2,
-        viabilizado: 8,
-        servicos_contratos: {
-          preco: 100,
-          material: 'SRV-001',
-          texto_breve: 'Serviço de instalação',
-        },
-        materiais: null,
-      },
-      {
-        operacao: 'OP-02',
-        ponto: 'PT-02',
-        numero_operacao: '002',
-        descricao_operacao: 'Lançamento de cabo',
-        qtde_plan: 5,
-        qtde_adicional: 1,
-        viabilizado: 5,
-        servicos_contratos: null,
-        materiais: {
-          codigo: 'MAT-001',
-          descricao: 'Cabo multiplexado',
-          preco: {
-            toNumber: jest.fn().mockReturnValue(50),
-          },
-        },
-      },
-    ],
-  },
+// ─── Module mocks ─────────────────────────────────────────────────────
+
+vi.mock('src/application/mappers/feasibilityMapper', () => ({
+  toFeasibilityReportOutput: vi.fn((r) => ({ report: r.id })),
+  toFeasibilityRejectionOutput: vi.fn((r) => ({ rejection: r.reason })),
+  toFeasibilityApprovalExport: vi.fn((w, s) => ({
+    approval: `${w.work.ovnota}-${s.operation}`,
+  })),
+  toFeasibilityPendingExport: vi.fn((w, s) => ({
+    pending: `${w.work.ovnota}-${s.operation}`,
+  })),
+}));
+
+// ─── Fixtures ─────────────────────────────────────────────────────────
+
+const STATUS_PENDING = 45;
+const STATUS_PENDING_APPROVAL = 46;
+
+const makeWork = (
+  ovnota: string,
+  operations: string[],
+): FeasibilityExportWork =>
+  ({
+    work: { ovnota },
+    sentAt: null,
+    services: operations.map((operation) => ({ operation })),
+  }) as unknown as FeasibilityExportWork;
+
+const WORKS: FeasibilityExportWork[] = [
+  makeWork('OV-1', ['10', '20']),
+  makeWork('OV-2', ['30']),
 ];
 
+// ─── Suite ────────────────────────────────────────────────────────────
+
 describe('FeasibilityService', () => {
+  let repository: Mocked<IFeasibilityRepository>;
   let service: FeasibilityService;
 
-  const mockRepository: jest.Mocked<IFeasibilityRepository> = {
-    exists: jest.fn(),
-    saveFiles: jest.fn(),
-    findFiles: jest.fn(),
-    approve: jest.fn(),
-    getRejections: jest.fn(),
-    updateFiles: jest.fn(),
-    makeItemsFeasible: jest.fn(),
-    reject: jest.fn(),
-    getProjectDate: jest.fn(),
-    exportFeasibility: jest.fn(),
-  };
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-  const mockFileService = {
-    deleteFile: jest.fn(),
-  };
+    repository = {
+      findById: vi.fn(),
+      getProjectDate: vi.fn(),
+      getRejections: vi.fn().mockResolvedValue([]),
+      exportFeasibility: vi.fn().mockResolvedValue([]),
+      saveFiles: vi.fn(),
+      updateFiles: vi.fn(),
+      makeItemsFeasible: vi.fn(),
+      findFiles: vi.fn(),
+      reject: vi.fn(),
+      approve: vi.fn(),
+    } as unknown as Mocked<IFeasibilityRepository>;
 
-  beforeEach(async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-07-06T12:00:00Z'));
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        FeasibilityService,
-        {
-          provide: FEASIBILITY_REPOSITORY,
-          useValue: mockRepository,
-        },
-        {
-          provide: FileService,
-          useValue: mockFileService,
-        },
-      ],
-    }).compile();
-
-    service = module.get<FeasibilityService>(FeasibilityService);
-
-    jest.clearAllMocks();
+    service = new FeasibilityService(repository);
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  // ═══ feasibilityExists ══════════════════════════════════════════════
+
+  describe('feasibilityExists', () => {
+    it.each([
+      ['zero', 0],
+      ['undefined', undefined],
+    ])('throws BadRequestException when the id is %s', async (_label, id) => {
+      await expect(
+        service.feasibilityExists(id as unknown as number),
+      ).rejects.toThrow(new BadRequestException('Obra não foi enviada'));
+
+      expect(repository.findById).not.toHaveBeenCalled();
+    });
+
+    it('returns null without mapping when no report exists for the work', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      const result = await service.feasibilityExists(41);
+
+      expect(repository.findById).toHaveBeenCalledWith(41);
+      expect(result).toBeNull();
+      expect(toFeasibilityReportOutput).not.toHaveBeenCalled();
+    });
+
+    it('maps the report to the API output when it exists', async () => {
+      const report = { id: 7 } as unknown as FeasibilityReport;
+      repository.findById.mockResolvedValue(report);
+
+      const result = await service.feasibilityExists(41);
+
+      expect(toFeasibilityReportOutput).toHaveBeenCalledWith(report);
+      expect(result).toEqual({ report: 7 });
+    });
+
+    it('propagates repository errors', async () => {
+      const error = new Error('database down');
+      repository.findById.mockRejectedValue(error);
+
+      await expect(service.feasibilityExists(41)).rejects.toBe(error);
+    });
   });
 
-  // -------------------------------------------------------------------------
-  // feasibilityExists(id)
-  // -------------------------------------------------------------------------
-
-  it('deve lançar erro se id não for enviado em feasibilityExists', async () => {
-    await expect(service.feasibilityExists(undefined as any)).rejects.toThrow(
-      new BadRequestException('Obra não foi enviada'),
-    );
-  });
-
-  it('deve retornar o resultado da verificação de existência', async () => {
-    mockRepository.exists.mockResolvedValue([{ id: 10 }]);
-
-    const result = await service.feasibilityExists(10);
-
-    expect(mockRepository.exists).toHaveBeenCalledWith(10);
-    expect(result).toEqual([{ id: 10 }]);
-  });
+  // ═══ getRejections ══════════════════════════════════════════════════
 
   describe('getRejections', () => {
-    it('should return a list of rejections mapped with description, reason, user name, and creation date', async () => {
-      const data = [
-        {
-          descricao: 'Poste em falta',
-          motivo: 'Material em falta',
-          novo_tabela_usuarios: { nome: 'Pedro' },
-          criado_em: '2026-07-11',
-        },
-      ];
+    it('loads the rejections of the work and maps each one', async () => {
+      const rejections = [
+        { reason: 'missing document' },
+        { reason: 'wrong quantity' },
+      ] as unknown as FeasibilityRejection[];
+      repository.getRejections.mockResolvedValue(rejections);
 
-      mockRepository.getRejections.mockResolvedValue(data);
+      const result = await service.getRejections(41);
 
-      const response = await service.getRejections(1);
-
-      expect(response).toEqual([
-        {
-          descricao: 'Poste em falta',
-          motivo: 'Material em falta',
-          criado_em: '2026-07-11',
-          usuario: 'Pedro',
-        },
+      expect(repository.getRejections).toHaveBeenCalledWith(41);
+      expect(toFeasibilityRejectionOutput).toHaveBeenCalledTimes(2);
+      // o map passa (item, index, array): só o primeiro argumento interessa
+      expect(vi.mocked(toFeasibilityRejectionOutput).mock.calls[0][0]).toBe(
+        rejections[0],
+      );
+      expect(vi.mocked(toFeasibilityRejectionOutput).mock.calls[1][0]).toBe(
+        rejections[1],
+      );
+      expect(result).toEqual([
+        { rejection: 'missing document' },
+        { rejection: 'wrong quantity' },
       ]);
     });
+
+    it('returns an empty list when the work has no rejections', async () => {
+      expect(await service.getRejections(41)).toEqual([]);
+      expect(toFeasibilityRejectionOutput).not.toHaveBeenCalled();
+    });
   });
+
+  // ═══ exportFeasibilityPendingApproval ═══════════════════════════════
 
   describe('exportFeasibilityPendingApproval', () => {
-    it('should return the data formatted for export', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue(
-        exportFeasibilityRepositoryResponse,
+    it('exports the works pending approval with one line per service', async () => {
+      repository.exportFeasibility.mockResolvedValue(WORKS);
+
+      const result = await service.exportFeasibilityPendingApproval([1, 2]);
+
+      expect(repository.exportFeasibility).toHaveBeenCalledWith(
+        STATUS_PENDING_APPROVAL,
+        [1, 2],
       );
-
-      const result = await service.exportFeasibilityPendingApproval([2]);
-
-      expect(mockRepository.exportFeasibility).toHaveBeenCalledWith(46, [2]);
-
+      expect(toFeasibilityApprovalExport).toHaveBeenCalledWith(
+        WORKS[0],
+        WORKS[0].services[0],
+      );
+      expect(toFeasibilityApprovalExport).toHaveBeenCalledWith(
+        WORKS[0],
+        WORKS[0].services[1],
+      );
+      expect(toFeasibilityApprovalExport).toHaveBeenCalledWith(
+        WORKS[1],
+        WORKS[1].services[0],
+      );
       expect(result).toEqual([
-        {
-          ovnota: '123456789',
-          ordemDiagrama: 'DG-001',
-          data_envio: new Date('2026-05-20'),
-          operacao: 'OP-01',
-          ponto: 'PT-01',
-          numeroOperacao: '001',
-          descricaoOperacao: 'Instalação de poste',
-          material: 'SRV-001',
-          textoBreve: 'Serviço de instalação',
-          qtdePlanejada: 10,
-          viabilizado: 8,
-          tipo: 'S',
-          valorUnit: 100,
-          valorTotal: 1200,
-          diferença: 2,
-          alterado: 'Sim',
-        },
-        {
-          ovnota: '123456789',
-          ordemDiagrama: 'DG-001',
-          data_envio: new Date('2026-05-20'),
-          operacao: 'OP-02',
-          ponto: 'PT-02',
-          numeroOperacao: '002',
-          descricaoOperacao: 'Lançamento de cabo',
-          material: 'MAT-001',
-          textoBreve: 'Cabo multiplexado',
-          qtdePlanejada: 5,
-          viabilizado: 5,
-          tipo: 'M',
-          valorUnit: 50,
-          valorTotal: 300,
-          diferença: 0,
-          alterado: 'Não',
-        },
+        { approval: 'OV-1-10' },
+        { approval: 'OV-1-20' },
+        { approval: 'OV-2-30' },
       ]);
+      expect(toFeasibilityPendingExport).not.toHaveBeenCalled();
     });
 
-    it('should use ordem_dci when diagrama is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: 'DCI-001',
-        },
+    it('forwards an undefined partner filter to the repository', async () => {
+      await service.exportFeasibilityPendingApproval();
+
+      expect(repository.exportFeasibility).toHaveBeenCalledWith(
+        STATUS_PENDING_APPROVAL,
+        undefined,
+      );
+    });
+
+    it('skips works without services', async () => {
+      repository.exportFeasibility.mockResolvedValue([
+        makeWork('OV-3', []),
+        WORKS[1],
       ]);
 
       const result = await service.exportFeasibilityPendingApproval();
 
-      expect(result[0].ordemDiagrama).toBe('DCI-001');
+      expect(result).toEqual([{ approval: 'OV-2-30' }]);
     });
 
-    it('should use ordem_dca when diagrama and ordem_dci are null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: 'DCA-001',
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].ordemDiagrama).toBe('DCA-001');
-    });
-
-    it('should use ordem_dcd when previous fields are null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: null,
-          ordem_dcd: 'DCD-001',
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].ordemDiagrama).toBe('DCD-001');
-    });
-
-    it('should use ordem_dcim as last fallback', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: null,
-          ordem_dcd: null,
-          ordem_dcim: 'DCIM-001',
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].ordemDiagrama).toBe('DCIM-001');
-    });
-
-    it('should use 0 as price fallback', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              operacao: 'OP',
-              ponto: 'P1',
-              numero_operacao: '1',
-              descricao_operacao: 'Desc',
-              qtde_plan: 10,
-              qtde_adicional: 0,
-              viabilizado: 10,
-              servicos_contratos: null,
-              materiais: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].valorUnit).toBe(0);
-      expect(result[0].valorTotal).toBe(0);
-    });
-
-    it('should use 0 when qtde_plan is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportFeasibilityRepositoryResponse[0].servicos[0],
-              qtde_plan: null,
-              qtde_adicional: 5,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].valorTotal).toBe(500);
-    });
-
-    it('should use 0 when qtde_adicional is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportFeasibilityRepositoryResponse[0].servicos[0],
-              qtde_plan: 10,
-              qtde_adicional: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPendingApproval();
-
-      expect(result[0].valorTotal).toBe(1000);
+    it('returns an empty list when no work matches', async () => {
+      expect(await service.exportFeasibilityPendingApproval()).toEqual([]);
+      expect(toFeasibilityApprovalExport).not.toHaveBeenCalled();
     });
   });
 
+  // ═══ exportFeasibilityPending ═══════════════════════════════════════
+
   describe('exportFeasibilityPending', () => {
-    it('should return the data formatted for export', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue(
-        exportFeasibilityRepositoryResponse,
+    it('exports the works pending feasibility with one line per service', async () => {
+      repository.exportFeasibility.mockResolvedValue(WORKS);
+
+      const result = await service.exportFeasibilityPending([3]);
+
+      expect(repository.exportFeasibility).toHaveBeenCalledWith(
+        STATUS_PENDING,
+        [3],
       );
-
-      const result = await service.exportFeasibilityPending([2]);
-
-      expect(mockRepository.exportFeasibility).toHaveBeenCalledWith(45, [2]);
-
+      expect(toFeasibilityPendingExport).toHaveBeenCalledTimes(3);
       expect(result).toEqual([
-        {
-          ovnota: '123456789',
-          ordemDiagrama: 'DG-001',
-          operacao: 'OP-01',
-          ponto: 'PT-01',
-          numeroOperacao: '001',
-          descricaoOperacao: 'Instalação de poste',
-          material: 'SRV-001',
-          textoBreve: 'Serviço de instalação',
-          qtdePlanejada: 10,
-          tipo: 'S',
-          valorUnit: 100,
-          valorTotal: 1200,
-        },
-        {
-          ovnota: '123456789',
-          ordemDiagrama: 'DG-001',
-          operacao: 'OP-02',
-          ponto: 'PT-02',
-          numeroOperacao: '002',
-          descricaoOperacao: 'Lançamento de cabo',
-          material: 'MAT-001',
-          textoBreve: 'Cabo multiplexado',
-          qtdePlanejada: 5,
-          tipo: 'M',
-          valorUnit: 50,
-          valorTotal: 300,
-        },
+        { pending: 'OV-1-10' },
+        { pending: 'OV-1-20' },
+        { pending: 'OV-2-30' },
       ]);
+      expect(toFeasibilityApprovalExport).not.toHaveBeenCalled();
     });
 
-    it('should use ordem_dci when diagrama is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: 'DCI-001',
-        },
-      ]);
+    it('forwards an undefined partner filter to the repository', async () => {
+      await service.exportFeasibilityPending();
 
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].ordemDiagrama).toBe('DCI-001');
+      expect(repository.exportFeasibility).toHaveBeenCalledWith(
+        STATUS_PENDING,
+        undefined,
+      );
     });
 
-    it('should use ordem_dca when diagrama and ordem_dci are null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: 'DCA-001',
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].ordemDiagrama).toBe('DCA-001');
+    it('returns an empty list when no work matches', async () => {
+      expect(await service.exportFeasibilityPending()).toEqual([]);
+      expect(toFeasibilityPendingExport).not.toHaveBeenCalled();
     });
 
-    it('should use ordem_dcd when previous fields are null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: null,
-          ordem_dcd: 'DCD-001',
-        },
-      ]);
+    it('propagates repository errors', async () => {
+      const error = new Error('query timeout');
+      repository.exportFeasibility.mockRejectedValue(error);
 
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].ordemDiagrama).toBe('DCD-001');
-    });
-
-    it('should use ordem_dcim as last fallback', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          diagrama: null,
-          ordem_dci: null,
-          ordem_dca: null,
-          ordem_dcd: null,
-          ordem_dcim: 'DCIM-001',
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].ordemDiagrama).toBe('DCIM-001');
-    });
-
-    it('should use 0 as price fallback', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              operacao: 'OP',
-              ponto: 'P1',
-              numero_operacao: '1',
-              descricao_operacao: 'Desc',
-              qtde_plan: 10,
-              qtde_adicional: 0,
-              viabilizado: 10,
-              servicos_contratos: null,
-              materiais: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].valorUnit).toBe(0);
-      expect(result[0].valorTotal).toBe(0);
-    });
-
-    it('should use 0 when qtde_plan is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportFeasibilityRepositoryResponse[0].servicos[0],
-              qtde_plan: null,
-              qtde_adicional: 5,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].valorTotal).toBe(500);
-    });
-
-    it('should use 0 when qtde_adicional is null', async () => {
-      mockRepository.exportFeasibility.mockResolvedValue([
-        {
-          ...exportFeasibilityRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportFeasibilityRepositoryResponse[0].servicos[0],
-              qtde_plan: 10,
-              qtde_adicional: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.exportFeasibilityPending();
-
-      expect(result[0].valorTotal).toBe(1000);
+      await expect(service.exportFeasibilityPending()).rejects.toBe(error);
     });
   });
 });

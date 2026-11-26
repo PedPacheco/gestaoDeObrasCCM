@@ -1,14 +1,15 @@
-import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IAddSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockAddSchedulesServiceData,
   mockAddSchedulesServiceDataNotTimeValid,
-  mockAddSchedulesServiceDataWithoutIdWork,
+  mockAddSchedulesServiceDataWithoutWorkId,
   mockAddSchedulesServiceDataWithWrongProg,
   mockAddSchedulesServiceFormattedData,
 } from '../../../mocks/schedules/mockAddScheduleService';
@@ -17,12 +18,12 @@ describe('AddSchedulesService', () => {
   let addSchedulesService: AddSchedulesService;
 
   const mockRepository = {
-    addSchedules: jest.fn(),
+    addSchedules: vi.fn(),
   };
 
   const mockTx = {
     schedules: {
-      create: jest.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
+      create: vi.fn().mockResolvedValue({ id: 1 }), // ou o método que você espera
     },
   } as unknown as Prisma.TransactionClient;
 
@@ -40,7 +41,7 @@ describe('AddSchedulesService', () => {
     addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('add', () => {
     it('Should call method add and throw error', async () => {
@@ -63,17 +64,17 @@ describe('AddSchedulesService', () => {
     it('Should call method add and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
-      ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
+      ).rejects.toThrow('ID da obra é obrigatório');
     });
 
     it('Should call method add and throw error with this text: Programado deve estar entre 0 e 100', async () => {
@@ -82,16 +83,14 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithWrongProg,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
           mockAddSchedulesServiceDataWithWrongProg,
           mockTx,
         ),
-      ).rejects.toThrow(
-        'Erro ao criar programação: Programado deve estar entre 0 e 100',
-      );
+      ).rejects.toThrow('Programado deve estar entre 0 e 100');
     });
 
     it('Should call method add and throw error with this text: Horário de fim deve ser posterior ao início', async () => {
@@ -100,16 +99,14 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataNotTimeValid,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
           mockAddSchedulesServiceDataNotTimeValid,
           mockTx,
         ),
-      ).rejects.toThrow(
-        'Erro ao criar programação: Horário de fim deve ser posterior ao início',
-      );
+      ).rejects.toThrow('Horário de fim deve ser posterior ao início');
     });
   });
 });

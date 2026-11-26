@@ -6,9 +6,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { UpdateSchedulesService } from '../schedule/updateSchedules.service';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import { ExecutionReportService } from '../executionReport.service';
+import { GetWorkDetailsService } from '../works/management/getWorkDetails.service';
+import { UpdateSchedulesService } from '../works/schedule/updateSchedules.service';
 
 @Injectable()
 export class HandleSchedulesUpdateService {
@@ -20,7 +20,7 @@ export class HandleSchedulesUpdateService {
   ) {}
 
   async newUpdate(data: any, permission: boolean) {
-    const work = await this.getDetailsWorkService.get(data.idWork);
+    const work = await this.getDetailsWorkService.get(data.workId);
 
     if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {
       throw new BadRequestException(
@@ -44,7 +44,7 @@ export class HandleSchedulesUpdateService {
   ) {
     const { updateData, executionReportData } = data;
 
-    const work = await this.getDetailsWorkService.get(updateData.idWork);
+    const work = await this.getDetailsWorkService.get(updateData.workId);
 
     if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {
       throw new BadRequestException(
@@ -60,7 +60,7 @@ export class HandleSchedulesUpdateService {
           await this.executionReportService.create(
             {
               idSchedule: result.scheduleId,
-              idWork: result.idWork,
+              workId: result.workId,
               ...executionReportData,
             },
             result.scheduleFinishTime,

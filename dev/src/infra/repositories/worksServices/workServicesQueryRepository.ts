@@ -1,77 +1,83 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-
 import {
-  GetSelectedServicesParamsInterface,
+  toMaterialContract,
+  toScheduleHistoryByIdSchedule,
+  toSelectedService,
+  toServiceByWorkId,
+  toWorkToExport,
+} from 'src/infra/mappers/works/services/workServicesQuery.mapper';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  BASE_SERVICES_SELECT,
+  buildWorkToExportSelect,
+  MATERIALS_CONTRACT_SELECT,
+  SCHEDULE_HISTORY_BY_ID_SCHEDULE_SELECT,
+  SELECTED_SERVICES_SELECT,
+} from 'src/infra/types';
+
+import { Injectable } from '@nestjs/common';
+
+import type { IWorkServicesQueryRepository } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import type {
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
   GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryByIdScheduleResponse,
   GetServiceScheduleHistoryResponse,
+  GetServicesContractsResponse,
   GetServicesSelectedByWorkIdResponse,
+  GetTeamsServicesResponse,
+  ServiceForScheduling,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
-
+} from 'src/domain/types';
+import type { Prisma } from 'src/infra/generated/prisma/client';
+import { workIdentifierWhere } from 'src/infra/shared/workIdentifierWhere';
 @Injectable()
 export class WorkServicesQueryRepository implements IWorkServicesQueryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private readonly baseServicesSelect = {
-    id: true,
-    id_obra: true,
-    id_contrato_servico: true,
-    id_material: true,
-    operacao: true,
-    ponto: true,
-    qtde_plan: true,
-    qtde_prog: true,
-    qtde_real: true,
-    qtde_adicional: true,
-    viabilizado: true,
-    descricao_operacao: true,
-    numero_operacao: true,
-    materiais: { select: { codigo: true, descricao: true, preco: true } },
-    servicos_contratos: {
-      select: {
-        material: true,
-        texto_breve: true,
-        preco: true,
-      },
-    },
-  };
-
-  private async findService(where: any, tx?: Prisma.TransactionClient) {
+  private async findService(
+    where: Prisma.servicosWhereInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<GetServicesByWorkIdResponse[]> {
     const client = tx ?? this.prisma;
-
-    return client.servicos.findMany({
-      select: this.baseServicesSelect,
+    const rows = await client.servicos.findMany({
+      select: BASE_SERVICES_SELECT,
       where,
     });
+    return rows.map(toServiceByWorkId);
   }
 
   async getAllServicesOfWork(
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServicesByWorkIdResponse[]> {
-    const value = id.toString();
-
     return this.findService(
       {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : id },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(id),
       },
       tx,
     );
+  }
+
+  async findServicesForScheduling(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ServiceForScheduling[]> {
+    return tx.servicos.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        id_obra: true,
+        id_material: true,
+        viabilizado: true,
+        qtde_adicional: true,
+        qtde_real: true,
+        ponto: true,
+        operacao: true,
+        descricao_operacao: true,
+      },
+    });
   }
 
   async getNotScheduledServices(
@@ -80,18 +86,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     return this.findService({
       id_obra: id,
       AND: [
-        {
-          OR: [
-            {
-              qtde_real: null,
-            },
-            {
-              qtde_real: {
-                not: 0,
-              },
-            },
-          ],
-        },
+        { OR: [{ qtde_real: null }, { qtde_real: { not: 0 } }] },
         { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
       ],
     });
@@ -100,45 +95,17 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   async getSelectedServices({
     id,
     idProgramacao,
-  }: GetSelectedServicesParamsInterface): Promise<
+  }: GetSelectedServicesParamsRequest): Promise<
     GetServicesSelectedByWorkIdResponse[]
   > {
-    return this.prisma.programacoes_servicos.findMany({
+    const rows = await this.prisma.programacoes_servicos.findMany({
       where: {
         id_programacao: idProgramacao,
         servicos: { id_obra: id },
       },
-      select: {
-        id_programacao: true,
-        prog: true,
-        real: true,
-        adicional: true,
-        equipes: {
-          select: { equipe: true, encarregado: true, perfil: true },
-        },
-        programacoes: {
-          select: { data_prog: true },
-        },
-        servicos: {
-          select: {
-            id: true,
-            id_obra: true,
-            operacao: true,
-            ponto: true,
-            qtde_plan: true,
-            viabilizado: true,
-            descricao_operacao: true,
-            numero_operacao: true,
-            materiais: {
-              select: { codigo: true, descricao: true, preco: true },
-            },
-            servicos_contratos: {
-              select: { material: true, texto_breve: true, preco: true },
-            },
-          },
-        },
-      },
+      select: SELECTED_SERVICES_SELECT,
     });
+    return rows.map(toSelectedService);
   }
 
   async getServiceScheduleHistory(
@@ -146,16 +113,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]> {
     const client = tx ?? this.prisma;
-
-    return await client.programacoes_servicos.findMany({
+    return client.programacoes_servicos.findMany({
       select: {
         id: true,
         id_servico: true,
+        id_equipe: true,
         servicos: {
           select: {
-            materiais: {
-              select: { descricao: true, codigo: true },
-            },
+            materiais: { select: { descricao: true, codigo: true } },
             servicos_contratos: {
               select: { texto_breve: true, material: true },
             },
@@ -173,41 +138,20 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         prog: true,
         real: true,
         adicional: true,
+        status: true,
       },
       where: { programacoes: { id_obra: id } },
     });
   }
 
-  async getServiceScheduleHistoryByIdSchedule(ids: number[]) {
-    return await this.prisma.programacoes_servicos.findMany({
-      select: {
-        id: true,
-        id_servico: true,
-        servicos: {
-          select: {
-            materiais: {
-              select: { descricao: true, codigo: true, preco: true },
-            },
-            servicos_contratos: {
-              select: { texto_breve: true, material: true, preco: true },
-            },
-            ponto: true,
-            operacao: true,
-            qtde_plan: true,
-            viabilizado: true,
-            descricao_operacao: true,
-            numero_operacao: true,
-          },
-        },
-        id_programacao: true,
-        programacoes: { select: { data_prog: true } },
-        equipes: { select: { equipe: true, perfil: true } },
-        prog: true,
-        real: true,
-        adicional: true,
-      },
+  async getServiceScheduleHistoryByIdSchedule(
+    ids: number[],
+  ): Promise<GetServiceScheduleHistoryByIdScheduleResponse[]> {
+    const rows = await this.prisma.programacoes_servicos.findMany({
+      select: SCHEDULE_HISTORY_BY_ID_SCHEDULE_SELECT,
       where: { id_programacao: { in: ids } },
     });
+    return rows.map(toScheduleHistoryByIdSchedule);
   }
 
   async getServicesToExportation(params: {
@@ -216,165 +160,69 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     idParceira: number[];
     idEquipe: number[];
   }): Promise<WorkToExportResponse[]> {
-    const dateFilter = {
+    const dateFilter: Prisma.DateTimeFilter = {
       gte: new Date(params.dataInicial),
       lte: new Date(params.dataFinal),
     };
 
     const programacoesServicosFilter: Prisma.programacoes_servicosWhereInput = {
-      programacoes: { data_prog: dateFilter, exec: null },
+      programacoes: { data_prog: dateFilter },
       ...(params.idEquipe.length > 0
         ? { id_equipe: { in: params.idEquipe } }
         : {}),
     };
 
-    return this.prisma.obras.findMany({
+    const rows = await this.prisma.obras.findMany({
       where: {
         id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
-        programacoes: {
-          some: { data_prog: dateFilter, exec: null },
-        },
+        programacoes: { some: { data_prog: dateFilter } },
         servicos: {
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
-            programacoes_servicos: {
-              some: programacoesServicosFilter,
-            },
+            programacoes_servicos: { some: programacoesServicosFilter },
           },
         },
       },
-      select: {
-        ovnota: true,
-        diagrama: true,
-        referencia: true,
-        ordem_dci: true,
-        ordem_dca: true,
-        ordem_dcd: true,
-        ordem_dcim: true,
-        executado: true,
-        tipos: {
-          select: { tipo_obra: true },
-        },
-        municipios: {
-          select: { municipio: true },
-        },
-        turmas: {
-          select: { turma: true },
-        },
-        empreendimento: {
-          select: { empreendimento: true },
-        },
-        circuitos: {
-          select: {
-            circuito: true,
-            conjuntos: {
-              select: { conjunto: true },
-            },
-          },
-        },
-        programacoes: {
-          where: { data_prog: dateFilter },
-          select: {
-            id: true,
-            data_prog: true,
-            prog: true,
-            tipo_servico: true,
-            observacao_programacao: true,
-            chi: true,
-            num_dp: true,
-            chave_provisoria: true,
-            hora_ini: true,
-            hora_ter: true,
-            equipe_linha_morta: true,
-            equipe_linha_viva: true,
-            equipe_regularizacao: true,
-            tecnicos: { select: { tecnico: true } },
-          },
-        },
-        servicos: {
-          where: {
-            OR: [
-              { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
-            ],
-            programacoes_servicos: {
-              some: programacoesServicosFilter,
-            },
-          },
-          select: {
-            operacao: true,
-            ponto: true,
-            viabilizado: true,
-            qtde_adicional: true,
-            materiais: {
-              select: {
-                codigo: true,
-                descricao: true,
-                preco: true,
-                unidade: true,
-              },
-            },
-            servicos_contratos: {
-              select: {
-                material: true,
-                texto_breve: true,
-                preco: true,
-                medida: true,
-              },
-            },
-            programacoes_servicos: {
-              where: programacoesServicosFilter,
-              select: {
-                id_programacao: true,
-                prog: true,
-                real: true,
-                equipes: {
-                  select: { equipe: true },
-                },
-              },
-            },
-          },
-        },
-      },
+      select: buildWorkToExportSelect(dateFilter, programacoesServicosFilter),
     });
+    return rows.map(toWorkToExport);
   }
 
-  async getServicesContracts(idParceira: number): Promise<any[]> {
-    return await this.prisma.servicos_contratos.findMany({
+  async getServicesContracts(
+    idParceira: number,
+  ): Promise<GetServicesContractsResponse[]> {
+    return this.prisma.servicos_contratos.findMany({
       select: {
         id: true,
         texto_breve: true,
         material: true,
+        material_antigo: true,
         preco: true,
         contrato: true,
         medida: true,
         turmas: { select: { turma: true } },
       },
-      where: {
-        id_turma: idParceira,
-      },
+      where: { id_turma: idParceira },
     });
   }
 
-  async getMaterialsContract(): Promise<any[]> {
-    return await this.prisma.materiais.findMany();
+  async getMaterialsContract(): Promise<GetMaterialsContractsResponse[]> {
+    const rows = await this.prisma.materiais.findMany({
+      select: MATERIALS_CONTRACT_SELECT,
+    });
+    return rows.map(toMaterialContract);
   }
 
-  async getTeamsServices(idParceira: number): Promise<any[]> {
-    return await this.prisma.equipes.findMany({
-      select: {
-        id: true,
-        equipe: true,
-        encarregado: true,
-        perfil: true,
-      },
-      where: {
-        id_turma: idParceira,
-      },
+  async getTeamsServices(
+    idParceira: number,
+  ): Promise<GetTeamsServicesResponse[]> {
+    return this.prisma.equipes.findMany({
+      select: { id: true, equipe: true, encarregado: true, perfil: true },
+      where: { id_turma: idParceira },
     });
   }
 

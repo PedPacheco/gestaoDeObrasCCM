@@ -1,9 +1,10 @@
 import { AuxiliaryNotesInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertNotes.service';
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+
+import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
 import {
   mockInsertAuxiliaryBaseNotesService,
   mockInsertNotesRequest,
@@ -13,14 +14,14 @@ describe('AuxiliaryNotesInsertService', () => {
   let auxiliaryNotesInsertService: AuxiliaryNotesInsertService;
 
   const mockRepository = {
-    insertNotes: jest.fn(),
-    getFator: jest.fn(),
-    delete: jest.fn(),
+    insertNotes: vi.fn(),
+    getFator: vi.fn(),
+    delete: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingWorks: jest.fn(),
-    findExistingOrders: jest.fn(),
+    findExistingWorks: vi.fn(),
+    findExistingOrders: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -40,7 +41,7 @@ describe('AuxiliaryNotesInsertService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('execute', () => {
     it('should call method insertAuxiliaryBaseNotes and return default format if no data is sent', async () => {

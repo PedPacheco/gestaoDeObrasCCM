@@ -5,34 +5,34 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { scheduleServices } from "@/actions/services";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { schedulesSchema } from "@/validations/validationSchedules";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@mui/material";
 
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
-import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
+import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 
+import {
+  AddServiceAccordion,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
+import { ButtonComponent } from "../common/Button";
 import { ScheduledServices } from "./servicesSection/scheduledServices/scheduledServices";
 import {
   ScheduledServicesHistoryData,
   ScheduleHistory,
 } from "./servicesSection/scheduleHistory";
-import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import {
-  AddServiceAccordion,
-  ServiceContract,
-} from "../addServiceAccordion/addServiceAccordion";
 
+import { useUser } from "@/contexts/userContext";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -49,7 +49,7 @@ interface EditScheduleProps {
   serviceTeams: any[];
   scheduledServicesHistory: ScheduledServicesHistoryData[];
   options: any;
-  idWork: number;
+  workId: number;
   idStatusWork: number;
   idSchedule: number;
   statusSchedule: string;
@@ -75,7 +75,7 @@ export function EditSchedule({
   serviceTeams,
   scheduledServicesHistory,
   options,
-  idWork,
+  workId,
   idStatusWork,
   idSchedule,
   statusSchedule,
@@ -98,18 +98,18 @@ export function EditSchedule({
     servicesData || [],
   );
 
-  const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
+  const scheduleForm = useScheduleForm({ data: scheduleData, options, workId });
 
   const executionFormData = useMemo(
     () => ({
-      idWork,
+      workId,
       idSchedule,
       idExecutionRestriction: 1,
       serviceType: scheduleForm.formData.serviceType,
       finishTime: scheduleForm.formData.finishTime,
     }),
     [
-      idWork,
+      workId,
       idSchedule,
       scheduleForm.formData.finishTime,
       scheduleForm.formData.serviceType,
@@ -122,7 +122,7 @@ export function EditSchedule({
   });
 
   const { handleSubmit, isPending: isSubmitPending } = useScheduleSubmit({
-    idWork: Number(idWork),
+    workId: Number(workId),
     onError: showError,
     onSuccess: (message) => showSuccess(message),
     formData: scheduleData,
@@ -133,9 +133,9 @@ export function EditSchedule({
   // ── Handlers ──────────────────────────────────────────────
 
   const handleCancel = useCallback(() => {
-    router.replace(`/detalhes/${idWork}`);
+    router.replace(`/detalhes/${workId}`);
     router.refresh();
-  }, [router, idWork]);
+  }, [router, workId]);
 
   const handleScheduledServices = useCallback(async () => {
     const formattedService = scheduledServices.map((service) => ({
@@ -147,7 +147,7 @@ export function EditSchedule({
       type: service.tipo,
     }));
 
-    const response = await scheduleServices(idWork, formattedService);
+    const response = await scheduleServices(workId, formattedService);
 
     if (!response.success) {
       showError(response.error);
@@ -156,7 +156,7 @@ export function EditSchedule({
 
     setScheduledServices([]);
     showSuccess("DEU CERTO", () => router.refresh());
-  }, [scheduledServices, idWork, showSuccess, idSchedule, showError, router]);
+  }, [scheduledServices, workId, showSuccess, idSchedule, showError, router]);
 
   const handleSaveSchedule = () => {
     const validationResult = schedulesSchema().safeParse(scheduleForm.formData);
@@ -204,7 +204,7 @@ export function EditSchedule({
 
   return (
     <div className="flex  w-full flex-col bg-gray-50 overflow-y-auto">
-      <ScheduleTopbar title="Editar Programação" idWork={idWork} />
+      <ScheduleTopbar title="Editar Programação" workId={workId} />
 
       <main className="flex min-w-0 flex-1 flex-col">
         {/* ── Schedule form ──────────────────────────────────── */}
@@ -291,7 +291,7 @@ export function EditSchedule({
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
-                  workId={idWork}
+                  workId={workId}
                   hasOrdemDcim={hasOrdemDcim}
                 />
               </div>
@@ -300,7 +300,7 @@ export function EditSchedule({
               <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-5">
                 <div className="grid grid-cols-1 px-2 gap-2 mb-2">
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar novo serviço"
                     services={serviceContractData}
                     options={optionsToAddItem}
@@ -309,7 +309,7 @@ export function EditSchedule({
                   />
 
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar novo material"
                     materials={materialsData}
                     options={optionsToAddItem}
@@ -318,7 +318,7 @@ export function EditSchedule({
                   />
 
                   <AddServiceAccordion
-                    idWork={Number(idWork)}
+                    workId={Number(workId)}
                     title="Adicionar nova família"
                     services={serviceContractData}
                     materials={materialsData}

@@ -19,19 +19,19 @@ export default async function ExportPage() {
     {
       name: "dados obras em carteira",
       path: "obras-carteira-bi",
-      visible: true,
+      visible: false,
       filterType: "none",
     },
     {
       name: "dados obras executadas",
       path: "obras-executadas-bi",
-      visible: true,
+      visible: false,
       filterType: "none",
     },
     {
       name: "programações e restrições",
       path: "programacoes-bi",
-      visible: true,
+      visible: false,
       filterType: "none",
     },
     {
@@ -49,7 +49,7 @@ export default async function ExportPage() {
     {
       name: "capacidade de execução",
       path: "capacidade-execucao",
-      visible: true,
+      visible: false,
       filterType: "none",
     },
     {
@@ -61,7 +61,7 @@ export default async function ExportPage() {
     {
       name: "viabilidades em aprovação",
       path: "viabilidade/aguardando-aprovacao",
-      visible: true,
+      visible: false,
       filterType: "partner",
     },
     {

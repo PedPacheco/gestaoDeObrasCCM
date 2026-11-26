@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { RingCard } from "./RingCard";
 
 interface SubItens {
   subLabel: string;
@@ -45,7 +44,7 @@ export function KpiCard({
 
       <div className="pl-3 flex items-start justify-between gap-4">
         <div className="flex flex-col">
-          <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+          <span className="text-white/60 text-sm uppercase tracking-widest font-medium">
             {label}
           </span>
 

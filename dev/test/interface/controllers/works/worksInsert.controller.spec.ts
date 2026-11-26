@@ -1,5 +1,5 @@
 import { UsersService } from 'src/application/usecases/users.service';
-import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
+import { InsertWorksService } from 'src/application/usecases/works/management/insertWorks.service';
 import { WorksInsertController } from 'src/interface/controllers/works/worksInsert.controller';
 
 import { HttpStatus } from '@nestjs/common';
@@ -17,10 +17,10 @@ describe('WorksInsertController', () => {
     const module = await Test.createTestingModule({
       controllers: [WorksInsertController],
       providers: [
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: vi.fn() } },
         {
           provide: InsertWorksService,
-          useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
+          useValue: { insertMarketWorks: vi.fn(), insertNotes: vi.fn() },
         },
       ],
     }).compile();
@@ -35,7 +35,7 @@ describe('WorksInsertController', () => {
 
   describe('InsertMarketWorks', () => {
     it('Should be call the method insertMarketWorks and return the correctly data', async () => {
-      jest.spyOn(insertWorksService, 'insertMarketWorks').mockResolvedValue({
+      vi.spyOn(insertWorksService, 'insertMarketWorks').mockResolvedValue({
         insertedCount: 1,
         message: 'Inserção concluída com sucesso.',
         skipped: ['14895757'],
@@ -59,7 +59,7 @@ describe('WorksInsertController', () => {
 
   describe('InsertNotes', () => {
     it('Should be call the method insertNotes and return the correctly data', async () => {
-      jest.spyOn(insertWorksService, 'insertNotes').mockResolvedValue();
+      vi.spyOn(insertWorksService, 'insertNotes').mockResolvedValue();
 
       const result = await worksController.InsertNotes(
         mockInsertNotesController,

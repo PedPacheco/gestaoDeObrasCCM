@@ -12,17 +12,17 @@ describe('ExportRepository', () => {
   let repository: ExportRepository;
 
   const mockPrisma = {
-    exportacao_obras_carteira: { findMany: jest.fn() },
-    exportacao_obras_executadas: { findMany: jest.fn() },
-    exportacao_programacoes_obras: { findMany: jest.fn() },
-    exportacao_capacidade_execucao: { findMany: jest.fn() },
-    exportacao_forecast: { findMany: jest.fn() },
-    exportacao_ordens: { findMany: jest.fn() },
-    programacoes_reprovacoes: { findMany: jest.fn() },
-    suspensoes: { findMany: jest.fn() },
-    suspensoes_retiradas: { findMany: jest.fn() },
-    programacoes: { findMany: jest.fn() },
-    relatorio_execucao: { findMany: jest.fn() },
+    exportacao_obras_carteira: { findMany: vi.fn() },
+    exportacao_obras_executadas: { findMany: vi.fn() },
+    exportacao_programacoes_obras: { findMany: vi.fn() },
+    exportacao_capacidade_execucao: { findMany: vi.fn() },
+    exportacao_forecast: { findMany: vi.fn() },
+    exportacao_ordens: { findMany: vi.fn() },
+    programacoes_reprovacoes: { findMany: vi.fn() },
+    suspensoes: { findMany: vi.fn() },
+    suspensoes_retiradas: { findMany: vi.fn() },
+    programacoes: { findMany: vi.fn() },
+    relatorio_execucao: { findMany: vi.fn() },
   };
 
   beforeEach(async () => {
@@ -36,7 +36,7 @@ describe('ExportRepository', () => {
     repository = module.get<ExportRepository>(ExportRepository);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => vi.clearAllMocks());
 
   describe('exportWorksInPortfolio', () => {
     it('should call method and return all data of exportcao_obras_carteira view', async () => {

@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
-import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
+import { GetCompletedWorksService } from 'src/application/usecases/works/management/getCompletedWorks.service';
+import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IGetCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -11,12 +11,12 @@ describe('GetCompletedWorksService', () => {
   let cacheManager: Cache;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockRepository = {
-    getCompletedWorks: jest.fn(),
+    getCompletedWorks: vi.fn(),
   };
 
   const mockWorks = [
@@ -85,7 +85,7 @@ describe('GetCompletedWorksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should be defined', () => {

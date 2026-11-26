@@ -1,7 +1,7 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
-import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
-import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNoteRepository';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
+import { INSERT_WORKS_REPOSITORY } from 'src/domain/contracts/works/management/IInsertWorksRepository';
+import { UPDATE_NOTE_REPOSITORY } from 'src/domain/contracts/works/management/IUpdateNoteRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -12,15 +12,15 @@ describe('UpdateNoteService', () => {
   let updateNoteService: UpdateNoteService;
 
   const mockRepository = {
-    update: jest.fn(),
+    update: vi.fn(),
   };
 
   const mockFindExistingWorksService = {
-    findExistingNotes: jest.fn(),
+    findExistingNotes: vi.fn(),
   };
 
   const mockInsertWorksRepository = {
-    getGroup: jest.fn(),
+    getGroup: vi.fn(),
   };
 
   const mockExistingNotes = [
@@ -31,6 +31,7 @@ describe('UpdateNoteService', () => {
       ordemDcd: 'DCD001',
       ordemDca: null,
       ordemDcim: null,
+      ordemDcdm: null,
     },
     {
       id: 2,
@@ -39,6 +40,7 @@ describe('UpdateNoteService', () => {
       ordemDcd: null,
       ordemDca: 'DCA002',
       ordemDcim: 'DCIM002',
+      ordemDcdm: 'DCDM002',
     },
   ];
 
@@ -50,6 +52,7 @@ describe('UpdateNoteService', () => {
       ordemDcd: 'ordemDCD1',
       ordemDca: 'ordemDCA1',
       ordemDcim: 'ordemDCIM1',
+      ordemDcdm: 'ordemDCDM1',
     },
   ];
 
@@ -81,7 +84,7 @@ describe('UpdateNoteService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(vi.clearAllMocks);
 
   describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {
@@ -126,6 +129,7 @@ describe('UpdateNoteService', () => {
           pep: 'PEP-654321',
           ordem_dca: 'DCA002',
           ordem_dcim: 'DCIM002',
+          ordem_dcdm: 'DCDM002',
           mo_plan: 120,
           qtde_plan: 60,
         },
@@ -148,6 +152,7 @@ describe('UpdateNoteService', () => {
           ordem_dcd: 'DCD001',
           ordem_dca: '',
           ordem_dcim: '',
+          ordem_dcdm: '',
           moPlan: 1,
           qtdePlan: null,
         },
@@ -165,6 +170,7 @@ describe('UpdateNoteService', () => {
           ordem_dcd: '',
           ordem_dca: 'DCA002',
           ordem_dcim: 'DCIM002',
+          ordem_dcdm: 'DCDM002',
           moPlan: 1,
           qtdePlan: null,
         },

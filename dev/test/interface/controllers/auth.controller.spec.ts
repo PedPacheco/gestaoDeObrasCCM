@@ -2,17 +2,17 @@ import { Response } from 'express';
 import { AuthService } from 'src/application/usecases/auth.service';
 import { TipoUsuario } from 'src/domain/entities/user.entity';
 import { AuthController } from 'src/interface/controllers/auth.controller';
-import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoginUserDTO, RegisterUserDTO } from 'src/interface/dtos/userDTO';
 
 describe('AuthController', () => {
   let authController: AuthController;
   let authService: AuthService;
 
   beforeEach(async () => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -20,9 +20,9 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: {
-            login: jest.fn(),
-            register: jest.fn(),
-            sendEmailResetPassword: jest.fn(),
+            login: vi.fn(),
+            register: vi.fn(),
+            sendEmailResetPassword: vi.fn(),
           },
         },
       ],
@@ -59,17 +59,17 @@ describe('AuthController', () => {
       };
 
       const res = {
-        cookie: jest.fn(),
+        cookie: vi.fn(),
       } as unknown as Response;
 
-      jest.spyOn(authService, 'login').mockResolvedValue(mockResponse);
+      vi.spyOn(authService, 'login').mockResolvedValue(mockResponse);
 
       const result = await authController.login(loginDto, res);
 
-      expect(authService.login).toHaveBeenCalledWith(
-        loginDto.user,
-        loginDto.password,
-      );
+      expect(authService.login).toHaveBeenCalledWith({
+        username: loginDto.user,
+        password: loginDto.password,
+      });
       expect(res.cookie).toHaveBeenCalledWith(
         'token',
         mockResponse.access_token,
@@ -105,14 +105,81 @@ describe('AuthController', () => {
       };
 
       const res = {
-        cookie: jest.fn(),
+        cookie: vi.fn(),
       } as unknown as Response;
 
-      jest
-        .spyOn(authService, 'login')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
+      vi.spyOn(authService, 'login').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
 
       await expect(authController.login(loginDto, res)).rejects.toThrow(
+        'Erro ao processar a solicitação',
+      );
+    });
+  });
+
+  describe('Register', () => {
+    it('should call AuthService.register and return the result', async () => {
+      const mockResponse = {
+        id: 1,
+        username: 'teste123',
+        senha: 'hashed-password',
+        nome: 'Teste',
+        email: 'teste@gmail.com',
+        tipo_usuario: TipoUsuario.INTERNO,
+        id_regional: 1,
+        id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        permissao_edicao: true,
+        ativo: true,
+      };
+
+      const registerUserDTO: RegisterUserDTO = {
+        username: 'teste123',
+        id_regional: 1,
+        id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome: 'Teste',
+        tipo_usuario: TipoUsuario.PARCEIRA,
+        permissao_edicao: true,
+        email: 'teste@gmail.com',
+      };
+
+      vi.spyOn(authService, 'register').mockResolvedValue(mockResponse);
+
+      const result = await authController.register(registerUserDTO);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.CREATED,
+        message: 'Usuário cadastrado com sucesso',
+        data: {
+          id: mockResponse.id,
+          username: mockResponse.username,
+        },
+      });
+      expect(authService.register).toHaveBeenCalledWith(registerUserDTO);
+    });
+
+    it('should return internal server error if authService.register return error', async () => {
+      const registerUserDTO: RegisterUserDTO = {
+        username: 'teste123',
+        id_regional: 1,
+        id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome: 'Teste',
+        tipo_usuario: TipoUsuario.INTERNO,
+        permissao_edicao: true,
+        email: 'teste@gmail.com',
+      };
+
+      vi.spyOn(authService, 'register').mockRejectedValue(
+        new Error('Erro ao processar a solicitação'),
+      );
+
+      await expect(authController.register(registerUserDTO)).rejects.toThrow(
         'Erro ao processar a solicitação',
       );
     });

@@ -12,12 +12,12 @@ interface RejectFeasibilityData {
 }
 
 interface RejectFeasibilityProps {
-  idWork: string;
+  workId: string;
   data: RejectFeasibilityData;
 }
 
 export async function rejectFeasibility({
-  idWork,
+  workId,
   data,
 }: RejectFeasibilityProps) {
   try {
@@ -49,7 +49,7 @@ export async function rejectFeasibility({
       };
     }
 
-    revalidatePath(`/detalhes/${idWork}`);
+    revalidatePath(`/detalhes/${workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {

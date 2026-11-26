@@ -7,11 +7,10 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { MonthlySummaryTableColumn } from "@/app/(dashboard)/programacao/resumo-mensal/page";
 import { ButtonComponent } from "@/components/common/Button";
-import { DateFilter } from "@/components/common/DateFilter";
-import ErrorModal from "@/components/common/ErrorModal";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { DateFilter } from "@/components/common/filter/DateFilter";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -19,18 +18,12 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";
 import { mountUrl } from "@/utils/mountUrl";
 import { exportExcel } from "@/actions/generateExcel.action";
-
-export interface Filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  grupo: { id: string; grupo: string }[];
-}
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface MainMonthlySummaryScheduleProps {
   dataFirstSummary: any;
   dataSecondSummary: any;
-  filtersData: Filters;
+  filtersData: FiltersInterface;
   columnsFirstSummary: MonthlySummaryTableColumn[];
   columnsSecondSummary: MonthlySummaryTableColumn[];
   token: string;
@@ -98,7 +91,7 @@ export function MainMonthlySummarySchedule({
     {},
   );
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "monthlySummaryScheduleFilters",
     data: filtersData,
   });
@@ -192,9 +185,16 @@ export function MainMonthlySummarySchedule({
             setStartDate={setStartDate}
             size="w-1/2 first:pr-4"
           />
-          {Object.entries(filtersData).map(([key, value], index) =>
-            renderFilterSelect(key, value, index),
-          )}
+          {Object.entries(filtersData)
+            .filter(
+              (
+                entry,
+              ): entry is [string, { [key: string]: any; id: string }[]] =>
+                Array.isArray(entry[1]) && entry[1].length > 0,
+            )
+            .map(([key, value], index) =>
+              renderFilterSelect(key, value, index),
+            )}
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center xl:justify-around">

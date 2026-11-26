@@ -8,77 +8,36 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { OperationType } from 'src/application/types';
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import {
-  InsertBaseAuxiliaryMarketDTO,
-  NotesDTO,
-} from '../dtos/auxiliaryBaseDTO';
-import { OperationType } from '../types/baseAuxiliaryInterface';
-import { diskStorage } from 'multer';
-import { randomUUID } from 'crypto';
-import { CapexGateway } from '../gateway/capex/capex.gateway';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
+import {
+  InsertBaseAuxiliaryMarketDTO,
+  NotesDTO,
+} from '../dtos/auxiliaryBaseDTO';
 
-const capexFileInterceptor = FileInterceptor('file', {
-  storage: diskStorage({
-    destination: './uploads/imports',
-    filename: (_, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-  }),
-  limits: {
-    fileSize: 150 * 1024 * 1024, // 150 MB
-  },
-  fileFilter: (_, file, cb) => {
-    const isXlsx =
-      file.mimetype ===
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    cb(
-      isXlsx ? null : new Error('Apenas arquivos .xlsx são permitidos'),
-      isXlsx,
-    );
-  },
+// O fluxo de CAPEX (POST capex/pipeline) vive no CapexController.
+const AREA_EDIT = AreaEditGuard({
+  allowedAreas: [CONSTRUCTION_AREA_ID],
+  blockPartner: true,
+});
+const AREA_VIEW = AreaViewGuard({
+  allowedAreas: [CONSTRUCTION_AREA_ID],
+  blockPartner: true,
 });
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
-  constructor(
-    private readonly auxiliaryBaseService: AuxiliaryBaseService,
-    private readonly capexFullPipelineService: CapexFullPipelineService,
-    private readonly capexGateway: CapexGateway,
-  ) {}
-
-  @Post('capex/pipeline')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
-  @UseInterceptors(capexFileInterceptor)
-  async importAndUpdateCapex(@UploadedFile() file: Express.Multer.File) {
-    const jobId = randomUUID();
-
-    this.capexFullPipelineService
-      .run(file.path, jobId, this.capexGateway.createEmitter(jobId))
-      .catch((err) =>
-        console.error(`[capex/pipeline] Erro no job ${jobId}:`, err.stack),
-      );
-
-    return {
-      statusCode: HttpStatus.ACCEPTED,
-      message:
-        'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
-      jobId,
-    };
-  }
-
-  // ─── Demais endpoints ─────────────────────────────────────────────
+  constructor(private readonly auxiliaryBaseService: AuxiliaryBaseService) {}
 
   @Get('mercado')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_VIEW)
   async GetAuxiliaryBaseMarket(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getMarket(idRegional);
     return {
@@ -89,7 +48,7 @@ export class AuxiliaryBaseController {
   }
 
   @Get('notas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_VIEW)
   async GetAuxiliaryBaseNotes(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getNotes(idRegional);
     return {
@@ -100,7 +59,7 @@ export class AuxiliaryBaseController {
   }
 
   @Post('notas')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async InsertAuxiliaryBaseNotes(
     @Body() body: { data: NotesDTO[]; operation: OperationType },
   ) {
@@ -116,7 +75,7 @@ export class AuxiliaryBaseController {
   }
 
   @Post('mercado')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async InsertAuxiliaryBaseMarket(
     @Body()
     body: {
@@ -135,28 +94,28 @@ export class AuxiliaryBaseController {
   }
 
   @Delete('mercado/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async DeleteAuxiliaryBaseMarket(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseOv', id);
     return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('mercado')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async DeleteAuxiliaryBaseMarketWithoutId() {
     await this.auxiliaryBaseService.delete('baseOv', undefined);
     return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('notas/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseNotes', id);
     return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };
   }
 
   @Delete('notas/')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AREA_EDIT)
   async DeleteAuxiliaryBaseNotesWithoutId() {
     await this.auxiliaryBaseService.delete('baseNotes', undefined);
     return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };
