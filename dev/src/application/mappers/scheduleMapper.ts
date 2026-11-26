@@ -23,6 +23,13 @@ export class WorkScheduleMapper {
       finishTime: moment(row.hora_ter).toDate(),
       prog: row.prog,
       exec: row.exec ?? undefined,
+      numDp: row.num_dp,
+      equipment: row.equip_desligado,
+      lvTeam: row.equipe_linha_viva,
+      lmTeam: row.equipe_linha_morta,
+      regulTeam: row.equipe_regularizacao,
+      serviceType: row.tipo_servico,
+      observation: row.observacao_programacao,
       rejected: row.reprovada,
     });
   }

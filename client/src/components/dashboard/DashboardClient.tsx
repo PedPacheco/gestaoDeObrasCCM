@@ -3,12 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import { useUser } from "@/contexts/userContext";
+import { LoadingComponent } from "../common/Loading";
 import AdvancePartnerDashboard from "./advancePartner/advancePartner";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
-import { useUser } from "@/contexts/userContext";
-import { LoadingComponent } from "../common/Loading";
 
 // ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
@@ -78,16 +78,6 @@ interface Props {
   initialDailyGoalMoveForwardPartner: number;
   filtersData: any;
 }
-
-export const EXCLUDE_PARCEIRAS = new Set([
-  "EDP",
-  "ELETROREDE",
-  "MONTELBRAS",
-  "COMPEL",
-  "ROTARY",
-  "NÃO DEFINIDO",
-  "NAO DEFINIDO",
-]);
 
 type Tab =
   | "geral"

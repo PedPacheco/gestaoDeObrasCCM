@@ -4,9 +4,14 @@ import { resolvePointByPointMode } from 'src/infra/repositories/works/management
 import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
 
 // ─── Constantes e helpers ────────────────────────────────────────────
+
 const WORK_ID = 10;
-const POINT_BY_POINT_PARTNER = PONTO_A_PONTO_PARTNER_ID;
-const TRADITIONAL_PARTNER = PONTO_A_PONTO_PARTNER_ID + 1;
+
+const POINT_BY_POINT_PARTNERS: number[] = [...PONTO_A_PONTO_PARTNER_ID];
+/** Primeiro ID da lista ponto a ponto */
+const POINT_BY_POINT_PARTNER = POINT_BY_POINT_PARTNERS[0];
+/** Maior ID da lista + 1 → garantidamente fora da lista (tradicional) */
+const TRADITIONAL_PARTNER = Math.max(0, ...POINT_BY_POINT_PARTNERS) + 1;
 
 const CONFLICT_MESSAGE =
   'Não é possível trocar para uma parceira de outro modelo de programação (ponto a ponto / tradicional) em uma obra que já possui programações.';
@@ -36,17 +41,32 @@ describe('resolvePointByPointMode', () => {
     client.programacoes.count.mockResolvedValue(0);
   });
 
-  it('sanity: PONTO_A_PONTO_PARTNER_ID is a finite number', () => {
-    expect(Number.isFinite(PONTO_A_PONTO_PARTNER_ID)).toBe(true);
+  // ─── Sanidade da configuração ──────────────────────────────────────
+
+  describe('PONTO_A_PONTO_PARTNER_ID', () => {
+    it('should be a non-empty list', () => {
+      expect(Array.isArray(PONTO_A_PONTO_PARTNER_ID)).toBe(true);
+      expect(POINT_BY_POINT_PARTNERS.length).toBeGreaterThan(0);
+    });
+
+    it('should only contain integer ids', () => {
+      for (const id of POINT_BY_POINT_PARTNERS) {
+        expect(Number.isInteger(id)).toBe(true);
+      }
+    });
+
+    it('should not contain the id used as traditional partner', () => {
+      expect(POINT_BY_POINT_PARTNERS).not.toContain(TRADITIONAL_PARTNER);
+    });
   });
 
   // ─── Parceira não informada ────────────────────────────────────────
+
   describe('when the partner is not informed', () => {
     it.each([[undefined], [null]])(
       'should return undefined without querying when partnerId = %p',
       async (partnerId) => {
         await expect(run(partnerId)).resolves.toBeUndefined();
-
         expect(client.obras.findUnique).not.toHaveBeenCalled();
         expect(client.programacoes.count).not.toHaveBeenCalled();
       },
@@ -56,12 +76,12 @@ describe('resolvePointByPointMode', () => {
       await expect(
         resolvePointByPointMode(asClient(client), WORK_ID),
       ).resolves.toBeUndefined();
-
       expect(client.obras.findUnique).not.toHaveBeenCalled();
     });
   });
 
   // ─── Leitura da obra ───────────────────────────────────────────────
+
   describe('work lookup', () => {
     it('should read only the current mode of the work', async () => {
       mockWork(false);
@@ -90,7 +110,39 @@ describe('resolvePointByPointMode', () => {
     });
   });
 
+  // ─── Pertença à lista de IDs ───────────────────────────────────────
+
+  describe('partner list membership', () => {
+    it.each(POINT_BY_POINT_PARTNERS)(
+      'should treat partner %i (in the list) as point-by-point',
+      async (partnerId) => {
+        mockWork(true);
+
+        await expect(run(partnerId)).resolves.toBe(true);
+        expect(client.programacoes.count).not.toHaveBeenCalled();
+      },
+    );
+
+    it('should treat a partner outside the list as traditional', async () => {
+      mockWork(false);
+
+      await expect(run(TRADITIONAL_PARTNER)).resolves.toBe(false);
+      expect(client.programacoes.count).not.toHaveBeenCalled();
+    });
+
+    it.each(POINT_BY_POINT_PARTNERS)(
+      'should switch a traditional work to point-by-point with partner %i when there are no schedules',
+      async (partnerId) => {
+        mockWork(false);
+
+        await expect(run(partnerId)).resolves.toBe(true);
+        expect(client.programacoes.count).toHaveBeenCalledTimes(1);
+      },
+    );
+  });
+
   // ─── Modo não muda ─────────────────────────────────────────────────
+
   describe('when the mode does not change', () => {
     it.each([
       ['point-by-point → point-by-point', true, POINT_BY_POINT_PARTNER, true],
@@ -120,6 +172,7 @@ describe('resolvePointByPointMode', () => {
   });
 
   // ─── Modo muda ─────────────────────────────────────────────────────
+
   describe.each([
     {
       direction: 'traditional → point-by-point',
@@ -179,22 +232,27 @@ describe('resolvePointByPointMode', () => {
   });
 
   // ─── Conversão do partnerId ────────────────────────────────────────
+
   describe('partner id conversion', () => {
-    it('should accept the partner id as a numeric string', async () => {
-      mockWork(true);
+    it.each(POINT_BY_POINT_PARTNERS)(
+      'should accept partner %i as a numeric string',
+      async (partnerId) => {
+        mockWork(true);
 
-      await expect(run(String(POINT_BY_POINT_PARTNER) as any)).resolves.toBe(
-        true,
-      );
-      expect(client.programacoes.count).not.toHaveBeenCalled();
-    });
+        await expect(run(String(partnerId) as any)).resolves.toBe(true);
+        expect(client.programacoes.count).not.toHaveBeenCalled();
+      },
+    );
 
-    it('should treat partnerId = 0 as a traditional partner (not as missing)', async () => {
-      mockWork(false);
+    it.skipIf(POINT_BY_POINT_PARTNERS.includes(0))(
+      'should treat partnerId = 0 as a traditional partner (not as missing)',
+      async () => {
+        mockWork(false);
 
-      await expect(run(0)).resolves.toBe(false);
-      expect(client.obras.findUnique).toHaveBeenCalled();
-    });
+        await expect(run(0)).resolves.toBe(false);
+        expect(client.obras.findUnique).toHaveBeenCalled();
+      },
+    );
 
     it('should treat a non-numeric partner id as traditional (current behaviour)', async () => {
       mockWork(false);
@@ -204,6 +262,7 @@ describe('resolvePointByPointMode', () => {
   });
 
   // ─── Uso do client ─────────────────────────────────────────────────
+
   it('should only use the client received as parameter', async () => {
     mockWork(false);
 

@@ -1,14 +1,14 @@
 import Image from "next/image";
 import { useMemo } from "react";
-import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Line, LineChart, ResponsiveContainer } from "recharts";
 
 import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import {
   pctColorGripSchedule,
   pctColorRestrictionsElimination,
 } from "./advancePartner";
-import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
 
 interface SparkPoint {
   semana: string;

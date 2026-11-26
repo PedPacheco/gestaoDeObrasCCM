@@ -3,13 +3,13 @@ import {
   ContingencyFilter,
   ContingencyGroupField,
   ContingencyGroupItem,
-  CountItem,
+  ContingencyResourceDispatches,
   CreateContingencyData,
   EmergencyTeam,
   RecentContingency,
 } from '../types';
 
-export const CONTINGENCY_REPOSITORY = 'CONTINGENCY_REPOSITORY';
+export const CONTINGENCY_REPOSITORY = Symbol('ContingencyRepository');
 
 export type MonthPeriod = {
   start: string | null; // YYYY-MM-DD, inclusivo
@@ -21,12 +21,15 @@ export type MonthPeriod = {
 export interface IContingencyRepository {
   create(data: CreateContingencyData): Promise<void>;
   findRecent(filter: ContingencyFilter): Promise<RecentContingency[]>;
+  findContingencyResourceDispatches(
+    filter: ContingencyFilter,
+  ): Promise<ContingencyResourceDispatches[]>;
   groupByField(
     field: ContingencyGroupField,
     filter: ContingencyFilter,
   ): Promise<ContingencyGroupItem[]>;
-  groupByPartner(filter: ContingencyFilter): Promise<CountItem[]>;
-  groupByCsd(filter: ContingencyFilter): Promise<CountItem[]>;
+  groupByPartner(filter: ContingencyFilter): Promise<ContingencyGroupItem[]>;
+  groupByCsd(filter: ContingencyFilter): Promise<ContingencyGroupItem[]>;
   getCapacityByYearMonth(
     filter: ContingencyFilter,
     month?: number,

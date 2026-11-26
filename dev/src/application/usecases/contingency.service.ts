@@ -8,6 +8,7 @@ import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   CapacityByYearMonth,
   ContingencyGroupItem,
+  ContingencyResourceDispatches,
   CountItem,
   EmergencyTeam,
   RecentContingency,
@@ -18,6 +19,7 @@ import {
   CreateContingencyInput,
   EmergencyTeamOutput,
   MonthlyCapacityOutput,
+  QuantityField,
   RecentAnswerOutput,
 } from '../types';
 
@@ -51,10 +53,10 @@ export class ContingencyService {
 
     const [
       recent,
-      partners,
+      partnersRows,
       laborGroups,
       teamGroups,
-      csds,
+      csdsRows,
       emergencyTeams,
       capacity,
     ] = await Promise.all([
@@ -67,7 +69,14 @@ export class ContingencyService {
       this.contingencyRepository.getCapacityByYearMonth(filter),
     ]);
 
+    const ALL_QUANTITIES: readonly QuantityField[] = [
+      'laborQuantity',
+      'teamsQuantity',
+    ];
+
     const aggregatedTeams = this.aggregateEmergencyTeams(emergencyTeams);
+    const partners = this.sumByName(partnersRows, ALL_QUANTITIES);
+    const csds = this.sumByName(csdsRows, ALL_QUANTITIES);
 
     return {
       allocatedPercentage: this.calculateYieldedPercentage(
@@ -82,6 +91,16 @@ export class ContingencyService {
       teamTypes: this.sumByName(teamGroups, 'teamsQuantity'),
       csds,
     };
+  }
+
+  async findContingencyResourceDispatches(
+    query: ContingencyInput = {},
+  ): Promise<ContingencyResourceDispatches[]> {
+    const filter = this.withDefaultPeriod(query);
+
+    return await this.contingencyRepository.findContingencyResourceDispatches(
+      filter,
+    );
   }
 
   // ─── Output (formato da resposta: fica na application) ─────────────
@@ -150,12 +169,15 @@ export class ContingencyService {
 
   private sumByName(
     rows: ContingencyGroupItem[],
-    sumField: 'laborQuantity' | 'teamsQuantity',
+    fields: QuantityField | readonly QuantityField[],
   ): CountItem[] {
+    const keys = Array.isArray(fields) ? fields : [fields];
+
     const map = new Map<string, number>();
 
     for (const row of rows) {
-      map.set(row.name, (map.get(row.name) ?? 0) + row[sumField]);
+      const rowTotal = keys.reduce((acc, key) => acc + (row[key] ?? 0), 0);
+      map.set(row.name, (map.get(row.name) ?? 0) + rowTotal);
     }
 
     return Array.from(map, ([name, value]) => ({ name, value }));

@@ -82,4 +82,4 @@ export const FINALIZED_SCHEDULE_STATUSES: number[] = [
 ];
 
 /** Id da parceira que trabalha com programação ponto a ponto. */
-export const PONTO_A_PONTO_PARTNER_ID = 3;
+export const PONTO_A_PONTO_PARTNER_ID = [3, 6];

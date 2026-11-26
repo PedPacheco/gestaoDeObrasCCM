@@ -19,7 +19,7 @@ interface MainPortfolioWorksProps {
   token: string;
   cookie: string;
   columns: Record<string, string>;
-  totals: { total: number; totalMoRetida: number };
+  totals: { total: number; totalMoRetida: number; totalMoProgramada: number };
 }
 
 const cookies = new Cookies();

@@ -3,8 +3,8 @@ import { Dayjs } from "dayjs";
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/filter/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;

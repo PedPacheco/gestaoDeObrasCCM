@@ -13,6 +13,7 @@ import {
   LABOR_TYPES,
   TEAMS_TYPES,
 } from "@/constants/contingency";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { FormatCurrency } from "@/utils/formatValue";
 import { BarListCard } from "./barListCard";
@@ -43,8 +44,13 @@ export function ContingencyDashboard({
   data,
   partnerOptions,
 }: ContingencyDashboardProps) {
+  const partnersFiltered =
+    partnerOptions.parceira?.filter(
+      (item) => !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+    ) ?? [];
+
   const partners = zeroFill(
-    partnerOptions.parceira?.map((partner) => partner.turma) ?? [],
+    partnersFiltered?.map((partner) => partner.turma) ?? [],
     data.partners,
   );
   const laborTypes = zeroFill(LABOR_TYPES, data.laborTypes);
@@ -133,9 +139,9 @@ export function ContingencyDashboard({
       {/* Charts */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         <BarListCard title="Detalhe — Parceira" items={partners} />
+        <BarListCard title="Disponibilizado ao CSD" items={csds} />
         <BarListCard title="Tipo de Recurso - Mão de obra" items={laborTypes} />
         <BarListCard title="Tipo de Recurso - Por equipe" items={teamTypes} />
-        <BarListCard title="Disponibilizado ao CSD" items={csds} />
       </div>
     </div>
   );

@@ -149,7 +149,6 @@ export function D5NotesTable({
 
                       if (column === "motivos") {
                         cellValue = cellValue.join();
-                        console.log(cellValue);
                       }
 
                       return (

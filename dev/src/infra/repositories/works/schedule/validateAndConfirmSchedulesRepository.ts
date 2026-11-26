@@ -44,19 +44,19 @@ export class ValidateAndConfirmSchedulesRepository implements IValidateConfirmAn
   async reject(data: any, tx: Prisma.TransactionClient): Promise<void> {
     await tx.programacoes_reprovacoes.create({
       data: {
-        id_obra: data.id_obra,
+        id_obra: data.workId,
         motivo: data.reason,
         descricao: data.description,
-        data_prog: data.data_prog,
+        data_prog: data.dataProg,
         prog: data.prog,
-        equip_desligado: data.equip_desligado,
-        hora_ini: data.hora_ini,
-        hora_ter: data.hora_ter,
-        equipe_linha_viva: data.equipe_linha_viva,
-        equipe_linha_morta: data.equipe_linha_morta,
-        equipe_regularizacao: data.equipe_regularizacao,
-        tipo_servico: data.tipo_servico,
-        observacao_programacao: data.observacao_programacao,
+        equip_desligado: data.equipment,
+        hora_ini: data.startTime,
+        hora_ter: data.finishTime,
+        equipe_linha_viva: data.lvTeam,
+        equipe_linha_morta: data.lmTeam,
+        equipe_regularizacao: data.regulTeam,
+        tipo_servico: data.serviceType,
+        observacao_programacao: data.observation,
       },
     });
 

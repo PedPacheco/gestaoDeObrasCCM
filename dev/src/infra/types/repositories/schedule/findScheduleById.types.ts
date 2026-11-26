@@ -8,6 +8,15 @@ export const SCHEDULE_SNAPSHOT_SELECT = {
   hora_ini: true,
   hora_ter: true,
   data_prog: true,
+  prog: true,
+  exec: true,
+  num_dp: true,
+  equip_desligado: true,
+  equipe_linha_viva: true,
+  equipe_linha_morta: true,
+  equipe_regularizacao: true,
+  tipo_servico: true,
+  observacao_programacao: true,
   reprovada: true,
   // + colunas descobertas no passo 3
 } satisfies Prisma.programacoesSelect;
