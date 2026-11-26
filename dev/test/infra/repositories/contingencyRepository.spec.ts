@@ -374,7 +374,6 @@ describe('ContingencyRepository', () => {
         { id: 2, nome: 'B' },
       ];
       const mapped = [{ name: 'A', value: 1 }];
-      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       prisma.recursos_contingencia.findMany.mockResolvedValue(rows);
       prisma.turmas.findMany.mockResolvedValue(partners);
       vi.mocked(toPartnerQuantityItems).mockReturnValue(mapped as never);
@@ -391,7 +390,6 @@ describe('ContingencyRepository', () => {
       });
       expect(toPartnerQuantityItems).toHaveBeenCalledWith(rows, partners);
       expect(result).toBe(mapped);
-      expect(logSpy).toHaveBeenCalledWith(partners);
     });
   });
 
