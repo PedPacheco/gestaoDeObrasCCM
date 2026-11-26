@@ -44,3 +44,5 @@ export interface ContingencyDashboardOutput {
   teamTypes: CountItem[];
   csds: CountItem[];
 }
+
+export type QuantityField = 'laborQuantity' | 'teamsQuantity';

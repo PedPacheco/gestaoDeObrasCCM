@@ -1,6 +1,7 @@
 "use client";
 
 import { CSDS, LABOR_TYPES, TEAMS_TYPES } from "@/constants/contingency";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { ButtonComponent } from "../common/Button";
 import { MultipleSelectComponent } from "../common/filter/MultipleSelect";
@@ -57,7 +58,12 @@ export function ContingencyFilters({
           <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Parceira"
-              menuItems={partnerOptions.parceira || []}
+              menuItems={
+                partnerOptions.parceira?.filter(
+                  (item) =>
+                    !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+                ) ?? []
+              }
               selectedItem={parceira}
               setSelectedItem={setParceira}
               valueKey="id"

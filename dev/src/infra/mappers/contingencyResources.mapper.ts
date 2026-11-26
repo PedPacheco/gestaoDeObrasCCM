@@ -3,7 +3,7 @@ import type {
   CapacityByYearMonth,
   ContingencyGroupField,
   ContingencyGroupItem,
-  CountItem,
+  ContingencyResourceDispatches,
   CreateContingencyData,
   EmergencyTeam,
   RecentContingency,
@@ -12,11 +12,13 @@ import type { Prisma } from 'src/infra/generated/prisma/client';
 import {
   CapacityByYearMonthRow,
   ContingencyGroupColumn,
-  CsdCountRow,
+  CsdQuantityRow,
   EmergencyTeamRow,
+  FindContingencyResourceDispatchesRow,
   GroupByFieldRow,
-  PartnerCountRow,
   PartnerNameRow,
+  PartnerQuantityRow,
+  QuantityRow,
   RecentContingencyRow,
 } from '../types';
 
@@ -52,33 +54,39 @@ export const toRecentContingency = (
   partner: r.turmas?.turma ?? null,
 });
 
+/** Conversão das quantidades partilhada pelos agrupamentos. */
+const toQuantities = (r: QuantityRow) => ({
+  laborQuantity: r.quantidade_mao_obra ?? 0,
+  teamsQuantity: r.quantidade_equipe ?? 0,
+});
+
 export const toContingencyGroupItem = (
   r: GroupByFieldRow,
   column: ContingencyGroupColumn,
 ): ContingencyGroupItem | null => {
   const name = r[column];
   if (name == null) return null;
-  return {
-    name,
-    laborQuantity: r.quantidade_mao_obra ?? 0,
-    teamsQuantity: r.quantidade_equipe ?? 0,
-  };
+
+  return { name, ...toQuantities(r) };
 };
 
-export const toPartnerCountItems = (
-  groups: PartnerCountRow[],
+/** Um item por registo, com o nome da parceira. A soma é feita no use case. */
+export const toPartnerQuantityItems = (
+  rows: PartnerQuantityRow[],
   partners: PartnerNameRow[],
-): CountItem[] => {
+): ContingencyGroupItem[] => {
   const names = new Map(partners.map((p) => [p.id, p.turma]));
-  return groups.map((g) => ({
-    name: names.get(g.id_parceira) ?? String(g.id_parceira),
-    value: g._count._all,
+
+  return rows.map((r) => ({
+    name: names.get(r.id_parceira) ?? String(r.id_parceira),
+    ...toQuantities(r),
   }));
 };
 
-export const toCsdCountItem = (r: CsdCountRow): CountItem => ({
+/** Um item por registo, com o valor de disponibilizado_csd como nome. */
+export const toCsdQuantityItem = (r: CsdQuantityRow): ContingencyGroupItem => ({
   name: r.disponibilizado_csd,
-  value: r._count._all,
+  ...toQuantities(r),
 });
 
 export const toCapacityByYearMonth = (
@@ -96,4 +104,18 @@ export const toEmergencyTeam = (r: EmergencyTeamRow): EmergencyTeam => ({
   type: r.tipo,
   quantity: r.quantidade,
   value: r.valor,
+});
+
+export const toContingencyResourceDispatchesRow = (
+  row: FindContingencyResourceDispatchesRow,
+): ContingencyResourceDispatches => ({
+  allocatedCsd: row.disponibilizado_csd,
+  availabilityDate: row.dia_disponibilidade,
+  createdAt: row.criado_em,
+  laborQuantity: row.quantidade_mao_obra,
+  laborType: row.tipo_recurso_mao_obra,
+  teamQuantity: row.quantidade_equipe,
+  teamType: row.tipo_recurso_equipe,
+  partner: row.turmas.turma,
+  user: row.novo_tabela_usuarios.nome,
 });

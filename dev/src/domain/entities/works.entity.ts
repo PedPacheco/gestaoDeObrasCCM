@@ -18,7 +18,7 @@ export class Work {
   }
 
   private isPontoAPonto(): boolean {
-    return this.idParceira === PONTO_A_PONTO_PARTNER_ID;
+    return PONTO_A_PONTO_PARTNER_ID.includes(this.idParceira);
   }
 }
 
