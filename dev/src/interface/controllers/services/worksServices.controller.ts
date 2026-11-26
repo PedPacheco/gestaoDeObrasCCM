@@ -138,7 +138,7 @@ export class ServicesController {
   }
 
   @Delete('/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async deleteMaterialAndService(
     @Param('id', ParseIntPipe) id: number,
     @Query('workId', ParseIntPipe) workId: number,
