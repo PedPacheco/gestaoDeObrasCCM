@@ -24,6 +24,8 @@ export function getUserAccessLevel(userPermissions: any): UserAccessLevel {
 }
 
 export function canAccessLink(link: Link, userPermissions: any): boolean {
+  if (!userPermissions) return false;
+
   const accessLevel = getUserAccessLevel(userPermissions);
 
   // Admin acessa tudo
@@ -38,7 +40,7 @@ export function canAccessLink(link: Link, userPermissions: any): boolean {
   if (
     link.allowedAreas?.length &&
     !link.allowedAreas.includes(userPermissions?.id_area) &&
-    userPermissions.tipo_usuario === "INTERNO"
+    userPermissions?.tipo_usuario === "INTERNO"
   ) {
     return false;
   }

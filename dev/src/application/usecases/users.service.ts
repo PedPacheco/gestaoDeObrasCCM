@@ -61,4 +61,10 @@ export class UsersService {
 
     return this.userRepository.softDelete(id);
   }
+
+  async deactivateInactiveUsers(): Promise<number> {
+    return await this.userRepository.deactivateInactiveUsers(
+      User.inactivityCutoffDate(),
+    );
+  }
 }

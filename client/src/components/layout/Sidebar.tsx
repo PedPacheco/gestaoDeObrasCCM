@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/userContext";
 import { canAccessLink, links } from "@/utils/links";
 import {
+  ArrowRightOnRectangleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   MagnifyingGlassIcon,
@@ -169,8 +170,9 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
         <button
           type="button"
           onClick={logout}
-          className="w-full p-3 text-left text-sm font-medium text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
+          className="mx-3 my-3 flex items-center gap-2 rounded-md border border-red-400/60 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/10 hover:text-red-200"
         >
+          <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
           Sair
         </button>
 

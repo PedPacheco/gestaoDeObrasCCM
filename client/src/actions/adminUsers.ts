@@ -16,36 +16,20 @@ export async function createUserAction(
   });
 }
 
-export async function deactivateUserAction(
-  id: number,
-): Promise<ActionResult<AdminUser>> {
-  return serverApiRequest(`/user/${id}`, {
-    method: "DELETE",
-  });
-}
-
-export async function reactivateUserAction(
-  id: number,
-): Promise<ActionResult<AdminUser>> {
-  return serverApiRequest(`/user/${id}/reactivate`, {
-    method: "PATCH",
-  });
-}
-
 export async function updateUserAction(
   id: number,
   payload: UserPayload,
 ): Promise<ActionResult<AdminUser>> {
-  return serverApiRequest(`/usuario/${id}`, {
+  return serverApiRequest(`/user/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   });
 }
 
-export async function removeUserAction(
+export async function toggleUserActiveAction(
   id: number,
 ): Promise<ActionResult<AdminUser>> {
-  return serverApiRequest(`/usuario/${id}`, {
-    method: "DELETE",
+  return serverApiRequest(`/user/${id}/ativar`, {
+    method: "PATCH",
   });
 }

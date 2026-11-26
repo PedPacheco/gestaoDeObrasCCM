@@ -12,7 +12,6 @@ import {
   EllipsisVerticalIcon,
   NoSymbolIcon,
   ArrowPathIcon,
-  TrashIcon,
 } from "@heroicons/react/20/solid";
 
 import { AdminUser, UserActionType } from "@/types/adminUsers";
@@ -86,16 +85,6 @@ export function AdminUsersRowActions({
             <ListItemText>Reativar</ListItemText>
           </MenuItem>
         )}
-
-        <MenuItem
-          onClick={() => handleSelect("archive")}
-          sx={{ color: "#DC2626" }}
-        >
-          <ListItemIcon>
-            <TrashIcon width={18} height={18} color="#DC2626" />
-          </ListItemIcon>
-          <ListItemText>Excluir</ListItemText>
-        </MenuItem>
       </Menu>
     </>
   );
