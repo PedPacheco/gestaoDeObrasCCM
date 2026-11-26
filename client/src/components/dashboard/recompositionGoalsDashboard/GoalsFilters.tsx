@@ -15,10 +15,9 @@ import {
 
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { EXCLUDE_PARCEIRAS } from "@/constants/excludePartners";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
-
 // ── Estilos reutilizáveis ─────────────────────────────────────────────────────
 
 const DATE_PICKER_SX = {

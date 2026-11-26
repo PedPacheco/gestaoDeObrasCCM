@@ -7,7 +7,6 @@ export const LABOR_TYPES = [
   "Viabilizador (Técnico EDP)",
   "Supervisor (a) (Parceira)",
   "Eletricista (Parceira)",
-  "Não aplica Mão de Obra",
 ];
 
 export const TEAMS_TYPES = ["L3", "C1", "C2", "B1", "B2", "B3", "B4"];
