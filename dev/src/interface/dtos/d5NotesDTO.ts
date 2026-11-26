@@ -168,6 +168,7 @@ export class D5NotesSchedulesFiltersDTO {
 
   @IsNumber()
   @Type(() => Number)
+  @IsOptional()
   page?: number;
 }
 

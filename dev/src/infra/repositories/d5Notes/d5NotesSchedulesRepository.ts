@@ -47,7 +47,6 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     filter: D5ScheduleFilter,
     pagination?: Pagination,
   ): Promise<D5ScheduleWithNote[]> {
-    console.dir(toD5ScheduleWhere(filter), { depth: null });
     const rows = await this.prisma.programacoes_d5.findMany({
       where: toD5ScheduleWhere(filter),
       orderBy: [{ data_prog: 'asc' }, { id: 'asc' }],
