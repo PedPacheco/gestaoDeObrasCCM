@@ -2,7 +2,7 @@ import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 
 export const mockExecutionReport: ExecutionReportData = {
   id: 1,
-  idUser: 10,
+  userId: 10,
   supervisor: "Carlos Silva",
   partialConnectionReleased: true,
   startTime: "08:00",
@@ -48,7 +48,7 @@ export const mockExecutionReport: ExecutionReportData = {
 
 export const mockExecutionReportMinimal = {
   id: 2,
-  idUser: 20,
+  userId: 20,
   supervisor: "",
   partialConnectionReleased: false,
   startTime: "09:00",
@@ -88,7 +88,7 @@ export const mockExecutionReportMinimal = {
   confirmed: false,
   executionReport: {
     id: 101,
-    idUser: 5,
+    userId: 5,
     supervisor: "Supervisor 1",
     partialConnectionReleased: true,
     startTime: "08:00",

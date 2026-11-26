@@ -1,17 +1,17 @@
 // hooks/useTechnicalFilesUpload.ts
 
-import { DragEvent, useCallback, useState } from "react";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useRouter } from "next/navigation";
 import { DisplayFile } from "@/types/feasibility";
 import { existingToDisplay, fileToDisplay } from "@/utils/feasibilityWorkflow";
+import { useRouter } from "next/navigation";
+import { DragEvent, useCallback, useState } from "react";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/jpg"];
 
 interface UseComplementaryFilesUploadParams {
-  idWork: string;
+  workId: string;
   existingFiles: string[];
 }
 
@@ -31,7 +31,7 @@ export interface UseComplementaryFilesUploadResult {
 }
 
 export function useComplementaryFilesUpload({
-  idWork,
+  workId,
   existingFiles,
 }: UseComplementaryFilesUploadParams): UseComplementaryFilesUploadResult {
   const [displayFiles, setDisplayFiles] = useState<DisplayFile[]>(
@@ -133,7 +133,7 @@ export function useComplementaryFilesUpload({
 
     formData.append("existingFiles", JSON.stringify(existingFilesToKeep));
 
-    formData.append("workId", idWork);
+    formData.append("workId", workId);
 
     try {
       const result = await fetch("/api/viabilidade/complementar", {
@@ -147,7 +147,7 @@ export function useComplementaryFilesUpload({
       }
 
       showSuccess("Arquivos enviados com sucesso!", () => {
-        router.push(`/detalhes/${idWork}`);
+        router.push(`/detalhes/${workId}`);
       });
     } catch (err) {
       showError(
@@ -158,7 +158,7 @@ export function useComplementaryFilesUpload({
     } finally {
       setUploading(false);
     }
-  }, [displayFiles, idWork, router, showError, showSuccess]);
+  }, [displayFiles, workId, router, showError, showSuccess]);
 
   return {
     displayFiles,

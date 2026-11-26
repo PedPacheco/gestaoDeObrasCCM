@@ -1,12 +1,16 @@
-import { Prisma } from 'src/infra/generated/prisma/client';
 import {
-  GetSelectedServicesParamsInterface,
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
   GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryByIdScheduleResponse,
   GetServiceScheduleHistoryResponse,
+  GetServicesContractsResponse,
   GetServicesSelectedByWorkIdResponse,
+  GetTeamsServicesResponse,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
+} from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export interface ServiceForScheduling {
   id: number;
@@ -34,23 +38,27 @@ export interface IWorkServicesQueryRepository {
   getSelectedServices({
     id,
     idProgramacao,
-  }: GetSelectedServicesParamsInterface): Promise<
+  }: GetSelectedServicesParamsRequest): Promise<
     GetServicesSelectedByWorkIdResponse[]
   >;
   getServiceScheduleHistory(
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]>;
-  getServiceScheduleHistoryByIdSchedule(ids: number[]): Promise<any[]>;
+  getServiceScheduleHistoryByIdSchedule(
+    ids: number[],
+  ): Promise<GetServiceScheduleHistoryByIdScheduleResponse[]>;
   getServicesToExportation(params: {
     dataFinal: string;
     dataInicial: string;
     idParceira: number[];
     idEquipe?: number[];
   }): Promise<WorkToExportResponse[]>;
-  getServicesContracts(idParceira: number): Promise<any[]>;
-  getMaterialsContract(): Promise<any[]>;
-  getTeamsServices(idParceira: number): Promise<any[]>;
+  getServicesContracts(
+    idParceira: number,
+  ): Promise<GetServicesContractsResponse[]>;
+  getMaterialsContract(): Promise<GetMaterialsContractsResponse[]>;
+  getTeamsServices(idParceira: number): Promise<GetTeamsServicesResponse[]>;
   getServiceOptions(id: number): Promise<GetServiceOptionsResponse>;
 }
 

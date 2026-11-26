@@ -32,11 +32,11 @@ export class HandleAddScheduleService {
 
   async add(data: SchedulesDataDTO) {
     await this.prisma.$transaction(async (tx) => {
-      await this.assertWorkMode(data.idWork, false, tx);
+      await this.assertWorkMode(data.workId, false, tx);
 
       await this.addScheduleService.add(data, tx);
 
-      await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+      await this.statusFlowRepository.updateStatusWorks(43, data.workId, tx);
     });
   }
 
@@ -44,7 +44,7 @@ export class HandleAddScheduleService {
     const { schedule, services } = data;
 
     return this.prisma.$transaction(async (tx) => {
-      await this.assertWorkMode(schedule.idWork, true, tx);
+      await this.assertWorkMode(schedule.workId, true, tx);
 
       const scheduleId = await this.addScheduleService.add(
         { ...schedule, prog: 0 },
@@ -53,12 +53,12 @@ export class HandleAddScheduleService {
 
       await this.statusFlowRepository.updateStatusWorks(
         SCHEDULE_STATUS_ID,
-        schedule.idWork,
+        schedule.workId,
         tx,
       );
 
       await this.worksServicesService.scheduleServices(
-        schedule.idWork,
+        schedule.workId,
         this.attachScheduleId(services, scheduleId),
         tx,
       );
@@ -68,12 +68,12 @@ export class HandleAddScheduleService {
   }
 
   private async assertWorkMode(
-    idWork: number,
+    workId: number,
     expectPontoAPonto: boolean,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const work = await tx.obras.findUnique({
-      where: { id: idWork },
+      where: { id: workId },
       select: { programacao_ponto_a_ponto: true },
     });
 

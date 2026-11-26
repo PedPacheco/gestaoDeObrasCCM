@@ -17,7 +17,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   );
 
   return {
-    idWork: schedule.idWork,
+    workId: schedule.workId,
     dataProg: formatDateToInput(schedule.data_prog) ?? "",
     startTime: formatToHHMM(schedule.hora_ini) ?? "",
     finishTime: formatToHHMM(schedule.hora_ter) ?? "",
@@ -159,7 +159,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 
   return {
     id: data.id,
-    idUser: data.id_usuario,
+    userId: data.id_usuario,
     supervisor: data.supervisor,
     partialConnectionReleased: data.liberado_ligacao_parcial,
     startTime: dayjs(data.hora_inicio).utc().format("HH:mm"),
@@ -193,7 +193,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 export function buildPublicationRestrictionPayload(
   data: any,
   enginners: any[],
-  idUser: number,
+  userId: number,
 ) {
   const responsibleEnginner = enginners.find(
     (enginner) => enginner.idRegional === data.id_regional,
@@ -211,7 +211,7 @@ export function buildPublicationRestrictionPayload(
         : null,
       observation: data.observacao,
       constructionObservation: data.observacao_construcao,
-      idUser,
+      userId,
     },
   ];
 

@@ -1,14 +1,20 @@
-import { User } from 'src/domain/entities/user.entity';
-import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
-// import { userInterface } from 'src/interface/types/userInterface';
+import type { User } from '../entities/user.entity';
+import {
+  UserListItemRecord,
+  UserRecord,
+  UserWithPasswordRecord,
+} from '../types';
 
 export interface IUserRepository {
-  findUser(username: string): Promise<novo_tabela_usuarios | null>;
-  updatePassword(numberId: number, newPassword: string): Promise<any>;
-  findAll(): Promise<any[]>;
-  findByIdRaw(id: number): Promise<novo_tabela_usuarios | null>;
-  create(user: User): Promise<novo_tabela_usuarios>;
-  softDelete(id: number): Promise<novo_tabela_usuarios>;
+  findByUsernameWithPassword(
+    username: string,
+  ): Promise<UserWithPasswordRecord | null>;
+  findById(id: number): Promise<UserRecord | null>;
+  findAll(): Promise<UserListItemRecord[]>;
+  existsByUsername(username: string): Promise<boolean>;
+  create(user: User): Promise<UserRecord>;
+  updatePassword(id: number, passwordHash: string): Promise<UserRecord>;
+  softDelete(id: number): Promise<UserRecord>;
 }
 
 export const USER_REPOSITORY = Symbol('UserRepository');

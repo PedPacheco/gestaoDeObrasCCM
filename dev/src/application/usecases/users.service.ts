@@ -1,112 +1,64 @@
-import { genSalt, hash } from 'bcrypt';
-import {
-  IUserRepository,
-  USER_REPOSITORY,
-} from 'src/domain/contracts/IUserRepository';
-import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-
 import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { novo_tabela_usuarios } from 'src/infra/generated/prisma/client';
+import { hash } from 'bcrypt';
+import type { RegisterUserInput } from 'src/application/types';
+import {
+  IUserRepository,
+  USER_REPOSITORY,
+} from 'src/domain/contracts/IUserRepository';
+import { User } from 'src/domain/entities/user.entity';
+import type { UserListItemRecord, UserRecord } from 'src/domain/types';
+
+const BCRYPT_SALT_ROUNDS = 10;
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(USER_REPOSITORY) private userRepository: IUserRepository,
-    private jwtService: JwtService,
+    @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
   ) {}
 
+  /** Inclui a senha (hash). Só para autenticação. */
   async findUser(username: string): Promise<User | null> {
-    const response = await this.userRepository.findUser(username);
-
-    if (response === null) {
-      return null;
-    }
-
-    const user = new User({
-      ...response,
-      tipo_usuario: response.tipo_usuario as TipoUsuario,
-    });
-
-    return user;
+    const record =
+      await this.userRepository.findByUsernameWithPassword(username);
+    return record ? User.restore(record) : null;
   }
 
-  async updatePassword(token: string, newPassword: string): Promise<User> {
-    try {
-      const { id } = await this.jwtService.verify(token);
-
-      const numberId: number = +id;
-
-      const saltRounds = await genSalt();
-      const hashedPassword = await hash(newPassword, saltRounds);
-
-      const response = await this.userRepository.updatePassword(
-        numberId,
-        hashedPassword,
-      );
-
-      const user = new User(response);
-
-      return user;
-    } catch (error: any) {
-      console.log(error);
-      throw new UnauthorizedException('Token inválido ou expirado');
-    }
+  async listUsers(): Promise<UserListItemRecord[]> {
+    return this.userRepository.findAll();
   }
 
-  async listUsers(): Promise<any[]> {
-    const users = await this.userRepository.findAll();
-
-    return users.map(({ turmas, regionais, areas, ...rest }) => ({
-      ...rest,
-      parceira: turmas?.turma,
-      regional: regionais?.regional,
-      area: areas?.nome,
-    }));
-  }
-
-  async createUser(dto: RegisterUserDTO): Promise<novo_tabela_usuarios> {
-    const existingUser = await this.userRepository.findUser(dto.username);
-
-    if (existingUser) {
-      throw new BadRequestException('Nome de usuário já está em uso.');
-    }
-
-    if (!dto.senha) {
+  async createUser(input: RegisterUserInput): Promise<UserRecord> {
+    if (!input.senha) {
       throw new BadRequestException('A senha do usuário tem que ser enviada.');
     }
 
-    const salt = await genSalt();
-    const hashedPassword = await hash(dto.senha, salt);
-
-    const user = new User({ ...dto, senha: hashedPassword });
-
-    return await this.userRepository.create(user);
-  }
-
-  async deactivateUser(
-    id: number,
-    requesterId: number,
-  ): Promise<novo_tabela_usuarios> {
-    const target = await this.userRepository.findByIdRaw(id);
-
-    if (!target) {
-      throw new NotFoundException('Usuário não encontrado');
+    if (await this.userRepository.existsByUsername(input.username)) {
+      throw new BadRequestException('Nome de usuário já está em uso.');
     }
 
-    if (target.id === requesterId) {
+    const senhaHash = await hash(input.senha, BCRYPT_SALT_ROUNDS);
+    return this.userRepository.create(
+      User.create({ ...input, senha: senhaHash }),
+    );
+  }
+
+  async deactivateUser(id: number, requesterId: number): Promise<UserRecord> {
+    if (id === requesterId) {
       throw new BadRequestException(
         'Você não pode desativar sua própria conta',
       );
     }
 
-    return await this.userRepository.softDelete(id);
+    const target = await this.userRepository.findById(id);
+    if (!target) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    return this.userRepository.softDelete(id);
   }
 }

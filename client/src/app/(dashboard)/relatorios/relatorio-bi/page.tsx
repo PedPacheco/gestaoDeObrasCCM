@@ -15,6 +15,7 @@ const categories = [
       { name: "Dono de Área", path: "https://app.powerbi.com/groups/me/reports/ecba28d6-7cd7-4e7d-93a3-8fa9e1721a47/ReportSectioncf3acd87e138dbe95798?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
       { name: "IDSP", path: "https://app.powerbi.com/groups/me/reports/bbf29767-901a-455a-a195-496707fb2b1d/ReportSectione1123600e23295a15c91?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
       { name: "Relatório GAP ANALYSIS", path: "/relatorios/gap-analysis", visible: true },
+      { name: "SIGO - Gestão de Núcleos", path: "/relatorios/sigo-nucleos", visible: true },
     ],
   },
   {
@@ -39,9 +40,8 @@ const categories = [
     accent: "#8b5cf6",
     items: [
       { name: "Capex DSPT", path: "https://app.powerbi.com/groups/me/apps/2a7a60bb-a7cd-4376-b59a-662f2e8c478b/reports/05471fc0-7c31-43e1-9afe-2562ee498d81/ReportSection7623530240a29221ca51?experience=power-bi", visible: true },
-      { name: "Controle SMC", path: "https://app.powerbi.com/groups/me/apps/cf6dceda-2355-4078-9a15-d1fd15fc4688/reports/decbfee6-e20b-4fca-bc6d-a0585270e1cb/ReportSection?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
+      { name: "Controle SMC", path: "/relatorios/controle-smc", visible: true },
       { name: "Árteri", path: "https://smc.arteri.com.br/login", visible: true },
-      { name: "Equipes para Contingência", path: "https://forms.office.com/Pages/AnalysisPage.aspx?AnalyzerToken=lc5ZCKhzwj9hYfcfnalSog6wSPsJntfG&&id=2_uGv8L4DkSSPAWmDcK8m7yDM7CWJflBu3ULJobsEoBUOVJBNDAwVVI2Mzk4Tkg4TUw4V0FRV0k5Uy4u", visible: true },
       { name: "EFEN's / TA's", path: "https://apps.powerapps.com/play/e/default-bf86fbdb-f8c2-440e-923c-05a60dc2bc9b/a/7767095b-9129-4a8c-aeff-c595a862ed6d?tenantId=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&&sourcetime=1747049457490", visible: true },
     ],
   },
@@ -53,7 +53,7 @@ export default async function BiReports() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {categories.map((category) => (
           <div key={category.title} className="flex flex-col gap-2">
-            <span className="text-[20px] font-black uppercase tracking-[0.2em] text-zinc-700 text-center w-full block">
+            <span className="text-[26px] font-black uppercase tracking-[0.2em] text-zinc-700 text-center w-full block">
               {category.title}
             </span>
 
@@ -62,17 +62,12 @@ export default async function BiReports() {
                 {category.items.map((item, index) => (
                   <div key={item.name}>
                     {index > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.15)" }} />}
-                    <div className="flex items-center justify-between gap-3 py-3">
-                      <span className="text-sm font-semibold text-zinc-200 leading-tight flex-1">
-                        {item.name}
-                      </span>
-                      <ButtonForBILink
-                        text=""
-                        path={item.path}
-                        visible={item.visible}
-                        compact
-                      />
-                    </div>
+                    <ButtonForBILink
+                      text={item.name}
+                      path={item.path}
+                      visible={item.visible}
+                      compact
+                    />
                   </div>
                 ))}
               </div>

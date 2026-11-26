@@ -10,29 +10,29 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ButtonComponent } from "../../../../common/Button";
-import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
-import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
-import { ExecutionEquipmentPanel } from "./EquipmentPanel";
-import { ExecutionBasicPanel } from "./executionBasicPanel";
-import { useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { AsBuiltImport } from "./asBuiltImport";
+import { AccordionPanel } from "@/components/executionReport/accordionPanel";
 import { useUser } from "@/contexts/userContext";
+import { useOldScheduleSubmit } from "@/hooks/details/useOldScheduleSubmit";
 import {
   OldExecutionReportSchema,
   OldValidationSchedulesSchema,
 } from "@/validations/oldValidationSchedules";
-import { useOldScheduleSubmit } from "@/hooks/details/useOldScheduleSubmit";
-import { AccordionPanel } from "@/components/executionReport/accordionPanel";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { useState } from "react";
+import { ButtonComponent } from "../../../../common/Button";
+import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
+import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
+import { AsBuiltImport } from "./asBuiltImport";
+import { ExecutionEquipmentPanel } from "./EquipmentPanel";
+import { ExecutionBasicPanel } from "./executionBasicPanel";
 
 export type OldExecutionReportData = z.infer<typeof OldExecutionReportSchema>;
 
 export interface OldExecutionReportDialogProps {
   open: boolean;
   onClose: () => void;
-  idWork: number;
+  workId: number;
   isInsert: boolean;
   executionReportIsInsert: boolean;
   onError: (error: string) => void;
@@ -43,7 +43,7 @@ export interface OldExecutionReportDialogProps {
 }
 
 export function OldExecutionReportDialog({
-  idWork,
+  workId,
   isInsert,
   executionReportIsInsert,
   onClose,
@@ -75,7 +75,7 @@ export function OldExecutionReportDialog({
   const { handleSubmit, isPending } = useOldScheduleSubmit({
     formData,
     executionReportData,
-    idWork,
+    workId,
     isInsert,
     onError,
     onSuccess,
@@ -196,7 +196,7 @@ export function OldExecutionReportDialog({
             } else {
               const formDataWithUser = {
                 ...formData,
-                idUser: user?.id,
+                userId: user?.id,
               };
 
               const validationSchema = OldValidationSchedulesSchema(

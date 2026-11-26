@@ -3,7 +3,7 @@ import { Prisma } from 'src/infra/generated/prisma/client';
 
 export interface FinalizationData {
   id: number;
-  idWork: number;
+  workId: number;
   dataProg: Date;
   prog: number;
   exec: number;

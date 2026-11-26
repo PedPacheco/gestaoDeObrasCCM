@@ -1,14 +1,15 @@
 import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IAddSchedulesRepository';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IAddSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockAddSchedulesServiceData,
   mockAddSchedulesServiceDataNotTimeValid,
-  mockAddSchedulesServiceDataWithoutIdWork,
+  mockAddSchedulesServiceDataWithoutWorkId,
   mockAddSchedulesServiceDataWithWrongProg,
   mockAddSchedulesServiceFormattedData,
 } from '../../../mocks/schedules/mockAddScheduleService';
@@ -63,14 +64,14 @@ describe('AddSchedulesService', () => {
     it('Should call method add and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
-          mockAddSchedulesServiceDataWithoutIdWork,
+          mockAddSchedulesServiceDataWithoutWorkId,
           mockTx,
         ),
       ).rejects.toThrow('ID da obra é obrigatório');
@@ -82,7 +83,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithWrongProg,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(
@@ -98,7 +99,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataNotTimeValid,
           mockTx,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         addSchedulesService.add(

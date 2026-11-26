@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Controller,
   HttpCode,
@@ -14,13 +15,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { randomUUID } from 'crypto';
 import type { Request } from 'express'; // evita confusão com o Request global do fetch
 import { promises as fs } from 'fs';
-import { toSafeCapexErrorMessage } from 'src/application/shared/capex-error.util';
-import { assertXlsxUpload } from 'src/application/shared/capex-upload.util';
+
 import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
+import { toSafeCapexErrorMessage } from 'src/application/types/usecases/auxiliaryBase/capex-error.util';
+
+import { UploadSignaturePipe } from 'src/core/pipes/uploadSignature.pipe';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
 import { CapexGateway, getUserId } from '../gateway/capex/capex.gateway';
-import { CONSTRUCTION_AREA_ID } from '../shared/costants';
 
 // A rota continua sob /base-auxiliar para não quebrar o front.
 @Controller('base-auxiliar')
@@ -39,11 +42,12 @@ export class CapexController {
   )
   @UseInterceptors(FileInterceptor('file'))
   async importAndUpdateCapex(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(UploadSignaturePipe) file: Express.Multer.File,
     @Req() req: Request & { user: any },
   ) {
-    // Extensão + assinatura do zip (remove o arquivo se for rejeitado).
-    await assertXlsxUpload(file);
+    if (!file) {
+      throw new BadRequestException('Envie a planilha de CAPEX (.xlsx).');
+    }
 
     // Já existe um pipeline rodando: o service não chegará a ser chamado,
     // então quem remove o arquivo enviado é este controller.

@@ -1,12 +1,21 @@
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/contracts/IFeasibilityRepository';
-
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
-
-export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
+import {
+  toFeasibilityApprovalExport,
+  toFeasibilityPendingExport,
+  toFeasibilityRejectionOutput,
+  toFeasibilityReportOutput,
+} from '../mappers/feasibilityMapper';
+import type {
+  FeasibilityApprovalExportOutput,
+  FeasibilityPendingExportOutput,
+  FeasibilityRejectionOutput,
+  FeasibilityReportOutput,
+} from '../types';
 
 @Injectable()
 export class FeasibilityService {
@@ -15,100 +24,40 @@ export class FeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
   ) {}
 
-  async feasibilityExists(id: number) {
+  async feasibilityExists(id: number): Promise<FeasibilityReportOutput | null> {
     if (!id) {
       throw new BadRequestException('Obra não foi enviada');
     }
-
-    return await this.feasibilityRepository.exists(id);
+    const report = await this.feasibilityRepository.findById(id);
+    return report && toFeasibilityReportOutput(report);
   }
 
-  async getRejections(workId: number) {
-    const response = await this.feasibilityRepository.getRejections(workId);
-
-    return response.map((item) => ({
-      descricao: item.descricao,
-      motivo: item.motivo,
-      usuario: item.novo_tabela_usuarios.nome,
-      criado_em: item.criado_em,
-    }));
+  async getRejections(workId: number): Promise<FeasibilityRejectionOutput[]> {
+    const rejections = await this.feasibilityRepository.getRejections(workId);
+    return rejections.map(toFeasibilityRejectionOutput);
   }
 
-  async exportFeasibilityPendingApproval(idPartner?: number[]) {
-    const data = await this.feasibilityRepository.exportFeasibility(
+  async exportFeasibilityPendingApproval(
+    partnerIds?: number[],
+  ): Promise<FeasibilityApprovalExportOutput[]> {
+    const works = await this.feasibilityRepository.exportFeasibility(
       46,
-      idPartner,
-    );
-
-    return data.flatMap((obra) =>
-      obra.servicos.map((service) => {
-        const preco =
-          service.servicos_contratos?.preco ??
-          service.materiais?.preco.toNumber() ??
-          0;
-
-        const qtdeTotal =
-          (service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0);
-
-        return {
-          ovnota: obra.ovnota,
-          ordemDiagrama: resolveOrdemDiagrama(obra),
-          data_envio: obra.relatorio_viabilidade.data_envio,
-          operacao: service.operacao,
-          ponto: service.ponto,
-          numeroOperacao: service.numero_operacao,
-          descricaoOperacao: service.descricao_operacao,
-          material:
-            service.servicos_contratos?.material ?? service.materiais?.codigo,
-          textoBreve:
-            service.servicos_contratos?.texto_breve ??
-            service.materiais?.descricao,
-          qtdePlanejada: service.qtde_plan,
-          viabilizado: service.viabilizado,
-          tipo: service.materiais?.codigo ? 'M' : 'S',
-          valorUnit: preco,
-          valorTotal: preco * qtdeTotal,
-          diferença: service.qtde_plan - service.viabilizado,
-          alterado: service.viabilizado !== service.qtde_plan ? 'Sim' : 'Não',
-        };
-      }),
+      partnerIds,
+    ); // 6d: WorkStatus
+    return works.flatMap((w) =>
+      w.services.map((s) => toFeasibilityApprovalExport(w, s)),
     );
   }
 
-  async exportFeasibilityPending(idPartner?: number[]) {
-    const data = await this.feasibilityRepository.exportFeasibility(
+  async exportFeasibilityPending(
+    partnerIds?: number[],
+  ): Promise<FeasibilityPendingExportOutput[]> {
+    const works = await this.feasibilityRepository.exportFeasibility(
       45,
-      idPartner,
-    );
-
-    return data.flatMap((obra) =>
-      obra.servicos.map((service) => {
-        const preco =
-          service.servicos_contratos?.preco ??
-          service.materiais?.preco.toNumber() ??
-          0;
-
-        const qtdeTotal =
-          (service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0);
-
-        return {
-          ovnota: obra.ovnota,
-          ordemDiagrama: resolveOrdemDiagrama(obra),
-          operacao: service.operacao,
-          ponto: service.ponto,
-          numeroOperacao: service.numero_operacao,
-          descricaoOperacao: service.descricao_operacao,
-          material:
-            service.servicos_contratos?.material ?? service.materiais?.codigo,
-          textoBreve:
-            service.servicos_contratos?.texto_breve ??
-            service.materiais?.descricao,
-          qtdePlanejada: service.qtde_plan,
-          tipo: service.materiais?.codigo ? 'M' : 'S',
-          valorUnit: preco,
-          valorTotal: preco * qtdeTotal,
-        };
-      }),
+      partnerIds,
+    ); // 6d: WorkStatus
+    return works.flatMap((w) =>
+      w.services.map((s) => toFeasibilityPendingExport(w, s)),
     );
   }
 }

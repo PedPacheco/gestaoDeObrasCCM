@@ -1,21 +1,21 @@
-import { useCallback, startTransition, useEffect, useState } from "react";
-import {
-  deleteSchedule,
-  ValidatedSchedule,
-  ConfirmedSchedule,
-  RejectedSchedule,
-} from "@/actions/schedules";
 import { deleteExecutionReport } from "@/actions/executionReport.action";
+import {
+  ConfirmedSchedule,
+  deleteSchedule,
+  RejectedSchedule,
+  ValidatedSchedule,
+} from "@/actions/schedules";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { useFeedback } from "../useFeedback";
 
 interface UseScheduleHandlersProps {
   data: Record<string, any>;
-  idWork: string;
+  workId: string;
 }
 
 export function useScheduleHandlers({
   data,
-  idWork,
+  workId,
 }: UseScheduleHandlersProps) {
   const { showError, showSuccess } = useFeedback();
 
@@ -78,22 +78,22 @@ export function useScheduleHandlers({
 
   const handleExecutionReportDelete = useCallback(
     (id: number) =>
-      handleOperation(() => deleteExecutionReport(id, Number(idWork))),
-    [idWork, handleOperation],
+      handleOperation(() => deleteExecutionReport(id, Number(workId))),
+    [workId, handleOperation],
   );
 
   const handleDelete = useCallback(
-    (id: number) => handleOperation(() => deleteSchedule(id, Number(idWork))),
-    [idWork, handleOperation],
+    (id: number) => handleOperation(() => deleteSchedule(id, Number(workId))),
+    [workId, handleOperation],
   );
 
   const handleValidated = useCallback(() => {
-    handleOperation(() => ValidatedSchedule(validatedSchedule, idWork));
-  }, [validatedSchedule, idWork, handleOperation]);
+    handleOperation(() => ValidatedSchedule(validatedSchedule, workId));
+  }, [validatedSchedule, workId, handleOperation]);
 
   const handleConfirm = useCallback(
-    () => handleOperation(() => ConfirmedSchedule(confirmedSchedule, idWork)),
-    [confirmedSchedule, idWork, handleOperation],
+    () => handleOperation(() => ConfirmedSchedule(confirmedSchedule, workId)),
+    [confirmedSchedule, workId, handleOperation],
   );
 
   const handleReject = useCallback(
@@ -105,9 +105,9 @@ export function useScheduleHandlers({
         description: string;
       }[],
     ) => {
-      handleOperation(() => RejectedSchedule(data, idWork));
+      handleOperation(() => RejectedSchedule(data, workId));
     },
-    [idWork, handleOperation],
+    [workId, handleOperation],
   );
 
   return {

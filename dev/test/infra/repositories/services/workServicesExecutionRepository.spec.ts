@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FinalizationData } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+
 import { ServiceExecutionStatus } from 'src/domain/services/pointByPointRules.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
@@ -56,7 +57,7 @@ describe('WorkServicesExeutionRepository', () => {
   describe('finalizeServices', () => {
     const data: FinalizationData = {
       id: 3,
-      idWork: 2,
+      workId: 2,
       dataProg: new Date('2026-10-13'),
       prog: 100,
       exec: 80,

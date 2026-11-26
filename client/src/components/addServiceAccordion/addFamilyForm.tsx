@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
@@ -14,7 +15,6 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { MaterialData, ServiceContract } from "./addServiceAccordion";
 
 type SelectOption = {
@@ -47,13 +47,13 @@ const INITIAL_FORM: AddFamilyFormState = {
 };
 
 interface Props {
-  idWork: number;
+  workId: number;
   serviceContractData: ServiceContract[];
   materialData: MaterialData[];
   points: string[];
   operationsDescription: string[];
   onSubmit: (data: {
-    idWork: number;
+    workId: number;
     idService: number;
     point: string;
     operation: string;
@@ -65,7 +65,7 @@ interface Props {
 }
 
 export function AddFamilyForm({
-  idWork,
+  workId,
   serviceContractData,
   materialData,
   points,
@@ -145,7 +145,7 @@ export function AddFamilyForm({
       setError(null);
 
       await onSubmit({
-        idWork,
+        workId,
         idService: form.idService,
         point: form.point,
         operation: form.operation,

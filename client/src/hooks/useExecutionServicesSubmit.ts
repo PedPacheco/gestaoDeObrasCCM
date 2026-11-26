@@ -1,7 +1,7 @@
 import { useCallback, useTransition } from "react";
 
-import { finalizeServices } from "@/actions/services";
 import { editExecutionReport } from "@/actions/executionReport.action";
+import { finalizeServices } from "@/actions/services";
 import { useRouter } from "next/navigation";
 
 interface UseExecutionServicesSubmitProps {
@@ -48,9 +48,9 @@ export const useExecutionServicesSubmit = ({
               files,
             );
           } else {
-            const { finishTime, serviceType, idWork, ...dataToBeSent } = data;
+            const { finishTime, serviceType, workId, ...dataToBeSent } = data;
 
-            response = await finalizeServices(dataToBeSent, idWork, files);
+            response = await finalizeServices(dataToBeSent, workId, files);
           }
 
           if (!response.success) {

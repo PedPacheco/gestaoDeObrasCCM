@@ -73,13 +73,13 @@ export function RingCard({
         </span>
 
         {subLabel && (
-          <span className="text-zinc-300 text-xs sm:text-sm truncate">
+          <span className="text-zinc-300 text-sm sm:text-base truncate">
             {subLabel}
           </span>
         )}
 
         {sub && (
-          <span className="text-zinc-300 text-xs sm:text-sm truncate">
+          <span className="text-zinc-300 text-sm sm:text-base truncate">
             {sub}
           </span>
         )}

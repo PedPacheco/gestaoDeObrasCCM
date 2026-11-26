@@ -1,8 +1,8 @@
-import { BadRequestException } from '@nestjs/common';
 import {
   WorkSchedule,
   WorkScheduleProps,
 } from 'src/domain/entities/schedules/workSchedule.entity';
+import { ValidationError } from 'src/domain/errors/domain.error';
 
 // ---------------------------------------------------------------------------
 // Factory: props mínimas válidas
@@ -14,7 +14,7 @@ const makeProps = (
   overrides: Partial<WorkScheduleProps> = {},
 ): WorkScheduleProps =>
   ({
-    idWork: 1,
+    workId: 1,
     dataProg: new Date('2026-02-10T00:00:00.000Z'),
     startTime: START,
     finishTime: FINISH,
@@ -22,7 +22,7 @@ const makeProps = (
   }) as WorkScheduleProps;
 
 const expectBadRequest = (fn: () => unknown, message: string) => {
-  expect(fn).toThrow(BadRequestException);
+  expect(fn).toThrow(ValidationError);
   expect(fn).toThrow(message);
 };
 
@@ -39,13 +39,13 @@ describe('WorkSchedule', () => {
       const entity = new WorkSchedule(makeProps());
 
       expect(entity).toBeInstanceOf(WorkSchedule);
-      expect(entity.idWork).toBe(1);
+      expect(entity.workId).toBe(1);
       expect(entity.startTime).toBe(START);
       expect(entity.finishTime).toBe(FINISH);
     });
 
     it.each([
-      ['idScheduleStatus', 'idScheduleStatus', 1],
+      ['statusId', 'statusId', 1],
       ['idProgRestriction1', 'idProgRestriction1', 1],
       ['idProgRestriction2', 'idProgRestriction2', 1],
     ])('deve aplicar o valor por omissão de %s', (_l, key, expected) => {
@@ -72,13 +72,13 @@ describe('WorkSchedule', () => {
     it('deve preservar os valores informados em vez dos padrões', () => {
       const entity = new WorkSchedule(
         makeProps({
-          idScheduleStatus: 3,
+          statusId: 3,
           idProgRestriction1: 5,
           idProgRestriction2: 9,
         }),
       );
 
-      expect(entity.idScheduleStatus).toBe(3);
+      expect(entity.statusId).toBe(3);
       expect(entity.idProgRestriction1).toBe(5);
       expect(entity.idProgRestriction2).toBe(9);
     });
@@ -88,7 +88,7 @@ describe('WorkSchedule', () => {
 
       expect(entity.equipment).toBeUndefined();
       expect(entity.observationRestriction).toBeUndefined();
-      expect(entity.idUser).toBeUndefined();
+      expect(entity.userId).toBeUndefined();
       expect(entity.responsibilityProg).toBeUndefined();
       expect(entity.resolutionDate).toBeUndefined();
       expect(entity.responsibilityProg2).toBeUndefined();
@@ -142,9 +142,9 @@ describe('WorkSchedule', () => {
     });
 
     it('deve atribuir os campos antes de validar', () => {
-      // idWork inválido só é detetado na validação, que corre no fim
+      // workId inválido só é detetado na validação, que corre no fim
       expectBadRequest(
-        () => new WorkSchedule(makeProps({ idWork: 0 })),
+        () => new WorkSchedule(makeProps({ workId: 0 })),
         'ID da obra é obrigatório',
       );
     });
@@ -154,20 +154,20 @@ describe('WorkSchedule', () => {
   // validateSpecific
   // =========================================================================
   describe('validação', () => {
-    describe('idWork', () => {
+    describe('workId', () => {
       it.each([
         ['ausente', undefined],
         ['zero', 0],
         ['negativo', -10],
-      ])('deve rejeitar idWork %s', (_label, value) => {
+      ])('deve rejeitar workId %s', (_label, value) => {
         expectBadRequest(
-          () => new WorkSchedule(makeProps({ idWork: value as number })),
+          () => new WorkSchedule(makeProps({ workId: value as number })),
           'ID da obra é obrigatório',
         );
       });
 
-      it('deve aceitar idWork positivo', () => {
-        expect(() => new WorkSchedule(makeProps({ idWork: 1 }))).not.toThrow();
+      it('deve aceitar workId positivo', () => {
+        expect(() => new WorkSchedule(makeProps({ workId: 1 }))).not.toThrow();
       });
     });
 
@@ -188,38 +188,35 @@ describe('WorkSchedule', () => {
       });
     });
 
-    describe('idScheduleStatus', () => {
+    describe('statusId', () => {
       it.each([
         ['zero', 0],
         ['negativo', -1],
       ])('deve rejeitar status %s', (_label, value) => {
         expectBadRequest(
-          () =>
-            new WorkSchedule(makeProps({ idScheduleStatus: value as number })),
+          () => new WorkSchedule(makeProps({ statusId: value as number })),
           'Status da programação inválido',
         );
       });
 
       it('deve aceitar status positivo', () => {
         expect(
-          () => new WorkSchedule(makeProps({ idScheduleStatus: 2 })),
+          () => new WorkSchedule(makeProps({ statusId: 2 })),
         ).not.toThrow();
       });
 
       it('deve aceitar o status padrão quando omitido', () => {
-        const entity = new WorkSchedule(
-          makeProps({ idScheduleStatus: undefined }),
-        );
-        expect(entity.idScheduleStatus).toBe(1);
+        const entity = new WorkSchedule(makeProps({ statusId: undefined }));
+        expect(entity.statusId).toBe(1);
       });
     });
 
-    it('deve avaliar idWork antes dos horários', () => {
-      // ambos inválidos: prevalece a mensagem do idWork
+    it('deve avaliar workId antes dos horários', () => {
+      // ambos inválidos: prevalece a mensagem do workId
       expectBadRequest(
         () =>
           new WorkSchedule(
-            makeProps({ idWork: 0, startTime: undefined } as any),
+            makeProps({ workId: 0, startTime: undefined } as any),
           ),
         'ID da obra é obrigatório',
       );
@@ -256,17 +253,17 @@ describe('WorkSchedule', () => {
       const entity = new WorkSchedule(
         makeProps({
           rejected: true,
-          idWork: 42,
+          workId: 42,
           equipment: 'Escavadora',
-          idScheduleStatus: 3,
+          statusId: 3,
           responsibleName: 'Ana',
         }),
       );
 
       expect(entity.clearRejection()).toMatchObject({
-        idWork: 42,
+        workId: 42,
         equipment: 'Escavadora',
-        idScheduleStatus: 3,
+        statusId: 3,
         responsibleName: 'Ana',
         rejected: false,
       });
@@ -303,13 +300,13 @@ describe('WorkSchedule', () => {
     it('deve permitir alterar múltiplos campos em simultâneo', () => {
       const novaData = new Date('2026-04-01T09:00:00.000Z');
       const updated = new WorkSchedule(makeProps()).withChanges({
-        idScheduleStatus: 4,
+        statusId: 4,
         rejected: true,
         finishTime: novaData,
       });
 
       expect(updated).toMatchObject({
-        idScheduleStatus: 4,
+        statusId: 4,
         rejected: true,
         finishTime: novaData,
       });
@@ -319,7 +316,7 @@ describe('WorkSchedule', () => {
       const original = new WorkSchedule(makeProps());
 
       expectBadRequest(
-        () => original.withChanges({ idWork: 0 }),
+        () => original.withChanges({ workId: 0 }),
         'ID da obra é obrigatório',
       );
     });
@@ -342,10 +339,10 @@ describe('WorkSchedule', () => {
     });
 
     it('deve reaplicar os padrões quando um campo é explicitamente undefined', () => {
-      const original = new WorkSchedule(makeProps({ idScheduleStatus: 5 }));
-      const updated = original.withChanges({ idScheduleStatus: undefined });
+      const original = new WorkSchedule(makeProps({ statusId: 5 }));
+      const updated = original.withChanges({ statusId: undefined });
 
-      expect(updated.idScheduleStatus).toBe(1);
+      expect(updated.statusId).toBe(1);
     });
   });
 
@@ -357,20 +354,20 @@ describe('WorkSchedule', () => {
       const entity = new WorkSchedule(
         makeProps({
           equipment: 'Grua',
-          idUser: 7,
+          userId: 7,
           observationRestriction: 'Aguarda licença',
         }),
       );
 
       expect(toProps(entity)).toMatchObject({
-        idWork: 1,
+        workId: 1,
         startTime: START,
         finishTime: FINISH,
         equipment: 'Grua',
-        idScheduleStatus: 1,
+        statusId: 1,
         rejected: false,
         observationRestriction: 'Aguarda licença',
-        idUser: 7,
+        userId: 7,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
       });
@@ -378,7 +375,7 @@ describe('WorkSchedule', () => {
 
     it('deve permitir reconstruir uma entidade equivalente', () => {
       const original = new WorkSchedule(
-        makeProps({ equipment: 'Grua', idScheduleStatus: 2, idUser: 7 }),
+        makeProps({ equipment: 'Grua', statusId: 2, userId: 7 }),
       );
       const rebuilt = WorkSchedule.create(toProps(original));
 
@@ -390,13 +387,13 @@ describe('WorkSchedule', () => {
         new WorkSchedule(
           makeProps({
             rejected: undefined,
-            idScheduleStatus: undefined,
+            statusId: undefined,
           } as any),
         ),
       );
 
       expect(props.rejected).toBe(false);
-      expect(props.idScheduleStatus).toBe(1);
+      expect(props.statusId).toBe(1);
     });
   });
 
@@ -410,7 +407,7 @@ describe('WorkSchedule', () => {
 
     it('deve propagar as validações', () => {
       expectBadRequest(
-        () => WorkSchedule.create(makeProps({ idWork: -1 })),
+        () => WorkSchedule.create(makeProps({ workId: -1 })),
         'ID da obra é obrigatório',
       );
     });
@@ -430,7 +427,7 @@ describe('WorkSchedule', () => {
       const entity = new WorkSchedule(makeProps({ rejected: true }));
       const snapshot = toProps(entity);
 
-      entity.withChanges({ idWork: 99 });
+      entity.withChanges({ workId: 99 });
       entity.clearRejection();
 
       expect(toProps(entity)).toEqual(snapshot);

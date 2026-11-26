@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const schedulesSchema = () =>
   z.object({
-    idWork: z.number(),
+    workId: z.number(),
     dataProg: z.string().min(1, "Data obrigatória"),
     startTime: z.string().min(1, "Horário de início obrigatório"),
     finishTime: z.string().min(1, "Horário de fim obrigatório"),

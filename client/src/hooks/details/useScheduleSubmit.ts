@@ -5,13 +5,13 @@ import { FormData } from "../useExecutionServicesForm";
 
 interface UseScheduleSubmitProps {
   formData: FormData;
-  idWork: number;
+  workId: number;
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
 }
 
 export const useScheduleSubmit = ({
-  idWork,
+  workId,
   onError,
   onSuccess,
 }: UseScheduleSubmitProps) => {
@@ -24,7 +24,7 @@ export const useScheduleSubmit = ({
 
         try {
           const payload = {
-            idWork,
+            workId,
             ...(() => {
               const { id, prog, ...rest } = data;
               return rest;
@@ -44,7 +44,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [onSuccess, idWork, onError],
+    [onSuccess, workId, onError],
   );
 
   return { handleSubmit, isPending };

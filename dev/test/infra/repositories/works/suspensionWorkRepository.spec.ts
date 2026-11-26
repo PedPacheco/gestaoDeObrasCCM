@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
+import { SuspensionWorkRepository } from 'src/infra/repositories/works/management/suspensionWorkRepository';
 
 describe('SuspensionWorkRepository', () => {
   let repository: SuspensionWorkRepository;

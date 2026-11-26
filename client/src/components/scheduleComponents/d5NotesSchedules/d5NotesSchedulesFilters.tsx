@@ -127,6 +127,7 @@ interface D5NotesSchedulesFiltersProps {
   searchFilteredData: (
     params: Record<string, string[] | string | boolean | null>,
   ) => void;
+  generateExcel: (params: Record<string, string | string[] | boolean>) => void;
   isPending: boolean;
 }
 
@@ -134,6 +135,7 @@ export default function D5NotesSchedulesFilters({
   data,
   url,
   isPending,
+  generateExcel,
   searchFilteredData,
 }: D5NotesSchedulesFiltersProps) {
   const formattedFilters = useMemo<FiltersInterface>(
@@ -190,8 +192,8 @@ export default function D5NotesSchedulesFilters({
     };
   }
 
-  function buildApiParams(emptyDate: "" | null) {
-    const toBr = (value: ExtraFilterValue) =>
+  function buildApiParams<T extends string | null>(emptyDate: T) {
+    const toBr = (value: ExtraFilterValue): string | T =>
       dayjs.isDayjs(value) && value.isValid()
         ? value.format("DD/MM/YYYY")
         : emptyDate;
@@ -202,7 +204,7 @@ export default function D5NotesSchedulesFilters({
       reprovada: (extraValues.reprovada === "true").toString(),
       dataInicial: toBr(extraValues.dataInicial),
       dataFinal: toBr(extraValues.dataFinal),
-      statusSap: extraValues.statusD5Sap as string,
+      statusSap: (extraValues.statusD5Sap as string) ?? "",
     };
   }
 
@@ -229,6 +231,15 @@ export default function D5NotesSchedulesFilters({
     });
   }
 
+  function handleGenerateExcel() {
+    const extraParams = buildApiParams("");
+
+    generateExcel({
+      ...Transform(selectedItems),
+      ...extraParams,
+    });
+  }
+
   return (
     <GenericFilterBar
       schema={SCHEDULE_FILTER_SCHEMA}
@@ -242,6 +253,7 @@ export default function D5NotesSchedulesFilters({
       onApply={handleApplyFilters}
       onClear={handleClearFilters}
       hasExport={true}
+      handleGenerateExcel={handleGenerateExcel}
     />
   );
 }

@@ -5,7 +5,7 @@ import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import {
   Goals,
   GoalsIntefaceController,
-} from 'src/interface/types/goalsInterface';
+} from 'src/interface/types/controllers/goals.types';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

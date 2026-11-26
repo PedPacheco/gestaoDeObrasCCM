@@ -1,17 +1,18 @@
 import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/works/schedule/IUpdateSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
-  mockUpdateSchedulesServiceWithoutIdWork,
+  mockUpdateSchedulesServiceWithoutWorkId,
 } from '../../../mocks/schedules/mockUpdateSchedules';
 
 describe('UpdateSchedulesService', () => {
@@ -96,8 +97,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       await updateSchedulesService.update(
@@ -123,8 +124,8 @@ describe('UpdateSchedulesService', () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 80]);
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
-        reprovada: true,
-        id_status_programacao: 7,
+        rejected: true,
+        statusId: 7,
       });
 
       const mockData = { ...mockUpdateSchedulesService, prog: 20, exec: 20 };
@@ -148,14 +149,14 @@ describe('UpdateSchedulesService', () => {
     it('Should call method update and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationError);
 
       await expect(
         updateSchedulesService.update(
-          mockUpdateSchedulesServiceWithoutIdWork,
+          mockUpdateSchedulesServiceWithoutWorkId,
           mockTransaction,
         ),
       ).rejects.toThrow('ID da obra é obrigatório');

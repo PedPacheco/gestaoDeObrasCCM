@@ -10,28 +10,29 @@ import {
 import {
   GET_MONTHLY_SUMMARY_REPOSITORY,
   IGetMonthlySummaryRepository,
-} from 'src/domain/contracts/schedule/IGetMonthlySummaryRepository';
+} from 'src/domain/contracts/works/schedule/IGetMonthlySummaryRepository';
 import {
   IMonthlySummaryCalculator,
   MONTHLY_SUMMARY_CALCULATOR,
 } from 'src/domain/services/monthlySummaryCalculator.service';
 import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
+
 import {
   DailySummaryEntry,
   DailySummaryResult,
-  GetMonthlySummaryInterface,
   GroupSummaryResult,
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
   WorkOrderMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types';
 
 import { Inject, Injectable } from '@nestjs/common';
 import {
   PointByPointCost,
   PointByPointCostService,
 } from 'src/domain/services/pointByPointCost.service';
+import { GetMonthlySummaryResponse } from 'src/domain/types';
 import { QueriesServicesService } from '../../services/queriesServices.service';
 
 @Injectable()
@@ -71,7 +72,7 @@ export class MonthlySummaryService {
 
     const contractValueByMonth = contractValue.reduce(
       (acc, item) => {
-        const value = item.valor_contrato / item.meses;
+        const value = Number(item.valor_contrato) / item.meses;
 
         acc.monthlyValue += value;
 
@@ -330,7 +331,7 @@ export class MonthlySummaryService {
   }
 
   private async loadPointByPointCosts(
-    data: GetMonthlySummaryInterface[],
+    data: GetMonthlySummaryResponse[],
   ): Promise<Map<number, PointByPointCost>> {
     const costs = new Map<number, PointByPointCost>();
 
@@ -356,7 +357,7 @@ export class MonthlySummaryService {
   }
 
   private resolveWorkOrderMetrics(
-    record: GetMonthlySummaryInterface,
+    record: GetMonthlySummaryResponse,
     pointByPointCosts: Map<number, PointByPointCost>,
   ): WorkOrderMetrics {
     const financials = this.extractFinancials(record.obras);
@@ -378,7 +379,7 @@ export class MonthlySummaryService {
   }
 
   private resolveMoPrev(
-    record: GetMonthlySummaryInterface,
+    record: GetMonthlySummaryResponse,
     pointByPointCosts: Map<number, PointByPointCost>,
   ): { moPrev: number } {
     if (record.obras.programacao_ponto_a_ponto) {

@@ -1,3 +1,10 @@
+import { DailySummaryEntry } from 'src/application/types/usecases/works/schedule/monthlySummary.types';
+import {
+  DailyForecastSummaryTotals,
+  DailySummaryEntryForecast,
+  GroupForecastSummaryTotals,
+  GroupTeamSummaryEntryForecast,
+} from 'src/application/types/usecases/works/schedule/monthlySummaryForecast.types';
 import { UsersService } from 'src/application/usecases/users.service';
 import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
@@ -7,13 +14,6 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/works/sch
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-import {
-  DailyForecastSummaryTotals,
-  DailySummaryEntryForecast,
-  GroupForecastSummaryTotals,
-  GroupTeamSummaryEntryForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
-import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -232,9 +232,9 @@ describe('ScheduleController', () => {
       },
     ];
 
-    vi
-      .spyOn(getTotalValuesScheduleService, 'getTotalValues')
-      .mockResolvedValue(mockTotalValues);
+    vi.spyOn(getTotalValuesScheduleService, 'getTotalValues').mockResolvedValue(
+      mockTotalValues,
+    );
 
     const result = await scheduleController.getTotalValues(filters);
 
@@ -267,9 +267,9 @@ describe('ScheduleController', () => {
     };
 
     it('Should call getScheduleValues method and return correct data', async () => {
-      vi
-        .spyOn(getScheduleValuesService, 'getValues')
-        .mockResolvedValue(mockScheduleData);
+      vi.spyOn(getScheduleValuesService, 'getValues').mockResolvedValue(
+        mockScheduleData,
+      );
 
       const result = await scheduleController.getScheduleValues(
         filters,
@@ -285,9 +285,9 @@ describe('ScheduleController', () => {
     });
 
     it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
-      vi
-        .spyOn(getScheduleValuesService, 'getValues')
-        .mockResolvedValue(mockScheduleData);
+      vi.spyOn(getScheduleValuesService, 'getValues').mockResolvedValue(
+        mockScheduleData,
+      );
 
       const result = await scheduleController.getScheduleValues(filters, {
         ...mockReq,
@@ -533,19 +533,18 @@ describe('ScheduleController', () => {
       totalDiff: 3000,
     };
 
-    vi
-      .spyOn(getMonthlySummaryForecastService, 'getSummary')
-      .mockResolvedValue({
-        summary: dailySummaryForecastMock,
-        totals: mockDailySummaryTotals,
-      });
+    vi.spyOn(getMonthlySummaryForecastService, 'getSummary').mockResolvedValue({
+      summary: dailySummaryForecastMock,
+      totals: mockDailySummaryTotals,
+    });
 
-    vi
-      .spyOn(getMonthlySummaryForecastService, 'getSecondSummary')
-      .mockResolvedValue({
-        summary: getSecondMonthlySummaryForecastResponse,
-        totals: mockGroupSummaryTotals,
-      });
+    vi.spyOn(
+      getMonthlySummaryForecastService,
+      'getSecondSummary',
+    ).mockResolvedValue({
+      summary: getSecondMonthlySummaryForecastResponse,
+      totals: mockGroupSummaryTotals,
+    });
 
     const result = await scheduleController.getMonthlySummaryForecast(filters, {
       idParceira: 1,

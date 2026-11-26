@@ -5,16 +5,33 @@ import {
   IRestrictionsRepository,
   ProcessedRestrictionsFilters,
 } from 'src/domain/contracts/IRestrictionsRepository';
+import { PrismaService } from '../prisma/prisma.service';
+
+import {
+  GetPublicationRestricionResponse,
+  GetPublicationRestrictionByWorkIdResponse,
+  GetScheduleRestrictionsResponse,
+  PublicationRestriction,
+  ScheduleRestrictions,
+  ScheduleRestrictionsTotalsResponse,
+} from 'src/domain/types';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
-import { PrismaService } from '../prisma/prisma.service';
+import { DbSchema } from '../prisma/dbSchema.provider';
+import { workIdentifierWhere } from '../shared/workIdentifierWhere';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schema: DbSchema,
+  ) {}
+
+  private t(name: string): Prisma.Sql {
+    return this.schema.table(name);
+  }
 
   private applyFilters(
     query: Prisma.Sql,
@@ -95,24 +112,24 @@ export class RestrictionsRepository implements IRestrictionsRepository {
 
   async getScheduleRestrictions(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }> {
+  ): Promise<GetScheduleRestrictionsResponse> {
     const { page = 0 } = filters;
     const limit = 200;
     const offset = page * limit;
 
     const baseQuery = Prisma.sql`
-      FROM construcao_sp.obras
-      INNER JOIN construcao_sp.programacoes 
+      FROM ${this.t('obras')}
+      INNER JOIN ${this.t('programacoes')}
         ON programacoes.id_obra = obras.id
-      INNER JOIN construcao_sp.municipios 
+      INNER JOIN ${this.t('municipios')} 
         ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.tipos 
+      INNER JOIN ${this.t('tipos')} 
         ON tipos.id = obras.id_tipo
-      INNER JOIN construcao_sp.turmas 
+      INNER JOIN ${this.t('turmas')} 
         ON turmas.id = obras.id_turma
-      INNER JOIN construcao_sp.restricoes AS restr1
+      INNER JOIN ${this.t('restricoes')} AS restr1
         ON restr1.id = programacoes.id_restricao_prog1
-      INNER JOIN construcao_sp.restricoes AS restr2
+      INNER JOIN ${this.t('restricoes')} AS restr2
         ON restr2.id = programacoes.id_restricao_prog2
       WHERE 1=1
     `;
@@ -158,9 +175,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     query = Prisma.sql`${query} ORDER BY programacoes.data_prog, obras.ovnota`;
     query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
 
-    const [works, totals] = await Promise.all([
-      this.prisma.$queryRaw<GetScheduleRestrictions[]>(query),
-      this.prisma.$queryRaw<any[]>(countQuery),
+    const [works, [totals]] = await Promise.all([
+      this.prisma.$queryRaw<ScheduleRestrictions[]>(query),
+      this.prisma.$queryRaw<ScheduleRestrictionsTotalsResponse[]>(countQuery),
     ]);
 
     return { works, totals };
@@ -168,24 +185,24 @@ export class RestrictionsRepository implements IRestrictionsRepository {
 
   async getPublicationRestricion(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: any[] }> {
+  ): Promise<GetPublicationRestricionResponse> {
     const baseQuery = Prisma.sql`
-      FROM construcao_sp.obras
-      INNER JOIN construcao_sp.municipios 
+      FROM ${this.t('obras')} 
+      INNER JOIN ${this.t('municipios')}  
         ON municipios.id = obras.id_gpm
-      INNER JOIN construcao_sp.regionais
+      INNER JOIN ${this.t('regionais')} 
         ON regionais.id = municipios.id_regional
-      INNER JOIN construcao_sp.tipos 
+      INNER JOIN ${this.t('tipos')} 
         ON tipos.id = obras.id_tipo
-      INNER JOIN construcao_sp.turmas 
+      INNER JOIN ${this.t('turmas')} 
         ON turmas.id = obras.id_turma
-      INNER JOIN construcao_sp.status
+      INNER JOIN ${this.t('status')} 
         ON status.id = obras.id_status
-      INNER JOIN construcao_sp.restricoes_publicacoes
+      INNER JOIN ${this.t('restricoes_publicacoes')} 
         ON restricoes_publicacoes.id_obra = obras.id
-      INNER JOIN construcao_sp.restricoes
+      INNER JOIN ${this.t('restricoes')} 
         ON restricoes.id = restricoes_publicacoes.id_restricao
-      INNER JOIN construcao_sp.novo_tabela_usuarios
+      INNER JOIN ${this.t('novo_tabela_usuarios')} 
         ON novo_tabela_usuarios.id = restricoes_publicacoes.criado_por
       WHERE 1=1
     `;
@@ -222,27 +239,17 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     query = this.applyFilters(query, filters, 'publication');
     query = Prisma.sql`${query} ORDER BY obras.data_conclusao DESC`;
 
-    const works = await this.prisma.$queryRaw<any[]>(query);
+    const works = await this.prisma.$queryRaw<PublicationRestriction[]>(query);
 
     return { works };
   }
 
-  async getPublicationRestrictionByWorkId(id: number): Promise<any[]> {
-    const value = id.toString();
-
+  async getPublicationRestrictionByWorkId(
+    id: number,
+  ): Promise<GetPublicationRestrictionByWorkIdResponse[]> {
     return await this.prisma.restricoes_publicacoes.findMany({
       where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : id },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        obras: workIdentifierWhere(id),
       },
       select: {
         restricoes: { select: { restricao: true } },
@@ -271,7 +278,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
           status_restricao: item.restrictionStatus,
           observacao: item.observation,
           observacao_construcao: item.constructionObservation,
-          criado_por: item.idUser,
+          criado_por: item.userId,
         })),
       });
     });

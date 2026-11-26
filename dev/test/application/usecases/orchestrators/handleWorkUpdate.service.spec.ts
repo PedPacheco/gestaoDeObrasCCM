@@ -1,7 +1,5 @@
 import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
-import { UpdateWorkService } from 'src/application/usecases/works/management/updateWork.service';
+
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
@@ -9,6 +7,9 @@ import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import moment from 'moment';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
+import { UpdateWorkService } from 'src/application/usecases/works/management/updateWork.service';
 
 describe('HandleWorkUpdateService', () => {
   let service: HandleWorkUpdateService;

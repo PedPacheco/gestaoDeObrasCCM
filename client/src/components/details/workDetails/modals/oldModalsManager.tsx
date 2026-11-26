@@ -10,13 +10,13 @@ import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
-import { OldExecutionReportDialog } from "./oldExecutionReportDialog/oldExecutionReportDialog";
-import ScheduleFormDialog from "./scheduleDialog/dialog";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 import FailureModalComponent from "@/components/common/failureModal";
+import { OldExecutionReportDialog } from "./oldExecutionReportDialog/oldExecutionReportDialog";
+import ScheduleFormDialog from "./scheduleDialog/dialog";
 
 interface OldModalsManagerProps {
-  idWork: any;
+  workId: any;
   totalExec: number;
   statusWork: number;
   options: any;
@@ -57,7 +57,7 @@ export const OldModalsManager = forwardRef<
 >(
   (
     {
-      idWork,
+      workId,
       statusWork,
       options,
       scheduleForm,
@@ -165,7 +165,7 @@ export const OldModalsManager = forwardRef<
         <ScheduleFormDialog
           open={isDialogOpen}
           onClose={onCloseDialog}
-          idWork={idWork}
+          workId={workId}
           isInsert={isInsert}
           onError={setError}
           onSuccess={(message) => {
@@ -183,7 +183,7 @@ export const OldModalsManager = forwardRef<
         <OldExecutionReportDialog
           open={isExecutionDialogOpen}
           onClose={onCloseDialog}
-          idWork={idWork}
+          workId={workId}
           isInsert={isInsert}
           executionReportIsInsert={executionReportIsInsert}
           onError={setError}

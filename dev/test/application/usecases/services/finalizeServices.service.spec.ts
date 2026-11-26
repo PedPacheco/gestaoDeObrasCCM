@@ -5,12 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionReportDataInput } from 'src/application/types';
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
@@ -66,7 +67,7 @@ const FINALIZED_STATUS = FINALIZED_SCHEDULE_STATUSES[0];
 
 const MSG = {
   INVALID_REAL:
-    'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior ou igual a zero.',
+    'A quantidade realizada deve ser vazia (para reprogramar) ou um número maior.',
   NOT_SCHEDULED: (id: number, schedule: number) =>
     `O item ${id} não está programado na programação ${schedule}.`,
   CONCURRENT_CHANGE:
@@ -256,11 +257,6 @@ describe('FinalizeServicesService', () => {
         ],
         ['item is null', [null], 'Serviço e programação devem ser informados.'],
         [
-          'qtdeRealizada = -1',
-          [{ id: 1, idSchedule: 3, qtdeRealizada: -1 }],
-          MSG.INVALID_REAL,
-        ],
-        [
           'qtdeRealizada = NaN',
           [{ id: 1, idSchedule: 3, qtdeRealizada: NaN }],
           MSG.INVALID_REAL,
@@ -303,6 +299,7 @@ describe('FinalizeServicesService', () => {
       it.each([
         ['0 → NAO_EXECUTADO (discarded)', 0],
         ['null → REPROGRAMADO (to be rescheduled)', null],
+        ['-1 → retirada (removal of material/service)', -1],
       ])('should accept qtdeRealizada = %s', async (_, qtdeRealizada) => {
         await service.performServices([item(1, 3, qtdeRealizada)]);
 
@@ -469,8 +466,8 @@ describe('FinalizeServicesService', () => {
     beforeEach(() => {
       mockFindScheduleByIdRepository.findById.mockResolvedValue({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: OPEN_STATUS,
+        workId: WORK_ID,
+        statusId: OPEN_STATUS,
       });
       mockExecutionRepository.findScheduleItems.mockResolvedValue(ROWS);
       mockPlanReschedule.mockReturnValue(buildPlan());
@@ -492,8 +489,8 @@ describe('FinalizeServicesService', () => {
     it('should throw BadRequestException when the schedule belongs to another work', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: 999,
-        id_status_programacao: OPEN_STATUS,
+        workId: 999,
+        statusId: OPEN_STATUS,
       });
 
       await expectError(
@@ -507,8 +504,8 @@ describe('FinalizeServicesService', () => {
     it('should throw ConflictException when the schedule is already closed', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: FINALIZED_STATUS,
+        workId: WORK_ID,
+        statusId: FINALIZED_STATUS,
       });
 
       await expectError(
@@ -678,7 +675,10 @@ describe('FinalizeServicesService', () => {
     const TOTAL_PLANNED = 23;
     const SCHEDULE_TOTALS = { prog: 40, exec: 25 };
     const WORK_TOTALS = { executed: 60, coverage: 90 };
-    const REPORT_DATA = { observacao: 'Execução concluída', km: 1.2 };
+    const REPORT_DATA = {
+      observacao: 'Execução concluída',
+      km: 1.2,
+    } as unknown as ExecutionReportDataInput;
 
     const buildPayload = (overrides: Record<string, unknown> = {}) => ({
       idSchedule: SCHEDULE_ID,
@@ -698,7 +698,7 @@ describe('FinalizeServicesService', () => {
 
     const EXPECTED_FINALIZATION = {
       id: SCHEDULE_ID,
-      idWork: WORK_ID,
+      workId: WORK_ID,
       dataProg: DATA_PROG,
       prog: SCHEDULE_TOTALS.prog,
       exec: SCHEDULE_TOTALS.exec,
@@ -759,20 +759,6 @@ describe('FinalizeServicesService', () => {
       },
     );
 
-    it('should validate the embedded executions payload', async () => {
-      await expectError(
-        run({
-          executions: [{ id: 1, idSchedule: SCHEDULE_ID, qtdeRealizada: -1 }],
-        }),
-        BadRequestException,
-        MSG.INVALID_REAL,
-      );
-      expect(
-        mockExecutionRepository.findExecutionTargets,
-      ).not.toHaveBeenCalled();
-      expect(mockExecutionRepository.finalizeServices).not.toHaveBeenCalled();
-    });
-
     it('should abort finalization if an execution cannot be registered', async () => {
       mockExecutionRepository.findExecutionTargets.mockResolvedValueOnce([]);
 
@@ -803,8 +789,8 @@ describe('FinalizeServicesService', () => {
     it('should throw ConflictException when the schedule is already finalized', async () => {
       mockFindScheduleByIdRepository.findById.mockResolvedValueOnce({
         id: SCHEDULE_ID,
-        id_obra: WORK_ID,
-        id_status_programacao: FINALIZED_STATUS,
+        workId: WORK_ID,
+        statusId: FINALIZED_STATUS,
       });
 
       await expectError(
@@ -920,7 +906,7 @@ describe('FinalizeServicesService', () => {
         FINALIZE_TX_OPTIONS,
       );
       expect(mockExecutionReportService.create).toHaveBeenCalledWith(
-        { idSchedule: SCHEDULE_ID, idWork: WORK_ID, ...REPORT_DATA },
+        { idSchedule: SCHEDULE_ID, workId: WORK_ID, ...REPORT_DATA },
         DATA_PROG,
         FILES,
         mockTx,

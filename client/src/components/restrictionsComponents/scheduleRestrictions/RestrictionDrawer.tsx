@@ -22,7 +22,6 @@ import {
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { permission } from "process";
 
 interface RestrictionDrawerProps {
   open: boolean;
@@ -30,7 +29,7 @@ interface RestrictionDrawerProps {
   data: any | null;
   onSave: (updated: any) => void;
   restrictionsValues: any[];
-  idWork?: number;
+  workId?: number;
   idParceira: number;
   isInsert: boolean;
 }
@@ -63,7 +62,7 @@ export default function RestrictionDrawer({
   data,
   onSave,
   restrictionsValues,
-  idWork,
+  workId,
   idParceira,
   isInsert,
 }: RestrictionDrawerProps) {
@@ -90,12 +89,12 @@ export default function RestrictionDrawer({
         {
           ...INITIAL_FORM_DATA,
           responsibleName: responsibleEnginner?.name,
-          idUser: user?.id,
-          id: idWork,
+          userId: user?.id,
+          id: workId,
         },
       ]);
     }
-  }, [data, idWork, responsibleEnginner?.name, user]);
+  }, [data, workId, responsibleEnginner?.name, user]);
 
   const handleChange = (index: number, field: string, value: any) => {
     setForm((prev) =>
@@ -128,8 +127,8 @@ export default function RestrictionDrawer({
         ...prev,
         {
           ...INITIAL_FORM_DATA,
-          id: idWork,
-          idUser: user?.id,
+          id: workId,
+          userId: user?.id,
           responsibleName: responsibleEnginner?.name,
         },
       ];

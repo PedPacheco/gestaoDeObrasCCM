@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as Exceljs from 'exceljs';
 import { Response } from 'express';
 import { ExportCompletedWorksService } from 'src/application/usecases/export/exportCompletedWorks.service';
-import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import type { Mock } from 'vitest';
 
 vi.mock('exceljs');
@@ -71,7 +70,7 @@ describe('ExportCompletedWorks', () => {
       total_qtde_pend: 2,
     };
 
-    const mockWorksRsponse: worksInPortfolioResponseService = {
+    const mockWorksRsponse: any = {
       works: mockWorksData,
       totals: mockTotals,
     };

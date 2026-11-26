@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { UpdateOvRepository } from 'src/infra/repositories/works/management/updateOvRepository';
 
 describe('UpdateOvRepository', () => {
   let repository: UpdateOvRepository;

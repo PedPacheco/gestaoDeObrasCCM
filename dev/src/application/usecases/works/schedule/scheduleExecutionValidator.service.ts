@@ -4,10 +4,11 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
-import { returnExecution } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
+
 import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
+import { ScheduleExecutionData } from 'src/domain/types';
 import { isAtLeast } from 'src/utils/pointByPoint/progress.utils';
 import {
   ScheduleStatus,
@@ -16,7 +17,7 @@ import {
 
 interface ScheduleExecutionValidatorInterface {
   id: number;
-  idWork: number;
+  workId: number;
   dataProg: Date;
   prog: number;
   exec?: number;
@@ -32,7 +33,7 @@ export class ScheduleExecutionValidatorService {
   /** Fluxo TRADICIONAL (sem alterações). */
   async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
-    totals: returnExecution,
+    totals: ScheduleExecutionData,
     tx: Prisma.TransactionClient,
   ) {
     const newExecuted = Math.min((totals.exec ?? 0) + data.exec, 100);
@@ -44,20 +45,20 @@ export class ScheduleExecutionValidatorService {
         if (totals.prog + newExecuted === 100) {
           await this.statusFlowRepository.updateStatusWorks(
             35,
-            data.idWork,
+            data.workId,
             tx,
             { totalExecuted: newExecuted },
           );
           return;
         }
 
-        await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
+        await this.statusFlowRepository.updateStatusWorks(36, data.workId, tx, {
           totalExecuted: newExecuted,
         });
         return;
       }
 
-      await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
+      await this.statusFlowRepository.updateStatusWorks(2, data.workId, tx, {
         data_conclusao: data.dataProg,
         totalExecuted: newExecuted,
       });
@@ -65,12 +66,12 @@ export class ScheduleExecutionValidatorService {
 
     if (data.exec === 0) {
       await this.statusFlowRepository.updateScheduleStatus(5, data.id, tx);
-      await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx);
+      await this.statusFlowRepository.updateStatusWorks(36, data.workId, tx);
     }
 
     if (data.exec > 0 && data.prog > data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(6, data.id, tx);
-      await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
+      await this.statusFlowRepository.updateStatusWorks(36, data.workId, tx, {
         totalExecuted: newExecuted,
       });
     }
@@ -101,7 +102,7 @@ export class ScheduleExecutionValidatorService {
     if (outcome !== ScheduleStatus.EXECUTADA) {
       await this.statusFlowRepository.updateStatusWorks(
         WorkStatus.SERVICOS_REAGENDADOS,
-        data.idWork,
+        data.workId,
         tx,
         { totalExecuted: work.executed },
       );
@@ -111,7 +112,7 @@ export class ScheduleExecutionValidatorService {
     if (isAtLeast(work.executed, 100)) {
       await this.statusFlowRepository.updateStatusWorks(
         WorkStatus.CONCLUIDA,
-        data.idWork,
+        data.workId,
         tx,
         { data_conclusao: data.dataProg, totalExecuted: work.executed },
       );
@@ -122,7 +123,7 @@ export class ScheduleExecutionValidatorService {
       isAtLeast(work.coverage, 100)
         ? WorkStatus.CONFIRMADA
         : WorkStatus.SERVICOS_REAGENDADOS,
-      data.idWork,
+      data.workId,
       tx,
       { totalExecuted: work.executed },
     );

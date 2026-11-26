@@ -90,7 +90,7 @@ describe('HandleAddScheduleService', () => {
   describe('add', () => {
     const WORK_ID = 10;
     const DATA = {
-      idWork: WORK_ID,
+      workId: WORK_ID,
       prog: 25,
       dataProg: '2026-10-20',
     } as unknown as SchedulesDataDTO;
@@ -212,7 +212,7 @@ describe('HandleAddScheduleService', () => {
     const WORK_ID = 10;
     const NEW_SCHEDULE_ID = 77;
 
-    const SCHEDULE = { idWork: WORK_ID, prog: 25, dataProg: '2026-10-20' };
+    const SCHEDULE = { workId: WORK_ID, prog: 25, dataProg: '2026-10-20' };
     const SERVICES = [
       { id: 100, idTeam: 1, prog: 5 },
       { id: 101, idTeam: 2, prog: 3, additional: 1 },
@@ -239,7 +239,7 @@ describe('HandleAddScheduleService', () => {
       );
     });
 
-    it('should check the work mode of schedule.idWork', async () => {
+    it('should check the work mode of schedule.workId', async () => {
       await service.newAdd(buildData());
 
       expect(mockTx.obras.findUnique).toHaveBeenCalledWith({

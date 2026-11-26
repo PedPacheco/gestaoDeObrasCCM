@@ -1,16 +1,26 @@
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
 import { Prisma } from 'src/infra/generated/prisma/client';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import {
+  FeasibilityExportWork,
+  FeasibilityFiles,
+  FeasibilityFileType,
+  FeasibilityRejection,
+  FeasibilityReport,
+  FeasibleItemUpdate,
+  RejectFeasibilityData,
+  StatusFeasibility,
+} from '../types';
 
 export interface IFeasibilityRepository {
-  exists(idWork: number): Promise<any>;
-  getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
-  getRejections(workId: number): Promise<any[]>;
-  exportFeasibility(idStatus: number, idPartner?: number[]): Promise<any[]>;
+  findById(id: number): Promise<FeasibilityReport | null>;
+  getProjectDate(workId: number): Promise<Date | null>;
+  getRejections(workId: number): Promise<FeasibilityRejection[]>;
+  exportFeasibility(
+    statusId: number,
+    partnerIds?: number[],
+  ): Promise<FeasibilityExportWork[]>;
   saveFiles(
-    idWork: number,
-    idUser: number,
+    workId: number,
+    userId: number,
     status: StatusFeasibility,
     paths: string[],
     tx: Prisma.TransactionClient,
@@ -18,20 +28,16 @@ export interface IFeasibilityRepository {
   updateFiles(
     workId: number,
     paths: string[],
-    type: 'technical' | 'complementary',
+    type: FeasibilityFileType,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   makeItemsFeasible(
-    items: ServiceMaterialItemDto[],
+    items: FeasibleItemUpdate[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
-  findFiles(idWork: number): Promise<{
-    id: number;
-    caminhos_arquivos: string[];
-    arquivos_complementares: string[];
-  }>;
+  findFiles(workId: number): Promise<FeasibilityFiles | null>;
   reject(
-    data: RejectFeasibilityDTO,
+    data: RejectFeasibilityData,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   approve(

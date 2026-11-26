@@ -3,8 +3,16 @@ import {
   EQUIPMENT_REPOSITORY,
   IEquipmentRepository,
 } from 'src/domain/contracts/IEquipmentRepository';
-import { GetEquipmentDTO } from 'src/interface/dtos/equipmentsDTO';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
+
+import {
+  EquipmentWithoutLocationOutput,
+  GetEquipmentInput,
+  GetEquipmentOutput,
+} from '../types';
+
+import { resolveOrdemDiagrama } from 'src/domain/services/workOrder.rules';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { toWorkOrderNumbers } from 'src/infra/shared/workOrderNumbers';
 
 @Injectable()
 export class EquipmentService {
@@ -13,7 +21,7 @@ export class EquipmentService {
     private repo: IEquipmentRepository,
   ) {}
 
-  private buildWhere(query: GetEquipmentDTO[], hasReference: boolean) {
+  private buildWhere(query: GetEquipmentInput[], hasReference: boolean) {
     const ovnotas = query
       .flatMap((q) => q.ovnota?.split(',') ?? [])
       .filter(Boolean);
@@ -22,7 +30,7 @@ export class EquipmentService {
       .flatMap((q) => q.ordemDiagrama?.split(',') ?? [])
       .filter(Boolean);
 
-    const where: any = {};
+    const where: Prisma.obrasWhereInput = {};
 
     if (hasReference) {
       where.referencia = {
@@ -47,7 +55,7 @@ export class EquipmentService {
     return where;
   }
 
-  async getEquipment(query: GetEquipmentDTO[]) {
+  async getEquipment(query: GetEquipmentInput[]): Promise<GetEquipmentOutput> {
     const where = this.buildWhere(query, true);
 
     const [works, total] = await Promise.all([
@@ -75,7 +83,7 @@ export class EquipmentService {
         return {
           id: work.id,
           ovnota: work.ovnota,
-          ordemDiagrama: resolveOrdemDiagrama(work),
+          ordemDiagrama: resolveOrdemDiagrama(toWorkOrderNumbers(work)),
           referencia: work.referencia,
           tipo_obra: work.tipos?.tipo_obra,
           status: work.status?.status,
@@ -91,7 +99,9 @@ export class EquipmentService {
     return { data, total };
   }
 
-  async getWithoutLocation(params: GetEquipmentDTO[]) {
+  async getWithoutLocation(
+    params: GetEquipmentInput[],
+  ): Promise<EquipmentWithoutLocationOutput[]> {
     const where = this.buildWhere(params, false);
 
     const works = await this.repo.findWithoutLocationRaw(where);
@@ -105,7 +115,7 @@ export class EquipmentService {
       circuito: o.circuitos?.circuito ?? '',
       empreiteira: o.turmas?.turma ?? '',
       tipo_obra: o.tipos?.tipo_obra ?? '',
-      executado: o.executado ?? '',
+      executado: o.executado ?? 0,
       empreendimento: o.empreendimento?.empreendimento ?? '',
     }));
   }

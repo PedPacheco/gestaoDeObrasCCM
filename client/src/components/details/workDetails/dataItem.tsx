@@ -82,11 +82,11 @@ export function SummaryDataItem({
 }) {
   return (
     <div className="flex items-center h-12 border border-zinc-700 border-solid rounded-md bg-zinc-200 w-full">
-      <p className="h-full px-3 flex items-center font-semibold border-r border-zinc-700">
+      <p className="h-full pl-2 flex items-center font-semibold border-r border-zinc-700 xl:text-lg">
         {label}
       </p>
 
-      <p className="flex-1 px-3 flex items-center justify-center font-medium">
+      <p className="flex-1 px-2 flex items-center justify-center font-medium">
         {value}
       </p>
     </div>

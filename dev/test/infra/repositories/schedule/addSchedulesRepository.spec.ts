@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
+import { AddSchedulesRepository } from 'src/infra/repositories/works/schedule/addSchedulesRepository';
 import { mockAddSchedulesServiceFormattedData } from '../../../mocks/schedules/mockAddScheduleService';
 
 describe('AddSchedulesRepository', () => {
@@ -36,7 +36,7 @@ describe('AddSchedulesRepository', () => {
     });
 
     it('Should call method addSchedules and throw error', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation();
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       mockPrisma.programacoes.create.mockRejectedValueOnce(
         new Error('DB error'),
       );

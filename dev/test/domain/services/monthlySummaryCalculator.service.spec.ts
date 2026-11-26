@@ -1,9 +1,9 @@
-import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
 import {
   FINANCIAL_OVERHEAD_FACTOR,
   MONTH_INDEX_TO_KEY,
   WORKING_DAYS_PER_MONTH,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types/usecases/works/schedule/monthlySummary.types';
+import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
 
 // O mapper é mockado para que estes testes não dependam do formato inicial real
 // dos totais: cada chamada devolve um objeto novo e zerado.

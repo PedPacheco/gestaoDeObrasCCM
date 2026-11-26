@@ -13,21 +13,14 @@ import {
 } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
+import {
+  CatalogMapsOutput,
+  ImportResult,
+  ValidateAndResolveItemsResult,
+} from 'src/application/types';
+import { GetServicesContractsResponse } from 'src/domain/types';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { QueriesServicesService } from './queriesServices.service';
-
-export interface ImportResult {
-  imported: number;
-  skipped: number;
-  errors: {
-    row: number;
-    message: string;
-  }[];
-  skippedRows: {
-    row: number;
-    reason: string;
-  }[];
-}
 
 @Injectable()
 export class ImportServicesSpreadsheetService {
@@ -105,13 +98,9 @@ export class ImportServicesSpreadsheetService {
   }
 
   private buildCatalogMaps(
-    services: {
-      id: number;
-      material: string | null;
-      material_antigo: string | null;
-    }[],
+    services: GetServicesContractsResponse[],
     materials: { id: number; codigo: string | null }[],
-  ) {
+  ): CatalogMapsOutput {
     const serviceCatalog = new Map<string, number>();
     const materialCatalog = new Map<string, number>();
 
@@ -141,7 +130,7 @@ export class ImportServicesSpreadsheetService {
     items: ParsedSpreadsheetItem[],
     serviceCatalog: Map<string, number>,
     materialCatalog: Map<string, number>,
-  ) {
+  ): ValidateAndResolveItemsResult {
     const valid: ImportServiceItem[] = [];
     const errors: { row: number; message: string }[] = [];
     const seenInFile = new Set<string>();

@@ -12,7 +12,7 @@ import { ProgressRecalculationService } from 'src/application/usecases/services/
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service'; // ajuste
 
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import {
@@ -157,8 +157,8 @@ describe('WorksServicesService', () => {
 
     const buildSchedule = (overrides = {}) => ({
       id: SCHEDULE_ID,
-      id_obra: WORK_ID,
-      id_status_programacao: OPEN_STATUS,
+      workId: WORK_ID,
+      statusId: OPEN_STATUS,
       ...overrides,
     });
 
@@ -372,7 +372,7 @@ describe('WorksServicesService', () => {
 
       it('should throw BadRequestException when schedule belongs to another work', async () => {
         mockSchedulesRepository.findById.mockResolvedValueOnce(
-          buildSchedule({ id_obra: 99 }),
+          buildSchedule({ workId: 99 }),
         );
 
         await expectError(
@@ -385,7 +385,7 @@ describe('WorksServicesService', () => {
 
       it('should throw ConflictException when schedule is finalized', async () => {
         mockSchedulesRepository.findById.mockResolvedValueOnce(
-          buildSchedule({ id_status_programacao: FINALIZED_STATUS }),
+          buildSchedule({ statusId: FINALIZED_STATUS }),
         );
 
         await expectError(
@@ -710,7 +710,7 @@ describe('WorksServicesService', () => {
         beforeEach(() => {
           mockSchedulesRepository.findById.mockResolvedValue(
             buildSchedule({
-              id_status_programacao: ScheduleStatus.PENDENTE_REVISAO,
+              statusId: ScheduleStatus.PENDENTE_REVISAO,
             }),
           );
         });
@@ -967,7 +967,7 @@ describe('WorksServicesService', () => {
     const buildDto = (overrides: Partial<AddServicesDTO> = {}) =>
       ({
         idService: 70,
-        idWork: WORK_ID,
+        workId: WORK_ID,
         operation: 'OP-1',
         point: 'P1',
         operationDescription: 'Instalação',

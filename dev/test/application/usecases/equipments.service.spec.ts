@@ -283,7 +283,7 @@ describe('EquipmentService', () => {
         circuito: '',
         empreiteira: '',
         tipo_obra: '',
-        executado: '',
+        executado: 0,
         empreendimento: '',
       },
     ]);

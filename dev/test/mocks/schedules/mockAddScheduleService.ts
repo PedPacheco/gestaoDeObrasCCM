@@ -1,7 +1,7 @@
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 export const mockAddSchedulesServiceData = {
-  idWork: 3146044,
+  workId: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   startTime: '08:00',
   finishTime: '09:00',
@@ -9,11 +9,11 @@ export const mockAddSchedulesServiceData = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
-  idUser: 1,
+  userId: 1,
 };
 
 export const mockAddSchedulesServiceDataNotTimeValid = {
-  idWork: 3146044,
+  workId: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   startTime: '08:00',
   finishTime: '07:00',
@@ -21,11 +21,11 @@ export const mockAddSchedulesServiceDataNotTimeValid = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
-  idUser: 1,
+  userId: 1,
 };
 
-export const mockAddSchedulesServiceDataWithoutIdWork = {
-  idWork: undefined,
+export const mockAddSchedulesServiceDataWithoutWorkId = {
+  workId: undefined,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   startTime: '08:00',
   finishTime: '09:00',
@@ -33,11 +33,11 @@ export const mockAddSchedulesServiceDataWithoutIdWork = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
-  idUser: 1,
+  userId: 1,
 };
 
 export const mockAddSchedulesServiceDataWithWrongProg = {
-  idWork: 3146044,
+  workId: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   startTime: '08:00',
   finishTime: '07:00',
@@ -45,7 +45,7 @@ export const mockAddSchedulesServiceDataWithWrongProg = {
   prog: 105,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
-  idUser: 1,
+  userId: 1,
 };
 
 export const mockAddSchedulesServiceFormattedData = {
@@ -155,8 +155,8 @@ export const createForecastSnapshotMock: CreateForecastSnapshotDTO = {
         totalMaterialMoPrev: 7000,
         totalMaterialMoExec: 6000,
         totalMaterialMoForecast: 7000,
-        execTotal: 5000,
-        forecastTotal: 67000,
+        totalExec: 5000,
+        totalForecast: 67000,
         diff: 2000,
       },
       {
@@ -175,8 +175,8 @@ export const createForecastSnapshotMock: CreateForecastSnapshotDTO = {
         totalMaterialMoPrev: 5000,
         totalMaterialMoExec: 4500,
         totalMaterialMoForecast: 6000,
-        execTotal: 2000,
-        forecastTotal: 4000,
+        totalExec: 2000,
+        totalForecast: 4000,
         diff: 1300,
       },
     ],

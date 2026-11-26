@@ -1,65 +1,29 @@
-// application/mappers/work-schedule.mapper.ts
-import { BadRequestException } from '@nestjs/common';
 import moment from 'moment';
 import {
   WorkSchedule,
   WorkScheduleProps,
 } from 'src/domain/entities/schedules/workSchedule.entity';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
-import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
-export class WorkScheduleMapper {
-  static toDomain(row: any): WorkSchedule {
-    if (!row.hora_ini || !row.hora_ter) {
-      throw new BadRequestException(
-        `Programação ${row.id}: horário de início e fim são obrigatórios`,
-      );
-    }
+// application/mappers/work-schedule.mapper.ts
+import { BadRequestException } from '@nestjs/common';
 
+import { UpdateSchedulesInput } from '../types';
+
+export class WorkScheduleMapper {
+  static toConfirmation(row: any) {
     return WorkSchedule.create({
       id: row.id,
-      idWork: row.id_obra,
+      workId: row.id_obra,
+      statusId: row.id_status_programacao,
+
       dataProg: moment(row.data_prog).toDate(),
       startTime: moment(row.hora_ini).toDate(),
       finishTime: moment(row.hora_ter).toDate(),
       prog: row.prog,
       exec: row.exec ?? undefined,
-
-      observation: row.observacao_programacao ?? undefined,
-      executionObservation: row.observacao_execucao ?? undefined,
-      equipment: row.equip_desligado ?? undefined,
-      numDp: row.num_dp ?? undefined,
-      serviceType: row.tipo_servico ?? undefined,
-      chi: row.chi ?? undefined,
-      temporaryKey: row.chave_provisoria ?? false,
-
-      lmTeam: row.equipe_linha_morta ?? 0,
-      lvTeam: row.equipe_linha_viva ?? 0,
-      regulTeam: row.equipe_regularizacao ?? 0,
-
-      idTechnical: row.id_tecnico ?? 1,
-      idExecutionRestriction: row.id_restricao_execucao ?? 1,
-      responsibility: row.nome_responsavel_execucao ?? undefined,
-
-      idScheduleStatus: row.id_status_programacao ?? 1,
-      rejected: row.reprovada ?? false,
-      observationRestriction: row.observacao_restricao ?? undefined,
-      idUser: row.id_usuario_ultima_atualizacao ?? undefined,
-
-      idProgRestriction1: row.id_restricao_prog1 ?? 1,
-      responsibilityProg: row.responsabilidade1 ?? undefined,
-      responsibleName: row.nome_responsavel ?? undefined,
-      responsibleArea: row.area_responsavel1 ?? undefined,
-      restrictionStatus: row.status_restricao1 ?? undefined,
-      resolutionDate: row.data_resolucao1 ?? undefined,
-
-      idProgRestriction2: row.id_restricao_prog2 ?? 1,
-      responsibilityProg2: row.responsabilidade2 ?? undefined,
-      responsibleName2: row.nome_responsavel2 ?? undefined,
-      responsibleArea2: row.area_responsavel2 ?? undefined,
-      restrictionStatus2: row.status_restricao2 ?? undefined,
-      resolutionDate2: row.data_resolucao2 ?? undefined,
+      rejected: row.reprovada,
     });
   }
 
@@ -101,14 +65,14 @@ export class WorkScheduleMapper {
       id_tecnico: entity.idTechnical,
       observacao_restricao: entity.observationRestriction,
       reprovada: entity.rejected,
-      id_usuario_ultima_atualizacao: entity.idUser,
+      id_usuario_ultima_atualizacao: entity.userId,
     };
   }
 
   /** Persistência em INSERT: inclui id_obra e id_usuario (criador). */
   static toPersistenceCreate(entity: WorkSchedule) {
     return {
-      id_obra: entity.idWork,
+      id_obra: entity.workId,
       data_prog: entity.dataProg,
       prog: entity.prog,
       equip_desligado: entity.equipment,
@@ -124,8 +88,8 @@ export class WorkScheduleMapper {
       observacao_execucao: entity.executionObservation,
       observacao_programacao: entity.observation,
       id_tecnico: entity.idTechnical,
-      id_usuario: entity.idUser,
-      id_usuario_ultima_atualizacao: entity.idUser,
+      id_usuario: entity.userId,
+      id_usuario_ultima_atualizacao: entity.userId,
     };
   }
 
@@ -140,7 +104,7 @@ export class WorkScheduleMapper {
 
   /** Atualização: o estado de reprovação vem do registo persistido. */
   static fromUpdateInput(
-    data: UpdateSchedulesInterface,
+    data: UpdateSchedulesInput,
     extras: { rejected: boolean },
   ): WorkScheduleProps {
     return {

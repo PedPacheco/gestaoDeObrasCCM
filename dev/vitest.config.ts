@@ -1,6 +1,9 @@
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
+
+const TEST_UPLOADS = join(tmpdir(), 'sigo-test-uploads');
 
 export default defineConfig({
   plugins: [
@@ -19,6 +22,9 @@ export default defineConfig({
     env: {
       DATABASE_URL:
         'postgresql://test:test@localhost:5432/test?schema=construcao_sp',
+      UPLOAD_DEST: join(TEST_UPLOADS, 'viabilidade'),
+      UPLOAD_AS_BUILD: join(TEST_UPLOADS, 'as_build'),
+      UPLOAD_CAPEX_IMPORTS: join(TEST_UPLOADS, 'imports'),
     },
     globals: true,
     environment: 'node',

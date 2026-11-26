@@ -3,8 +3,11 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
+import { ProtectedFileLinks } from "@/components/common/protectedLinks";
+import { useUser } from "@/contexts/userContext";
 import { formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
+import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   IconButton,
@@ -16,13 +19,7 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
-import {
-  DocumentTextIcon,
-  PencilIcon,
-  TrashIcon,
-} from "@heroicons/react/20/solid";
 import { useState } from "react";
-import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -96,15 +93,6 @@ export default function ExecutionReportPanelItem({
     if (onDelete) {
       onDelete(id);
     }
-  };
-
-  const getFiles = (path: string) => {
-    const filesPath = path?.split(";");
-
-    return filesPath?.map(
-      (filename) =>
-        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`,
-    );
   };
 
   return (
@@ -185,30 +173,15 @@ export default function ExecutionReportPanelItem({
                     let cellValue = item[column];
 
                     if (column === "caminho_arquivo") {
-                      const urls = getFiles(item?.caminho_arquivo);
-                      const filenames = item.caminho_arquivo?.split(";");
-
                       return (
                         <TableCell
                           key={index}
                           className="py-1 px-2 text-center border-r font-medium text-lg border-zinc-700 border-solid"
                         >
-                          {urls?.map((url: string, i: number) => {
-                            return (
-                              <Tooltip key={i} title={`${filenames[i]}`}>
-                                <IconButton>
-                                  <a
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-2xl hover:scale-110 transition-transform"
-                                  >
-                                    <DocumentTextIcon width={30} height={30} />
-                                  </a>
-                                </IconButton>
-                              </Tooltip>
-                            );
-                          })}
+                          <ProtectedFileLinks
+                            tipo="as_build"
+                            value={item?.caminho_arquivo}
+                          />
                         </TableCell>
                       );
                     }

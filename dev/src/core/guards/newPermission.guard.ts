@@ -6,7 +6,7 @@ import {
   Type,
   mixin,
 } from '@nestjs/common';
-import { CONSTRUCTION_AREA_ID } from 'src/interface/shared/costants';
+import { CONSTRUCTION_AREA_ID } from 'src/shared/costants';
 
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 

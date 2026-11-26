@@ -14,7 +14,8 @@ import {
 } from '@nestjs/websockets';
 import { isUUID } from 'class-validator';
 import { Namespace, Socket } from 'socket.io';
-import { CapexProgressPayload } from 'src/application/shared/capex.types';
+import { CapexProgressPayload } from 'src/application/types';
+
 import {
   extractTokenFromSocket,
   isPayloadExpired,

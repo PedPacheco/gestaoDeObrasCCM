@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
-import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +36,7 @@ export default async function CompletedWorks() {
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-executadas`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 
@@ -54,6 +54,7 @@ export default async function CompletedWorks() {
     ordem_dci: "Ordem DCI",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
+    ordem_dcdm: "Ordem DCDM",
     pep: "Pep",
     status_ov_sap: "Status SAP",
     mun: "Municipio",

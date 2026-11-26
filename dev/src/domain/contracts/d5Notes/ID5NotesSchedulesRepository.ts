@@ -1,42 +1,40 @@
+import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
-  D5NoteScheduleCreateData,
-  D5NoteScheduleUpdateData,
-  D5ScheduleRejectionData,
-  FindRejectionsByD5NotesQueryResult,
+  CreateD5ScheduleRejectionData,
+  D5ScheduleDetail,
+  D5ScheduleFilter,
+  D5ScheduleRejection,
+  D5ScheduleWithNote,
   NoteScheduledWork,
-  SchedulesD5NotesByIdQueryResult,
-  SchedulesD5NotesByNoteIdQueryResult,
-  SchedulesD5NotesQueryResult,
-} from 'src/interface/types/d5notes/types';
-import { D5NotePagination } from './ID5notesRepository';
-
-// domain/repositories/ID5ProgramacoesRepository.ts
-export const D5_PROGRAMACOES_REPOSITORY = Symbol('D5_PROGRAMACOES_REPOSITORY');
-
-export interface ID5NotesSchedulesRepository {
-  get(
-    where: any,
-    pagination?: D5NotePagination,
-  ): Promise<SchedulesD5NotesQueryResult[]>;
-  getById(id: number): Promise<SchedulesD5NotesByIdQueryResult | null>;
-  getTotals(where: Record<string, any>): Promise<NoteScheduledWork[]>;
-  getByD5NoteId(id: number): Promise<SchedulesD5NotesByNoteIdQueryResult[]>;
-  findRejections(id: number): Promise<FindRejectionsByD5NotesQueryResult[]>;
-  create(id: number, data: D5NoteScheduleCreateData): Promise<void>;
-  updateAndSyncWorkStatus(
-    id: number,
-    data: D5NoteScheduleUpdateData,
-    d5NoteId: number,
-    isRejectedD5Note: boolean,
-  ): Promise<void>;
-  delete(id: number): Promise<void>;
-  rejectMany(
-    ids: number[],
-    data: D5ScheduleRejectionData[],
-    d5NoteId: number,
-  ): Promise<void>;
-}
+  Pagination,
+} from 'src/domain/types';
 
 export const D5_NOTES_SCHEDULES_REPOSITORY = Symbol(
   'ID5NotesSchedulesRepository',
 );
+
+export interface ID5NotesSchedulesRepository {
+  get(
+    filter: D5ScheduleFilter,
+    pagination?: Pagination,
+  ): Promise<D5ScheduleWithNote[]>;
+  getTotals(filter: D5ScheduleFilter): Promise<NoteScheduledWork[]>;
+  getById(id: number): Promise<D5NoteSchedule | null>;
+  getByD5NoteId(noteId: number): Promise<D5ScheduleDetail[]>;
+  findRejections(noteId: number): Promise<D5ScheduleRejection[]>;
+  /** Cria a programação e muda a nota para o status 35. */
+  create(schedule: D5NoteSchedule): Promise<void>;
+  /** Atualiza, limpa a reprovação e sincroniza o status da nota (conclusão / reaberta). */
+  updateAndSyncWorkStatus(
+    id: number,
+    schedule: D5NoteSchedule,
+    isRejectedD5Note: boolean,
+  ): Promise<void>;
+  delete(id: number): Promise<void>;
+  /** Guarda as reprovações, marca as programações como reprovadas e muda a nota para o status 1. */
+  rejectMany(
+    scheduleIds: number[],
+    rejections: CreateD5ScheduleRejectionData[],
+    noteId: number,
+  ): Promise<void>;
+}

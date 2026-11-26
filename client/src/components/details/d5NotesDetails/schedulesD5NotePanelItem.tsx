@@ -19,15 +19,13 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { Dispatch, SetStateAction, useState } from "react";
 
+import { ProtectedFileLinks } from "@/components/common/protectedLinks";
 import { schedulesDataType } from "@/types/d5Notes";
-import { FilesCell } from "./fileCell";
 
 dayjs.extend(utc);
 
 type ScheduleColumnKey = keyof schedulesDataType;
 type FormattableColumnKey = Exclude<ScheduleColumnKey, "caminhos_arquivos">;
-
-const UPLOADS_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build`;
 
 type ColumnConfig = {
   key: FormattableColumnKey;
@@ -86,38 +84,6 @@ function formatCellValue(
   }
 
   return value;
-}
-
-function parseFilePaths(value: unknown): string[] {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.filter(Boolean).map(String);
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (!trimmed) return [];
-
-    if (trimmed.startsWith("[")) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        return Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : [];
-      } catch {
-        // continua para o split
-      }
-    }
-    return trimmed
-      .split(/[;,]/)
-      .map((p) => p.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-export function getFileUrl(path: string): string {
-  // Se já vier um URL absoluto, usa-o como está
-  if (/^https?:\/\//i.test(path)) return path;
-
-  const fileName = path.split(/[\\/]/).pop() ?? path;
-  return `${UPLOADS_BASE_URL}/${encodeURIComponent(fileName)}`;
 }
 
 interface SchedulesD5NotePanelItemProps {
@@ -266,10 +232,16 @@ export default function SchedulesD5NotePanelItem({
                     </Box>
                   )}
                 </TableCell>
-                <FilesCell
-                  paths={parseFilePaths(item.caminhos_arquivos)}
-                  getFileUrl={getFileUrl}
-                />
+                <TableCell className="whitespace-nowrap border-r border-solid border-zinc-700 px-2 py-2 text-center text-sm font-medium md:text-base xl:text-lg">
+                  {item.caminhos_arquivos.length > 0 ? (
+                    <ProtectedFileLinks
+                      tipo="as_build"
+                      value={item.caminhos_arquivos.join(";")}
+                    />
+                  ) : (
+                    <span className="text-zinc-400">-</span>
+                  )}
+                </TableCell>
                 {columnConfig.map((column) => (
                   <TableCell
                     key={column.key}

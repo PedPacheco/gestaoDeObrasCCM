@@ -11,7 +11,7 @@ const cookies = new Cookies();
 interface UseOldScheduleSubmitProps {
   formData: FormData;
   executionReportData: OldExecutionReportData;
-  idWork: number;
+  workId: number;
   isInsert: boolean;
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
@@ -21,7 +21,7 @@ interface UseOldScheduleSubmitProps {
 }
 
 export const useOldScheduleSubmit = ({
-  idWork,
+  workId,
   isInsert,
   onError,
   onSuccess,
@@ -60,7 +60,7 @@ export const useOldScheduleSubmit = ({
 
             const payload = {
               updateData: {
-                idWork,
+                workId,
                 ...(() => {
                   const { id, ...rest } = scheduleFields;
                   return rest;
@@ -113,7 +113,7 @@ export const useOldScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, onError],
+    [isInsert, onSuccess, onClose, onModalOpen, workId, onError],
   );
 
   return { handleSubmit, isPending };

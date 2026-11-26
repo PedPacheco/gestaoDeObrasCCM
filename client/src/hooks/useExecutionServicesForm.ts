@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
+import { EquipmentData } from "@/components/executionReport/EquipmentPanel";
+import { transformExecutionReport } from "@/utils/transform";
 import {
   executionReportSchema,
   validationExecutionService,
 } from "@/validations/validationExecutionServices";
-import { transformExecutionReport } from "@/utils/transform";
-import { EquipmentData } from "@/components/executionReport/EquipmentPanel";
 
 export const staticValidationSchema = validationExecutionService(false);
 export type FormData = z.infer<typeof staticValidationSchema>;
@@ -16,7 +16,7 @@ export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
 export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
   id: 0,
-  idUser: 0,
+  userId: 0,
   supervisor: "",
   partialConnectionReleased: false,
   startTime: "00:00",
@@ -37,7 +37,7 @@ export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
 };
 
 type ExecutionContext = {
-  idWork: number;
+  workId: number;
   idSchedule: number;
   finishTime?: string;
   serviceType?: string;
@@ -100,7 +100,7 @@ export const useExecutionServiceForm = ({
 }: UseExecutionServiceFormProps): UseExecutionServiceFormReturn => {
   const executionContext = useMemo<ExecutionContext>(
     () => ({
-      idWork: data?.idWork ?? 0,
+      workId: data?.workId ?? 0,
       idSchedule: data?.idSchedule ?? 0,
       finishTime: data?.finishTime ?? "17:00",
       serviceType: data?.serviceType,
@@ -238,7 +238,7 @@ export const useExecutionServiceForm = ({
 
   const buildPayload = useCallback(
     (): FormData => ({
-      idWork: executionContext.idWork,
+      workId: executionContext.workId,
       idSchedule: executionContext.idSchedule,
       finishTime: executionContext.finishTime ?? "17:00",
       serviceType: executionContext.serviceType,

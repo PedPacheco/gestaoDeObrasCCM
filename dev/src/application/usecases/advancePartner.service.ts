@@ -3,9 +3,15 @@ import moment from 'moment';
 import {
   ADVANCE_PARTNER_REPOSITORY,
   IAdvancePartnerRepository,
-  ProcessedEliminacaoFilters,
 } from 'src/domain/contracts/IAdvancePartnerRepository';
-import { GetRestrictionsAdvancePartnerDTO } from 'src/interface/dtos/restrictionsDTO';
+import { GetReaschedulingReasonsResponse } from 'src/domain/types';
+import {
+  GetRestrictionsAdvancePartnerInput,
+  GripPartnerOutput,
+  RestrictionsAdvancePartnerOutput,
+  SparklinePartnerOutput,
+  WeeksByPartnerOutput,
+} from '../types';
 
 @Injectable()
 export class AdvancePartnerService {
@@ -15,28 +21,34 @@ export class AdvancePartnerService {
   ) {}
 
   private parseEliminationFilters(
-    filters: GetRestrictionsAdvancePartnerDTO,
-  ): ProcessedEliminacaoFilters {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): GetRestrictionsAdvancePartnerInput {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
-    return {
-      dataInicial: dataInicial
-        ? moment(dataInicial, 'DD/MM/YYYY').toDate()
-        : undefined,
-      dataFinal: dataFinal
-        ? moment(dataFinal, 'DD/MM/YYYY').toDate()
-        : undefined,
+    const processed = {
+      dataInicial: this.toIsoDate(dataInicial),
+      dataFinal: this.toIsoDate(dataFinal),
       idRegional,
       idParceira,
       responsabilidade,
     };
+
+    return processed;
+  }
+
+  private toIsoDate(value?: string): string | undefined {
+    if (!value) return undefined;
+
+    const date = moment.utc(value, 'DD/MM/YYYY', true);
+    return date.isValid() ? date.format('YYYY-MM-DD') : undefined;
   }
 
   async getRestrictionsAdvancePartner(
-    filters: GetRestrictionsAdvancePartnerDTO,
-  ) {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<RestrictionsAdvancePartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
+
     const rows =
       await this.advancePartnerRepository.getRestrictionsAdvancePartner(
         processedFilters,
@@ -55,8 +67,11 @@ export class AdvancePartnerService {
     });
   }
 
-  async getGripPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getGripPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GripPartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
+
     const rows =
       await this.advancePartnerRepository.getGripPartner(processedFilters);
 
@@ -78,15 +93,22 @@ export class AdvancePartnerService {
     });
   }
 
-  async getReaschedulingReasons(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getReaschedulingReasons(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetReaschedulingReasonsResponse[]> {
     const processedFilters = this.parseEliminationFilters(filters);
 
-    return await this.advancePartnerRepository.getReaschedulingReasons(
-      processedFilters,
-    );
+    const rows =
+      await this.advancePartnerRepository.getReaschedulingReasons(
+        processedFilters,
+      );
+
+    return rows;
   }
 
-  async getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getSparklinesByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<SparklinePartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
 
     const { aderencia, eliminacao } =
@@ -104,12 +126,9 @@ export class AdvancePartnerService {
 
     for (const r of aderencia) {
       const p: string = r.parceira;
-
       if (!map.has(p)) map.set(p, { aderencia: [], eliminacao: [] });
-
       const total = Number(r.total);
       const exec = Number(r.executada);
-
       map.get(p)!.aderencia.push({
         semana: r.semana,
         pct: total > 0 ? Math.round((exec / total) * 100) : 0,
@@ -118,28 +137,31 @@ export class AdvancePartnerService {
 
     for (const r of eliminacao) {
       const p: string = r.parceira;
-
       if (!map.has(p)) map.set(p, { aderencia: [], eliminacao: [] });
-
       const total = Number(r.total);
       const sem = Number(r.sem_restricao);
-
       map.get(p)!.eliminacao.push({
         semana: r.semana,
         pct: total > 0 ? Math.round((sem / total) * 100) : 0,
       });
     }
 
-    return Array.from(map.entries()).map(([parceira, data]) => ({
+    const result = Array.from(map.entries()).map(([parceira, data]) => ({
       parceira,
       ...data,
     }));
+
+    return result;
   }
 
-  async getWeeksByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getWeeksByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<WeeksByPartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
+
     const rows =
       await this.advancePartnerRepository.getWeeksByPartner(processedFilters);
+
     return rows.map((r) => ({
       parceira: r.parceira,
       semanas: Number(r.semanas),

@@ -2,12 +2,16 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
+import { GetScheduleValuesResponseItem } from 'src/domain/types';
 
 @Injectable()
 export class ExportScheduleService {
   constructor() {}
 
-  async export(scheduleData: any, response: Response) {
+  async export(
+    scheduleData: GetScheduleValuesResponseItem[],
+    response: Response,
+  ) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Programação');
 

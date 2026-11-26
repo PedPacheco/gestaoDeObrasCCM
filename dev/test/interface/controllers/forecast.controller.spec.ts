@@ -41,7 +41,7 @@ describe('ForecastController', () => {
   it('should call forecastSnapshotService.get and return data of forecast', async () => {
     vi.spyOn(service, 'get').mockResolvedValue({
       id: 1,
-      geradoEm: '2026-03-01',
+      geradoEm: new Date('2026-03-01'),
       nomeArquivo: 'forecast_diario',
       diario: createForecastSnapshotMock.diario,
       grupo: createForecastSnapshotMock.grupo,
@@ -54,7 +54,7 @@ describe('ForecastController', () => {
       message: 'Retornado dados do forecast',
       data: {
         id: 1,
-        geradoEm: '2026-03-01',
+        geradoEm: new Date('2026-03-01'),
         nomeArquivo: 'forecast_diario',
         diario: createForecastSnapshotMock.diario,
         grupo: createForecastSnapshotMock.grupo,

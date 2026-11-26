@@ -37,7 +37,7 @@ describe('FiltersController', () => {
 
   it('should return object with filters values', async () => {
     const response = {
-      regionais: [
+      regional: [
         {
           id: 1,
           regional: 'São José dos Campos',
@@ -80,7 +80,7 @@ describe('FiltersController', () => {
         parceira: false,
         tipo: true,
       },
-      req.query.idRegional,
+      '1',
     );
   });
 
@@ -211,10 +211,7 @@ describe('FiltersController', () => {
       expect(filtersDTO.restricao).toBe(expectedRestricao);
       expect(filtersDTO.tecnico).toBe(expectedTecnico);
 
-      expect(filtersService.getFilters).toHaveBeenCalledWith(
-        filtersDTO,
-        req.query.idRegional,
-      );
+      expect(filtersService.getFilters).toHaveBeenCalledWith(filtersDTO, '1');
     },
   );
 });

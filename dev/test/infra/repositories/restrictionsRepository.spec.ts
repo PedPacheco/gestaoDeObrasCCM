@@ -1,4 +1,6 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import {
@@ -19,6 +21,8 @@ const getSqlString = (query: any): string => {
   return String(query);
 };
 
+const SCHEMA = 'schema_teste';
+
 describe('RestrictionsRepository', () => {
   let repository: RestrictionsRepository;
   let prismaService: Mocked<PrismaService>;
@@ -37,15 +41,29 @@ describe('RestrictionsRepository', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RestrictionsRepository,
+        DbSchema,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: ConfigService,
+          // Função normal (não vi.fn) para não ser apagada pelo vi.resetAllMocks()
+          useValue: { getOrThrow: () => SCHEMA },
         },
       ],
     }).compile();
 
     repository = module.get<RestrictionsRepository>(RestrictionsRepository);
     prismaService = module.get(PrismaService);
+
+    prismaService.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        total_obras: 0,
+        total_restricoes: 0,
+        percentual_restricoes: 0,
+      },
+    ]);
   });
 
   afterEach(() => {
@@ -313,7 +331,7 @@ describe('RestrictionsRepository', () => {
           responsibility: 'Test Company',
           responsibleName: 'Test User',
           restrictionStatus: 'Active',
-          idUser: 1,
+          userId: 1,
         },
       ];
 
@@ -414,7 +432,7 @@ describe('RestrictionsRepository', () => {
         responsibility: 'Company',
         responsibleName: 'User',
         restrictionStatus: 'Pendente',
-        idUser: 1,
+        userId: 1,
       };
 
       const error = new Error('Record not found');

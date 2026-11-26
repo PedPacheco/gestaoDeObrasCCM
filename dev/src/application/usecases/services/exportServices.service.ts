@@ -1,16 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
+
+import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
+import { resolveOrdemDiagrama } from 'src/domain/services/workOrder.rules';
 import {
   ExportServicesExcelOutput,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
+} from 'src/domain/types';
+import { toWorkOrderNumbers } from 'src/infra/shared/workOrderNumbers';
+import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
-import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
-import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
 
 @Injectable()
 export class ExportServicesService {
@@ -63,7 +66,7 @@ export class ExportServicesService {
           if (!document) {
             document = {
               ovnota: obra.ovnota,
-              ordemDiagrama: resolveOrdemDiagrama(obra),
+              ordemDiagrama: resolveOrdemDiagrama(toWorkOrderNumbers(obra)),
               referencia: obra.referencia,
               tipo_obra: obra.tipos?.tipo_obra,
               municipio: obra.municipios?.municipio,
@@ -175,7 +178,7 @@ export class ExportServicesService {
 
           excelData.push({
             ovnota: obra.ovnota,
-            ordemDiagrama: resolveOrdemDiagrama(obra),
+            ordemDiagrama: resolveOrdemDiagrama(toWorkOrderNumbers(obra)),
             referencia: obra.referencia,
             tipoObra: obra.tipos?.tipo_obra,
             municipio: obra.municipios?.municipio,

@@ -1,54 +1,36 @@
-import { compare, genSalt, hash } from 'bcrypt';
-import {
-  AUTH_REPOSITORY,
-  IAuthRepository,
-} from 'src/domain/contracts/IAuthRepository';
-import { User } from 'src/domain/entities/user.entity';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { loginInterfaceService } from 'src/interface/types/userInterface';
-
-// import { generateRandomPassword } from 'src/utils/generatePassword';
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
+import { compare } from 'bcrypt';
+import type {
+  AuthLoginInput,
+  AuthLoginOutput,
+  RegisterUserInput,
+} from 'src/application/types';
+import type { UserRecord } from 'src/domain/types';
 import { UsersService } from './users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-    @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async login(
-    username: string,
-    password: string,
-  ): Promise<loginInterfaceService> {
-    const result = await this.usersService.findUser(username);
+  async login({
+    username,
+    password,
+  }: AuthLoginInput): Promise<AuthLoginOutput> {
+    const user = await this.usersService.findUser(username);
 
-    const invalidCredentialsException = new UnauthorizedException(
-      'Usuário ou senha inválidos',
-    );
-
-    if (!result) {
-      throw invalidCredentialsException;
+    // Mesma mensagem para utilizador inexistente ou palavra-passe errada
+    if (!user || !(await compare(password, user.senha))) {
+      throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const user = new User(result);
+    // Só depois de validar a palavra-passe, para não revelar contas inativas
+    user.assertCanAuthenticate();
 
-    const isMatch = await compare(password, user.senha);
-
-    if (!isMatch) {
-      throw invalidCredentialsException;
-    }
-
-    const payload = {
+    const access_token = await this.jwtService.signAsync({
       sub: user.id,
       username: user.username,
       tipo_usuario: user.tipo_usuario,
@@ -56,54 +38,25 @@ export class AuthService {
       permissao_edicao: user.permissao_edicao,
       id_turma: user.id_turma,
       id_area: user.id_area,
-    };
+    });
 
+    // Montado campo a campo: a senha nunca entra no retorno
     return {
-      id: user.id,
+      id: user.id!,
       username: user.username,
+      id_regional: user.id_regional,
       nome_usuario: user.nome,
       email: user.email,
-      tipo_usuario: user.tipo_usuario,
+      access_token,
       is_admin: user.is_admin,
       permissao_edicao: user.permissao_edicao,
-      id_regional: user.id_regional,
       id_turma: user.id_turma,
-      id_area: user.id_area,
-      access_token: await this.jwtService.signAsync(payload),
+      id_area: user.id_area, // ver nota abaixo
+      tipo_usuario: user.tipo_usuario,
     };
   }
 
-  async register(registrationData: RegisterUserDTO): Promise<User> {
-    try {
-      const { username, senha } = registrationData;
-
-      const existingUser = await this.usersService.findUser(username);
-
-      let password = senha;
-
-      if (existingUser) {
-        throw new BadRequestException('Nome de usuário já está em uso.');
-      }
-
-      if (!password) {
-        throw new BadRequestException(
-          'A senha do usuário tem que ser enviada.',
-        );
-      }
-
-      const salt = await genSalt();
-      const hashedPassword = await hash(password, salt);
-
-      const user = new User({
-        ...registrationData,
-        senha: hashedPassword,
-      });
-
-      const created = await this.authRepository.register(user);
-
-      return created;
-    } catch (error) {
-      throw error;
-    }
+  async register(input: RegisterUserInput): Promise<UserRecord> {
+    return this.usersService.createUser(input);
   }
 }

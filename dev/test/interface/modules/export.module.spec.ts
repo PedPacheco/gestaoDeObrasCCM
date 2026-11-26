@@ -3,6 +3,9 @@ import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ExportModule } from 'src/interface/modules/export.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
+import { LoggerModule } from 'src/interface/modules/logger.module';
 
 vi.mock('src/shared/multer/multer.config', () => ({
   createMulterConfig: vi.fn().mockReturnValue({
@@ -15,10 +18,15 @@ describe('ExportModule', () => {
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [ExportModule, PrismaModule],
+      imports: [ExportModule, PrismaModule, LoggerModule],
     })
       .overrideProvider(UsersService)
       .useValue({})
+      .overrideProvider(DbSchema)
+      .useValue({
+        table: (name: string) => Prisma.raw(`schema_teste.${name}`),
+      })
+
       .compile();
   });
 

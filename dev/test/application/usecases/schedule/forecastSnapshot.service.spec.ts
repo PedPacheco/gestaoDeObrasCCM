@@ -1,9 +1,26 @@
 import { Test } from '@nestjs/testing';
-import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
+import {
+  emptyDailyTotals,
+  emptyGroupTotals,
+  ForecastSnapshotService,
+} from 'src/application/usecases/forecastSnapshot.service';
 import { FORECAST_SNAPSHOT } from 'src/domain/contracts/IForecastSnapshotRepository';
 import { createForecastSnapshotMock } from '../../../mocks/schedules/mockAddScheduleService';
 
 import moment from 'moment';
+import { ForecastSnapshotGetResponse } from 'src/domain/types';
+
+const makeSnapshot = (
+  overrides: Partial<Record<keyof ForecastSnapshotGetResponse, unknown>> = {},
+): ForecastSnapshotGetResponse =>
+  ({
+    id: 1,
+    gerado_em: new Date('2026-11-01T10:00:00Z'),
+    filtros: { dataInicial: '2026-11-01', dataFinal: '2026-11-30' },
+    diario: { totals: emptyDailyTotals, summary: [] },
+    grupo: { totals: emptyGroupTotals, summary: [] },
+    ...overrides,
+  }) as unknown as ForecastSnapshotGetResponse;
 
 describe('ForecastSnapshotService', () => {
   let service: ForecastSnapshotService;
@@ -87,14 +104,10 @@ describe('ForecastSnapshotService', () => {
               totalServiceMoPlanByGrouping: 500000,
               totalServiceMoPendByGrouping: 80000,
               totalServiceMoExecByGrouping: 420000,
-              totalServiceMoForecastByGrouping: 40000,
               totalMaterialMoProgByGrouping: 310000,
               totalMaterialMoPlanByGrouping: 295000,
               totalMaterialMoPendByGrouping: 45000,
               totalMaterialMoExecByGrouping: 250000,
-              totalMaterialMoForecastByGrouping: 200000,
-              totalExec: 100000,
-              totalForecast: 100000,
               totalDiff: -85000,
             },
           },
@@ -229,25 +242,28 @@ describe('ForecastSnapshotService', () => {
       });
     });
 
-    it('should return empty arrays when diario or grupo are not arrays', async () => {
-      const repositoryResponse = {
-        id: 2,
-        gerado_em: '2026-03-18T10:00:00Z',
-        filtros: {
-          dataInicial: '2026-03-01',
-          dataFinal: '2026-03-31',
-        },
-        diario: { summary: null, totals: null },
-        grupo: { summary: undefined, totals: null },
-      };
+    it.each([
+      ['a string', 'invalid'],
+      ['null', null],
+      ['undefined', undefined],
+    ])(
+      'should return empty summary and zeroed totals when summary is %s',
+      async (_label, summary) => {
+        mockRepository.get.mockResolvedValueOnce({
+          ...makeSnapshot(),
+          diario: { totals: undefined, summary },
+          grupo: { totals: undefined, summary },
+        });
 
-      mockRepository.get = vi.fn().mockResolvedValue(repositoryResponse);
+        const result = await service.get(1);
 
-      const result = await service.get(1);
-
-      expect(result.diario).toEqual([]);
-      expect(result.grupo).toEqual([]);
-    });
+        expect(result.diario).toEqual({
+          totals: emptyDailyTotals,
+          summary: [],
+        });
+        expect(result.grupo).toEqual({ totals: emptyGroupTotals, summary: [] });
+      },
+    );
 
     it('should handle multiple snapshots correctly', async () => {
       const repositoryResponse = {

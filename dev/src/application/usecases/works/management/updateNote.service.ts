@@ -1,16 +1,20 @@
 import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
-} from 'src/domain/contracts/works/IInsertWorksRepository';
+} from 'src/domain/contracts/works/management/IInsertWorksRepository';
 import {
   IUpdateNoteRepository,
   UPDATE_NOTE_REPOSITORY,
-} from 'src/domain/contracts/works/IUpdateNoteRepository';
+} from 'src/domain/contracts/works/management/IUpdateNoteRepository';
 import { NoteWorks } from 'src/domain/entities/works.entity';
-import { UpdateNotesDTO } from 'src/interface/dtos/worksDto';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
+import {
+  ExistingNote,
+  UpdateNotesInput,
+  WorkOrderKey,
+} from 'src/application/types';
 import { FindExistingWorksService } from './findExistingWorks.service';
 
 @Injectable()
@@ -23,18 +27,19 @@ export class UpdateNoteService {
     private readonly findExistingWorksService: FindExistingWorksService,
   ) {}
 
-  async update(data: UpdateNotesDTO[]) {
+  async update(data: UpdateNotesInput[]): Promise<void> {
     if (!data?.length) {
       throw new BadRequestException('Nenhum dado enviado.');
     }
 
-    const normalizeKey = (work: any) =>
+    const normalizeKey = (work: WorkOrderKey) =>
       [
         work.ovnota,
         work.ordem_dci ?? '',
         work.ordem_dcd ?? '',
         work.ordem_dca ?? '',
         work.ordem_dcim ?? '',
+        work.ordem_dcdm ?? '',
       ].join('|');
 
     const filters = data.map((work) => ({ ovnota: work.obra }));
@@ -54,6 +59,7 @@ export class UpdateNoteService {
           ordem_dcd: ov.ordemDcd,
           ordem_dca: ov.ordemDca,
           ordem_dcim: ov.ordemDcim,
+          ordem_dcdm: ov.ordemDcdm,
         });
 
         const simpleKey = ov.ovnota;
@@ -72,11 +78,12 @@ export class UpdateNoteService {
         ordem_dcd: work.ordem_dcd,
         ordem_dca: work.ordem_dca,
         ordem_dcim: work.ordem_dcim,
+        ordem_dcdm: work.ordem_dcdm,
       });
 
       const simpleKey = work.obra;
 
-      let matchedWork: any = null;
+      let matchedWork: ExistingNote = null;
 
       if (work.ordem_dcim) {
         matchedWork = Array.from(existingMap.values()).find(
@@ -107,6 +114,7 @@ export class UpdateNoteService {
           dcd: work.ordem_dcd,
           dca: work.ordem_dca,
           dcim: work.ordem_dcim,
+          dcdm: work.ordem_dcdm,
           qtdePlanejada: work.qtdePlan,
           moPlanejada: work.moPlan,
           idEmpreendimento: work.idEmpreendimento,

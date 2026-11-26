@@ -1,37 +1,23 @@
 import {
-  D5NotesFiltersDTO,
-  UpdateD5NoteDTO,
-} from 'src/interface/dtos/d5NotesDTO';
-import {
-  D5NoteByIdQueryResult,
-  FindD5NotesQueryResult,
-} from 'src/interface/types/d5notes/types';
-
-export interface ProcessedEliminacaoFilters {
-  dataInicial?: Date;
-  dataFinal?: Date;
-  idRegional?: number[];
-  idParceira?: number[];
-  responsabilidade?: string;
-}
-
-export type D5NotePagination = {
-  skip?: number;
-  take?: number;
-};
+  D5NoteDetail,
+  D5NoteFilter,
+  D5NoteListItem,
+  Pagination,
+  UpdateD5NoteData,
+} from 'src/domain/types';
 
 export interface ID5NotesRepository {
   get(
-    filters: D5NotesFiltersDTO,
-    pagination?: D5NotePagination,
-  ): Promise<FindD5NotesQueryResult[]>;
+    filters: D5NoteFilter,
+    pagination?: Pagination,
+  ): Promise<D5NoteListItem[]>;
   getTotals(
     where: Record<string, any>,
   ): Promise<{ total: number; totalMoRetida: number }>;
-  getById(id: number): Promise<D5NoteByIdQueryResult | null>;
+  getById(id: number): Promise<D5NoteDetail | null>;
   update(
     id: number,
-    data: UpdateD5NoteDTO,
+    data: UpdateD5NoteData,
     modifyingUserId: number,
   ): Promise<void>;
 }

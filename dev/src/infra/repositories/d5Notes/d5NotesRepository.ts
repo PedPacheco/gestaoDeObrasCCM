@@ -1,103 +1,83 @@
 import { Injectable } from '@nestjs/common';
+import type { ID5NotesRepository } from 'src/domain/contracts/d5Notes/ID5notesRepository';
+import { NotFoundError, ValidationError } from 'src/domain/errors/domain.error';
+import type {
+  D5NoteDetail,
+  D5NoteFilter,
+  D5NoteListItem,
+  D5NoteTotals,
+  Pagination,
+  UpdateD5NoteData,
+} from 'src/domain/types';
+import { Prisma } from 'src/infra/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service'; // ajuste ao caminho atual
 import {
-  D5NotePagination,
-  ID5NotesRepository,
-} from 'src/domain/contracts/d5Notes/ID5notesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
+  toD5NoteDetail,
+  toD5NoteListItem,
+  toD5NoteUpdateInput,
+  toD5NoteWhere,
+} from '../../mappers/d5Notes/d5Notes.mapper';
 import {
-  D5NoteByIdQueryResult,
-  FindD5NotesQueryResult,
-} from 'src/interface/types/d5notes/types';
+  D5_NOTE_BY_ID_SELECT,
+  D5_NOTE_LIST_SELECT,
+} from '../../types/repositories/d5Notes/d5Notes.types';
 
 @Injectable()
 export class D5NotesRepository implements ID5NotesRepository {
-  private readonly baseServicesSelect = {
-    id: true,
-    local_instalacao: true,
-    criado_em: true,
-    conclusao_nota: true,
-    status_sap: true,
-    validacao_anual: true,
-    mo_planejada: true,
-    nota_d5: true,
-    obras: {
-      select: {
-        ovnota: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dca: true,
-        ordem_dcd: true,
-        ordem_dcim: true,
-      },
-    },
-    municipios: {
-      select: {
-        mun_minusculo: true,
-        regionais: { select: { regional: true } },
-      },
-    },
-    status: { select: { status: true } },
-    tipos: { select: { tipo_obra: true } },
-    turmas: { select: { turma: true } },
-    novo_tabela_usuarios: { select: { nome: true } },
-  };
-
   constructor(private readonly prisma: PrismaService) {}
 
   async get(
-    where: Record<string, any>,
-    pagination?: D5NotePagination,
-  ): Promise<FindD5NotesQueryResult[]> {
-    return await this.prisma.notas_d5.findMany({
-      where,
-      skip: pagination?.skip,
-      take: pagination?.take,
-      select: this.baseServicesSelect,
+    filter: D5NoteFilter,
+    pagination?: Pagination,
+  ): Promise<D5NoteListItem[]> {
+    const rows = await this.prisma.notas_d5.findMany({
+      where: toD5NoteWhere(filter),
+      select: D5_NOTE_LIST_SELECT,
+      orderBy: { criado_em: 'desc' }, // ⚠ copie o orderBy atual
+      ...pagination,
     });
+    return rows.map(toD5NoteListItem);
   }
 
-  async getTotals(
-    where: Record<string, any>,
-  ): Promise<{ total: number; totalMoRetida: number }> {
-    const result = await this.prisma.notas_d5.aggregate({
-      where,
-      _count: { _all: true },
-      _sum: { mo_planejada: true },
-    });
-
+  /** ⚠ Confirme com o corpo atual: total de notas e soma da mo_planejada. */
+  async getTotals(filter: D5NoteFilter): Promise<D5NoteTotals> {
+    const where = toD5NoteWhere(filter);
+    const [total, sum] = await Promise.all([
+      this.prisma.notas_d5.count({ where }),
+      this.prisma.notas_d5.aggregate({ where, _sum: { mo_planejada: true } }),
+    ]);
     return {
-      total: result._count._all,
-      totalMoRetida: Number(result._sum.mo_planejada ?? 0),
+      total,
+      totalMoRetida: Number(sum._sum.mo_planejada ?? 0),
     };
   }
 
-  async getById(id: number): Promise<D5NoteByIdQueryResult | null> {
-    return await this.prisma.notas_d5.findUnique({
+  async getById(id: number): Promise<D5NoteDetail | null> {
+    const row = await this.prisma.notas_d5.findUnique({
       where: { id },
-      select: {
-        ...this.baseServicesSelect,
-        id_parceira: true,
-        id_status: true,
-        descricao: true,
-        programacoes_d5: { select: { prog: true, exec: true } },
-      },
+      select: D5_NOTE_BY_ID_SELECT,
     });
+    return row && toD5NoteDetail(row);
   }
 
   async update(
     id: number,
-    data: UpdateD5NoteDTO,
+    data: UpdateD5NoteData,
     modifyingUserId: number,
   ): Promise<void> {
-    await this.prisma.notas_d5.update({
-      where: { id },
-      data: {
-        id_parceira: data.partnerId,
-        id_status: data.statusId,
-        descricao: data.observation,
-        id_usuario_modificador: modifyingUserId,
-      },
-    });
+    try {
+      await this.prisma.notas_d5.update({
+        where: { id },
+        data: toD5NoteUpdateInput(data, modifyingUserId),
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025')
+          throw new NotFoundError('Nota D5 não encontrada.');
+        if (e.code === 'P2003')
+          throw new ValidationError('Parceira ou status inexistente.');
+      }
+      throw e;
+    }
   }
 }

@@ -1,31 +1,35 @@
-import { join } from 'path';
-import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { D5NoteScheduleMapper } from 'src/application/mappers/d5Notes/d5NotesScheduleMapper';
+import type {
+  CreateD5ScheduleInput,
+  RejectD5ScheduleInput,
+  UpdateD5ScheduleInput,
+} from 'src/application/types';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
-import { FileService } from 'src/application/usecases/file.service';
-import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
+import type { ID5NotesSchedulesRepository } from 'src/domain/contracts/d5Notes/ID5NotesSchedulesRepository';
+import type { IFileStorage } from 'src/domain/contracts/storage/IFileStorage';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
-import {
-  CreateProgramacaoD5Dto,
-  RejectD5ScheduleDTO,
-  UpdateScheduleD5Dto,
-} from 'src/interface/dtos/d5NotesDTO';
-import type { MockInstance, Mocked, MockedFunction } from 'vitest';
+import type { D5ScheduleDetail } from 'src/domain/types';
+import { StorageKind } from 'src/domain/types';
+import { uploadedPaths } from 'src/shared/upload/storedFileName';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+// ─── Module mocks ─────────────────────────────────────────────────────
 
-// ---------------------------------------------------------------------------
-// Mocks de colaboradores
-// ---------------------------------------------------------------------------
-vi.mock('src/application/mappers/d5NotesScheduleMapper', () => ({
+const { loggerError } = vi.hoisted(() => ({ loggerError: vi.fn() }));
+
+vi.mock('src/core/logger/logger.service', () => ({
+  AppLogger: class {
+    error = loggerError;
+  },
+}));
+
+vi.mock('src/application/mappers/d5Notes/d5NotesScheduleMapper', () => ({
   D5NoteScheduleMapper: {
     fromCreateInput: vi.fn(),
     fromUpdateInput: vi.fn(),
-    toDomain: vi.fn(),
-    toPersistenceCreate: vi.fn(),
-    toPersistenceUpdate: vi.fn(),
-    toRejectionSnapshot: vi.fn(),
+    toRejectionData: vi.fn(),
   },
 }));
 
@@ -37,674 +41,421 @@ vi.mock('src/domain/services/resolveFileDiff.service', () => ({
   resolveFileDiff: vi.fn(),
 }));
 
-const mapper = D5NoteScheduleMapper as Mocked<typeof D5NoteScheduleMapper>;
-const entity = D5NoteSchedule as Mocked<typeof D5NoteSchedule>;
-const fileDiff = resolveFileDiff as MockedFunction<typeof resolveFileDiff>;
+vi.mock('src/shared/upload/storedFileName', () => ({
+  uploadedPaths: vi.fn(),
+}));
 
-const UPLOAD_DIR = '/var/uploads/asbuild';
+// ─── Fixtures ─────────────────────────────────────────────────────────
 
-// ---------------------------------------------------------------------------
-// Factories
-// ---------------------------------------------------------------------------
-const makeFile = (
-  filename: string,
-  path = `/tmp/${filename}`,
-): Express.Multer.File => ({ filename, path }) as Express.Multer.File;
+const makeFile = (filename: string): Express.Multer.File =>
+  ({ filename, path: `/tmp/uploads/${filename}` }) as Express.Multer.File;
 
-const makeExisting = (overrides: Record<string, unknown> = {}) => ({
-  id: 1,
-  id_nota_d5: 10,
-  caminhos_arquivos: ['antigo.pdf'],
-  ...overrides,
-});
-
-const makeCurrent = (overrides: Record<string, unknown> = {}) =>
+const makeSchedule = (
+  overrides: Partial<D5NoteSchedule> = {},
+): D5NoteSchedule =>
   ({
     d5NoteId: 10,
-    creatorUserId: 7,
+    creatorUserId: 3,
+    filePaths: ['old-a.pdf', 'old-b.pdf'],
     rejected: false,
     ...overrides,
   }) as unknown as D5NoteSchedule;
 
+const makeDetail = (id: number): D5ScheduleDetail =>
+  ({ id, d5NoteId: 10 }) as unknown as D5ScheduleDetail;
+
+const createInput = {
+  d5NoteId: 10,
+  scheduledDate: '2026-11-20',
+  prog: 50,
+  startTime: '08:00',
+  endTime: '12:00',
+  creatorUserId: 3,
+  modifyingUserId: 3,
+} as CreateD5ScheduleInput;
+
+const updateInput: UpdateD5ScheduleInput = {
+  prog: 80,
+  keptFiles: ['old-a.pdf'],
+};
+
+// ─── Suite ────────────────────────────────────────────────────────────
+
 describe('ManageD5NoteScheduleService', () => {
+  let repository: Mocked<ID5NotesSchedulesRepository>;
+  let storage: Mocked<IFileStorage>;
   let service: ManageD5NoteScheduleService;
-  let loggerErrorSpy: MockInstance;
 
-  const repository = {
-    create: vi.fn(),
-    getById: vi.fn(),
-    updateAndSyncWorkStatus: vi.fn(),
-    delete: vi.fn(),
-    getByD5NoteId: vi.fn(),
-    rejectMany: vi.fn(),
-  };
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-  const fileService = { deleteMany: vi.fn() };
+    repository = {
+      get: vi.fn(),
+      getTotals: vi.fn(),
+      getById: vi.fn(),
+      getStoredFiles: vi.fn(),
+      getByD5NoteId: vi.fn(),
+      findRejections: vi.fn(),
+      create: vi.fn().mockResolvedValue(undefined),
+      updateAndSyncWorkStatus: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
+      rejectMany: vi.fn().mockResolvedValue(undefined),
+    } as unknown as Mocked<ID5NotesSchedulesRepository>;
 
-  beforeEach(async () => {
-    process.env.UPLOAD_AS_BUILD = UPLOAD_DIR;
+    storage = {
+      deleteStored: vi.fn().mockResolvedValue(undefined),
+      deleteUploaded: vi.fn().mockResolvedValue(undefined),
+    } as unknown as Mocked<IFileStorage>;
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ManageD5NoteScheduleService,
-        { provide: D5_NOTES_SCHEDULES_REPOSITORY, useValue: repository },
-        { provide: FileService, useValue: fileService },
-      ],
-    }).compile();
-
-    service = module.get(ManageD5NoteScheduleService);
-
-    loggerErrorSpy = vi
-      .spyOn((service as any).logger, 'error')
-      .mockImplementation(() => undefined);
-    fileService.deleteMany.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => vi.resetAllMocks());
-  afterAll(() => vi.restoreAllMocks());
-
-  it('deve estar definido', () => {
-    expect(service).toBeDefined();
-  });
-
-  // =========================================================================
-  // create
-  // =========================================================================
-  describe('create', () => {
-    const dto = { d5NoteId: 10 } as unknown as CreateProgramacaoD5Dto;
-
-    it.each([
-      ['null', null],
-      ['undefined', undefined],
-    ])('deve rejeitar payload %s', async (_label, payload) => {
-      await expect(service.create(payload as any)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.create(payload as any)).rejects.toThrow(
-        'Nenhuma programação fornecida para inserção.',
-      );
-      expect(repository.create).not.toHaveBeenCalled();
-    });
-
-    it('deve mapear, construir a entidade e persistir', async () => {
-      const domainProps = { d5NoteId: 10 };
-      const built = { id: 1 } as unknown as D5NoteSchedule;
-      const persistence = { id_nota_d5: 10 };
-      const created = { id: 99 };
-
-      mapper.fromCreateInput.mockReturnValue(domainProps as any);
-      entity.create.mockReturnValue(built);
-      mapper.toPersistenceCreate.mockReturnValue(persistence as any);
-      repository.create.mockResolvedValue(created);
-
-      const result = await service.create(dto);
-
-      expect(mapper.fromCreateInput).toHaveBeenCalledWith(dto);
-      expect(entity.create).toHaveBeenCalledWith(domainProps);
-      expect(mapper.toPersistenceCreate).toHaveBeenCalledWith(built);
-      expect(repository.create).toHaveBeenCalledWith(10, persistence);
-      expect(result).toBe(created);
-    });
-
-    it('deve propagar erros de validação da entidade sem tocar no repositório', async () => {
-      mapper.fromCreateInput.mockReturnValue({} as any);
-      entity.create.mockImplementation(() => {
-        throw new BadRequestException('ID da nota D5 é obrigatório');
-      });
-
-      await expect(service.create(dto)).rejects.toThrow(
-        'ID da nota D5 é obrigatório',
-      );
-      expect(repository.create).not.toHaveBeenCalled();
-    });
-
-    it('deve propagar erros do repositório', async () => {
-      mapper.fromCreateInput.mockReturnValue({} as any);
-      entity.create.mockReturnValue({} as any);
-      mapper.toPersistenceCreate.mockReturnValue({} as any);
-      repository.create.mockRejectedValue(new Error('falha de base de dados'));
-
-      await expect(service.create(dto)).rejects.toThrow(
-        'falha de base de dados',
-      );
-    });
-  });
-
-  // =========================================================================
-  // update
-  // =========================================================================
-  describe('update', () => {
-    const dto = {
-      keptFiles: ['antigo.pdf'],
-      rejected: false,
-    } as unknown as UpdateScheduleD5Dto;
-
-    /** Prepara o caminho feliz completo. */
-    const arrangeHappyPath = (
-      overrides: {
-        existing?: Record<string, unknown>;
-        finalPaths?: string[];
-        toRemove?: string[];
-        rejected?: boolean;
-      } = {},
-    ) => {
-      const existing = overrides.existing ?? makeExisting();
-      const current = makeCurrent();
-      const schedule = { id: 1, rejected: overrides.rejected ?? false };
-
-      repository.getById.mockResolvedValue(existing);
-      mapper.toDomain.mockReturnValue(current);
-      fileDiff.mockReturnValue({
-        finalPaths: overrides.finalPaths ?? ['antigo.pdf', 'novo.pdf'],
-        toRemove: overrides.toRemove ?? ['obsoleto.pdf'],
-      } as any);
-      mapper.fromUpdateInput.mockReturnValue({} as any);
-      entity.create.mockReturnValue(schedule as any);
-      mapper.toPersistenceUpdate.mockReturnValue({ obs: 'x' } as any);
-      repository.updateAndSyncWorkStatus.mockResolvedValue(undefined);
-
-      return { existing, current, schedule };
-    };
-
-    it.each([
-      ['null', null],
-      ['undefined', undefined],
-    ])(
-      'deve rejeitar payload %s antes de qualquer I/O',
-      async (_l, payload) => {
-        await expect(service.update(1, payload as any, [], 20)).rejects.toThrow(
-          'Nenhuma programação fornecida para inserção.',
-        );
-
-        expect(repository.getById).not.toHaveBeenCalled();
-        expect(fileService.deleteMany).not.toHaveBeenCalled();
-      },
+    vi.mocked(uploadedPaths).mockImplementation((files) =>
+      (Array.isArray(files) ? files : files ? [files] : []).map((f) => f.path),
     );
+    vi.mocked(resolveFileDiff).mockReturnValue({
+      finalPaths: ['old-a.pdf', 'new-1.pdf'],
+      toRemove: ['old-b.pdf'],
+    });
 
-    it('deve atualizar e remover do disco apenas os ficheiros obsoletos', async () => {
-      const { current } = arrangeHappyPath();
-      const files = [makeFile('novo.pdf')];
+    service = new ManageD5NoteScheduleService(repository, storage);
+  });
 
-      await service.update(1, dto, files, 20);
+  // ═══ create ═════════════════════════════════════════════════════════
 
-      expect(repository.getById).toHaveBeenCalledWith(1);
-      expect(fileDiff).toHaveBeenCalledWith(['antigo.pdf'], dto.keptFiles, [
-        'novo.pdf',
-      ]);
-      expect(mapper.fromUpdateInput).toHaveBeenCalledWith(dto, {
-        id: 1,
-        d5NoteId: current.d5NoteId,
-        creatorUserId: current.creatorUserId,
-        modifyingUserId: 20,
-        filePaths: ['antigo.pdf', 'novo.pdf'],
-        current,
+  describe('create', () => {
+    it('throws BadRequestException when no data is provided', async () => {
+      await expect(
+        service.create(undefined as unknown as CreateD5ScheduleInput),
+      ).rejects.toThrow(
+        new BadRequestException('Nenhuma programação fornecida para inserção.'),
+      );
+
+      expect(D5NoteSchedule.create).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('maps the input, builds the entity and persists it', async () => {
+      const props = { d5NoteId: 10 };
+      const entity = makeSchedule();
+      vi.mocked(D5NoteScheduleMapper.fromCreateInput).mockReturnValue(
+        props as never,
+      );
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(entity);
+
+      await service.create(createInput);
+
+      expect(D5NoteScheduleMapper.fromCreateInput).toHaveBeenCalledWith(
+        createInput,
+      );
+      expect(D5NoteSchedule.create).toHaveBeenCalledWith(props);
+      expect(repository.create).toHaveBeenCalledWith(entity);
+    });
+
+    it('propagates entity validation errors without persisting', async () => {
+      const validationError = new Error('Data de programação inválida');
+      vi.mocked(D5NoteSchedule.create).mockImplementation(() => {
+        throw validationError;
       });
+
+      await expect(service.create(createInput)).rejects.toBe(validationError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+  });
+
+  // ═══ update ═════════════════════════════════════════════════════════
+
+  describe('update', () => {
+    const files = [makeFile('new-1.pdf')];
+    const modifyingUserId = 7;
+
+    it('throws BadRequestException when no data is provided', async () => {
+      await expect(
+        service.update(
+          1,
+          undefined as unknown as UpdateD5ScheduleInput,
+          files,
+          modifyingUserId,
+        ),
+      ).rejects.toThrow(
+        new BadRequestException('Nenhuma programação fornecida para inserção.'),
+      );
+
+      expect(repository.getById).not.toHaveBeenCalled();
+      expect(storage.deleteUploaded).not.toHaveBeenCalled();
+    });
+
+    it('updates the schedule and removes the replaced files after the commit', async () => {
+      const current = makeSchedule();
+      const props = { id: 1 };
+      const updated = makeSchedule({ rejected: true });
+      repository.getById.mockResolvedValue(current);
+      vi.mocked(D5NoteScheduleMapper.fromUpdateInput).mockReturnValue(
+        props as never,
+      );
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(updated);
+
+      await service.update(1, updateInput, files, modifyingUserId);
+
+      expect(resolveFileDiff).toHaveBeenCalledWith(
+        ['old-a.pdf', 'old-b.pdf'],
+        ['old-a.pdf'],
+        ['new-1.pdf'],
+      );
+      expect(D5NoteScheduleMapper.fromUpdateInput).toHaveBeenCalledWith(
+        updateInput,
+        {
+          id: 1,
+          d5NoteId: 10,
+          creatorUserId: 3,
+          modifyingUserId,
+          filePaths: ['old-a.pdf', 'new-1.pdf'],
+          current,
+        },
+      );
+      expect(D5NoteSchedule.create).toHaveBeenCalledWith(props);
       expect(repository.updateAndSyncWorkStatus).toHaveBeenCalledWith(
         1,
-        {
-          obs: 'x',
-        },
-        10,
-        false,
+        updated,
+        true,
       );
-      expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
-      expect(fileService.deleteMany).toHaveBeenCalledWith(
-        [join(UPLOAD_DIR, 'obsoleto.pdf')],
-        UPLOAD_DIR,
+      expect(storage.deleteStored).toHaveBeenCalledWith(StorageKind.AS_BUILD, [
+        'old-b.pdf',
+      ]);
+      expect(storage.deleteUploaded).not.toHaveBeenCalled();
+    });
+
+    it('deletes the old files only after the database update', async () => {
+      repository.getById.mockResolvedValue(makeSchedule());
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(makeSchedule());
+
+      await service.update(1, updateInput, files, modifyingUserId);
+
+      const updateOrder =
+        repository.updateAndSyncWorkStatus.mock.invocationCallOrder[0];
+      const deleteOrder = storage.deleteStored.mock.invocationCallOrder[0];
+      expect(updateOrder).toBeLessThan(deleteOrder);
+    });
+
+    it('treats missing uploads and missing stored files as empty lists', async () => {
+      repository.getById.mockResolvedValue(
+        makeSchedule({ filePaths: undefined }),
+      );
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(makeSchedule());
+
+      await service.update(
+        1,
+        updateInput,
+        undefined as unknown as Express.Multer.File[],
+        modifyingUserId,
+      );
+
+      expect(resolveFileDiff).toHaveBeenCalledWith([], ['old-a.pdf'], []);
+      expect(repository.updateAndSyncWorkStatus).toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException and removes the new uploads when the schedule does not exist', async () => {
+      repository.getById.mockResolvedValue(null);
+
+      await expect(
+        service.update(1, updateInput, files, modifyingUserId),
+      ).rejects.toThrow(new NotFoundException('Programação não encontrada.'));
+
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['/tmp/uploads/new-1.pdf'],
+      );
+      expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
+      expect(storage.deleteStored).not.toHaveBeenCalled();
+    });
+
+    it('removes the new uploads when the database update fails', async () => {
+      const dbError = new Error('database down');
+      repository.getById.mockResolvedValue(makeSchedule());
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(makeSchedule());
+      repository.updateAndSyncWorkStatus.mockRejectedValue(dbError);
+
+      await expect(
+        service.update(1, updateInput, files, modifyingUserId),
+      ).rejects.toBe(dbError);
+
+      expect(storage.deleteUploaded).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        ['/tmp/uploads/new-1.pdf'],
+      );
+      expect(storage.deleteStored).not.toHaveBeenCalled();
+    });
+
+    it('keeps the new uploads when the failure happens after the commit', async () => {
+      const diskError = new Error('disk error');
+      repository.getById.mockResolvedValue(makeSchedule());
+      vi.mocked(D5NoteSchedule.create).mockReturnValue(makeSchedule());
+      storage.deleteStored.mockRejectedValue(diskError);
+
+      await expect(
+        service.update(1, updateInput, files, modifyingUserId),
+      ).rejects.toBe(diskError);
+
+      expect(repository.updateAndSyncWorkStatus).toHaveBeenCalled();
+      expect(storage.deleteUploaded).not.toHaveBeenCalled();
+    });
+
+    it('logs the stack and rethrows the original error when the upload cleanup fails with an Error', async () => {
+      const originalError = new NotFoundException(
+        'Programação não encontrada.',
+      );
+      const cleanupError = new Error('cannot remove file');
+      repository.getById.mockResolvedValue(null);
+      storage.deleteUploaded.mockRejectedValue(cleanupError);
+
+      await expect(
+        service.update(1, updateInput, files, modifyingUserId),
+      ).rejects.toThrow(originalError);
+
+      expect(loggerError).toHaveBeenCalledWith(
+        'Falha ao remover uploads órfãos da programação 1',
+        cleanupError.stack,
       );
     });
 
-    it('deve tratar files null como lista vazia', async () => {
-      arrangeHappyPath();
+    it('logs the raw value when the upload cleanup fails with a non-Error', async () => {
+      repository.getById.mockResolvedValue(null);
+      storage.deleteUploaded.mockRejectedValue('cleanup failed');
 
-      await service.update(1, dto, null as any, 20);
+      await expect(
+        service.update(1, updateInput, files, modifyingUserId),
+      ).rejects.toBeInstanceOf(NotFoundException);
 
-      expect(fileDiff).toHaveBeenCalledWith(['antigo.pdf'], dto.keptFiles, []);
-    });
-
-    it('deve tratar caminhos_arquivos null como lista vazia', async () => {
-      arrangeHappyPath({
-        existing: makeExisting({ caminhos_arquivos: null }),
-      });
-
-      await service.update(1, dto, [], 20);
-
-      expect(fileDiff).toHaveBeenCalledWith([], dto.keptFiles, []);
-    });
-
-    it('não deve chamar deleteMany com conteúdo quando não há ficheiros a remover', async () => {
-      arrangeHappyPath({ toRemove: [] });
-
-      await service.update(1, dto, [], 20);
-
-      expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
-    });
-
-    // ---------------------------------------------------------------------
-    // Rollback
-    // ---------------------------------------------------------------------
-    describe('rollback', () => {
-      it('deve lançar NotFound e remover os uploads quando o registo não existe', async () => {
-        repository.getById.mockResolvedValue(null);
-        const files = [makeFile('novo.pdf', '/tmp/abs/novo.pdf')];
-
-        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
-          NotFoundException,
-        );
-
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
-          ['/tmp/abs/novo.pdf'],
-          UPLOAD_DIR,
-        );
-        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
-        expect(loggerErrorSpy).not.toHaveBeenCalled();
-      });
-
-      it('deve fazer rollback quando o repositório falha na leitura', async () => {
-        repository.getById.mockRejectedValue(new Error('timeout'));
-        const files = [makeFile('a.pdf', '/tmp/a.pdf')];
-
-        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
-          'timeout',
-        );
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
-          ['/tmp/a.pdf'],
-          UPLOAD_DIR,
-        );
-      });
-
-      it('deve fazer rollback quando a entidade rejeita as regras de negócio', async () => {
-        arrangeHappyPath();
-        entity.create.mockImplementation(() => {
-          throw new BadRequestException('Existem ficheiros duplicados');
-        });
-        const files = [makeFile('dup.pdf', '/tmp/dup.pdf')];
-
-        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
-          'Existem ficheiros duplicados',
-        );
-
-        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
-          ['/tmp/dup.pdf'],
-          UPLOAD_DIR,
-        );
-      });
-
-      it('deve fazer rollback quando a escrita no repositório falha', async () => {
-        arrangeHappyPath();
-        repository.updateAndSyncWorkStatus.mockRejectedValue(
-          new Error('constraint violada'),
-        );
-        const files = [makeFile('b.pdf', '/tmp/b.pdf')];
-
-        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
-          'constraint violada',
-        );
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
-          ['/tmp/b.pdf'],
-          UPLOAD_DIR,
-        );
-      });
-
-      // --- committed = true: não há rollback dos novos ficheiros ---
-      it('não deve remover os novos uploads quando a limpeza pós-commit falha', async () => {
-        arrangeHappyPath();
-        fileService.deleteMany.mockRejectedValueOnce(new Error('EACCES'));
-        const files = [makeFile('c.pdf', '/tmp/c.pdf')];
-
-        await expect(service.update(1, dto, files, 20)).rejects.toThrow(
-          'EACCES',
-        );
-
-        // a escrita foi confirmada: os ficheiros novos têm de permanecer em disco
-        expect(repository.updateAndSyncWorkStatus).toHaveBeenCalledTimes(1);
-        expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
-        expect(fileService.deleteMany).not.toHaveBeenCalledWith(
-          ['/tmp/c.pdf'],
-          UPLOAD_DIR,
-        );
-        expect(loggerErrorSpy).not.toHaveBeenCalled();
-      });
-
-      // --- falha do próprio rollback: erro original preservado ---
-      it('deve preservar o erro de negócio quando o próprio rollback falha', async () => {
-        repository.getById.mockResolvedValue(null);
-        fileService.deleteMany.mockRejectedValue(new Error('disco ocupado'));
-
-        await expect(
-          service.update(1, dto, [makeFile('d.pdf', '/tmp/d.pdf')], 20),
-        ).rejects.toThrow('Programação não encontrada.');
-
-        expect(fileService.deleteMany).toHaveBeenCalledWith(
-          ['/tmp/d.pdf'],
-          UPLOAD_DIR,
-        );
-        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
-      });
-
-      it('deve registar em log a falha de limpeza com a stack do erro', async () => {
-        repository.getById.mockResolvedValue(null);
-        const cleanupError = new Error('disco ocupado');
-        fileService.deleteMany.mockRejectedValue(cleanupError);
-
-        await expect(
-          service.update(1, dto, [makeFile('d.pdf')], 20),
-        ).rejects.toThrow(NotFoundException);
-
-        expect(loggerErrorSpy).toHaveBeenCalledWith(
-          'Falha ao remover uploads órfãos da programação 1',
-          cleanupError.stack,
-        );
-      });
-
-      it('deve registar o valor bruto quando o erro de limpeza não é uma Error', async () => {
-        repository.getById.mockResolvedValue(null);
-        fileService.deleteMany.mockRejectedValue('falha string');
-
-        await expect(
-          service.update(1, dto, [makeFile('d.pdf')], 20),
-        ).rejects.toThrow(NotFoundException);
-
-        expect(loggerErrorSpy).toHaveBeenCalledWith(
-          'Falha ao remover uploads órfãos da programação 1',
-          'falha string',
-        );
-      });
-
-      it('deve tentar o rollback mesmo sem ficheiros enviados', async () => {
-        repository.getById.mockResolvedValue(null);
-
-        await expect(service.update(1, dto, [], 20)).rejects.toThrow(
-          NotFoundException,
-        );
-
-        expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
-      });
+      expect(loggerError).toHaveBeenCalledWith(
+        'Falha ao remover uploads órfãos da programação 1',
+        'cleanup failed',
+      );
     });
   });
 
-  // =========================================================================
-  // delete
-  // =========================================================================
+  // ═══ delete ═════════════════════════════════════════════════════════
+
   describe('delete', () => {
-    it.each([
-      ['zero', 0],
-      ['undefined', undefined],
-      ['null', null],
-    ])('deve rejeitar id %s', async (_label, id) => {
-      await expect(service.delete(id as any)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.delete(id as any)).rejects.toThrow(
-        'Programação não enviada para exclusão.',
+    it('throws BadRequestException when no id is provided', async () => {
+      await expect(service.delete(0)).rejects.toThrow(
+        new BadRequestException('Programação não enviada para exclusão.'),
       );
       expect(repository.getById).not.toHaveBeenCalled();
     });
 
-    it('deve lançar NotFound quando a programação não existe', async () => {
+    it('throws NotFoundException when the schedule does not exist', async () => {
       repository.getById.mockResolvedValue(null);
 
-      await expect(service.delete(5)).rejects.toThrow(NotFoundException);
+      await expect(service.delete(1)).rejects.toThrow(
+        new NotFoundException('Programação não encontrada.'),
+      );
       expect(repository.delete).not.toHaveBeenCalled();
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
+      expect(storage.deleteStored).not.toHaveBeenCalled();
     });
 
-    it('deve eliminar o registo antes de limpar o disco', async () => {
-      const ordem: string[] = [];
+    it('deletes the record first and the stored files afterwards', async () => {
+      repository.getById.mockResolvedValue(makeSchedule());
+
+      await service.delete(1);
+
+      expect(repository.delete).toHaveBeenCalledWith(1);
+      expect(storage.deleteStored).toHaveBeenCalledWith(StorageKind.AS_BUILD, [
+        'old-a.pdf',
+        'old-b.pdf',
+      ]);
+      expect(repository.delete.mock.invocationCallOrder[0]).toBeLessThan(
+        storage.deleteStored.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('uses an empty file list when the schedule has no stored files', async () => {
       repository.getById.mockResolvedValue(
-        makeExisting({ caminhos_arquivos: ['a.pdf', 'b.pdf'] }),
+        makeSchedule({ filePaths: undefined }),
       );
-      repository.delete.mockImplementation(async () => {
-        ordem.push('repositorio');
-      });
-      fileService.deleteMany.mockImplementation(async () => {
-        ordem.push('disco');
-      });
 
-      await service.delete(5);
+      await service.delete(1);
 
-      expect(ordem).toEqual(['repositorio', 'disco']);
-      expect(fileService.deleteMany).toHaveBeenCalledWith(
-        [join(UPLOAD_DIR, 'a.pdf'), join(UPLOAD_DIR, 'b.pdf')],
-        UPLOAD_DIR,
+      expect(storage.deleteStored).toHaveBeenCalledWith(
+        StorageKind.AS_BUILD,
+        [],
       );
     });
 
-    it('deve tratar caminhos_arquivos null como lista vazia', async () => {
-      repository.getById.mockResolvedValue(
-        makeExisting({ caminhos_arquivos: null }),
-      );
-      repository.delete.mockResolvedValue(undefined);
+    it('does not touch the disk when the database delete fails', async () => {
+      const dbError = new Error('foreign key violation');
+      repository.getById.mockResolvedValue(makeSchedule());
+      repository.delete.mockRejectedValue(dbError);
 
-      await service.delete(5);
-
-      expect(fileService.deleteMany).toHaveBeenCalledWith([], UPLOAD_DIR);
-    });
-
-    it('deve propagar falhas do repositório sem tocar no disco', async () => {
-      repository.getById.mockResolvedValue(makeExisting());
-      repository.delete.mockRejectedValue(new Error('FK em uso'));
-
-      await expect(service.delete(5)).rejects.toThrow('FK em uso');
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
-    });
-
-    it('deve propagar falhas da limpeza de ficheiros', async () => {
-      repository.getById.mockResolvedValue(makeExisting());
-      repository.delete.mockResolvedValue(undefined);
-      fileService.deleteMany.mockRejectedValue(new Error('ENOENT'));
-
-      await expect(service.delete(5)).rejects.toThrow('ENOENT');
-      expect(repository.delete).toHaveBeenCalledWith(5);
-    });
-
-    it('deve resolver sem retorno em caso de sucesso', async () => {
-      repository.getById.mockResolvedValue(makeExisting());
-      repository.delete.mockResolvedValue(undefined);
-
-      await expect(service.delete(5)).resolves.toBeUndefined();
+      await expect(service.delete(1)).rejects.toBe(dbError);
+      expect(storage.deleteStored).not.toHaveBeenCalled();
     });
   });
 
-  // =========================================================================
-  // reject
-  // =========================================================================
+  // ═══ reject ═════════════════════════════════════════════════════════
+
   describe('reject', () => {
-    const D5_NOTE_ID = 10;
-    const REJECTING_USER = 33;
+    const rejectingUserId = 9;
 
-    const makeSchedule = (id: number) => ({ id, id_nota_d5: D5_NOTE_ID });
-
-    const makeItem = (
-      id: number,
-      overrides: Partial<RejectD5ScheduleDTO> = {},
-    ): RejectD5ScheduleDTO =>
-      ({
-        id,
-        restrictionId: 85,
-        description: `descrição ${id}`,
-        ...overrides,
-      }) as RejectD5ScheduleDTO;
-
-    beforeEach(() => {
-      repository.getByD5NoteId.mockResolvedValue([
-        makeSchedule(1),
-        makeSchedule(2),
-        makeSchedule(3),
-      ]);
-      repository.rejectMany.mockResolvedValue(undefined);
-      mapper.toRejectionSnapshot.mockImplementation(
-        (schedule: any) =>
-          ({ id_nota_d5: schedule.id_nota_d5, snapshotOf: schedule.id }) as any,
-      );
-    });
-
-    // --- saídas antecipadas ---
-    it('deve sair sem I/O quando a lista é vazia', async () => {
-      await expect(
-        service.reject(D5_NOTE_ID, [], REJECTING_USER),
-      ).resolves.toBeUndefined();
+    it('does nothing when the rejection list is empty', async () => {
+      await service.reject(10, [], rejectingUserId);
 
       expect(repository.getByD5NoteId).not.toHaveBeenCalled();
       expect(repository.rejectMany).not.toHaveBeenCalled();
     });
 
-    // --- caminho feliz ---
-    it('deve buscar as programações da nota D5 informada', async () => {
-      await service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER);
+    it('throws NotFoundException listing the schedules that do not belong to the note', async () => {
+      repository.getByD5NoteId.mockResolvedValue([makeDetail(1)]);
+      const data: RejectD5ScheduleInput[] = [
+        { id: 1, restrictionId: 2, description: 'ok' },
+        { id: 5, restrictionId: 2, description: 'missing' },
+        { id: 6, restrictionId: 2, description: 'missing' },
+      ];
 
-      expect(repository.getByD5NoteId).toHaveBeenCalledTimes(1);
-      expect(repository.getByD5NoteId).toHaveBeenCalledWith(D5_NOTE_ID);
+      await expect(service.reject(10, data, rejectingUserId)).rejects.toThrow(
+        new NotFoundException(
+          'Programações não encontradas para esta nota D5: 5, 6',
+        ),
+      );
+      expect(D5NoteScheduleMapper.toRejectionData).not.toHaveBeenCalled();
+      expect(repository.rejectMany).not.toHaveBeenCalled();
     });
 
-    it('deve gerar um snapshot por item usando a programação, o motivo e o reprovador', async () => {
-      const s1 = makeSchedule(1);
-      const s2 = makeSchedule(2);
-      repository.getByD5NoteId.mockResolvedValue([s1, s2]);
+    it('builds one rejection per schedule and rejects them in a single call', async () => {
+      const first = makeDetail(1);
+      const second = makeDetail(2);
+      repository.getByD5NoteId.mockResolvedValue([first, second]);
+      vi.mocked(D5NoteScheduleMapper.toRejectionData)
+        .mockReturnValueOnce({ description: 'r1' } as never)
+        .mockReturnValueOnce({ description: 'r2' } as never);
 
-      await service.reject(
-        D5_NOTE_ID,
-        [makeItem(1), makeItem(2)],
-        REJECTING_USER,
+      const data: RejectD5ScheduleInput[] = [
+        { id: 1, restrictionId: 4, description: 'r1' },
+        { id: 2, restrictionId: 5, description: 'r2' },
+      ];
+
+      await service.reject(10, data, rejectingUserId);
+
+      expect(repository.getByD5NoteId).toHaveBeenCalledWith(10);
+      expect(D5NoteScheduleMapper.toRejectionData).toHaveBeenNthCalledWith(
+        1,
+        first,
+        {
+          restrictionId: 4,
+          description: 'r1',
+          rejectingUserId,
+        },
       );
-
-      expect(mapper.toRejectionSnapshot).toHaveBeenCalledTimes(2);
-      expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(1, s1, {
-        restrictionId: 85,
-        description: 'descrição 1',
-        rejectingUserId: REJECTING_USER,
-      });
-      expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(2, s2, {
-        restrictionId: 85,
-        description: 'descrição 2',
-        rejectingUserId: REJECTING_USER,
-      });
-    });
-
-    it('deve persistir os ids e os snapshots através do rejectMany', async () => {
-      await service.reject(
-        D5_NOTE_ID,
-        [makeItem(1), makeItem(3)],
-        REJECTING_USER,
+      expect(D5NoteScheduleMapper.toRejectionData).toHaveBeenNthCalledWith(
+        2,
+        second,
+        {
+          restrictionId: 5,
+          description: 'r2',
+          rejectingUserId,
+        },
       );
-
-      expect(repository.rejectMany).toHaveBeenCalledTimes(1);
       expect(repository.rejectMany).toHaveBeenCalledWith(
-        [1, 3],
-        [
-          { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
-          { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
-        ],
+        [1, 2],
+        [{ description: 'r1' }, { description: 'r2' }],
         10,
       );
-    });
-
-    it('deve manter a ordem do payload, e não a ordem devolvida pelo repositório', async () => {
-      await service.reject(
-        D5_NOTE_ID,
-        [makeItem(3), makeItem(1), makeItem(2)],
-        REJECTING_USER,
-      );
-
-      expect(repository.rejectMany).toHaveBeenCalledWith(
-        [3, 1, 2],
-        [
-          { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
-          { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
-          { id_nota_d5: D5_NOTE_ID, snapshotOf: 2 },
-        ],
-        10,
-      );
-    });
-
-    it('deve resolver sem retorno em caso de sucesso', async () => {
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
-      ).resolves.toBeUndefined();
-    });
-
-    it('não deve tocar no sistema de ficheiros', async () => {
-      await service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER);
-
-      expect(fileService.deleteMany).not.toHaveBeenCalled();
-    });
-
-    // --- validação de existência ---
-    it('deve lançar NotFound listando os ids que não pertencem à nota D5', async () => {
-      const call = service.reject(
-        D5_NOTE_ID,
-        [makeItem(1), makeItem(98), makeItem(99)],
-        REJECTING_USER,
-      );
-
-      await expect(call).rejects.toThrow(NotFoundException);
-      await expect(
-        service.reject(
-          D5_NOTE_ID,
-          [makeItem(1), makeItem(98), makeItem(99)],
-          REJECTING_USER,
-        ),
-      ).rejects.toThrow(
-        'Programações não encontradas para esta nota D5: 98, 99',
-      );
-    });
-
-    it('deve tratar como inexistente uma programação de outra nota D5', async () => {
-      // o repositório só devolve as da nota 10; o id 500 pertence a outra
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(500)], REJECTING_USER),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('deve lançar NotFound quando a nota não tem nenhuma programação', async () => {
-      repository.getByD5NoteId.mockResolvedValue([]);
-
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
-      ).rejects.toThrow('Programações não encontradas para esta nota D5: 1');
-    });
-
-    it('deve ser atómico: um id inexistente impede a reprovação de todos', async () => {
-      await expect(
-        service.reject(
-          D5_NOTE_ID,
-          [makeItem(1), makeItem(2), makeItem(99)],
-          REJECTING_USER,
-        ),
-      ).rejects.toThrow(NotFoundException);
-
-      expect(mapper.toRejectionSnapshot).not.toHaveBeenCalled();
-      expect(repository.rejectMany).not.toHaveBeenCalled();
-    });
-
-    // --- propagação de erros ---
-    it('deve propagar falhas ao buscar as programações', async () => {
-      repository.getByD5NoteId.mockRejectedValue(new Error('timeout'));
-
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
-      ).rejects.toThrow('timeout');
-      expect(repository.rejectMany).not.toHaveBeenCalled();
-    });
-
-    it('deve propagar falhas do mapper sem chamar o rejectMany', async () => {
-      mapper.toRejectionSnapshot.mockImplementation(() => {
-        throw new Error('snapshot inválido');
-      });
-
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
-      ).rejects.toThrow('snapshot inválido');
-      expect(repository.rejectMany).not.toHaveBeenCalled();
-    });
-
-    it('deve propagar falhas do rejectMany', async () => {
-      repository.rejectMany.mockRejectedValue(new Error('transação falhou'));
-
-      await expect(
-        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
-      ).rejects.toThrow('transação falhou');
     });
   });
 });

@@ -1,11 +1,20 @@
 import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { AddServiceInput, ApplyAdditionalInput } from 'src/application/types';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
@@ -20,27 +29,14 @@ import {
   isRescheduled,
   SchedulingViolation,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import {
   FINALIZED_SCHEDULE_STATUSES,
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
-
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-
-import { Prisma } from 'src/infra/generated/prisma/client';
 import { ProgressRecalculationService } from './progressRecalculation.service';
 
 const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
@@ -136,7 +132,7 @@ export class WorksServicesService {
 
   async applyAdditional(
     workId: number,
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       try {
@@ -150,13 +146,13 @@ export class WorksServicesService {
   }
 
   async addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
   ): Promise<void> {
-    const { idService, operationDescription, point, idWork } = data;
+    const { idService, operationDescription, point, workId } = data;
 
     const items =
-      await this.workServicesQueryRepository.getAllServicesOfWork(idWork);
+      await this.workServicesQueryRepository.getAllServicesOfWork(workId);
 
     const itemsMap = new Map(
       items.map((item) => [
@@ -174,7 +170,7 @@ export class WorksServicesService {
     await this.prisma.$transaction(async (tx) => {
       try {
         await this.workServicesRepository.addItem(data, type, tx);
-        await this.progress.recomputeWorkProgress(idWork, tx); // ALTERADO
+        await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
       } catch (error) {
         this.logger.error(error);
         throw error;
@@ -228,19 +224,19 @@ export class WorksServicesService {
       );
     }
 
-    if (schedule.id_obra !== workId) {
+    if (schedule.workId !== workId) {
       throw new BadRequestException(
         'A programação informada não pertence a esta obra.',
       );
     }
 
-    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)) {
+    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId)) {
       throw new ConflictException(
         'Programação já finalizada: não é possível programar novos serviços.',
       );
     }
 
-    const realWorkId = schedule.id_obra;
+    const realWorkId = schedule.workId;
 
     const history =
       await this.workServicesQueryRepository.getServiceScheduleHistory(
@@ -252,7 +248,7 @@ export class WorksServicesService {
     this.validateNotDuplicated(data, history);
 
     const newStatus =
-      schedule.id_status_programacao === ScheduleStatus.PENDENTE_REVISAO
+      schedule.statusId === ScheduleStatus.PENDENTE_REVISAO
         ? ScheduleStatus.APROVADA
         : undefined;
 

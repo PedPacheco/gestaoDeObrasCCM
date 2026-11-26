@@ -11,7 +11,7 @@ import {
 
 export async function storeScheduleDataAction(
   data: unknown,
-  idWork: string,
+  workId: string,
   idStatusWork: unknown,
   statusSchedule: string,
   ordemDcim?: string,
@@ -38,7 +38,7 @@ export async function storeScheduleDataAction(
     maxAge: 60 * 30,
   });
 
-  redirect(`/servicos/${idWork}`);
+  redirect(`/servicos/${workId}`);
 }
 
 export async function scheduleServices(
@@ -65,7 +65,7 @@ export async function performScheduleServices(
 
 export async function finalizeServices(
   data: unknown,
-  idWork: number,
+  workId: number,
   files?: File[],
 ) {
   const formData = new FormData();
@@ -77,7 +77,7 @@ export async function finalizeServices(
   });
 
   return await serverMultipartRequest(
-    `/servicos/finalizar/${idWork}`,
+    `/servicos/finalizar/${workId}`,
     formData,
     {
       method: "PATCH",
@@ -99,7 +99,7 @@ export async function reascheduleServices(
 }
 
 export async function addService(data: {
-  idWork: number;
+  workId: number;
   idService: number;
   point: string;
   operation: string;
@@ -112,7 +112,7 @@ export async function addService(data: {
 }
 
 export async function addMaterial(data: {
-  idWork: number;
+  workId: number;
   idService: number;
   point: string;
   operation: string;
@@ -125,7 +125,7 @@ export async function addMaterial(data: {
 }
 
 export async function addFamily(data: {
-  idWork: number;
+  workId: number;
   idService: number;
   point: string;
   operation: string;

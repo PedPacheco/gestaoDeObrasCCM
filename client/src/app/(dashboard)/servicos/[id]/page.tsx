@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
@@ -103,7 +102,7 @@ export default async function ServicosPage({
         serviceTeams={serviceTeams.data}
         isInsert={formData?.id ? false : true}
         options={options}
-        idWork={Number(id)}
+        workId={Number(id)}
         idStatusWork={Number(idStatusWorkCookie)}
         idSchedule={Number(formData?.id)}
         statusSchedule={statusSchedule || ""}

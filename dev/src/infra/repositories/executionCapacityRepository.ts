@@ -3,15 +3,16 @@ import { IExecutionCapacityRepository } from 'src/domain/contracts/IExecutionCap
 import { PrismaService } from '../prisma/prisma.service';
 
 import {
-  ExecutionCapacityDTO,
-  UpdateExecutionCapacityDTO,
-} from 'src/interface/dtos/executionCapacityDTO';
+  ExecutionCapacityInput,
+  UpdateExecutionCapacityInput,
+} from 'src/application/types';
+import { GetFinancialValuesResponse, GetResponse } from 'src/domain/types';
 
 @Injectable()
 export class ExecutionCapacityRepository implements IExecutionCapacityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(filters: ExecutionCapacityDTO): Promise<any> {
+  async get(filters: ExecutionCapacityInput): Promise<GetResponse[]> {
     const { ano, equipe, idParceira, idRegional } = filters;
 
     return await this.prisma.capacidade_execucao.findMany({
@@ -56,7 +57,9 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
     });
   }
 
-  async getFinancialValue(filters: ExecutionCapacityDTO): Promise<any[]> {
+  async getFinancialValue(
+    filters: ExecutionCapacityInput,
+  ): Promise<GetFinancialValuesResponse[]> {
     const { ano, equipe, idParceira, idRegional } = filters;
 
     return await this.prisma.capacidade_execucao.findMany({
@@ -98,9 +101,9 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
     });
   }
 
-  async update(data: UpdateExecutionCapacityDTO[]): Promise<void> {
+  async update(data: UpdateExecutionCapacityInput[]): Promise<void> {
     await this.prisma.$transaction(
-      data.map((item: UpdateExecutionCapacityDTO) => {
+      data.map((item: UpdateExecutionCapacityInput) => {
         const { id, ...rest } = item;
         return this.prisma.capacidade_execucao.updateMany({
           where: {

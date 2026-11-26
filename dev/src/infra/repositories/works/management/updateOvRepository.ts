@@ -1,0 +1,71 @@
+import { IUpdateOvRepository } from 'src/domain/contracts/works/management/IUpdateOvRepository';
+import { MarketWork } from 'src/domain/entities/works.entity';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { Injectable, Logger } from '@nestjs/common';
+
+import { resolvePointByPointMode } from './pointByPointMode.helper';
+
+@Injectable()
+export class UpdateOvRepository implements IUpdateOvRepository {
+  private readonly logger = new Logger(UpdateOvRepository.name);
+  constructor(private readonly prisma: PrismaService) {}
+
+  async update(data: Partial<MarketWork>[]): Promise<void> {
+    try {
+      // O flag de ponto a ponto acompanha a parceira (regra 5).
+      const modes = new Map<number, boolean | undefined>();
+
+      for (const item of data as any[]) {
+        modes.set(
+          item.id,
+          await resolvePointByPointMode(this.prisma, item.id, item.id_turma),
+        );
+      }
+
+      await this.prisma.$transaction(
+        data.map((item: any) => {
+          const {
+            id,
+            obra,
+            pep,
+            diagrama,
+            id_gpm,
+            id_circuito,
+            id_tipo,
+            id_turma,
+            referencia,
+            prazo,
+            status_diagrama,
+            status_pep,
+            status_ov,
+          } = item;
+
+          return this.prisma.obras.update({
+            where: { id },
+            data: {
+              ovnota: obra,
+              pep,
+              diagrama,
+              id_gpm,
+              id_tipo,
+              id_circuito,
+              id_turma,
+              status_ov_sap: Number(status_ov),
+              prazo,
+              status_diagrama,
+              status_pep,
+              referencia,
+            },
+          });
+        }),
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Erro ao atualizar contratos. Payload: ${JSON.stringify(data)}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+}

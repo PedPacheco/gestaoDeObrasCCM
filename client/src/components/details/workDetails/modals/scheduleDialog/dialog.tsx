@@ -31,7 +31,7 @@ export type ScheduleFormHookReturn = ReturnType<typeof useOldScheduleForm>;
 export interface ScheduleFormDialogProps {
   open: boolean;
   onClose: () => void;
-  idWork: number;
+  workId: number;
   isInsert: boolean;
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
@@ -55,7 +55,7 @@ export default function ScheduleFormDialog({
   open,
   onExecutionDialogOpen,
   onClose,
-  idWork,
+  workId,
   isInsert,
   onError,
   onSuccess,
@@ -82,7 +82,7 @@ export default function ScheduleFormDialog({
   const { handleSubmit, isPending } = useOldScheduleSubmit({
     formData,
     executionReportData,
-    idWork,
+    workId,
     isInsert,
     onError,
     onSuccess,

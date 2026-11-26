@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { ServicesController } from 'src/interface/controllers/services/worksServices.controller';
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
@@ -227,7 +227,7 @@ describe('ServicesController', () => {
   describe('addServices', () => {
     it('should call the method addServices service', async () => {
       const mockParam = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
@@ -248,7 +248,7 @@ describe('ServicesController', () => {
   describe('addMaterials', () => {
     it('should call the method addMaterials service', async () => {
       const mockParam = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
@@ -269,7 +269,7 @@ describe('ServicesController', () => {
   describe('addFamily', () => {
     it('should call the method addFamily with service', async () => {
       const mockParam = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
@@ -279,7 +279,7 @@ describe('ServicesController', () => {
       };
 
       const dataSent = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
@@ -298,7 +298,7 @@ describe('ServicesController', () => {
 
     it('should call the method addFamily with material', async () => {
       const mockParam = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
@@ -308,7 +308,7 @@ describe('ServicesController', () => {
       };
 
       const dataSent = {
-        idWork: 1,
+        workId: 1,
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',

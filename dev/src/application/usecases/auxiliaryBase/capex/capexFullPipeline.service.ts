@@ -1,10 +1,8 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 
-import {
-  CapexProgressPayload,
-  ProgressEmitter,
-} from 'src/application/shared/capex.types';
+import { CapexProgressPayload, ProgressEmitter } from 'src/application/types';
 import { UpdateCapexService } from 'src/application/usecases/works/management/updateCapex.service';
+import { AppLogger } from 'src/core/logger/logger.service';
 import { CapexProcessingService } from './capexProcessing.service';
 
 interface PhaseRange {
@@ -57,13 +55,12 @@ const UPDATE_RANGES: PhaseRanges = {
  */
 @Injectable()
 export class CapexFullPipelineService {
-  private readonly logger = new Logger(CapexFullPipelineService.name);
-
   private running = false;
 
   constructor(
     private readonly capexProcessingService: CapexProcessingService,
     private readonly updateCapexService: UpdateCapexService,
+    private readonly logger: AppLogger,
   ) {}
 
   get isRunning(): boolean {

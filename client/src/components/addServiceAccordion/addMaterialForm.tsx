@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useCallback, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
@@ -19,16 +20,15 @@ import {
   AddMaterialOrServiceFormState,
   MaterialData,
 } from "./addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { ServicesContractSelect } from "./servicesContractSelect";
 
 interface Props {
-  idWork: number;
+  workId: number;
   materialData: MaterialData[];
   points: string[];
   operationsDescription: string[];
   onSubmit: (data: {
-    idWork: number;
+    workId: number;
     idService: number;
     point: string;
     operation: string;
@@ -39,7 +39,7 @@ interface Props {
 }
 
 export function AddMaterialForm({
-  idWork,
+  workId,
   materialData,
   points,
   operationsDescription,
@@ -87,7 +87,7 @@ export function AddMaterialForm({
       setLoading(true);
 
       await onSubmit({
-        idWork,
+        workId,
         idService: form.idService!,
         point: form.point,
         operation: form.operation,

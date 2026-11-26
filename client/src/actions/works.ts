@@ -76,7 +76,7 @@ export async function UpdateWork(data: any, id: number) {
       };
     }
 
-    revalidatePath(`/detalhes/${data.idWork}`);
+    revalidatePath(`/detalhes/${data.workId}`);
 
     return { success: true, message: res.message };
   } catch (error: any) {

@@ -2,7 +2,7 @@ import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
-import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/schedule/getMonthlySummaryForecastRepository';
+import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/works/schedule/getMonthlySummaryForecastRepository';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 // import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
 
@@ -204,7 +204,9 @@ describe('GetMonthlySummaryForecastRepository', () => {
               capex_mo_plan: true,
               executado: true,
               turmas: { select: { turma: true } },
-              tipos: { select: { grupos: { select: { grupo: true } } } },
+              tipos: {
+                select: { id_grupo: true, grupos: { select: { grupo: true } } },
+              },
             },
           },
         },
@@ -253,7 +255,9 @@ describe('GetMonthlySummaryForecastRepository', () => {
               capex_mo_plan: true,
               executado: true,
               turmas: { select: { turma: true } },
-              tipos: { select: { grupos: { select: { grupo: true } } } },
+              tipos: {
+                select: { id_grupo: true, grupos: { select: { grupo: true } } },
+              },
             },
           },
         },

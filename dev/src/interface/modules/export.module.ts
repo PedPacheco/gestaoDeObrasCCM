@@ -8,6 +8,7 @@ import { Module } from '@nestjs/common';
 
 import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exportSchedulesBI.service';
 import { ExportD5NotesService } from 'src/application/usecases/export/exportD5Notes.service';
+import { ExportD5NotesSchedulesService } from 'src/application/usecases/export/exportD5NotesSchedules.service';
 import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
 import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
 import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
@@ -86,6 +87,7 @@ import { WorksServicesModule } from './worksServices.module';
     ExportExcelServicesService,
     ExportFeasibilityService,
     ExportD5NotesService,
+    ExportD5NotesSchedulesService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

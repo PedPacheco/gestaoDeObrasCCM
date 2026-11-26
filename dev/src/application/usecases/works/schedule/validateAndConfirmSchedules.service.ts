@@ -2,13 +2,13 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/works/schedule/IFindScheduleByIdRepository';
 import {
   IValidateConfirmAndRejectSchedulesRepository,
   VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
-} from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+} from 'src/domain/contracts/works/schedule/IValidateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/works/schedule/findScheduleByIdRepository';
 import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,
@@ -24,7 +24,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import {
   FINALIZED_SCHEDULE_STATUSES,
@@ -65,10 +64,10 @@ export class ValidateConfirmAndRejectSchedulesService {
         await this.validateAndConfirmSchedulesRepository.validate(data, tx);
 
         // Todas as obras envolvidas acompanham (antes só a da 1ª programação).
-        for (const idWork of this.distinctWorkIds(schedules)) {
+        for (const workId of this.distinctWorkIds(schedules)) {
           await this.statusFlowRepository.updateStatusWorks(
             WorkStatus.VALIDADA,
-            idWork,
+            workId,
             tx,
           );
         }
@@ -85,21 +84,11 @@ export class ValidateConfirmAndRejectSchedulesService {
       throw new BadRequestException('Nenhuma programação para ser confirmada');
     }
 
-    const works = await this.loadSchedules(
+    const schedules = await this.loadSchedules(
       confirmedSchedules.map((item) => item.id),
     );
 
-    await this.assertPointByPointTransitionAllowed(works, true);
-
-    let schedules: WorkSchedule[];
-
-    try {
-      schedules = works.map((work) => WorkScheduleMapper.toDomain(work));
-    } catch (error: any) {
-      throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
-      );
-    }
+    await this.assertPointByPointTransitionAllowed(schedules, true);
 
     for (const schedule of schedules) {
       schedule.requireDpNumber();
@@ -112,10 +101,10 @@ export class ValidateConfirmAndRejectSchedulesService {
           tx,
         );
 
-        for (const idWork of this.distinctWorkIds(works)) {
+        for (const workId of this.distinctWorkIds(schedules)) {
           await this.statusFlowRepository.updateStatusWorks(
             WorkStatus.CONFIRMADA,
-            idWork,
+            workId,
             tx,
           );
         }
@@ -152,7 +141,7 @@ export class ValidateConfirmAndRejectSchedulesService {
 
         await this.statusFlowRepository.updateStatusWorks(
           WorkStatus.SERVICOS_REAGENDADOS,
-          schedule.id_obra,
+          schedule.workId,
           tx,
         );
       }
@@ -175,8 +164,8 @@ export class ValidateConfirmAndRejectSchedulesService {
     return schedules;
   }
 
-  private distinctWorkIds(schedules: { id_obra: number }[]): number[] {
-    return [...new Set(schedules.map((schedule) => schedule.id_obra))];
+  private distinctWorkIds(schedules: WorkSchedule[]): number[] {
+    return [...new Set(schedules.map((schedule) => schedule.workId))];
   }
 
   /**
@@ -186,7 +175,7 @@ export class ValidateConfirmAndRejectSchedulesService {
    *  - validar/confirmar exige ao menos um item programado.
    */
   private async assertPointByPointTransitionAllowed(
-    schedules: { id: number; id_obra: number; id_status_programacao: number }[],
+    schedules: WorkSchedule[],
     requireServices: boolean,
   ): Promise<void> {
     const works = await this.prisma.obras.findMany({
@@ -201,13 +190,13 @@ export class ValidateConfirmAndRejectSchedulesService {
     );
 
     const pointByPointSchedules = schedules.filter((schedule) =>
-      pointByPointWorks.has(schedule.id_obra),
+      pointByPointWorks.has(schedule.workId),
     );
 
     if (pointByPointSchedules.length === 0) return;
 
     const finalized = pointByPointSchedules.filter((schedule) =>
-      FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao),
+      FINALIZED_SCHEDULE_STATUSES.includes(schedule.statusId),
     );
 
     if (finalized.length > 0) {

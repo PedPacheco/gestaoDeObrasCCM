@@ -1,12 +1,3 @@
-import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/application/usecases/users.service';
-import {
-  userChangePasswordController,
-  userListInterfaceController,
-  userAdminCreateInterfaceController,
-  userDeactivateInterfaceController,
-} from 'src/interface/types/userInterface';
-
 import {
   Body,
   Controller,
@@ -15,30 +6,43 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
-
-import {
-  ChangePasswordDTO,
-  changePasswordResponseDTO,
-} from '../dtos/changePasswordDto';
+import { plainToInstance } from 'class-transformer';
+import { UsersService } from 'src/application/usecases/users.service';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-
 import { RegisterUserDTO } from '../dtos/registerUserDto';
 import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
+import {
+  UserAdminCreateResponse,
+  UserDeactivateResponse,
+  UserListResponse,
+} from '../types';
 
 @Controller('user')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  // @Put('/change-password')
+  // @UseGuards(AreaViewGuard())
+  // async changePassword(
+  //   @Body() { token, newPassword }: ChangePasswordDTO,
+  // ): Promise<userChangePasswordController> {
+  //   const user = await this.usersService.updatePassword(token, newPassword);
+
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Senha alterada com sucesso',
+  //     data: plainToInstance(changePasswordResponseDTO, user),
+  //   };
+  // }
   @Get()
   @UseGuards(AreaViewGuard({ adminOnly: true }))
-  async list(): Promise<userListInterfaceController> {
+  async list(): Promise<UserListResponse> {
     const users = await this.usersService.listUsers();
 
     return {
@@ -54,9 +58,7 @@ export class UsersController {
 
   @Post()
   @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async create(
-    @Body() dto: RegisterUserDTO,
-  ): Promise<userAdminCreateInterfaceController> {
+  async create(@Body() dto: RegisterUserDTO): Promise<UserAdminCreateResponse> {
     const user = await this.usersService.createUser(dto);
 
     return {
@@ -68,26 +70,26 @@ export class UsersController {
     };
   }
 
-  @Put('/change-password')
-  @UseGuards(AreaEditGuard({ adminOnly: true }))
-  async changePassword(
-    @Body() { token, newPassword }: ChangePasswordDTO,
-  ): Promise<userChangePasswordController> {
-    const user = await this.usersService.updatePassword(token, newPassword);
+  // @Put('/change-password')
+  // @UseGuards(AreaEditGuard({ adminOnly: true }))
+  // async changePassword(
+  //   @Body() { token, newPassword }: ChangePasswordDTO,
+  // ): Promise<userChangePasswordController> {
+  //   const user = await this.usersService.updatePassword(token, newPassword);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Senha alterada com sucesso',
-      data: plainToInstance(changePasswordResponseDTO, user),
-    };
-  }
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Senha alterada com sucesso',
+  //     data: plainToInstance(changePasswordResponseDTO, user),
+  //   };
+  // }
 
   @Delete('/:id')
   @UseGuards(AreaEditGuard({ adminOnly: true }))
   async deactivate(
     @Param('id') id: string,
     @Req() req: any,
-  ): Promise<userDeactivateInterfaceController> {
+  ): Promise<UserDeactivateResponse> {
     const user = await this.usersService.deactivateUser(+id, req.user.sub);
 
     return {

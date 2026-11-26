@@ -1,141 +1,132 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import type { UpdateD5NoteInput } from 'src/application/types/usecases/d5Notes/d5Notes.types';
 import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
-import { ID5NotesRepository } from 'src/domain/contracts/d5Notes/ID5notesRepository';
-import { Prisma } from 'src/infra/generated/prisma/client';
-import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
-import type { Mocked } from 'vitest';
+import type { ID5NotesRepository } from 'src/domain/contracts/d5Notes/ID5notesRepository';
+import { NotFoundError, ValidationError } from 'src/domain/errors/domain.error';
+import type { D5NoteDetail } from 'src/domain/types';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 
-const makePrismaError = (code: string) =>
-  new Prisma.PrismaClientKnownRequestError('erro', {
-    code,
-    clientVersion: '5.0.0',
-  });
+// ─── Fixtures ─────────────────────────────────────────────────────────
+
+const NOTE_ID = 10;
+const MODIFYING_USER_ID = 7;
+
+const existingNote = { id: NOTE_ID } as unknown as D5NoteDetail;
+
+const updateInput: UpdateD5NoteInput = {
+  partnerId: 3,
+  statusId: 2,
+  description: 'Revisão do prazo',
+};
+
+// ─── Suite ────────────────────────────────────────────────────────────
 
 describe('ManageD5NoteService', () => {
+  let repository: Mocked<ID5NotesRepository>;
   let service: ManageD5NoteService;
-  let repository: Mocked<Pick<ID5NotesRepository, 'getById' | 'update'>>;
-
-  const NOTE_ID = 1;
-  const USER_ID = 99;
-  const DATA: UpdateD5NoteDTO = { partnerId: 3 };
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     repository = {
-      getById: vi.fn().mockResolvedValue({ id: NOTE_ID }),
+      get: vi.fn(),
+      getTotals: vi.fn(),
+      getById: vi.fn().mockResolvedValue(existingNote),
       update: vi.fn().mockResolvedValue(undefined),
-    };
-    service = new ManageD5NoteService(
-      repository as unknown as ID5NotesRepository,
+    } as unknown as Mocked<ID5NotesRepository>;
+
+    service = new ManageD5NoteService(repository);
+  });
+
+  describe('update', () => {
+    // ─── Validação do input ───────────────────────────────────────────
+
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['an empty object', {}],
+    ])(
+      'throws BadRequestException when the data is %s',
+      async (_label, data) => {
+        await expect(
+          service.update(
+            NOTE_ID,
+            data as unknown as UpdateD5NoteInput,
+            MODIFYING_USER_ID,
+          ),
+        ).rejects.toThrow(
+          new BadRequestException('Nenhum campo fornecido para atualização.'),
+        );
+
+        expect(repository.getById).not.toHaveBeenCalled();
+        expect(repository.update).not.toHaveBeenCalled();
+      },
     );
-  });
 
-  afterEach(() => vi.clearAllMocks());
+    // ─── Existência da nota ───────────────────────────────────────────
 
-  it('deve estar definido', () => {
-    expect(service).toBeDefined();
-  });
+    it('throws NotFoundException when the note does not exist', async () => {
+      repository.getById.mockResolvedValue(null);
 
-  describe('validação do payload', () => {
-    it.each([
-      ['undefined', undefined],
-      ['null', null],
-      ['objeto vazio', {}],
-    ])('deve lançar BadRequest quando o payload é %s', async (_l, payload) => {
       await expect(
-        service.update(NOTE_ID, payload as UpdateD5NoteDTO, USER_ID),
-      ).rejects.toThrow(BadRequestException);
-
-      expect(repository.getById).not.toHaveBeenCalled();
-      expect(repository.update).not.toHaveBeenCalled();
-    });
-
-    it('deve usar a mensagem correta', async () => {
-      await expect(
-        service.update(NOTE_ID, {} as UpdateD5NoteDTO, USER_ID),
-      ).rejects.toThrow('Nenhum campo fornecido para atualização.');
-    });
-  });
-
-  describe('nota inexistente', () => {
-    it.each([
-      ['null', null],
-      ['undefined', undefined],
-    ])('deve lançar NotFound quando getById devolve %s', async (_l, value) => {
-      repository.getById.mockResolvedValue(value as never);
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toThrow(
-        new NotFoundException('Nota D5 não encontrada.'),
-      );
-      expect(repository.update).not.toHaveBeenCalled();
-    });
-
-    it('deve propagar erros do getById sem conversão', async () => {
-      const error = new Error('falha de conexão');
-      repository.getById.mockRejectedValue(error);
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toBe(error);
-      expect(repository.update).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('atualização com sucesso', () => {
-    it('deve verificar a existência e delegar ao repositório', async () => {
-      await expect(
-        service.update(NOTE_ID, DATA, USER_ID),
-      ).resolves.toBeUndefined();
+        service.update(NOTE_ID, updateInput, MODIFYING_USER_ID),
+      ).rejects.toThrow(new NotFoundException('Nota D5 não encontrada.'));
 
       expect(repository.getById).toHaveBeenCalledWith(NOTE_ID);
-      expect(repository.update).toHaveBeenCalledWith(NOTE_ID, DATA, USER_ID);
+      expect(repository.update).not.toHaveBeenCalled();
     });
 
-    it('deve consultar antes de atualizar', async () => {
-      await service.update(NOTE_ID, DATA, USER_ID);
+    // ─── Sucesso ──────────────────────────────────────────────────────
+
+    it('updates the note with the given data and modifying user', async () => {
+      await service.update(NOTE_ID, updateInput, MODIFYING_USER_ID);
+
+      expect(repository.getById).toHaveBeenCalledWith(NOTE_ID);
+      expect(repository.update).toHaveBeenCalledWith(
+        NOTE_ID,
+        updateInput,
+        MODIFYING_USER_ID,
+      );
+    });
+
+    it('accepts a partial update with a single field', async () => {
+      const partial: UpdateD5NoteInput = { description: 'Só a descrição' };
+
+      await service.update(NOTE_ID, partial, MODIFYING_USER_ID);
+
+      expect(repository.update).toHaveBeenCalledWith(
+        NOTE_ID,
+        partial,
+        MODIFYING_USER_ID,
+      );
+    });
+
+    it('checks that the note exists before updating it', async () => {
+      await service.update(NOTE_ID, updateInput, MODIFYING_USER_ID);
 
       expect(repository.getById.mock.invocationCallOrder[0]).toBeLessThan(
         repository.update.mock.invocationCallOrder[0],
       );
     });
 
+    // ─── Erros do repositório ─────────────────────────────────────────
+
     it.each([
-      ['apenas parceira', { partnerId: 3 }],
-      ['apenas status', { statusId: 7 }],
-      ['apenas observação', { observation: 'texto' }],
-      ['todos os campos', { partnerId: 3, statusId: 7, observation: 'txt' }],
-    ])('deve aceitar %s', async (_l, payload) => {
-      await service.update(NOTE_ID, payload, USER_ID);
-      expect(repository.update).toHaveBeenCalledWith(NOTE_ID, payload, USER_ID);
-    });
-  });
+      ['NotFoundError (P2025)', new NotFoundError('Nota D5 não encontrada.')],
+      [
+        'ValidationError (P2003)',
+        new ValidationError('Parceira ou status inexistente.'),
+      ],
+      ['an unexpected error', new Error('database down')],
+    ])(
+      'propagates %s raised by the repository unchanged',
+      async (_label, error) => {
+        repository.update.mockRejectedValue(error);
 
-  describe('erros do Prisma no update', () => {
-    it('deve converter P2025 em NotFoundException', async () => {
-      repository.update.mockRejectedValue(makePrismaError('P2025'));
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toThrow(
-        new NotFoundException('Nota D5 não encontrada.'),
-      );
-    });
-
-    it('deve converter P2003 em BadRequestException', async () => {
-      repository.update.mockRejectedValue(makePrismaError('P2003'));
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toThrow(
-        new BadRequestException('Parceira ou status inexistente.'),
-      );
-    });
-
-    it('deve propagar outros códigos do Prisma', async () => {
-      const error = makePrismaError('P2002');
-      repository.update.mockRejectedValue(error);
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toBe(error);
-    });
-
-    it('deve propagar erros que não são do Prisma', async () => {
-      const error = new Error('timeout');
-      repository.update.mockRejectedValue(error);
-
-      await expect(service.update(NOTE_ID, DATA, USER_ID)).rejects.toBe(error);
-    });
+        await expect(
+          service.update(NOTE_ID, updateInput, MODIFYING_USER_ID),
+        ).rejects.toBe(error);
+      },
+    );
   });
 });

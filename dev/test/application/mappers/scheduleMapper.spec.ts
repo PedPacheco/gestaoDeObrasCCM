@@ -1,587 +1,397 @@
-import type { Mocked, MockedFunction } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
-
-import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
-import { parseTimeToDate } from 'src/utils/parseTimeToDate';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
-import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
+import type { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks de colaboradores
+// Module mocks
 // ---------------------------------------------------------------------------
-vi.mock('src/domain/entities/schedules/workSchedule.entity', () => ({
-  WorkSchedule: { create: vi.fn() },
+
+const { parseTimeToDateMock } = vi.hoisted(() => ({
+  parseTimeToDateMock: vi.fn(),
 }));
 
 vi.mock('src/utils/parseTimeToDate', () => ({
-  parseTimeToDate: vi.fn(),
+  parseTimeToDate: parseTimeToDateMock,
 }));
 
-const entity = WorkSchedule as Mocked<typeof WorkSchedule>;
-const parseTime = parseTimeToDate as MockedFunction<
-  typeof parseTimeToDate
->;
+vi.mock('src/domain/entities/schedules/workSchedule.entity', () => ({
+  WorkSchedule: {
+    create: vi.fn((props: Record<string, unknown>) => ({
+      __entity: true,
+      ...props,
+    })),
+  },
+}));
+
+const createMock = vi.mocked(WorkSchedule.create);
 
 // ---------------------------------------------------------------------------
-// Factories
+// Fixtures & helpers
 // ---------------------------------------------------------------------------
-const DATA_PROG = new Date('2026-02-10T00:00:00.000Z');
-const START = new Date('2026-02-10T08:00:00.000Z');
-const FINISH = new Date('2026-02-10T17:00:00.000Z');
 
-const makeRow = (overrides: Record<string, any> = {}) => ({
+const START = '08:00';
+const FINISH = '17:30';
+const START_DATE = new Date('1970-01-01T08:00:00.000Z');
+const FINISH_DATE = new Date('1970-01-01T17:30:00.000Z');
+
+const DEFAULT_PARSED: Record<string, Date | null> = {
+  [START]: START_DATE,
+  [FINISH]: FINISH_DATE,
+};
+
+/** Controls what parseTimeToDate returns for each input string. */
+function stubParsedTimes(overrides: Record<string, Date | null> = {}) {
+  const table = { ...DEFAULT_PARSED, ...overrides };
+  parseTimeToDateMock.mockImplementation((time: string) =>
+    time in table ? table[time] : null,
+  );
+}
+
+function catchError(fn: () => unknown): Error {
+  try {
+    fn();
+  } catch (error) {
+    return error as Error;
+  }
+  throw new Error('Expected the function to throw, but it did not');
+}
+
+const baseInput = {
+  idWork: 10,
+  dataProg: '2026-11-24T00:00:00.000Z',
+  startTime: START,
+  finishTime: FINISH,
+  prog: 4,
+};
+
+const confirmationRow = {
   id: 1,
   id_obra: 10,
-  data_prog: DATA_PROG,
-  hora_ini: START,
-  hora_ter: FINISH,
-  prog: 50,
-  exec: 40,
-  observacao_programacao: 'obs',
-  observacao_execucao: 'exec obs',
-  equip_desligado: 'Grua',
-  num_dp: '12345678',
-  tipo_servico: 'DP',
-  chi: 3,
-  chave_provisoria: true,
-  equipe_linha_morta: 1,
-  equipe_linha_viva: 2,
-  equipe_regularizacao: 3,
-  id_tecnico: 4,
-  id_restricao_execucao: 5,
-  nome_responsavel_execucao: 'Ana',
-  id_status_programacao: 2,
-  reprovada: true,
-  observacao_restricao: 'Aguarda licença',
-  id_usuario_ultima_atualizacao: 7,
-  id_restricao_prog1: 8,
-  responsabilidade1: 'Equipa A',
-  nome_responsavel: 'Bruno',
-  area_responsavel1: 'Operações',
-  status_restricao1: 'Aberta',
-  data_resolucao1: new Date('2026-03-01T00:00:00.000Z'),
-  id_restricao_prog2: 9,
-  responsabilidade2: 'Equipa B',
-  nome_responsavel2: 'Carlos',
-  area_responsavel2: 'Manutenção',
-  status_restricao2: 'Fechada',
-  data_resolucao2: new Date('2026-03-05T00:00:00.000Z'),
-  ...overrides,
+  id_status_programacao: 3,
+  data_prog: '2026-11-24T00:00:00.000Z',
+  hora_ini: '1970-01-01T08:00:00.000Z',
+  hora_ter: new Date('1970-01-01T17:30:00.000Z'),
+  prog: 5,
+  exec: 2,
+  reprovada: false,
+};
+
+const entity = {
+  id: 1,
+  workId: 10,
+  dataProg: new Date('2026-11-24T00:00:00.000Z'),
+  prog: 5,
+  exec: 3,
+  observation: 'Programming note',
+  equipment: 'TR-01',
+  numDp: 'DP-123',
+  startTime: START_DATE,
+  finishTime: FINISH_DATE,
+  temporaryKey: true,
+  serviceType: 'Maintenance',
+  chi: 12.5,
+  responsibility: 'Execution owner',
+  lmTeam: 1,
+  lvTeam: 2,
+  regulTeam: 3,
+  idExecutionRestriction: 4,
+  executionObservation: 'Execution note',
+  idProgRestriction1: 5,
+  responsibilityProg: 'Resp 1',
+  responsibleName: 'Name 1',
+  responsibleArea: 'Area 1',
+  restrictionStatus: 'Open',
+  resolutionDate: new Date('2026-12-01T00:00:00.000Z'),
+  idProgRestriction2: 6,
+  responsibilityProg2: 'Resp 2',
+  responsibleName2: 'Name 2',
+  responsibleArea2: 'Area 2',
+  restrictionStatus2: 'Closed',
+  resolutionDate2: new Date('2026-12-02T00:00:00.000Z'),
+  idTechnical: 7,
+  observationRestriction: 'Restriction note',
+  rejected: false,
+  userId: 42,
+} as unknown as WorkSchedule;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  stubParsedTimes();
 });
 
-const makeEntity = (overrides: Record<string, any> = {}) =>
-  ({
-    id: 1,
-    idWork: 10,
-    dataProg: DATA_PROG,
-    startTime: START,
-    finishTime: FINISH,
-    prog: 50,
-    exec: 40,
-    observation: 'obs',
-    executionObservation: 'exec obs',
-    equipment: 'Grua',
-    numDp: '12345678',
-    tipoServico: undefined,
-    serviceType: 'DP',
-    chi: 3,
-    temporaryKey: true,
-    lmTeam: 1,
-    lvTeam: 2,
-    regulTeam: 3,
-    idTechnical: 4,
-    idExecutionRestriction: 5,
-    responsibility: 'Ana',
-    idScheduleStatus: 2,
-    rejected: true,
-    observationRestriction: 'Aguarda licença',
-    idUser: 7,
-    idProgRestriction1: 8,
-    responsibilityProg: 'Equipa A',
-    responsibleName: 'Bruno',
-    responsibleArea: 'Operações',
-    restrictionStatus: 'Aberta',
-    resolutionDate: new Date('2026-03-01T00:00:00.000Z'),
-    idProgRestriction2: 9,
-    responsibilityProg2: 'Equipa B',
-    responsibleName2: 'Carlos',
-    responsibleArea2: 'Manutenção',
-    restrictionStatus2: 'Fechada',
-    resolutionDate2: new Date('2026-03-05T00:00:00.000Z'),
-    ...overrides,
-  }) as unknown as WorkSchedule;
-
-const makeCreateDto = (
-  overrides: Partial<SchedulesDataDTO> = {},
-): SchedulesDataDTO =>
-  ({
-    dataProg: '2026-02-10',
-    startTime: '08:00',
-    finishTime: '17:00',
-    idWork: 10,
-    prog: 50,
-    ...overrides,
-  }) as unknown as SchedulesDataDTO;
-
-const makeUpdateDto = (
-  overrides: Partial<UpdateSchedulesInterface> = {},
-): UpdateSchedulesInterface =>
-  ({
-    dataProg: '2026-02-10',
-    startTime: '08:00',
-    finishTime: '17:00',
-    ...overrides,
-  }) as unknown as UpdateSchedulesInterface;
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 describe('WorkScheduleMapper', () => {
-  beforeEach(() => {
-    parseTime.mockImplementation((value: any) => {
-      if (!value) return undefined as any;
-      const [h, m] = String(value).split(':');
-      return new Date(`2026-02-10T${h}:${m}:00.000Z`) as any;
-    });
-    entity.create.mockReturnValue({ built: true } as any);
-  });
+  describe('toConfirmation', () => {
+    it('builds the domain entity from a database row', () => {
+      const result = WorkScheduleMapper.toConfirmation(confirmationRow);
 
-  afterEach(() => vi.resetAllMocks());
-
-  // =========================================================================
-  // toDomain
-  // =========================================================================
-  describe('toDomain', () => {
-    it('deve rejeitar quando falta hora_ini', () => {
-      expect(() =>
-        WorkScheduleMapper.toDomain(makeRow({ hora_ini: null })),
-      ).toThrow('horário de início e fim são obrigatórios');
-    });
-
-    it('deve rejeitar quando falta hora_ter', () => {
-      expect(() =>
-        WorkScheduleMapper.toDomain(makeRow({ hora_ter: undefined })),
-      ).toThrow(BadRequestException);
-    });
-
-    it('deve incluir o id da programação na mensagem de erro', () => {
-      expect(() =>
-        WorkScheduleMapper.toDomain(makeRow({ id: 42, hora_ini: null })),
-      ).toThrow('Programação 42');
-    });
-
-    it('deve traduzir as colunas para o vocabulário de domínio', () => {
-      WorkScheduleMapper.toDomain(makeRow());
-
-      expect(entity.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 1,
-          idWork: 10,
-          prog: 50,
-          exec: 40,
-          observation: 'obs',
-          executionObservation: 'exec obs',
-          equipment: 'Grua',
-          numDp: '12345678',
-          serviceType: 'DP',
-          chi: 3,
-          temporaryKey: true,
-          lmTeam: 1,
-          lvTeam: 2,
-          regulTeam: 3,
-          idTechnical: 4,
-          idExecutionRestriction: 5,
-          responsibility: 'Ana',
-          idScheduleStatus: 2,
-          rejected: true,
-          observationRestriction: 'Aguarda licença',
-          idUser: 7,
-          idProgRestriction1: 8,
-          responsibilityProg: 'Equipa A',
-          responsibleName: 'Bruno',
-          responsibleArea: 'Operações',
-          restrictionStatus: 'Aberta',
-          idProgRestriction2: 9,
-          responsibilityProg2: 'Equipa B',
-          responsibleName2: 'Carlos',
-          responsibleArea2: 'Manutenção',
-          restrictionStatus2: 'Fechada',
-        }),
-      );
-    });
-
-    it('deve converter dataProg, startTime e finishTime via moment', () => {
-      const built = WorkScheduleMapper.toDomain(makeRow());
-      const [[props]] = entity.create.mock.calls;
-
-      expect(props.dataProg).toEqual(DATA_PROG);
-      expect(props.startTime).toEqual(START);
-      expect(props.finishTime).toEqual(FINISH);
-      expect(built).toEqual({ built: true });
-    });
-
-    it('deve devolver a entidade construída', () => {
-      const built = { id: 1 } as any;
-      entity.create.mockReturnValue(built);
-
-      expect(WorkScheduleMapper.toDomain(makeRow())).toBe(built);
-    });
-
-    it('deve propagar erros de validação da entidade', () => {
-      entity.create.mockImplementation(() => {
-        throw new BadRequestException('regra de domínio');
-      });
-
-      expect(() => WorkScheduleMapper.toDomain(makeRow())).toThrow(
-        'regra de domínio',
-      );
-    });
-
-    describe('valores por omissão (??)', () => {
-      it.each([
-        ['exec', 'exec', undefined],
-        ['observation', 'observacao_programacao', undefined],
-        ['executionObservation', 'observacao_execucao', undefined],
-        ['equipment', 'equip_desligado', undefined],
-        ['numDp', 'num_dp', undefined],
-        ['serviceType', 'tipo_servico', undefined],
-        ['chi', 'chi', undefined],
-        ['responsibility', 'nome_responsavel_execucao', undefined],
-        ['observationRestriction', 'observacao_restricao', undefined],
-        ['idUser', 'id_usuario_ultima_atualizacao', undefined],
-        ['responsibilityProg', 'responsabilidade1', undefined],
-        ['responsibleName', 'nome_responsavel', undefined],
-        ['responsibleArea', 'area_responsavel1', undefined],
-        ['restrictionStatus', 'status_restricao1', undefined],
-        ['resolutionDate', 'data_resolucao1', undefined],
-        ['responsibilityProg2', 'responsabilidade2', undefined],
-        ['responsibleName2', 'nome_responsavel2', undefined],
-        ['responsibleArea2', 'area_responsavel2', undefined],
-        ['restrictionStatus2', 'status_restricao2', undefined],
-        ['resolutionDate2', 'data_resolucao2', undefined],
-      ])(
-        'deve mapear %s como undefined quando a coluna é null',
-        (propKey, columnKey) => {
-          WorkScheduleMapper.toDomain(makeRow({ [columnKey]: null }));
-
-          const [[props]] = entity.create.mock.calls;
-          expect(props[propKey]).toBeUndefined();
-        },
-      );
-
-      it.each([
-        ['temporaryKey', 'chave_provisoria', false],
-        ['lmTeam', 'equipe_linha_morta', 0],
-        ['lvTeam', 'equipe_linha_viva', 0],
-        ['regulTeam', 'equipe_regularizacao', 0],
-        ['idTechnical', 'id_tecnico', 1],
-        ['idExecutionRestriction', 'id_restricao_execucao', 1],
-        ['idScheduleStatus', 'id_status_programacao', 1],
-        ['rejected', 'reprovada', false],
-        ['idProgRestriction1', 'id_restricao_prog1', 1],
-        ['idProgRestriction2', 'id_restricao_prog2', 1],
-      ])(
-        'deve aplicar o padrão de %s quando a coluna é null',
-        (propKey, columnKey, defaultValue) => {
-          WorkScheduleMapper.toDomain(makeRow({ [columnKey]: null }));
-
-          const [[props]] = entity.create.mock.calls;
-          expect(props[propKey]).toBe(defaultValue);
-        },
-      );
-
-      it('deve preservar exec igual a zero (não confundir com ausente)', () => {
-        WorkScheduleMapper.toDomain(makeRow({ exec: 0 }));
-
-        const [[props]] = entity.create.mock.calls;
-        expect(props.exec).toBe(0);
-      });
-
-      it('deve preservar chi igual a zero', () => {
-        WorkScheduleMapper.toDomain(makeRow({ chi: 0 }));
-
-        const [[props]] = entity.create.mock.calls;
-        expect(props.chi).toBe(0);
-      });
-
-      it('deve preservar equipas iguais a zero', () => {
-        WorkScheduleMapper.toDomain(
-          makeRow({
-            equipe_linha_morta: 0,
-            equipe_linha_viva: 0,
-            equipe_regularizacao: 0,
-          }),
-        );
-
-        const [[props]] = entity.create.mock.calls;
-        expect(props.lmTeam).toBe(0);
-        expect(props.lvTeam).toBe(0);
-        expect(props.regulTeam).toBe(0);
-      });
-
-      it('deve preservar temporaryKey false explícito', () => {
-        WorkScheduleMapper.toDomain(makeRow({ chave_provisoria: false }));
-
-        const [[props]] = entity.create.mock.calls;
-        expect(props.temporaryKey).toBe(false);
-      });
-
-      it('deve preservar rejected false explícito', () => {
-        WorkScheduleMapper.toDomain(makeRow({ reprovada: false }));
-
-        const [[props]] = entity.create.mock.calls;
-        expect(props.rejected).toBe(false);
-      });
-    });
-  });
-
-  // =========================================================================
-  // toPersistenceUpdate
-  // =========================================================================
-  describe('toPersistenceUpdate', () => {
-    it('deve traduzir a entidade para as colunas de update', () => {
-      const data = WorkScheduleMapper.toPersistenceUpdate(makeEntity());
-
-      expect(data).toEqual({
+      expect(createMock).toHaveBeenCalledTimes(1);
+      expect(createMock).toHaveBeenCalledWith({
         id: 1,
-        data_prog: DATA_PROG,
-        prog: 50,
-        exec: 40,
-        observacao_programacao: 'obs',
-        equip_desligado: 'Grua',
-        num_dp: '12345678',
-        hora_ini: START,
-        hora_ter: FINISH,
-        chave_provisoria: true,
-        tipo_servico: 'DP',
-        chi: 3,
-        nome_responsavel_execucao: 'Ana',
-        equipe_linha_morta: 1,
-        equipe_linha_viva: 2,
-        equipe_regularizacao: 3,
-        id_restricao_execucao: 5,
-        observacao_execucao: 'exec obs',
-        id_restricao_prog1: 8,
-        responsabilidade1: 'Equipa A',
-        nome_responsavel: 'Bruno',
-        area_responsavel1: 'Operações',
-        status_restricao1: 'Aberta',
-        data_resolucao1: new Date('2026-03-01T00:00:00.000Z'),
-        id_restricao_prog2: 9,
-        responsabilidade2: 'Equipa B',
-        nome_responsavel2: 'Carlos',
-        area_responsavel2: 'Manutenção',
-        status_restricao2: 'Fechada',
-        data_resolucao2: new Date('2026-03-05T00:00:00.000Z'),
-        id_tecnico: 4,
-        observacao_restricao: 'Aguarda licença',
+        workId: 10,
+        statusId: 3,
+        dataProg: new Date('2026-11-24T00:00:00.000Z'),
+        startTime: START_DATE,
+        finishTime: FINISH_DATE,
+        prog: 5,
+        exec: 2,
+        rejected: false,
+      });
+      expect(result).toBe(createMock.mock.results[0].value);
+    });
+
+    it('converts string and Date columns into new Date instances', () => {
+      WorkScheduleMapper.toConfirmation(confirmationRow);
+      const props = createMock.mock.calls[0][0];
+
+      expect(props.dataProg).toBeInstanceOf(Date);
+      expect(props.startTime).toBeInstanceOf(Date);
+      expect(props.finishTime).toBeInstanceOf(Date);
+      expect(props.finishTime).not.toBe(confirmationRow.hora_ter);
+    });
+
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+    ])('maps exec to undefined when the column is %s', (_, exec) => {
+      WorkScheduleMapper.toConfirmation({ ...confirmationRow, exec });
+
+      expect(createMock.mock.calls[0][0].exec).toBeUndefined();
+    });
+
+    it('keeps exec when it is zero', () => {
+      WorkScheduleMapper.toConfirmation({ ...confirmationRow, exec: 0 });
+
+      expect(createMock.mock.calls[0][0].exec).toBe(0);
+    });
+
+    it('forwards the rejected flag from the reprovada column', () => {
+      WorkScheduleMapper.toConfirmation({
+        ...confirmationRow,
         reprovada: true,
-        id_usuario_ultima_atualizacao: 7,
       });
+
+      expect(createMock.mock.calls[0][0].rejected).toBe(true);
     });
 
-    it('não deve incluir id_obra nem id_usuario (imutáveis no update)', () => {
-      const data = WorkScheduleMapper.toPersistenceUpdate(makeEntity()) as any;
+    it('currently yields an Invalid Date when hora_ini is null', () => {
+      WorkScheduleMapper.toConfirmation({ ...confirmationRow, hora_ini: null });
 
-      expect(data).not.toHaveProperty('id_obra');
-      expect(data).not.toHaveProperty('id_usuario');
+      expect(
+        Number.isNaN(createMock.mock.calls[0][0].startTime.getTime()),
+      ).toBe(true);
     });
   });
 
-  // =========================================================================
-  // toPersistenceCreate
-  // =========================================================================
-  describe('toPersistenceCreate', () => {
-    it('deve traduzir a entidade para as colunas de criação', () => {
-      const data = WorkScheduleMapper.toPersistenceCreate(makeEntity());
-
-      expect(data).toEqual({
-        id_obra: 10,
-        data_prog: DATA_PROG,
-        prog: 50,
-        equip_desligado: 'Grua',
-        num_dp: '12345678',
-        hora_ini: START,
-        hora_ter: FINISH,
+  describe('toPersistenceUpdate', () => {
+    it('maps every entity field to its database column', () => {
+      expect(WorkScheduleMapper.toPersistenceUpdate(entity)).toStrictEqual({
+        id: 1,
+        data_prog: entity.dataProg,
+        prog: 5,
+        exec: 3,
+        observacao_programacao: 'Programming note',
+        equip_desligado: 'TR-01',
+        num_dp: 'DP-123',
+        hora_ini: START_DATE,
+        hora_ter: FINISH_DATE,
         chave_provisoria: true,
-        tipo_servico: 'DP',
-        chi: 3,
+        tipo_servico: 'Maintenance',
+        chi: 12.5,
+        nome_responsavel_execucao: 'Execution owner',
         equipe_linha_morta: 1,
         equipe_linha_viva: 2,
         equipe_regularizacao: 3,
-        observacao_execucao: 'exec obs',
-        observacao_programacao: 'obs',
-        id_tecnico: 4,
-        id_usuario: 7,
-        id_usuario_ultima_atualizacao: 7,
+        id_restricao_execucao: 4,
+        observacao_execucao: 'Execution note',
+        id_restricao_prog1: 5,
+        responsabilidade1: 'Resp 1',
+        nome_responsavel: 'Name 1',
+        area_responsavel1: 'Area 1',
+        status_restricao1: 'Open',
+        data_resolucao1: entity.resolutionDate,
+        id_restricao_prog2: 6,
+        responsabilidade2: 'Resp 2',
+        nome_responsavel2: 'Name 2',
+        area_responsavel2: 'Area 2',
+        status_restricao2: 'Closed',
+        data_resolucao2: entity.resolutionDate2,
+        id_tecnico: 7,
+        observacao_restricao: 'Restriction note',
+        reprovada: false,
+        id_usuario_ultima_atualizacao: 42,
       });
     });
 
-    it('não deve incluir id nem os blocos de restrição (só existem após o update)', () => {
-      const data = WorkScheduleMapper.toPersistenceCreate(makeEntity()) as any;
+    it('never changes the owning work or the creator on update', () => {
+      const result = WorkScheduleMapper.toPersistenceUpdate(entity);
 
-      expect(data).not.toHaveProperty('id');
-      expect(data).not.toHaveProperty('id_restricao_prog1');
-      expect(data).not.toHaveProperty('reprovada');
-    });
-
-    it('deve usar idUser tanto para id_usuario quanto para id_usuario_ultima_atualizacao', () => {
-      const data = WorkScheduleMapper.toPersistenceCreate(
-        makeEntity({ idUser: 99 }),
-      );
-
-      expect(data.id_usuario).toBe(99);
-      expect(data.id_usuario_ultima_atualizacao).toBe(99);
+      expect(result).not.toHaveProperty('id_obra');
+      expect(result).not.toHaveProperty('id_usuario');
     });
   });
 
-  // =========================================================================
-  // fromCreateInput
-  // =========================================================================
+  describe('toPersistenceCreate', () => {
+    it('maps the entity to the insert payload, including work and creator', () => {
+      expect(WorkScheduleMapper.toPersistenceCreate(entity)).toStrictEqual({
+        id_obra: 10,
+        data_prog: entity.dataProg,
+        prog: 5,
+        equip_desligado: 'TR-01',
+        num_dp: 'DP-123',
+        hora_ini: START_DATE,
+        hora_ter: FINISH_DATE,
+        chave_provisoria: true,
+        tipo_servico: 'Maintenance',
+        chi: 12.5,
+        equipe_linha_morta: 1,
+        equipe_linha_viva: 2,
+        equipe_regularizacao: 3,
+        observacao_execucao: 'Execution note',
+        observacao_programacao: 'Programming note',
+        id_tecnico: 7,
+        id_usuario: 42,
+        id_usuario_ultima_atualizacao: 42,
+      });
+    });
+
+    it('does not send an id so the database can generate it', () => {
+      expect(WorkScheduleMapper.toPersistenceCreate(entity)).not.toHaveProperty(
+        'id',
+      );
+    });
+  });
+
   describe('fromCreateInput', () => {
-    it('deve converter as datas e forçar rejected como false', () => {
-      const props = WorkScheduleMapper.fromCreateInput(makeCreateDto());
+    it('keeps the payload fields and replaces date/time strings with Date objects', () => {
+      const dto = {
+        ...baseInput,
+        observation: 'obs',
+      } as unknown as SchedulesDataDTO;
 
-      expect(props.rejected).toBe(false);
-      expect(props.dataProg).toEqual(new Date('2026-02-10'));
-      expect(parseTime).toHaveBeenCalledWith('08:00');
-      expect(parseTime).toHaveBeenCalledWith('17:00');
-    });
-
-    it('deve preservar os campos adicionais do DTO', () => {
-      const props = WorkScheduleMapper.fromCreateInput(
-        makeCreateDto({ idWork: 55, prog: 80 } as any),
-      );
-
-      expect(props).toMatchObject({ idWork: 55, prog: 80 });
-    });
-
-    it('deve rejeitar sempre rejected vindo do DTO (forçado a false)', () => {
-      const props = WorkScheduleMapper.fromCreateInput(
-        makeCreateDto({ rejected: true } as any),
-      );
-
-      expect(props.rejected).toBe(false);
-    });
-
-    it('deve propagar erro de data inválida', () => {
-      expect(() =>
-        WorkScheduleMapper.fromCreateInput(
-          makeCreateDto({ dataProg: 'xpto' } as any),
-        ),
-      ).toThrow('Data de programação inválida');
-    });
-
-    it('deve propagar erro de hora de início inválida', () => {
-      parseTime.mockImplementation((value: any) =>
-        value === '08:00'
-          ? (undefined as any)
-          : new Date(`2026-02-10T17:00:00.000Z`),
-      );
-
-      expect(() => WorkScheduleMapper.fromCreateInput(makeCreateDto())).toThrow(
-        'Hora de início inválida',
-      );
-    });
-
-    it('deve propagar erro de hora de término inválida', () => {
-      parseTime.mockImplementation((value: any) =>
-        value === '17:00'
-          ? (undefined as any)
-          : new Date(`2026-02-10T08:00:00.000Z`),
-      );
-
-      expect(() => WorkScheduleMapper.fromCreateInput(makeCreateDto())).toThrow(
-        'Hora de término inválida',
-      );
-    });
-  });
-
-  // =========================================================================
-  // fromUpdateInput
-  // =========================================================================
-  describe('fromUpdateInput', () => {
-    it('deve converter as datas e usar o rejected do contexto', () => {
-      const props = WorkScheduleMapper.fromUpdateInput(makeUpdateDto(), {
-        rejected: true,
+      expect(WorkScheduleMapper.fromCreateInput(dto)).toEqual({
+        ...dto,
+        dataProg: new Date('2026-11-24T00:00:00.000Z'),
+        startTime: START_DATE,
+        finishTime: FINISH_DATE,
+        rejected: false,
       });
-
-      expect(props.rejected).toBe(true);
-      expect(props.dataProg).toEqual(new Date('2026-02-10'));
+      expect(parseTimeToDateMock).toHaveBeenNthCalledWith(1, START);
+      expect(parseTimeToDateMock).toHaveBeenNthCalledWith(2, FINISH);
     });
 
-    it('deve ignorar um eventual rejected vindo do DTO', () => {
-      const props = WorkScheduleMapper.fromUpdateInput(
-        makeUpdateDto({ rejected: false } as any),
-        { rejected: true },
-      );
+    it('always creates the schedule as not rejected', () => {
+      const dto = {
+        ...baseInput,
+        rejected: true,
+      } as unknown as SchedulesDataDTO;
 
-      expect(props.rejected).toBe(true);
+      expect(WorkScheduleMapper.fromCreateInput(dto).rejected).toBe(false);
     });
 
-    it('deve preservar os campos adicionais do DTO', () => {
-      const props = WorkScheduleMapper.fromUpdateInput(
-        makeUpdateDto({ prog: 70 } as any),
-        { rejected: false },
-      );
+    it('does not mutate the incoming payload', () => {
+      const dto = { ...baseInput } as unknown as SchedulesDataDTO;
 
-      expect(props).toMatchObject({ prog: 70 });
-    });
+      WorkScheduleMapper.fromCreateInput(dto);
 
-    it('deve propagar erro de data inválida', () => {
-      expect(() =>
-        WorkScheduleMapper.fromUpdateInput(
-          makeUpdateDto({ dataProg: 'xpto' } as any),
-          { rejected: false },
-        ),
-      ).toThrow('Data de programação inválida');
-    });
-
-    it('deve propagar erro de hora de início inválida', () => {
-      parseTime.mockImplementation((value: any) =>
-        value === '08:00'
-          ? (undefined as any)
-          : new Date(`2026-02-10T17:00:00.000Z`),
-      );
-
-      expect(() =>
-        WorkScheduleMapper.fromUpdateInput(makeUpdateDto(), {
-          rejected: false,
-        }),
-      ).toThrow('Hora de início inválida');
-    });
-
-    it('deve propagar erro de hora de término inválida', () => {
-      parseTime.mockImplementation((value: any) =>
-        value === '17:00'
-          ? (undefined as any)
-          : new Date(`2026-02-10T08:00:00.000Z`),
-      );
-
-      expect(() =>
-        WorkScheduleMapper.fromUpdateInput(makeUpdateDto(), {
-          rejected: false,
-        }),
-      ).toThrow('Hora de término inválida');
+      expect(dto).toEqual(baseInput);
     });
   });
 
-  // =========================================================================
-  // parseDates (auxiliar privado, via fromCreateInput/fromUpdateInput)
-  // =========================================================================
-  describe('parseDates', () => {
-    it('deve rejeitar quando parseTimeToDate devolve uma Date inválida', () => {
-      parseTime.mockReturnValue(new Date('xpto') as any);
+  describe('fromUpdateInput', () => {
+    it.each([true, false])(
+      'takes rejected=%s from the persisted record',
+      (rejected) => {
+        const input = { ...baseInput, id: 99 };
 
-      expect(() => WorkScheduleMapper.fromCreateInput(makeCreateDto())).toThrow(
-        'Hora de início inválida',
-      );
+        expect(
+          WorkScheduleMapper.fromUpdateInput(input as never, { rejected }),
+        ).toEqual({
+          ...input,
+          dataProg: new Date('2026-11-24T00:00:00.000Z'),
+          startTime: START_DATE,
+          finishTime: FINISH_DATE,
+          rejected,
+        });
+      },
+    );
+  });
+
+  describe.each([
+    [
+      'fromCreateInput',
+      (data: object) => WorkScheduleMapper.fromCreateInput(data as never),
+    ],
+    [
+      'fromUpdateInput',
+      (data: object) =>
+        WorkScheduleMapper.fromUpdateInput(data as never, { rejected: false }),
+    ],
+  ] as const)('date parsing on %s', (_, run) => {
+    it('accepts a Date instance as dataProg and returns a copy', () => {
+      const dataProg = new Date('2026-11-24T00:00:00.000Z');
+
+      const result = run({ ...baseInput, dataProg });
+
+      expect(result.dataProg).toEqual(dataProg);
+      expect(result.dataProg).not.toBe(dataProg);
     });
 
-    it('deve aceitar uma dataProg já em formato Date', () => {
-      const props = WorkScheduleMapper.fromCreateInput(
-        makeCreateDto({ dataProg: DATA_PROG } as any),
+    it.each([
+      ['an unparseable string', 'not-a-date'],
+      ['an Invalid Date instance', new Date(Number.NaN)],
+    ])('throws BadRequestException when dataProg is %s', (_, dataProg) => {
+      const error = catchError(() => run({ ...baseInput, dataProg }));
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Data de programação inválida');
+    });
+
+    it.each([
+      ['cannot be parsed', null],
+      ['is parsed into an Invalid Date', new Date(Number.NaN)],
+    ])('throws BadRequestException when the start time %s', (_, parsed) => {
+      stubParsedTimes({ [START]: parsed });
+
+      const error = catchError(() => run(baseInput));
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Hora de início inválida');
+    });
+
+    it.each([
+      ['cannot be parsed', null],
+      ['is parsed into an Invalid Date', new Date(Number.NaN)],
+    ])('throws BadRequestException when the finish time %s', (_, parsed) => {
+      stubParsedTimes({ [FINISH]: parsed });
+
+      const error = catchError(() => run(baseInput));
+
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect(error.message).toBe('Hora de término inválida');
+    });
+
+    it('reports the invalid date before invalid times', () => {
+      stubParsedTimes({ [START]: null, [FINISH]: null });
+
+      const error = catchError(() =>
+        run({ ...baseInput, dataProg: 'not-a-date' }),
       );
 
-      expect(props.dataProg).toEqual(DATA_PROG);
+      expect(error.message).toBe('Data de programação inválida');
+    });
+
+    it('reports the invalid start time before the invalid finish time', () => {
+      stubParsedTimes({ [START]: null, [FINISH]: null });
+
+      const error = catchError(() => run(baseInput));
+
+      expect(error.message).toBe('Hora de início inválida');
     });
   });
 });

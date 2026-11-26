@@ -1,7 +1,9 @@
-import type { Mocked } from 'vitest';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import { DbSchema } from 'src/infra/prisma/dbSchema.provider';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AdvancePartnerRepository } from 'src/infra/repositories/advancePartnerRepository';
+import type { Mocked } from 'vitest';
 
 const getSqlString = (query: any): string => {
   if (typeof query === 'string') return query;
@@ -9,6 +11,8 @@ const getSqlString = (query: any): string => {
   if (query?.text) return query.text;
   return String(query);
 };
+
+const SCHEMA = 'schema_teste';
 
 describe('AdvancePartnerRepository', () => {
   let repository: AdvancePartnerRepository;
@@ -22,9 +26,15 @@ describe('AdvancePartnerRepository', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdvancePartnerRepository,
+        DbSchema,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: ConfigService,
+          // Função normal (não vi.fn) para não ser apagada pelo vi.resetAllMocks()
+          useValue: { getOrThrow: () => SCHEMA },
         },
       ],
     }).compile();
@@ -46,9 +56,7 @@ describe('AdvancePartnerRepository', () => {
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
 
-      expect(query).toContain(
-        'FROM construcao_sp.exportacao_programacoes_obras',
-      );
+      expect(query).toContain(`FROM ${SCHEMA}.exportacao_programacoes_obras`);
 
       expect(query).toContain(
         'status_programacao IS NULL OR UPPER(TRIM(status_programacao))',
@@ -87,9 +95,7 @@ describe('AdvancePartnerRepository', () => {
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
 
-      expect(query).toContain(
-        'FROM construcao_sp.exportacao_programacoes_obras',
-      );
+      expect(query).toContain(`FROM ${SCHEMA}.exportacao_programacoes_obras`);
 
       expect(query).toContain('WHEN exec IS NULL');
 
@@ -141,9 +147,7 @@ describe('AdvancePartnerRepository', () => {
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
 
-      expect(query).toContain(
-        'FROM construcao_sp.exportacao_programacoes_obras',
-      );
+      expect(query).toContain(`FROM ${SCHEMA}.exportacao_programacoes_obras`);
 
       expect(query).toContain('restricao_execucao AS motivo');
 
@@ -210,7 +214,7 @@ describe('AdvancePartnerRepository', () => {
       );
 
       expect(aderenciaQuery).toContain(
-        'FROM construcao_sp.exportacao_programacoes_obras',
+        `FROM ${SCHEMA}.exportacao_programacoes_obras`,
       );
 
       expect(aderenciaQuery).toContain('SUM(CASE');

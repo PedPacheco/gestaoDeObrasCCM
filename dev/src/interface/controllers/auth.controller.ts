@@ -5,10 +5,6 @@ import {
   RegisterUserDTO,
   RegisterUserResponseDTO,
 } from 'src/interface/dtos/registerUserDto';
-import {
-  loginInterfaceController,
-  userRegisterInterfaceController,
-} from 'src/interface/types/userInterface';
 
 import {
   Body,
@@ -19,10 +15,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
+import { Throttle } from '@nestjs/throttler';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { Public } from '../../shared/costants';
 import { LoginUserDTO, LoginUserResponseDTO } from '../dtos/loginUserDto';
-import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
-import { Throttle } from '@nestjs/throttler';
+import { LoginResponse, UserRegisterResponse } from '../types';
 
 @Controller('auth')
 export class AuthController {
@@ -34,8 +31,8 @@ export class AuthController {
   async login(
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<loginInterfaceController> {
-    const data = await this.authService.login(user, password);
+  ): Promise<LoginResponse> {
+    const data = await this.authService.login({ username: user, password });
 
     res.cookie('token', data.access_token, {
       httpOnly: false,
@@ -55,7 +52,7 @@ export class AuthController {
   @UseGuards(AreaViewGuard({ adminOnly: true }))
   async register(
     @Body() registerDto: RegisterUserDTO,
-  ): Promise<userRegisterInterfaceController> {
+  ): Promise<UserRegisterResponse> {
     const user = await this.authService.register(registerDto);
 
     return {

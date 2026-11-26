@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from 'src/infra/generated/prisma/client';
-import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
+import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/works/schedule/validateAndConfirmSchedulesRepository';
 import type { Mock } from 'vitest';
 
 describe('ValidateAndConfirmSchedulesRepository', () => {

@@ -1,6 +1,6 @@
 import { afterEach } from 'node:test';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/works/schedule/rejectionsOfSchedulesRepository';
 
 import { Test } from '@nestjs/testing';
 
@@ -49,9 +49,9 @@ describe('RejectionsOfSchedulesRepository', () => {
         },
       ]);
 
-      const idWork = 1;
+      const workId = 1;
 
-      const result = await repository.get(idWork);
+      const result = await repository.get(workId);
 
       expect(result).toEqual([
         {
@@ -121,9 +121,9 @@ describe('RejectionsOfSchedulesRepository', () => {
         },
       ]);
 
-      const idWork = 1234567890;
+      const workId = 1234567890;
 
-      const result = await repository.get(idWork);
+      const result = await repository.get(workId);
 
       expect(result).toEqual([
         {

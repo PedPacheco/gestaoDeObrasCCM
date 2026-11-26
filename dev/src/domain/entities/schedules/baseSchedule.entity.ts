@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationError } from 'src/domain/errors/domain.error';
 import {
   DocumentRule,
   getDocumentRule as resolveDocumentRule,
@@ -123,11 +123,11 @@ export abstract class BaseSchedule {
   /** Template method: regras comuns + hook da subclasse. */
   protected validate(): void {
     if (this.prog < 0 || this.prog > 100) {
-      throw new BadRequestException('Programado deve estar entre 0 e 100');
+      throw new ValidationError('Programado deve estar entre 0 e 100');
     }
 
     if (this.exec !== undefined && (this.exec < 0 || this.exec > 100)) {
-      throw new BadRequestException('Executado deve estar entre 0 e 100');
+      throw new ValidationError('Executado deve estar entre 0 e 100');
     }
 
     if (
@@ -135,9 +135,7 @@ export abstract class BaseSchedule {
       this.finishTime &&
       this.startTime >= this.finishTime
     ) {
-      throw new BadRequestException(
-        'Horário de fim deve ser posterior ao início',
-      );
+      throw new ValidationError('Horário de fim deve ser posterior ao início');
     }
 
     this.validateSpecific();
@@ -175,7 +173,7 @@ export abstract class BaseSchedule {
     const value = this.numDp?.trim();
 
     if (!value || value === '0') {
-      throw new BadRequestException(BaseSchedule.MISSING_MESSAGES[rule]);
+      throw new ValidationError(BaseSchedule.MISSING_MESSAGES[rule]);
     }
 
     this.assertDocumentFormat(value, rule);
@@ -186,19 +184,19 @@ export abstract class BaseSchedule {
     const isValidBra = value.length >= BaseSchedule.MIN_NUM_BRA;
 
     if (rule === 'DP' && !isValidDp) {
-      throw new BadRequestException(
+      throw new ValidationError(
         'Número do DP deve conter exatamente 8 dígitos',
       );
     }
 
     if (rule === 'BRA' && !isValidBra) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Número do BRA deve conter no mínimo ${BaseSchedule.MIN_NUM_BRA} caracteres`,
       );
     }
 
     if (rule === 'DP_OR_BRA' && !isValidDp && !isValidBra) {
-      throw new BadRequestException(
+      throw new ValidationError(
         `Número inválido: o DP deve conter exatamente 8 dígitos e o BRA no mínimo ${BaseSchedule.MIN_NUM_BRA} caracteres`,
       );
     }
