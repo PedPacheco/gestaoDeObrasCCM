@@ -7,6 +7,7 @@ import { ExportExecutionCapacityService } from '../../application/usecases/expor
 import { Module } from '@nestjs/common';
 
 import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exportSchedulesBI.service';
+import { ExportContingencyService } from 'src/application/usecases/export/exportContingency.service';
 import { ExportD5NotesService } from 'src/application/usecases/export/exportD5Notes.service';
 import { ExportD5NotesSchedulesService } from 'src/application/usecases/export/exportD5NotesSchedules.service';
 import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
@@ -28,12 +29,14 @@ import { ExportCompletedWorksService } from '../../application/usecases/export/e
 import { ExportScheduleService } from '../../application/usecases/export/exportSchedule.service';
 import { ExportWorksInPortfolioService } from '../../application/usecases/export/exportWorksInPortfolio.service';
 import { ExportBIController } from '../controllers/export/exportBi.controller';
+import { ExportContingencyController } from '../controllers/export/exportContingency.controller';
 import { ExportD5NotesController } from '../controllers/export/exportD5.controller';
 import { ExportFeasibilityController } from '../controllers/export/exportFeasibility.controller';
 import { ExportPublicationsController } from '../controllers/export/exportPublication.controller';
 import { ExportScheduleController } from '../controllers/export/exportSchedule.controller';
 import { ExportServicesController } from '../controllers/export/exportServices.controller';
 import { ExportWorksController } from '../controllers/export/exportWorks.controller';
+import { ContingencyModule } from './contingency.module';
 import { D5NotesModule } from './d5Notes.module';
 import { FeasibilityModule } from './feasibility.module';
 import { GoalsModule } from './goals.module';
@@ -53,6 +56,7 @@ import { WorksServicesModule } from './worksServices.module';
     WorksServicesModule,
     FeasibilityModule,
     D5NotesModule,
+    ContingencyModule,
   ],
   controllers: [
     ExportWorksController,
@@ -62,6 +66,7 @@ import { WorksServicesModule } from './worksServices.module';
     ExportFeasibilityController,
     ExportBIController,
     ExportD5NotesController,
+    ExportContingencyController,
   ],
   providers: [
     ExportScheduleService,
@@ -88,6 +93,7 @@ import { WorksServicesModule } from './worksServices.module';
     ExportFeasibilityService,
     ExportD5NotesService,
     ExportD5NotesSchedulesService,
+    ExportContingencyService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

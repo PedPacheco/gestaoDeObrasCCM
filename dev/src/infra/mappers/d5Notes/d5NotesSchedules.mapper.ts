@@ -32,11 +32,7 @@ const toStateConditions = ({
   states.flatMap((state): ScheduleWhere[] => {
     switch (state) {
       case 'upcoming':
-        return [
-          { exec: null },
-          { data_prog: { gte: today } },
-          { reprovada: false },
-        ];
+        return [{ exec: null }, { reprovada: false }];
       case 'rejected':
         return [{ reprovada: true }];
       case 'executed':

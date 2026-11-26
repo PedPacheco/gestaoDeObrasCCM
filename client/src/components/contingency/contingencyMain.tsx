@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-
-import { ChevronUpIcon } from "@heroicons/react/20/solid";
-
-import { ContingencyDashboardData } from "@/app/(dashboard)/programacao/recursos-contingencia/page";
+import dayjs from "dayjs";
+import { useCallback, useRef, useState } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
+import { exportExcel } from "@/actions/generateExcel.action";
+import { ContingencyDashboardData } from "@/app/(dashboard)/programacao/recursos-contingencia/page";
+import { useFeedback } from "@/hooks/useFeedback";
 import { FiltersInterface } from "@/types/genericFilterSchema";
-import dayjs from "dayjs";
+import { mountUrl } from "@/utils/mountUrl";
+import { ChevronUpIcon } from "@heroicons/react/20/solid";
+
 import { MonthRange } from "../common/filter/monthFilter";
 import { ContingencyDashboard } from "./contingencyDashboard";
 import { ContingencyFilters } from "./contingencyFilters";
@@ -30,23 +32,48 @@ interface ContingencyMainProps {
   token: string;
 }
 
+const defaultPeriod = (): MonthRange => ({
+  startMonth: dayjs().startOf("month"),
+  endMonth: dayjs().startOf("month"),
+});
+
+const defaultFilters = (): DashboardFilters => ({
+  period: defaultPeriod(),
+  partners: [],
+  maoObra: [],
+  equipe: [],
+  csd: [],
+});
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const EXPORT_FILE_NAME = "Disponibilidade de Recursos CCM.xlsx";
+
+function buildDashboardParams({
+  period,
+  partners,
+  maoObra,
+  equipe,
+  csd,
+}: DashboardFilters): DashboardParams {
+  const params: DashboardParams = {};
+
+  if (period.startMonth)
+    params.mesInicial = period.startMonth.format("YYYY-MM");
+  if (period.endMonth) params.mesFinal = period.endMonth.format("YYYY-MM");
+  if (partners.length) params.idParceira = partners;
+  if (maoObra.length) params.maoObra = maoObra;
+  if (equipe.length) params.equipe = equipe;
+  if (csd.length) params.csd = csd;
+
+  return params;
+}
+
 export function ContingencyMain({
   data: initialData,
   partnerOptions,
   token,
 }: ContingencyMainProps) {
-  const defaultPeriod = (): MonthRange => ({
-    startMonth: dayjs().startOf("month"),
-    endMonth: dayjs().startOf("month"),
-  });
-
-  const defaultFilters = (): DashboardFilters => ({
-    period: defaultPeriod(),
-    partners: [],
-    maoObra: [],
-    equipe: [],
-    csd: [],
-  });
+  const { showError } = useFeedback();
 
   const [data, setData] = useState<ContingencyDashboardData>(initialData);
   const [formOpen, setFormOpen] = useState(false);
@@ -59,55 +86,85 @@ export function ContingencyMain({
   const [equipe, setEquipe] = useState<string[]>([]);
   const [csd, setCsd] = useState<string[]>([]);
 
-  async function fetchDashboard(filters: Record<string, string | string[]>) {
-    setIsPending(true);
-    const res = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/recursos-contingencia/dashboard`,
-      filters,
-      token,
-      { cache: "no-store" },
-    );
-    if (res.success) setData(res.data);
-    setIsPending(false);
-  }
+  // Filtros que estão refletidos no dashboard neste momento
+  const appliedParamsRef = useRef<DashboardParams>(
+    buildDashboardParams(defaultFilters()),
+  );
 
-  function buildDashboardParams({
-    period,
-    partners,
-    maoObra,
-    equipe,
-    csd,
-  }: DashboardFilters): DashboardParams {
-    const params: DashboardParams = {};
+  const fetchDashboard = useCallback(
+    async (params: DashboardParams) => {
+      appliedParamsRef.current = params;
+      setIsPending(true);
+      try {
+        const res = await fetchData(
+          `${API_URL}/recursos-contingencia/dashboard`,
+          params,
+          token,
+          { cache: "no-store" },
+        );
+        if (res.success) setData(res.data);
+      } finally {
+        setIsPending(false);
+      }
+    },
+    [token],
+  );
 
-    if (period.startMonth)
-      params.mesInicial = period.startMonth.format("YYYY-MM");
-    if (period.endMonth) params.mesFinal = period.endMonth.format("YYYY-MM");
-    if (partners.length) params.idParceira = partners;
-    if (maoObra.length) params.maoObra = maoObra;
-    if (equipe.length) params.equipe = equipe;
-    if (csd.length) params.csd = csd;
-
-    return params;
-  }
-
-  function applyFilters() {
+  const applyFilters = useCallback(() => {
     fetchDashboard(
       buildDashboardParams({ period, partners, maoObra, equipe, csd }),
     );
-  }
+  }, [fetchDashboard, period, partners, maoObra, equipe, csd]);
 
-  function clearFilters() {
+  const clearFilters = useCallback(() => {
     const initial = defaultFilters();
-
     setPeriod(initial.period);
     setPartners(initial.partners);
     setMaoObra(initial.maoObra);
     setEquipe(initial.equipe);
     setCsd(initial.csd);
-
     fetchDashboard(buildDashboardParams(initial));
-  }
+  }, [fetchDashboard]);
+
+  /** Recarrega com os filtros já aplicados (referência estável) */
+  const reloadDashboard = useCallback(() => {
+    fetchDashboard(appliedParamsRef.current);
+  }, [fetchDashboard]);
+
+  const toggleForm = useCallback(() => setFormOpen((prev) => !prev), []);
+
+  const generateExcel = useCallback(
+    async (params: DashboardParams) => {
+      const exportUrl = mountUrl(
+        `${API_URL}/exportacao/contingencia`, // ajuste à rota do controller
+        params,
+      );
+
+      try {
+        const response = await exportExcel(exportUrl, token);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = EXPORT_FILE_NAME;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        showError(`Erro ao gerar a planilha: ${error.message}`);
+      }
+    },
+    [showError, token],
+  );
+
+  const handleExport = useCallback(() => {
+    generateExcel(appliedParamsRef.current);
+  }, [generateExcel]);
 
   return (
     <div className="w-full flex-1 min-h-0 overflow-y-auto flex flex-col">
@@ -136,26 +193,37 @@ export function ContingencyMain({
             </h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setFormOpen((prev) => !prev)}
-            className="shrink-0 flex items-center gap-1 rounded-md bg-[#53FF75] px-4 py-2 text-base font-bold text-[#0f1a26] hover:bg-[#3de062] transition-colors"
-          >
-            {formOpen ? (
-              <>
-                Ocultar perguntas
-                <ChevronUpIcon className="h-5 w-5" />
-              </>
-            ) : (
-              <>Adicionar recurso +</>
-            )}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={isPending}
+              className="shrink-0 flex items-center gap-1 rounded-md bg-[#53FF75] px-4 py-2 text-base font-bold text-[#0f1a26] hover:bg-[#3de062] transition-colors"
+            >
+              Exportar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleForm}
+              className="shrink-0 flex items-center gap-1 rounded-md bg-[#53FF75] px-4 py-2 text-base font-bold text-[#0f1a26] hover:bg-[#3de062] transition-colors"
+            >
+              {formOpen ? (
+                <>
+                  Ocultar perguntas
+                  <ChevronUpIcon className="h-5 w-5" />
+                </>
+              ) : (
+                <>Adicionar recurso +</>
+              )}
+            </button>
+          </div>
         </div>
 
         {formOpen && (
           <ContingencyForm
             partnerOptions={partnerOptions}
-            onSaved={() => applyFilters()}
+            onSaved={reloadDashboard}
           />
         )}
 

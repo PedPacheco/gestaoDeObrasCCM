@@ -1,881 +1,729 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ContingencyInput } from 'src/application/types';
-import { ContingencyGroupField } from 'src/domain/types';
-import { Prisma } from 'src/infra/generated/prisma/client';
+import { Logger } from '@nestjs/common';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ContingencyFilter } from 'src/domain/types';
+import { toRepositoryError } from 'src/infra/errors/prismaError.handler';
+import { RepositoryError } from 'src/infra/errors/repository.error';
+import {
+  toCapacityByYearMonth,
+  toContingencyGroupItem,
+  toContingencyResourceDispatchesRow,
+  toCreateContingencyInput,
+  toCsdQuantityItem,
+  toEmergencyTeam,
+  toPartnerQuantityItems,
+  toRecentContingency,
+} from 'src/infra/mappers/contingencyResources.mapper';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ContingencyRepository } from 'src/infra/repositories/contingencyRepository';
 
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-  type Mock,
-} from 'vitest';
-import {
-  makeCreateInput,
-  makeCreateInputRow,
-  makeCsdGroupRow,
-  makeEmergencyTeam,
-  makeEmergencyTeamRawRow,
-  makeFilter,
-  makeGroupByFieldFindManyRow,
-  makeGroupByParceiraRow,
-  makeRecent,
-  makeRecentRow,
-  makeTurmaRow,
-} from '../../factories/contingencyResources.factory';
+// ─── Module mocks ────────────────────────────────────────────────────────────
 
-// ─── Prisma Mock ──────────────────────────────────────────────────────────────
-
-const makePrismaMock = () => ({
-  recursos_contingencia: {
-    count: vi.fn().mockResolvedValue(15),
-    create: vi.fn().mockResolvedValue(undefined),
-    findMany: vi.fn().mockResolvedValue([makeRecentRow('2025-06-10')]),
-    groupBy: vi.fn().mockResolvedValue([]),
+// Lightweight stand-in for Prisma's SQL helpers so queries can be inspected.
+vi.mock('src/infra/generated/prisma/client', () => ({
+  Prisma: {
+    sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({
+      strings: [...strings],
+      values,
+    }),
+    join: (values: unknown[], sep = ',') => ({ join: values, sep }),
+    empty: { empty: true },
   },
-  turmas: {
-    findMany: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('src/infra/prisma/prisma.service', () => ({
+  PrismaService: class PrismaService {},
+}));
+
+vi.mock('src/infra/errors/prismaError.handler', () => ({
+  toRepositoryError: vi.fn(),
+}));
+
+vi.mock('src/infra/mappers/contingencyResources.mapper', () => ({
+  GROUP_FIELD_COLUMN: {
+    csd: 'disponibilizado_csd',
+    equipe: 'tipo_recurso_equipe',
   },
-  $queryRaw: vi.fn().mockResolvedValue([]),
-});
+  toCapacityByYearMonth: vi.fn(),
+  toContingencyGroupItem: vi.fn(),
+  toContingencyResourceDispatchesRow: vi.fn(),
+  toCreateContingencyInput: vi.fn(),
+  toCsdQuantityItem: vi.fn(),
+  toEmergencyTeam: vi.fn(),
+  toPartnerQuantityItems: vi.fn(),
+  toRecentContingency: vi.fn(),
+}));
 
-type PrismaMock = ReturnType<typeof makePrismaMock>;
+vi.mock('src/infra/types', () => ({
+  CSD_QUANTITY_SELECT: { csd: true },
+  FIND_CONTINGENCY_RESOURCE_DISPATCHES_SELECT: { dispatch: true },
+  GROUP_BY_FIELD_SELECT: { group: true },
+  PARTNER_NAME_SELECT: { nome: true },
+  PARTNER_QUANTITY_SELECT: { partner: true },
+  RECENT_CONTINGENCY_SELECT: { recent: true },
+}));
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── SQL inspection helpers ──────────────────────────────────────────────────
 
-/** Extrai o `where` passado ao Prisma numa chamada específica de um mock. */
-const extractWhere = (mock: Mock, callIndex = 0) =>
-  mock.mock.calls[callIndex]?.[0]?.where;
-
-/** Extrai o Prisma.Sql passado ao $queryRaw, com parâmetros como '?' e espaços normalizados. */
-const extractRawQuery = (mock: Mock, callIndex = 0) => {
-  const arg = mock.mock.calls[callIndex][0] as Prisma.Sql;
-  return {
-    arg,
-    sql: arg.strings.join('?').replace(/\s+/g, ' ').trim(),
-    values: arg.values,
-  };
-};
-
-/**
- * Primeiro dia (UTC) de um mês YYYY-MM, com deslocamento opcional.
- * Implementação independente do repository (sem moment).
- */
-const monthStart = (value?: string, offset = 0): Date | null => {
-  if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return null;
-  const [year, month] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1 + offset, 1)); // Date.UTC trata a virada do ano
-};
-
-/** Monta o `where` esperado para as consultas Prisma. */
-const buildExpectedWhere = (filter: ContingencyInput = {}) => {
-  const where: Record<string, any> = {};
-  const start = monthStart(filter.mesInicial);
-  const endExclusive = monthStart(filter.mesFinal, 1);
-
-  if (start || endExclusive) {
-    where.dia_disponibilidade = {
-      ...(start && { gte: start }),
-      ...(endExclusive && { lt: endExclusive }),
-    };
+const sqlText = (node: any): string => {
+  if (node?.strings) {
+    return node.strings
+      .reduce(
+        (acc: string, str: string, i: number) =>
+          acc + str + (i < node.values.length ? sqlText(node.values[i]) : ''),
+        '',
+      )
+      .replace(/\s+/g, ' ')
+      .trim();
   }
-  if (filter.idParceira?.length) where.id_parceira = { in: filter.idParceira };
-  if (filter.maoObra?.length)
-    where.tipo_recurso_mao_obra = { in: filter.maoObra };
-  if (filter.equipe?.length) where.tipo_recurso_equipe = { in: filter.equipe };
-  if (filter.csd?.length) where.disponibilizado_csd = { in: filter.csd };
-
-  return where;
+  if (node?.join) return node.join.map(sqlText).join(node.sep);
+  if (node?.empty) return '';
+  return '$';
 };
-// ─── Suíte ────────────────────────────────────────────────────────────────────
+
+const sqlValues = (node: any): unknown[] => {
+  if (node?.strings) return node.values.flatMap(sqlValues);
+  if (node?.join) return node.join.flatMap(sqlValues);
+  if (node?.empty) return [];
+  return [node];
+};
+
+// ─── Suite ───────────────────────────────────────────────────────────────────
 
 describe('ContingencyRepository', () => {
+  const prisma = {
+    recursos_contingencia: { create: vi.fn(), findMany: vi.fn() },
+    turmas: { findMany: vi.fn() },
+    $queryRaw: vi.fn(),
+  };
+
   let repository: ContingencyRepository;
-  let prisma: PrismaMock;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let errorSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
-    prisma = makePrismaMock();
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ContingencyRepository,
-        { provide: PrismaService, useValue: prisma },
-      ],
-    }).compile();
+    warnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+    errorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
-    repository = module.get(ContingencyRepository);
+    vi.mocked(toRepositoryError).mockImplementation((error, operation) =>
+      error instanceof RepositoryError
+        ? error
+        : new RepositoryError(
+            'database failure',
+            'UNKNOWN' as never,
+            operation,
+          ),
+    );
+
+    repository = new ContingencyRepository(prisma as unknown as PrismaService);
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
-  // ── Sanity ──────────────────────────────────────────────────────────
-
-  it('should be defined', () => {
-    expect(repository).toBeDefined();
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // buildWhere
-  // ═══════════════════════════════════════════════════════════════════════
-  describe('buildWhere (via findRecent)', () => {
-    const lastWhere = () => extractWhere(prisma.recursos_contingencia.findMany);
-
-    it('should build a complete where clause when all filter fields are present', async () => {
-      const filter = makeFilter();
-
-      await repository.findRecent(filter);
-
-      expect(lastWhere()).toStrictEqual(buildExpectedWhere(filter));
-    });
-
-    it.each<[string, ContingencyInput | undefined]>([
-      ['undefined', undefined],
-      ['an empty object', {}],
-    ])('should return an empty where when filter is %s', async (_, filter) => {
-      await repository.findRecent(filter);
-
-      expect(lastWhere()).toStrictEqual({});
-    });
-
-    // ── Período ───────────────────────────────────────────────────────────────
-    it('should cover the whole month (gte first day, lt first day of next month)', async () => {
-      await repository.findRecent({
-        mesInicial: '2025-06',
-        mesFinal: '2025-06',
-      });
-
-      expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: {
-          gte: new Date('2025-06-01T00:00:00.000Z'),
-          lt: new Date('2025-07-01T00:00:00.000Z'),
-        },
-      });
-    });
-
-    it('should cover a range of several months', async () => {
-      await repository.findRecent({
-        mesInicial: '2026-01',
-        mesFinal: '2026-03',
-      });
-
-      expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: {
-          gte: new Date('2026-01-01T00:00:00.000Z'),
-          lt: new Date('2026-04-01T00:00:00.000Z'),
-        },
-      });
-    });
-
-    it('should roll over the year when mesFinal is December', async () => {
-      await repository.findRecent({ mesFinal: '2025-12' });
-
-      expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: { lt: new Date('2026-01-01T00:00:00.000Z') },
-      });
-    });
-
-    it('should include only gte when only mesInicial is provided', async () => {
-      await repository.findRecent({ mesInicial: '2025-06' });
-
-      expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: { gte: new Date('2025-06-01T00:00:00.000Z') },
-      });
-    });
-
-    it('should include only lt when only mesFinal is provided', async () => {
-      await repository.findRecent({ mesFinal: '2025-06' });
-
-      expect(lastWhere()).toStrictEqual({
-        dia_disponibilidade: { lt: new Date('2025-07-01T00:00:00.000Z') },
-      });
-    });
-
-    it.each([
-      ['undefined', undefined],
-      ['empty string', ''],
-      ['old format MM/YYYY', '06/2025'],
-      ['old format DD/MM/YYYY', '01/06/2025'],
-      ['invalid month', '2025-13'],
-      ['single-digit month', '2025-6'],
-      ['text', 'abc'],
-    ])('should ignore the period when months are %s', async (_, value) => {
-      await repository.findRecent(
-        makeFilter({ mesInicial: value, mesFinal: value }),
-      );
-
-      expect(lastWhere()).not.toHaveProperty('dia_disponibilidade');
-    });
-
-    // ── Arrays vazios ─────────────────────────────────────────────────────────
-    it.each<[keyof ContingencyInput, string]>([
-      ['idParceira', 'id_parceira'],
-      ['maoObra', 'tipo_recurso_mao_obra'],
-      ['equipe', 'tipo_recurso_equipe'],
-      ['csd', 'disponibilizado_csd'],
-    ])('should skip %s when array is empty', async (filterKey, whereKey) => {
-      await repository.findRecent(makeFilter({ [filterKey]: [] }));
-
-      expect(lastWhere()).not.toHaveProperty(whereKey);
-    });
-
-    // ── Campos isolados ───────────────────────────────────────────────────────
-    it.each<[ContingencyInput, Record<string, unknown>]>([
-      [{ idParceira: [1, 2] }, { id_parceira: { in: [1, 2] } }],
-      [
-        { maoObra: ['ELETRICISTA'] },
-        { tipo_recurso_mao_obra: { in: ['ELETRICISTA'] } },
-      ],
-      [{ equipe: ['EQUIPE_A'] }, { tipo_recurso_equipe: { in: ['EQUIPE_A'] } }],
-      [
-        { csd: ['SIM', 'NAO'] },
-        { disponibilizado_csd: { in: ['SIM', 'NAO'] } },
-      ],
-    ])('should handle filter %o in isolation', async (filter, expected) => {
-      await repository.findRecent(filter);
-
-      expect(lastWhere()).toStrictEqual(expected);
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // create
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── create ────────────────────────────────────────────────────────────────
 
   describe('create', () => {
-    it('should delegate to prisma.recursos_contingencia.create with mapped data', async () => {
-      const data = makeCreateInput();
-      const expected = makeCreateInputRow();
-      const created = { id: 1, ...expected };
-      prisma.recursos_contingencia.create.mockResolvedValueOnce(created as any);
+    it('should persist the mapped contingency data', async () => {
+      const data = { idParceira: 7, idUsuario: 3 } as never;
+      vi.mocked(toCreateContingencyInput).mockReturnValue({
+        mapped: true,
+      } as never);
+      prisma.recursos_contingencia.create.mockResolvedValue(undefined);
 
-      await repository.create(data);
+      await expect(repository.create(data)).resolves.toBeUndefined();
 
-      expect(prisma.recursos_contingencia.create).toHaveBeenCalledTimes(1);
+      expect(toCreateContingencyInput).toHaveBeenCalledWith(data);
       expect(prisma.recursos_contingencia.create).toHaveBeenCalledWith({
-        data: expected,
+        data: { mapped: true },
       });
     });
 
-    it('should return void', async () => {
-      const result = await repository.create(makeCreateInput());
-      expect(result).toBeUndefined();
+    it('should log and rethrow a RepositoryError when the insert fails', async () => {
+      prisma.recursos_contingencia.create.mockRejectedValue(
+        new Error('insert failed'),
+      );
+
+      await expect(
+        repository.create({ idParceira: 1, idUsuario: 2 } as never),
+      ).rejects.toMatchObject({
+        message: 'database failure',
+      });
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[create] UNKNOWN: database failure'),
+        expect.any(String),
+      );
+      expect(errorSpy.mock.calls[0][0]).toContain('"idParceira":1');
     });
 
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('unique constraint violation');
-      prisma.recursos_contingencia.create.mockRejectedValueOnce(error);
+    it('should tolerate nullish data when building the error context', async () => {
+      prisma.recursos_contingencia.create.mockRejectedValue(new Error('boom'));
 
-      await expect(repository.create(makeCreateInput())).rejects.toThrow(error);
+      await expect(
+        repository.create(undefined as never),
+      ).rejects.toBeInstanceOf(RepositoryError);
+      expect(errorSpy).toHaveBeenCalled();
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // findRecent
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── findRecent ────────────────────────────────────────────────────────────
 
   describe('findRecent', () => {
-    it('should call findMany with correct where, orderBy and select', async () => {
-      const filter = makeFilter();
+    it('should query with an empty where clause and map the rows when no filter is given', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([
+        { id: 1 },
+        { id: 2 },
+      ]);
+      vi.mocked(toRecentContingency).mockImplementation(
+        (row: never) => ({ mapped: row }) as never,
+      );
 
-      await repository.findRecent(filter);
+      const result = await repository.findRecent();
 
-      expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledTimes(1);
       expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
-        where: buildExpectedWhere(filter),
+        where: {},
         orderBy: { criado_em: 'desc' },
-        select: {
-          id: true,
-          dia_disponibilidade: true,
-          novo_tabela_usuarios: { select: { nome: true } },
-          turmas: { select: { turma: true } },
+        select: { recent: true },
+      });
+      expect(result).toEqual([{ mapped: { id: 1 } }, { mapped: { id: 2 } }]);
+    });
+
+    it('should build the where clause from every filter field', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
+
+      await repository.findRecent({
+        mesInicial: '2025-01',
+        mesFinal: '2025-03',
+        idParceira: [1, 2],
+        maoObra: ['A'],
+        equipe: ['B'],
+        csd: ['C'],
+      } as ContingencyFilter);
+
+      expect(
+        prisma.recursos_contingencia.findMany.mock.calls[0][0].where,
+      ).toEqual({
+        dia_disponibilidade: {
+          gte: new Date('2025-01-01'),
+          lt: new Date('2025-04-01'),
         },
+        id_parceira: { in: [1, 2] },
+        tipo_recurso_mao_obra: { in: ['A'] },
+        tipo_recurso_equipe: { in: ['B'] },
+        disponibilizado_csd: { in: ['C'] },
       });
     });
 
-    it('should not limit the number of results (no take)', async () => {
-      await repository.findRecent(makeFilter());
+    it('should apply only the lower bound when just mesInicial is provided', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
 
-      const args = prisma.recursos_contingencia.findMany.mock.calls[0][0];
-      expect(args).not.toHaveProperty('take');
-    });
+      await repository.findRecent({
+        mesInicial: '2025-05',
+      } as ContingencyFilter);
 
-    it('should return the rows from prisma unchanged', async () => {
-      const rows = [
-        makeRecentRow('2025-06-10', 2, 'Ana'),
-        makeRecentRow('2025-06-09', null),
-      ];
-
-      const expected = [
-        makeRecent('2025-06-10', 2, 'Ana'),
-        makeRecent('2025-06-09', null),
-      ];
-
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce(rows);
-
-      const result = await repository.findRecent(makeFilter());
-
-      expect(result).toStrictEqual(expected); // mesma referência
-    });
-
-    it('should handle undefined filter', async () => {
-      await repository.findRecent(undefined);
-
-      expect(extractWhere(prisma.recursos_contingencia.findMany)).toStrictEqual(
-        {},
-      );
-    });
-
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('findMany failed');
-      prisma.recursos_contingencia.findMany.mockRejectedValueOnce(error);
-
-      await expect(repository.findRecent(makeFilter())).rejects.toThrow(error);
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // groupByCsd
-  // ═══════════════════════════════════════════════════════════════════════
-
-  describe('groupByCsd', () => {
-    it('should call groupBy by disponibilizado_csd with the built where and _count', async () => {
-      const filter = makeFilter();
-
-      await repository.groupByCsd(filter);
-
-      expect(prisma.recursos_contingencia.groupBy).toHaveBeenCalledTimes(1);
-      expect(prisma.recursos_contingencia.groupBy).toHaveBeenCalledWith({
-        by: ['disponibilizado_csd'],
-        where: buildExpectedWhere(filter),
-        _count: { _all: true },
+      expect(
+        prisma.recursos_contingencia.findMany.mock.calls[0][0].where,
+      ).toEqual({
+        dia_disponibilidade: { gte: new Date('2025-05-01') },
       });
     });
 
-    it('should use an empty where when no filter is provided', async () => {
-      await repository.groupByCsd();
+    it('should apply only the exclusive upper bound when just mesFinal is provided', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
 
-      expect(extractWhere(prisma.recursos_contingencia.groupBy)).toStrictEqual(
-        {},
+      await repository.findRecent({ mesFinal: '2025-12' } as ContingencyFilter);
+
+      expect(
+        prisma.recursos_contingencia.findMany.mock.calls[0][0].where,
+      ).toEqual({
+        dia_disponibilidade: { lt: new Date('2026-01-01') },
+      });
+    });
+
+    it('should ignore empty array filters', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
+
+      await repository.findRecent({
+        idParceira: [],
+        maoObra: [],
+        equipe: [],
+        csd: [],
+      } as ContingencyFilter);
+
+      expect(
+        prisma.recursos_contingencia.findMany.mock.calls[0][0].where,
+      ).toEqual({});
+    });
+
+    it('should reject with INVALID_DATA and log a warning when mesInicial has an invalid format', async () => {
+      await expect(
+        repository.findRecent({ mesInicial: '01/2025' } as ContingencyFilter),
+      ).rejects.toMatchObject({
+        code: 'INVALID_DATA',
+        message: expect.stringContaining('mesInicial inválido: "01/2025"'),
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[findRecent] INVALID_DATA'),
+        expect.any(String),
       );
-    });
-
-    it('should map groupBy rows to { name, value }', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeCsdGroupRow('SIM', 10),
-        makeCsdGroupRow('NAO', 4),
-      ]);
-
-      const result = await repository.groupByCsd(makeFilter());
-
-      expect(result).toStrictEqual([
-        { name: 'SIM', value: 10 },
-        { name: 'NAO', value: 4 },
-      ]);
-    });
-
-    it('should keep the order returned by prisma', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeCsdGroupRow('NAO', 1),
-        makeCsdGroupRow('SIM', 99),
-      ]);
-
-      const result = await repository.groupByCsd(makeFilter());
-
-      expect(result.map((r) => r.name)).toStrictEqual(['NAO', 'SIM']);
-    });
-
-    it('should return empty array when there are no groups', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([]);
-
-      const result = await repository.groupByCsd(makeFilter());
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('should not use count or findMany', async () => {
-      await repository.groupByCsd(makeFilter());
-
-      expect(prisma.recursos_contingencia.count).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
       expect(prisma.recursos_contingencia.findMany).not.toHaveBeenCalled();
     });
 
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('groupBy failed');
-      prisma.recursos_contingencia.groupBy.mockRejectedValueOnce(error);
+    it('should reject with INVALID_DATA when mesFinal has an invalid format', async () => {
+      await expect(
+        repository.findRecent({ mesFinal: 'not-a-date' } as ContingencyFilter),
+      ).rejects.toMatchObject({
+        code: 'INVALID_DATA',
+        message: expect.stringContaining('mesFinal inválido'),
+      });
+    });
 
-      await expect(repository.groupByCsd(makeFilter())).rejects.toBe(error);
+    it('should reject with INVALID_DATA when mesInicial is after mesFinal', async () => {
+      await expect(
+        repository.findRecent({
+          mesInicial: '2025-06',
+          mesFinal: '2025-01',
+        } as ContingencyFilter),
+      ).rejects.toMatchObject({
+        code: 'INVALID_DATA',
+        message: 'mesInicial não pode ser posterior a mesFinal.',
+      });
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // groupByField
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── groupByField ──────────────────────────────────────────────────────────
 
   describe('groupByField', () => {
-    const baseSelect = {
-      quantidade_mao_obra: true,
-      quantidade_equipe: true,
-    };
+    it('should group rows by the mapped column and drop null items', async () => {
+      const rows = [{ a: 1 }, { a: 2 }, { a: 3 }];
+      prisma.recursos_contingencia.findMany.mockResolvedValue(rows);
+      vi.mocked(toContingencyGroupItem)
+        .mockReturnValueOnce({ name: 'x', value: 1 } as never)
+        .mockReturnValueOnce(null as never)
+        .mockReturnValueOnce({ name: 'y', value: 2 } as never);
 
-    const fields: readonly ContingencyGroupField[] = ['laborType', 'teamType'];
+      const result = await repository.groupByField('csd' as never);
 
-    // ── Query ───────────────────────────────────────────────────────────────
-    it.each(fields)(
-      'should call findMany with the correct where and select for "%s"',
-      async (field) => {
-        const filter = makeFilter();
-
-        await repository.groupByField(field, filter);
-
-        expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledTimes(1);
-        expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
-          where: buildExpectedWhere(filter),
-          select: {
-            ...baseSelect,
-            tipo_recurso_mao_obra: true,
-            tipo_recurso_equipe: true,
-          },
-        });
-      },
-    );
-
-    it('should not use groupBy anymore', async () => {
-      await repository.groupByField('laborType', makeFilter());
-
-      expect(prisma.recursos_contingencia.groupBy).not.toHaveBeenCalled();
+      expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
+        where: {},
+        select: { group: true },
+      });
+      expect(toContingencyGroupItem).toHaveBeenCalledWith(
+        rows[0],
+        'disponibilizado_csd',
+      );
+      expect(result).toEqual([
+        { name: 'x', value: 1 },
+        { name: 'y', value: 2 },
+      ]);
     });
 
-    it('should build where from a partial filter', async () => {
-      const filter = makeFilter({
-        idParceira: [],
-        maoObra: undefined,
-        csd: [],
+    it('should forward the filter to the where clause', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
+
+      await repository.groupByField(
+        'equipe' as never,
+        { idParceira: [9] } as ContingencyFilter,
+      );
+
+      expect(
+        prisma.recursos_contingencia.findMany.mock.calls[0][0].where,
+      ).toEqual({
+        id_parceira: { in: [9] },
+      });
+    });
+
+    it('should throw INVALID_DATA when the group field is unknown', async () => {
+      await expect(
+        repository.groupByField('unknown' as never),
+      ).rejects.toMatchObject({
+        code: 'INVALID_DATA',
+        message: 'Campo de agrupamento inválido: unknown',
       });
 
-      await repository.groupByField('teamType', filter);
-
-      expect(extractWhere(prisma.recursos_contingencia.findMany)).toStrictEqual(
-        buildExpectedWhere(filter),
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"field":"unknown"'),
+        expect.any(String),
       );
-    });
-
-    it('should use an empty where when no filter is provided', async () => {
-      await repository.groupByField('laborType');
-
-      expect(extractWhere(prisma.recursos_contingencia.findMany)).toStrictEqual(
-        buildExpectedWhere({}),
-      );
-    });
-
-    // ── Mapeamento ──────────────────────────────────────────────────────────
-    it('should map rows to GroupByFieldRow[]', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_equipe: 'EQUIPE_A',
-          quantidade_mao_obra: 10,
-          quantidade_equipe: 2,
-        }),
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_equipe: 'EQUIPE_B',
-          quantidade_mao_obra: 5,
-          quantidade_equipe: 1,
-        }),
-      ]);
-
-      const result = await repository.groupByField('teamType', makeFilter());
-
-      expect(result).toStrictEqual([
-        {
-          name: 'EQUIPE_A',
-          laborQuantity: 10,
-          teamsQuantity: 2,
-        },
-        {
-          name: 'EQUIPE_B',
-          laborQuantity: 5,
-          teamsQuantity: 1,
-        },
-      ]);
-    });
-
-    it('should default null quantities to 0', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_mao_obra: 'ELETRICISTA',
-          quantidade_mao_obra: null,
-          quantidade_equipe: null,
-        }),
-      ]);
-
-      const result = await repository.groupByField('laborType', makeFilter());
-
-      expect(result).toStrictEqual([
-        {
-          name: 'ELETRICISTA',
-          laborQuantity: 0,
-          teamsQuantity: 0,
-        },
-      ]);
-    });
-
-    it('should discard rows where the grouped field is null or undefined', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_mao_obra: null,
-          quantidade_mao_obra: 99,
-        }),
-        makeGroupByFieldFindManyRow({ quantidade_mao_obra: 77 }), // campo ausente
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_mao_obra: 'ELETRICISTA',
-          quantidade_mao_obra: 3,
-        }),
-      ]);
-
-      const result = await repository.groupByField('laborType', makeFilter());
-
-      expect(result).toStrictEqual([
-        {
-          name: 'ELETRICISTA',
-          laborQuantity: 3,
-          teamsQuantity: 0,
-        },
-      ]);
-    });
-
-    it('should return empty array when the default findMany rows lack the grouped field', async () => {
-      // Usa o retorno por omissão do mock (makeRecentRow), que não tem o campo.
-      const result = await repository.groupByField('laborType', makeFilter());
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('should keep falsy but non-null values (e.g. empty string)', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({ tipo_recurso_equipe: '' }),
-      ]);
-
-      const result = await repository.groupByField('teamType', makeFilter());
-
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('');
-    });
-
-    it('should not aggregate rows with the same name (one entry per record)', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_equipe: 'EQUIPE_A',
-          quantidade_equipe: 1,
-        }),
-        makeGroupByFieldFindManyRow({
-          tipo_recurso_equipe: 'EQUIPE_A',
-          quantidade_equipe: 4,
-        }),
-      ]);
-
-      const result = await repository.groupByField('teamType', makeFilter());
-
-      expect(result).toHaveLength(2);
-      expect(result.map((r) => r.teamsQuantity)).toStrictEqual([1, 4]);
-    });
-
-    it('should return empty array when no rows exist', async () => {
-      prisma.recursos_contingencia.findMany.mockResolvedValueOnce([]);
-
-      const result = await repository.groupByField('teamType', makeFilter());
-
-      expect(result).toStrictEqual([]);
-    });
-
-    // ── Erros ───────────────────────────────────────────────────────────────
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('findMany failed');
-      prisma.recursos_contingencia.findMany.mockRejectedValueOnce(error);
-
-      await expect(
-        repository.groupByField('laborType', makeFilter()),
-      ).rejects.toThrow(error);
+      expect(prisma.recursos_contingencia.findMany).not.toHaveBeenCalled();
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // groupByPartner
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── groupByPartner ────────────────────────────────────────────────────────
 
   describe('groupByPartner', () => {
-    it('should groupBy id_parceira and resolve turma names', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeGroupByParceiraRow(1, 10),
-        makeGroupByParceiraRow(2, 5),
-      ]);
-      prisma.turmas.findMany.mockResolvedValueOnce([
-        makeTurmaRow(1, 'Turma Alpha'),
-        makeTurmaRow(2, 'Turma Beta'),
-      ]);
+    it('should return an empty list without querying partners when there are no rows', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([]);
 
-      const result = await repository.groupByPartner(makeFilter());
-
-      expect(result).toStrictEqual([
-        { name: 'Turma Alpha', value: 10 },
-        { name: 'Turma Beta', value: 5 },
-      ]);
-    });
-
-    it('should query turmas with the ids from groupBy result', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeGroupByParceiraRow(3, 7),
-        makeGroupByParceiraRow(5, 2),
-      ]);
-      prisma.turmas.findMany.mockResolvedValueOnce([]);
-
-      await repository.groupByPartner(makeFilter());
-
-      expect(prisma.turmas.findMany).toHaveBeenCalledWith({
-        where: { id: { in: [3, 5] } },
-        select: { id: true, turma: true },
-      });
-    });
-
-    it('should fallback to stringified id when turma name is not found', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeGroupByParceiraRow(99, 3),
-      ]);
-      prisma.turmas.findMany.mockResolvedValueOnce([]); // nenhuma turma encontrada
-
-      const result = await repository.groupByPartner(makeFilter());
-
-      expect(result).toStrictEqual([{ name: '99', value: 3 }]);
-    });
-
-    it('should return empty array when no groups exist', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([]);
-      prisma.turmas.findMany.mockResolvedValueOnce([]);
-
-      const result = await repository.groupByPartner(makeFilter());
-
-      expect(result).toStrictEqual([]);
-    });
-
-    it('should not call query turmas with empty array when groupBy ', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([]);
-
-      await repository.groupByPartner(makeFilter());
+      await expect(repository.groupByPartner()).resolves.toEqual([]);
 
       expect(prisma.turmas.findMany).not.toHaveBeenCalled();
+      expect(toPartnerQuantityItems).not.toHaveBeenCalled();
     });
 
-    it('should propagate prisma exceptions from groupBy', async () => {
-      const error = new Error('groupBy parceira failed');
-      prisma.recursos_contingencia.groupBy.mockRejectedValueOnce(error);
+    it('should fetch distinct partners and map rows together with them', async () => {
+      const rows = [{ id_parceira: 1 }, { id_parceira: 2 }, { id_parceira: 1 }];
+      const partners = [
+        { id: 1, nome: 'A' },
+        { id: 2, nome: 'B' },
+      ];
+      const mapped = [{ name: 'A', value: 1 }];
+      prisma.recursos_contingencia.findMany.mockResolvedValue(rows);
+      prisma.turmas.findMany.mockResolvedValue(partners);
+      vi.mocked(toPartnerQuantityItems).mockReturnValue(mapped as never);
 
-      await expect(repository.groupByPartner(makeFilter())).rejects.toThrow(
-        error,
-      );
+      const result = await repository.groupByPartner();
+
+      expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
+        where: {},
+        select: { partner: true },
+      });
+      expect(prisma.turmas.findMany).toHaveBeenCalledWith({
+        where: { id: { in: [1, 2] } },
+        select: { nome: true },
+      });
+      expect(toPartnerQuantityItems).toHaveBeenCalledWith(rows, partners);
+      expect(result).toBe(mapped);
     });
+  });
 
-    it('should propagate prisma exceptions from turmas.findMany', async () => {
-      prisma.recursos_contingencia.groupBy.mockResolvedValueOnce([
-        makeGroupByParceiraRow(1, 1),
+  // ─── groupByCsd ────────────────────────────────────────────────────────────
+
+  describe('groupByCsd', () => {
+    it('should map every row to a CSD quantity item', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([
+        { id: 1 },
+        { id: 2 },
       ]);
-      const error = new Error('turmas query failed');
-      prisma.turmas.findMany.mockRejectedValueOnce(error);
+      vi.mocked(toCsdQuantityItem).mockImplementation(
+        (row: never) => ({ csd: row }) as never,
+      );
 
-      await expect(repository.groupByPartner(makeFilter())).rejects.toThrow(
-        error,
+      const result = await repository.groupByCsd();
+
+      expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
+        where: {},
+        select: { csd: true },
+      });
+      expect(result).toEqual([{ csd: { id: 1 } }, { csd: { id: 2 } }]);
+    });
+
+    it('should log an error and rethrow when the query fails', async () => {
+      prisma.recursos_contingencia.findMany.mockRejectedValue(
+        new Error('down'),
+      );
+
+      await expect(
+        repository.groupByCsd({ csd: ['X'] } as ContingencyFilter),
+      ).rejects.toBeInstanceOf(RepositoryError);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[groupByCsd]'),
+        expect.any(String),
       );
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // getCapacityByYearMonth
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── getCapacityByYearMonth ────────────────────────────────────────────────
 
   describe('getCapacityByYearMonth', () => {
-    const lastRawQuery = () => extractRawQuery(prisma.$queryRaw);
-
-    it('should call $queryRaw once and return its result unchanged', async () => {
-      const rows = [{ ano: '2025', mes: 6, capacidade: 10, valor: 1500 }];
-      const expected = [{ year: 2025, month: 6, capacity: 10, value: 1500 }];
-      prisma.$queryRaw.mockResolvedValueOnce(rows);
-
-      const result = await repository.getCapacityByYearMonth(makeFilter());
-
-      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toStrictEqual(expected);
-    });
-
-    it('should build the base query', async () => {
-      await repository.getCapacityByYearMonth(makeFilter());
-
-      const { arg, sql } = lastRawQuery();
-      expect(arg).toBeInstanceOf(Prisma.Sql);
-      expect(sql).toContain('FROM public.capacidade_execucao ce');
-      expect(sql).toContain('JOIN public.turmas t ON t.id = ce.id_turma');
-      expect(sql).toContain('SUM(COALESCE(m.valor, 0))::int AS capacidade');
-      expect(sql).toContain('::float8 AS valor');
-      expect(sql).toMatch(/GROUP BY ce\.ano, m\.mes ORDER BY ce\.ano, m\.mes$/);
-    });
-
-    it('should filter months overlapping the period and partners', async () => {
-      await repository.getCapacityByYearMonth(
-        makeFilter({ mesInicial: '2026-01', mesFinal: '2026-03' }),
+    it('should run the raw query without a WHERE clause when no filter is given', async () => {
+      prisma.$queryRaw.mockResolvedValue([{ ano: 2025 }]);
+      vi.mocked(toCapacityByYearMonth).mockImplementation(
+        (row: never) => ({ mapped: row }) as never,
       );
 
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain(
-        'WHERE make_date(ce.ano::int, m.mes, 1) >= ?::date AND make_date(ce.ano::int, m.mes, 1) < ?::date AND t.id IN (?,?)',
+      const result = await repository.getCapacityByYearMonth();
+
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      expect(sqlText(query)).not.toContain('WHERE');
+      expect(sqlText(query)).toContain('GROUP BY ce.ano, m.mes');
+      expect(sqlValues(query)).toEqual([]);
+      expect(result).toEqual([{ mapped: { ano: 2025 } }]);
+    });
+
+    it('should add period and partner conditions when all filters are provided', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
+
+      await repository.getCapacityByYearMonth({
+        mesInicial: '2025-01',
+        mesFinal: '2025-03',
+        idParceira: [1, 2],
+      } as ContingencyFilter);
+
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      const text = sqlText(query);
+      expect(text).toContain(
+        'WHERE make_date(ce.ano::int, m.mes, 1) >= $::date AND',
       );
-      expect(values).toStrictEqual(['2026-01-01', '2026-04-01', 1, 2]);
-    });
-
-    it('should ignore labor, team and csd filters', async () => {
-      await repository.getCapacityByYearMonth(makeFilter());
-
-      const { sql, values } = lastRawQuery();
-      expect(values).toStrictEqual(['2025-06-01', '2025-07-01', 1, 2]);
-      expect(sql).not.toMatch(/tipo_recurso|disponibilizado_csd/);
-    });
-
-    it('should not generate a WHERE without period and partners', async () => {
-      await repository.getCapacityByYearMonth({});
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).not.toContain('WHERE');
-      expect(values).toStrictEqual([]);
-    });
-
-    it('should parameterize all values', async () => {
-      await repository.getCapacityByYearMonth(
-        makeFilter({
-          mesInicial: '2031-06',
-          mesFinal: '2031-06',
-          idParceira: [7771],
-        }),
+      expect(text).toContain(
+        'make_date(ce.ano::int, m.mes, 1) < $::date AND t.id IN ($,$)',
       );
-
-      const { sql } = lastRawQuery();
-      expect(sql).not.toContain('2031');
-      expect(sql).not.toContain('7771');
+      expect(sqlValues(query)).toEqual(['2025-01-01', '2025-04-01', 1, 2]);
     });
 
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('raw query failed');
-      prisma.$queryRaw.mockRejectedValueOnce(error);
+    it('should skip the partner condition when idParceira is an empty array', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
 
-      await expect(
-        repository.getCapacityByYearMonth(makeFilter()),
-      ).rejects.toBe(error);
+      await repository.getCapacityByYearMonth({
+        mesInicial: '2025-01',
+        idParceira: [],
+      } as ContingencyFilter);
+
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      expect(sqlText(query)).not.toContain('t.id IN');
+      expect(sqlValues(query)).toEqual(['2025-01-01']);
     });
   });
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // getEmergencyTeamsWithValue
-  // ═══════════════════════════════════════════════════════════════════════
+  // ─── getEmergencyTeamsWithValue ────────────────────────────────────────────
 
   describe('getEmergencyTeamsWithValue', () => {
-    const lastRawQuery = () => extractRawQuery(prisma.$queryRaw);
+    it('should run the query without any conditions when no filter is given', async () => {
+      prisma.$queryRaw.mockResolvedValue([{ ano: 2025 }]);
+      vi.mocked(toEmergencyTeam).mockImplementation(
+        (row: never) => ({ team: row }) as never,
+      );
 
-    it('should call $queryRaw once and return its result unchanged', async () => {
-      const rows = [
-        makeEmergencyTeamRawRow(),
-        makeEmergencyTeamRawRow({ tipo: 'EQUIPE_B' }),
-      ];
+      const result = await repository.getEmergencyTeamsWithValue();
 
-      const expected = [
-        makeEmergencyTeam(),
-        makeEmergencyTeam({ type: 'EQUIPE_B' }),
-      ];
-
-      prisma.$queryRaw.mockResolvedValueOnce(rows);
-
-      const result = await repository.getEmergencyTeamsWithValue(makeFilter());
-
-      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
-      expect(result).toStrictEqual(expected);
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      expect(sqlText(query)).not.toContain('WHERE');
+      expect(sqlValues(query)).toEqual([]);
+      expect(result).toEqual([{ team: { ano: 2025 } }]);
     });
 
-    it('should build the CTEs, the LEFT JOIN and the final grouping', async () => {
-      await repository.getEmergencyTeamsWithValue(makeFilter());
+    it('should apply every filter to both the teams and the values CTEs', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
 
-      const { sql } = lastRawQuery();
-      expect(sql).toContain('WITH equipes AS (');
-      expect(sql).toContain('FROM public.recursos_contingencia rc');
-      expect(sql).toContain('FROM public.capacidade_execucao');
-      expect(sql).toContain('should_cost / 22 AS valor_diario');
-      expect(sql).toContain(
-        'LEFT JOIN valores v ON v.ano = e.ano AND v.tipo = e.tipo AND v.id_parceira = e.id_parceira',
-      );
-      expect(sql).toContain(
-        'COALESCE(SUM(e.quantidade * v.valor_diario), 0)::float8 AS valor',
-      );
-      expect(sql).toMatch(
-        /GROUP BY e\.ano, e\.mes, e\.tipo ORDER BY e\.ano, e\.mes, e\.tipo$/,
-      );
-    });
+      await repository.getEmergencyTeamsWithValue({
+        mesInicial: '2025-01',
+        mesFinal: '2025-03',
+        idParceira: [1],
+        equipe: ['A'],
+        csd: ['X'],
+      } as ContingencyFilter);
 
-    it('should filter teams by date range and values by year range', async () => {
-      await repository.getEmergencyTeamsWithValue(
-        makeFilter({ mesInicial: '2025-11', mesFinal: '2026-02' }),
-      );
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      const text = sqlText(query);
 
-      const { sql, values } = lastRawQuery();
-      expect(sql).toContain(
-        'WHERE rc.dia_disponibilidade >= ?::date AND rc.dia_disponibilidade < ?::date AND rc.id_parceira IN (?,?)',
-      );
-      expect(sql).toContain(
-        'WHERE ano::int >= ? AND ano::int <= ? AND id_turma IN (?,?)',
-      );
-      // equipes: início, fim exclusivo, parceiras | valores: ano inicial, ano final, parceiras
-      expect(values).toStrictEqual([
-        '2025-11-01',
-        '2026-03-01',
+      expect(text).toContain('rc.dia_disponibilidade >= $::date');
+      expect(text).toContain('rc.dia_disponibilidade < $::date');
+      expect(text).toContain('rc.id_parceira IN ($)');
+      expect(text).toContain('rc.tipo_recurso_equipe IN ($)');
+      expect(text).toContain('rc.disponibilizado_csd IN ($)');
+      expect(text).toContain('ano::int >= $');
+      expect(text).toContain('ano::int <= $');
+      expect(text).toContain('id_turma IN ($)');
+      expect(text).toContain('tipo IN ($)');
+
+      expect(sqlValues(query)).toEqual([
+        '2025-01-01',
+        '2025-04-01',
         1,
-        2,
+        'A',
+        'X',
         2025,
-        2026,
+        2025,
         1,
-        2,
+        'A',
       ]);
     });
 
-    it('should filter only by partners when no period is given', async () => {
-      await repository.getEmergencyTeamsWithValue({ idParceira: [1, 2] });
+    it('should treat empty array filters as absent', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
 
-      const { sql, values } = lastRawQuery();
-      expect(sql).not.toContain('rc.dia_disponibilidade >=');
-      expect(sql).not.toContain('ano::int >=');
-      expect(values).toStrictEqual([1, 2, 1, 2]);
-    });
-
-    it('should not generate any WHERE without filters', async () => {
-      await repository.getEmergencyTeamsWithValue();
-
-      const { sql, values } = lastRawQuery();
-      expect(sql).not.toContain('WHERE');
-      expect(values).toStrictEqual([]);
-    });
-
-    it('should ignore invalid months', async () => {
       await repository.getEmergencyTeamsWithValue({
-        mesInicial: '06/2025',
-        mesFinal: 'abc',
-      });
+        idParceira: [],
+        equipe: [],
+        csd: [],
+      } as ContingencyFilter);
 
-      expect(lastRawQuery().values).toStrictEqual([]);
+      const query = prisma.$queryRaw.mock.calls[0][0];
+      expect(sqlText(query)).not.toContain('WHERE');
+      expect(sqlValues(query)).toEqual([]);
     });
 
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('raw query failed');
-      prisma.$queryRaw.mockRejectedValueOnce(error);
+    it('should support a period with only the start month', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
+
+      await repository.getEmergencyTeamsWithValue({
+        mesInicial: '2025-02',
+      } as ContingencyFilter);
+
+      expect(sqlValues(prisma.$queryRaw.mock.calls[0][0])).toEqual([
+        '2025-02-01',
+        2025,
+      ]);
+    });
+
+    it('should support a period with only the end month', async () => {
+      prisma.$queryRaw.mockResolvedValue([]);
+
+      await repository.getEmergencyTeamsWithValue({
+        mesFinal: '2025-02',
+      } as ContingencyFilter);
+
+      expect(sqlValues(prisma.$queryRaw.mock.calls[0][0])).toEqual([
+        '2025-03-01',
+        2025,
+      ]);
+    });
+  });
+
+  // ─── findContingencyResourceDispatches ─────────────────────────────────────
+
+  describe('findContingencyResourceDispatches', () => {
+    it('should map the dispatch rows', async () => {
+      prisma.recursos_contingencia.findMany.mockResolvedValue([{ id: 1 }]);
+      vi.mocked(toContingencyResourceDispatchesRow).mockImplementation(
+        (row: never) => ({ dispatch: row }) as never,
+      );
+
+      const result = await repository.findContingencyResourceDispatches();
+
+      expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
+        where: {},
+        select: { dispatch: true },
+      });
+      expect(result).toEqual([{ dispatch: { id: 1 } }]);
+    });
+  });
+
+  // ─── Private helpers ───────────────────────────────────────────────────────
+
+  describe('execute (error handling)', () => {
+    const run = (...args: unknown[]) => (repository as any).execute(...args);
+
+    it('should return the value produced by the operation', async () => {
+      await expect(run('op', async () => 42)).resolves.toBe(42);
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should omit the context suffix when no context is provided', async () => {
+      await expect(
+        run('op', async () => {
+          throw new Error('fail');
+        }),
+      ).rejects.toBeInstanceOf(RepositoryError);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[op] UNKNOWN: database failure',
+        expect.any(String),
+      );
+    });
+
+    it('should log a warning for NOT_FOUND errors', async () => {
+      vi.mocked(toRepositoryError).mockReturnValue(
+        new RepositoryError('missing', 'NOT_FOUND' as never, 'op'),
+      );
 
       await expect(
-        repository.getEmergencyTeamsWithValue(makeFilter()),
-      ).rejects.toBe(error);
+        run(
+          'op',
+          async () => {
+            throw new Error('x');
+          },
+          { id: 1 },
+        ),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[op] NOT_FOUND: missing | contexto: {"id":1}',
+        expect.any(String),
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should pass an undefined stack when a non-Error value is thrown', async () => {
+      await expect(
+        run('op', async () => {
+          throw 'plain string';
+        }),
+      ).rejects.toBeInstanceOf(RepositoryError);
+
+      expect(errorSpy).toHaveBeenCalledWith(expect.any(String), undefined);
+    });
+
+    it('should fall back to a placeholder when the context cannot be serialized', async () => {
+      const circular: Record<string, unknown> = {};
+      circular.self = circular;
+
+      await expect(
+        run(
+          'op',
+          async () => {
+            throw new Error('x');
+          },
+          circular,
+        ),
+      ).rejects.toBeInstanceOf(RepositoryError);
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('| contexto: [contexto não serializável]'),
+        expect.any(String),
+      );
+    });
+  });
+
+  describe('buildWhere / resolvePeriod defaults', () => {
+    const repo = () => repository as any;
+
+    it('should build an empty where clause when called without arguments', () => {
+      expect(repo().buildWhere()).toEqual({});
+    });
+
+    it('should resolve an all-null period when called without arguments', () => {
+      expect(repo().resolvePeriod()).toEqual({
+        start: null,
+        endExclusive: null,
+        startYear: null,
+        endYear: null,
+      });
+    });
+
+    it('should resolve start, exclusive end and years for a valid period', () => {
+      expect(
+        repo().resolvePeriod({ mesInicial: '2024-11', mesFinal: '2024-12' }),
+      ).toEqual({
+        start: '2024-11-01',
+        endExclusive: '2025-01-01',
+        startYear: 2024,
+        endYear: 2024,
+      });
+    });
+
+    it('should accept a period where both months are equal', () => {
+      expect(
+        repo().resolvePeriod({ mesInicial: '2025-04', mesFinal: '2025-04' }),
+      ).toMatchObject({
+        start: '2025-04-01',
+        endExclusive: '2025-05-01',
+      });
+    });
+  });
+
+  describe('toWhere', () => {
+    const toWhere = (conditions: unknown[]) =>
+      (repository as any).toWhere(conditions);
+
+    it('should return an empty fragment when there are no conditions', () => {
+      expect(toWhere([])).toEqual({ empty: true });
+    });
+
+    it('should join conditions with AND when present', () => {
+      const result = toWhere([
+        { strings: ['a = 1'], values: [] },
+        { strings: ['b = 2'], values: [] },
+      ]);
+
+      expect(sqlText(result)).toBe('WHERE a = 1 AND b = 2');
     });
   });
 });

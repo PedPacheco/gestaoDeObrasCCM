@@ -18,7 +18,7 @@ export async function resolvePointByPointMode(
 ): Promise<boolean | undefined> {
   if (newPartnerId === undefined || newPartnerId === null) return undefined;
 
-  const nextMode = Number(newPartnerId) === PONTO_A_PONTO_PARTNER_ID;
+  const nextMode = PONTO_A_PONTO_PARTNER_ID.includes(Number(newPartnerId));
 
   const work = await client.obras.findUnique({
     where: { id: workId },

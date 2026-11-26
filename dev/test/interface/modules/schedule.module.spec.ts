@@ -26,7 +26,6 @@ describe('ScheduleModule', () => {
       .useValue({
         table: (name: string) => Prisma.raw(`schema_teste.${name}`),
       })
-
       .compile();
   });
 
