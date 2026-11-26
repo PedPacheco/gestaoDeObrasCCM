@@ -53,3 +53,15 @@ export interface EmergencyTeam {
   quantity: number;
   value: number;
 }
+
+export interface ContingencyResourceDispatches {
+  createdAt: Date;
+  availabilityDate: Date;
+  allocatedCsd: string;
+  teamType: string | null;
+  laborType: string | null;
+  laborQuantity: number | null;
+  teamQuantity: number | null;
+  user: string;
+  partner: string;
+}

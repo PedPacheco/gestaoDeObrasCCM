@@ -172,6 +172,8 @@ export abstract class BaseSchedule {
 
     const value = this.numDp?.trim();
 
+    console.log(value, this.numDp);
+
     if (!value || value === '0') {
       throw new ValidationError(BaseSchedule.MISSING_MESSAGES[rule]);
     }
